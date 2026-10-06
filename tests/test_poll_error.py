@@ -37,3 +37,19 @@ def test_leave_one_election_out_is_temporal():
     assert "2004" not in out
     assert "2008" in out
     assert "2011" in out
+
+
+def test_direction_and_magnitude():
+    x = row("2004", "2004-03-14", "A", 45, 42, "2004-03-01")
+    assert x.error_direction == "SOBREESTIMACION"
+    assert x.change_magnitude == 3
+
+
+def test_government_dimensions():
+    from src.poll_error import by_government, by_government_status
+    rows = [
+        PollObservation("2004","2004-03-14","A",45,42,"H","2004-03-01","S","1","PP","incumbent_government"),
+        PollObservation("2008","2008-03-09","A",40,42,"H","2008-03-01","S","2","PSOE","incumbent_government"),
+    ]
+    assert set(by_government(rows)) == {"PP","PSOE"}
+    assert set(by_government_status(rows)) == {"incumbent_government"}
