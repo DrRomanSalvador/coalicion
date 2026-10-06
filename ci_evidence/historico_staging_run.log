@@ -1,4 +1,4 @@
 Traceback (most recent call last):
-  File "/home/runner/work/coalicion/coalicion/scripts/stage_historico_secondary.py", line 81, in <module>
-    raise RuntimeError(f"No election-date column found; columns={list(df.columns)}")
-RuntimeError: No election-date column found; columns=['id_elec', 'id_INE_prov', 'ccaa', 'prov', 'ballots_1', 'ballots_2', 'blank_ballots', 'invalid_ballots', 'party_ballots', 'valid_ballots', 'total_ballots', 'n_poll_stations', 'id_candidacies', 'abbrev_candidacies', 'name_candidacies', 'ballots', 'pop_res_prov', 'census_counting_prov', 'porc_candidacies_parties', 'porc_candidacies_valid', 'porc_candidacies_census']
+  File "/home/runner/work/coalicion/coalicion/scripts/stage_historico_secondary.py", line 92, in <module>
+    raise RuntimeError("No target elections found in secondary source")
+RuntimeError: No target elections found in secondary source
