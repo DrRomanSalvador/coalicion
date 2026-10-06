@@ -10,6 +10,7 @@ import json, re
 from pathlib import Path
 import pandas as pd
 import requests
+from bs4 import BeautifulSoup
 
 URL = "https://www.pollingforecast.com/es/accuracy?lang=es&tab=parties"
 OUT = Path("data/encuestas_historicas_2004_2023.csv")
@@ -25,38 +26,55 @@ def clean(v):
     s = str(v).strip().replace("−", "-").replace(",", ".")
     return None if s in {"", "–", "-", "nan"} else s
 
-def main():
-    response = requests.get(URL, headers={"User-Agent":"Mozilla/5.0 (compatible; coalicion/2026)"}, timeout=60)
-    response.raise_for_status()
-    tables = pd.read_html(response.content)
+def parse_polls_from_html(html_content):
+    """Extrae las tablas de últimas encuestas del HTML actual, sin depender de clases CSS."""
+    soup = BeautifulSoup(html_content, "html.parser")
     rows = []
-    for t in tables:
-        cols = [str(c).strip() for c in t.columns]
-        if "Empresa" not in cols or not any("encuestas" in c for c in cols):
+    parsed_tables = 0
+
+    for table in soup.find_all("table"):
+        try:
+            frames = pd.read_html(str(table))
+        except (ValueError, ImportError):
             continue
+        if not frames:
+            continue
+        t = frames[0]
+        cols = [str(c).strip() for c in t.columns]
+        if "Empresa" not in cols or "Error medio" not in cols:
+            continue
+
+        # El formato actual pone "2023 · 22 encuestas", etc., justo antes de la tabla.
+        heading = table.find_previous(["h2", "h3", "h4"])
+        heading_text = heading.get_text(" ", strip=True) if heading else ""
         election = None
-        for c in cols:
-            m = re.search(r"(2004|2008|2011|2015|2016|abril de 2019|noviembre de 2019|2023)", c)
-            if m:
-                election = ELECTIONS[m.group(1)]
+        for label, code in ELECTIONS.items():
+            if label in heading_text:
+                election = code
                 break
         if election is None:
             continue
-        for _, r in t.iterrows():
-            company = clean(r.get("Empresa"))
+
+        parsed_tables += 1
+        for _, record in t.iterrows():
+            company = clean(record.get("Empresa"))
             if not company or company == "Resultado":
                 continue
-            # The table contains the latest poll of each firm before each election.
-            # Party columns vary by election; retain them in long form.
             for party in cols:
-                if party in {"Empresa", "Error medio"}: continue
-                val = clean(r.get(party))
-                if val is None: continue
+                if party in {"Empresa", "Error medio"}:
+                    continue
+                val = clean(record.get(party))
+                if val is None:
+                    continue
+                try:
+                    estimate = float(val)
+                except (TypeError, ValueError):
+                    continue
                 rows.append({
                     "election": election,
                     "party": party,
                     "poll": company,
-                    "estimate_pct": float(val),
+                    "estimate_pct": estimate,
                     "source": URL,
                     "source_tier": "SECONDARY_REPLICA",
                     "sample_size": "",
@@ -64,9 +82,24 @@ def main():
                     "field_end": "",
                     "poll_id": f"{election}:{company}",
                 })
-    df = pd.DataFrame(rows)
-    if df.empty:
-        raise SystemExit("No poll tables could be parsed")
+
+    if parsed_tables != len(ELECTIONS):
+        raise ValueError(
+            f"Se esperaban {len(ELECTIONS)} tablas electorales y se encontraron {parsed_tables}"
+        )
+    if not rows:
+        raise ValueError("No se encontraron observaciones de encuestas")
+    return rows
+
+def main():
+    response = requests.get(
+        URL,
+        headers={"User-Agent": "Mozilla/5.0 (compatible; coalicion/2026)"},
+        timeout=60,
+        verify=True,
+    )
+    response.raise_for_status()
+    rows = parse_polls_from_html(response.content)
     # One row per poll-party observation; deterministic order.
     df = df.sort_values(["election","poll","party"], kind="stable")
     OUT.parent.mkdir(parents=True, exist_ok=True)
