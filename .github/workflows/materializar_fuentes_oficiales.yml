@@ -1,0 +1,117 @@
+name: Materializar fuentes oficiales
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias de datos
+        run: python -m pip install --upgrade pip certifi openpyxl pandas
+
+      - name: Descargar distribución oficial del Interior
+        run: |
+          mkdir -p data/raw/official data/manifests
+          curl -fL --retry 5 --retry-delay 5             "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"             -o data/raw/official/Elecciones-Congreso.xlsx
+
+      - name: Descargar padrón oficial INE
+        run: |
+          mkdir -p data/raw/official/ine
+          curl -fL --retry 5 --retry-delay 5             "https://www.ine.es/pob_xls/pobmun.zip"             -o data/raw/official/ine/pobmun.zip
+
+      - name: Registrar hashes y procedencia
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          def manifest(source_id, url, path, catalog_url=None):
+              p = Path(path)
+              data = p.read_bytes()
+              return {
+                  "source_id": source_id,
+                  "authority": "Ministerio del Interior" if "interior.gob.es" in url else "Instituto Nacional de Estadística",
+                  "source_url": url,
+                  "catalog_url": catalog_url,
+                  "retrieved_at": datetime.now(timezone.utc).isoformat(),
+                  "path": str(p),
+                  "size_bytes": len(data),
+                  "sha256": hashlib.sha256(data).hexdigest()
+              }
+
+          Path("data/manifests").mkdir(parents=True, exist_ok=True)
+          Path("data/manifests/INTERIOR_RESULTADOS_CONGRESO.json").write_text(
+              json.dumps(manifest(
+                  "INTERIOR_RESULTADOS_CONGRESO",
+                  "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+                  "data/raw/official/Elecciones-Congreso.xlsx",
+                  "https://datos.gob.es/es/catalogo/e00003801-resultados-electorales"
+              ), ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8"
+          )
+          Path("data/manifests/INE_PADRON_MUNICIPAL.json").write_text(
+              json.dumps(manifest(
+                  "INE_PADRON_MUNICIPAL",
+                  "https://www.ine.es/pob_xls/pobmun.zip",
+                  "data/raw/official/ine/pobmun.zip",
+                  "https://www.ine.es/dynt3/inebase/es/index.htm?padre=525"
+              ), ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8"
+          )
+          PY
+
+      - name: Inspeccionar y normalizar Interior
+        run: |
+          python cli.py inspect data/raw/official/Elecciones-Congreso.xlsx
+          python cli.py normalize data/raw/official/Elecciones-Congreso.xlsx             --output data/processed/congress_rows.json
+
+      - name: Registrar catálogo vivo del CIS
+        run: |
+          mkdir -p data/live
+          python - <<'PY'
+          import hashlib, json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import urllib.request
+
+          url = "https://www.cis.es/es/estudios/catalogo?catalogo=estudio"
+          req = urllib.request.Request(url, headers={"User-Agent": "REINA-SEEC/1.0"})
+          raw = urllib.request.urlopen(req, timeout=60).read()
+          Path("data/live/CIS_CATALOGO_ESTUDIOS.html").write_bytes(raw)
+          Path("data/live/CIS_CATALOGO_ESTUDIOS.json").write_text(
+              json.dumps({
+                  "source_id": "CIS_CATALOGO_ESTUDIOS",
+                  "source_url": url,
+                  "retrieved_at": datetime.now(timezone.utc).isoformat(),
+                  "sha256": hashlib.sha256(raw).hexdigest(),
+                  "size_bytes": len(raw)
+              }, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8"
+          )
+          PY
+
+      - name: Commit materialización si cambió
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/raw/official data/processed/congress_rows.json data/manifests data/live
+          if git diff --cached --quiet; then
+            echo "NO_CHANGES"
+          else
+            git commit -m "data: materialize official sources and hashes"
+            git push
+          fi
