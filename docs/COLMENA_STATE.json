@@ -1,98 +1,26 @@
 {
-  "schema": "COLMENA_STATE_V1",
-  "project": "REINA-SEEC",
-  "checkpoint_date": "2026-10-06",
-  "methodology": "SEEC",
-  "methodology_version": "4.0",
-  "status": "OPERATIONAL_BETA",
-  "fail_closed": true,
-  "canonical_rng": "numpy.PCG64",
-  "canonical_seed": 20261006,
-  "minimum_mc_draws": 10000,
-  "preferred_mc_draws": 50000,
-  "source_anchor": {
-    "id": "INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO",
-    "document_sha256": "b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7",
-    "manifest": "data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.json",
-    "binary": "data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.pdf",
-    "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH"
-  },
-  "completed": [
-    "reproducibility contract",
-    "actual-byte hash gate",
-    "source anchor manifest",
-    "master certification gate",
-    "electoral-law corrections: blank votes, Ceuta/Melilla, 2019A/2019N",
-    "zero-context invocation protocol",
-    "canonical error registry",
-    "token-economy protocol"
-  ],
-  "blocking_errors": [
-    {
-      "id": "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
-      "status": "DEFERRED",
-      "detail": "Fuera del alcance operativo actual: no ejecutar auditoría/certificación hasta nueva instrucción."
-    },
-    {
-      "id": "PRIMARY_RECONCILIATION",
-      "status": "DEFERRED",
-      "detail": "Fuera del alcance operativo actual: no ejecutar auditoría/certificación hasta nueva instrucción."
-    },
-    {
-      "id": "SEEC_PRODUCTION_EXECUTION",
-      "status": "DEFERRED",
-      "detail": "Fuera del alcance operativo actual: no ejecutar auditoría/certificación hasta nueva instrucción."
-    },
-    {
-      "id": "OOS_CALIBRATION",
-      "status": "DEFERRED",
-      "detail": "Fuera del alcance operativo actual: no ejecutar auditoría/certificación hasta nueva instrucción."
-    },
-    {
-      "id": "EXTERNAL_AUDIT",
-      "status": "DEFERRED",
-      "detail": "Fuera del alcance operativo actual: no ejecutar auditoría/certificación hasta nueva instrucción."
-    },
-    {
-      "id": "CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT",
-      "status": "DEFERRED",
-      "detail": "Fuera del alcance operativo actual: no ejecutar auditoría/certificación hasta nueva instrucción."
-    },
-    {
-      "id": "CONSTITUENCY_MATRIX_2023_MISSING",
-      "status": "IN_PROGRESS",
-      "detail": "La fuente pública del Interior está localizada; falta materializarla en el formato canónico del repositorio."
-    }
-  ],
-  "last_verified_commit": "40dffa6ea5b4398e4cdf9436f922d2cbd1e3eaeb",
-  "last_action": "Pipeline de producto prediction-first implementado; capacidades de auditoría conservadas e inactivas.",
-  "last_action_result": "PRODUCT_PIPELINE_ACTIVE_AUDIT_INACTIVE",
-  "next_single_action": "Integrar automáticamente la matriz 2023 provincial desde el dataset del Interior y generar el formato canónico de entrada para coalition/marginal/prediction.",
-  "continuation_rule": "A new chat MUST read README.md, CONTRATO_MAESTRO_IA.md, docs/INVOCACION_COLMENA.md and this state file, execute python -m src.colmena_resume, and continue only from next_single_action. Never reconstruct context from chat.",
-  "token_economy": {
-    "repository_first": true,
-    "do_not_research_anchored_sources": true,
-    "do_not_repeat_completed_work": true,
-    "do_not_narrate_tool_calls": true,
-    "do_not_recompute_without_failed_verification": true,
-    "persist_every_atomic_checkpoint": true,
-    "unfinished_chat_messages_are_not_state": true,
-    "single_next_action": true,
-    "checkpoint_before_token_exhaustion": true,
-    "resume_from_repository_not_chat": true
-  },
-  "certification": "PARTIAL",
-  "data_source": "SECONDARY_REPLICA_VERIFIED",
-  "primary_binary": "PENDING",
-  "use_allowed": true,
-  "warnings": [
-    "Datos 2023: réplica secundaria; no fuente primaria",
-    "Útil para análisis de coaliciones, no para certificación oficial",
-    "No es un predictor electoral validado",
-    "Auditoría y certificación permanecen codificadas pero inactivas en el flujo operativo."
-  ],
-  "next_action": "Integrar automáticamente la matriz 2023 provincial desde el dataset del Interior y generar el formato canónico de entrada para coalition/marginal/prediction.",
-  "product_mode": "PREDICTION_FIRST",
-  "audit_mode": "INACTIVE",
-  "audit_capability": "RETAINED"
+  "schema":"COLMENA_STATE_V1",
+  "project":"REINA-SEEC",
+  "checkpoint_date":"2026-10-06",
+  "methodology":"SEEC",
+  "methodology_version":"4.0",
+  "status":"OPERATIONAL_BETA",
+  "fail_closed":true,
+  "canonical_rng":"numpy.PCG64",
+  "canonical_seed":20261006,
+  "minimum_mc_draws":10000,
+  "preferred_mc_draws":50000,
+  "source_anchor":{"id":"INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO","document_sha256":"b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7","manifest":"data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.json","binary":"data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.pdf","replacement_policy":"FAIL_CLOSED_ON_HASH_MISMATCH"},
+  "blocking_errors":[{"id":"PRIMARY_BINARY_NOT_REPOSITORY_PINNED","status":"DEFERRED"},{"id":"PRIMARY_RECONCILIATION","status":"DEFERRED"},{"id":"SEEC_PRODUCTION_EXECUTION","status":"DEFERRED"},{"id":"OOS_CALIBRATION","status":"DEFERRED"},{"id":"EXTERNAL_AUDIT","status":"DEFERRED"},{"id":"CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT","status":"DEFERRED"},{"id":"CONSTITUENCY_MATRIX_2023_MISSING","status":"IN_PROGRESS","detail":"Adquisición automatizada desplegada: Interior primero, Dato Electoral como réplica secundaria; la matriz solo se materializa tras validar 52 circunscripciones, 350 escaños y el total nacional de votos."}],
+  "last_action":"Desplegada adquisición automática de la matriz 2023 con fuente primaria y fallback secundario; capacidades de auditoría conservadas e inactivas.",
+  "last_action_result":"MATRIX_ACQUISITION_PIPELINE_DEPLOYED_FAIL_CLOSED",
+  "next_single_action":"Ejecutar scripts/acquire_2023_matrix.py en un runner con salida de red y materializar artifacts/data/election_2023_canonical.json.",
+  "certification":"PARTIAL",
+  "data_source":"SECONDARY_REPLICA_VERIFIED",
+  "primary_binary":"PENDING",
+  "use_allowed":true,
+  "warnings":["Datos 2023: réplica secundaria mientras no se materialice la fuente primaria","Útil para análisis de coaliciones, no para certificación oficial","No es un predictor electoral validado","Auditoría y certificación permanecen codificadas pero inactivas en el flujo operativo."],
+  "product_mode":"PREDICTION_FIRST",
+  "audit_mode":"INACTIVE",
+  "audit_capability":"RETAINED"
 }
