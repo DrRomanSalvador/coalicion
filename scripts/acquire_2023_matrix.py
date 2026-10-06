@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Acquire and validate the complete 2023 Congress constituency matrix."""
 from __future__ import annotations
-import hashlib, json, re, ssl, time
+import hashlib, json, re, ssl, time, unicodedata
 from pathlib import Path
 from urllib.request import Request, urlopen
 import certifi
@@ -11,12 +11,23 @@ OFFICIAL_XLSX = "https://descargas.interior.gob.es/datasets/resultados_electoral
 SECONDARY_BASE = "https://datoelectoral.es/circunscripciones/"
 SLUG_ALIASES = {
     "Valencia/València": "valencia-valencia",
-    "Balears, Illes": "illes-balears",
+    "Valencia": "valencia-valencia",
+    "País Valencià": "valencia-valencia",
+    "Balears, Illes": "balears-illes",
+    "Illes Balears": "balears-illes",
+    "Baleares": "balears-illes",
     "Castellón/Castelló": "castellon",
+    "Castellón": "castellon",
+    "Castelló": "castellon",
     "Araba/Álava": "araba-alava",
+    "Álava": "araba-alava",
+    "Araba": "araba-alava",
     "A Coruña": "a-coruna",
+    "La Coruña": "a-coruna",
     "Gipuzkoa": "gipuzkoa",
+    "Guipúzcoa": "gipuzkoa",
     "Bizkaia": "bizkaia",
+    "Vizcaya": "bizkaia",
     "Las Palmas": "las-palmas",
     "Santa Cruz de Tenerife": "santa-cruz-de-tenerife",
 }
@@ -35,12 +46,22 @@ def fetch(url, attempts=5):
             time.sleep(min(2**i, 10))
     raise RuntimeError(f"download failed: {url}: {last}")
 
+def normalize_label(name):
+    """Normaliza únicamente la escritura de una etiqueta; no aproxima entidades."""
+    x = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
+    x = re.sub(r"[^a-zA-Z0-9]+", " ", x).strip().casefold()
+    return re.sub(r"\\s+", " ", x)
+
+_NORMALIZED_ALIASES = {
+    normalize_label(k): v for k, v in SLUG_ALIASES.items()
+}
+
 def slug(name):
-    if name in SLUG_ALIASES:
-        return SLUG_ALIASES[name]
-    x = name.lower().translate(str.maketrans("áéíóúüñ","aeiouun"))
-    x = x.replace("/", "-")
-    return re.sub(r"[^a-z0-9]+", "-", x).strip("-")
+    key = normalize_label(name)
+    if key in _NORMALIZED_ALIASES:
+        return _NORMALIZED_ALIASES[key]
+    x = key.replace(" ", "-")
+    return re.sub(r"[^a-z0-9-]+", "-", x).strip("-")
 
 def parse_secondary(raw, province, seats):
     text = raw.decode("utf-8","replace")
