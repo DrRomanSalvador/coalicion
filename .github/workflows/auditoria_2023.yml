@@ -72,12 +72,15 @@ jobs:
         run: |
           mkdir -p .audit_historico
           curl --fail --location --retry 5 --retry-all-errors --connect-timeout 20 --max-time 180 "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx" -o .audit_historico/Elecciones-Congreso.xlsx
-      - name: Staging primario Interior
-        if: steps.official.outcome == 'success'
-        run: python scripts/stage_historico_interior.py
-      - name: Staging secundario reproducible
-        if: steps.official.outcome != 'success'
-        run: python scripts/stage_historico_secondary.py
+      - name: Staging histórico seleccionado
+        run: |
+          if test -s .audit_historico/Elecciones-Congreso.xlsx; then
+            echo "SOURCE_TIER=PRIMARY_INTERIOR" | tee .audit_historico/source_tier.txt
+            python scripts/stage_historico_interior.py
+          else
+            echo "SOURCE_TIER=SECONDARY_REPLICA" | tee .audit_historico/source_tier.txt
+            python scripts/stage_historico_secondary.py
+          fi
       - name: Publicar dataset fuente y metadatos
         if: always()
         uses: actions/upload-artifact@v4
