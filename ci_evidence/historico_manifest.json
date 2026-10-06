@@ -1,0 +1,17 @@
+{
+  "source": "https://raw.githubusercontent.com/dadosdelaplace/pollspaindata/main/inst/extdata/summary_elec/summary_elec_prov_2023-07-24.rda",
+  "source_tier": "SECONDARY_REPLICA",
+  "source_sha256": "3ffe2351a816aa0c1c4b7ef50525bb24edc70d2beec26e2063221659ccc0875e",
+  "target_elections": [
+    "2004",
+    "2008",
+    "2011",
+    "2015",
+    "2016",
+    "2019A",
+    "2019N",
+    "2023"
+  ],
+  "rows_selected": 550,
+  "note": "Derived from pollspaindata, which documents Spanish electoral data downloaded from the Ministry of the Interior. Primary-source certification remains blocked until the official Interior file is retrieved and cross-checked."
+}

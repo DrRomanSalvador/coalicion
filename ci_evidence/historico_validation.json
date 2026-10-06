@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "source_tier": "SECONDARY_REPLICA",
+  "elections": [
+    "2023"
+  ],
+  "province_election_cells": 52,
+  "province_count_by_election": {
+    "2023": 52
+  },
+  "expected_provinces_per_election": 52,
+  "arithmetic_bad_cells": 0,
+  "province_count_failures": {}
+}
