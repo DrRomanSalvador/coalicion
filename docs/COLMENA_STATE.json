@@ -44,23 +44,24 @@
     },
     {
       "id": "PRIMARY_2023_MATRIX_MATERIALIZATION",
-      "status": "IN_PROGRESS",
-      "detail": "La adquisición primaria está codificada y se ejecuta primero; la réplica secundaria solo sirve como fallback OPERATIONAL_BETA."
+      "status": "SECONDARY_READY_PRIMARY_BLOCKED",
+      "detail": "Matriz 2023 completa materializada desde Dato Electoral como réplica secundaria verificada: 52 circunscripciones, 350 escaños y 24.487.414 votos a candidaturas. La descarga primaria del Interior sigue bloqueada por verificación TLS; no se degrada a primaria."
     }
   ],
-  "last_action": "Desplegado run26.py como pipeline único prediction-first: matriz 2023, histórico, encuestas, backtest, SEEC condicional y manifiesto SHA-256.",
-  "last_action_result": "RUN26_PRODUCT_PIPELINE_DEPLOYED",
-  "next_single_action": "Ejecutar run26.py en GitHub Actions y materializar el bundle de resultados; cualquier insumo no disponible queda BLOCKED sin sustitución silenciosa.",
+  "last_action": "Ejecutado run26.py tras endurecer los fallbacks territoriales y los parsers HTML.",
+  "last_action_result": "RUN26_PRODUCT_PIPELINE_SECONDARY_DATA_READY",
+  "next_single_action": "Resolver la materialización primaria 2023 del Ministerio del Interior sin desactivar TLS; mantener la matriz secundaria como OPERATIONAL_BETA hasta entonces.",
   "certification": "PARTIAL",
   "data_source": "SECONDARY_REPLICA_VERIFIED",
   "primary_binary": "PENDING",
   "use_allowed": true,
   "warnings": [
-    "Datos 2023: réplica secundaria mientras no se materialice la fuente primaria",
-    "Útil para análisis de coaliciones, no para certificación oficial",
-    "No es un predictor electoral validado",
-    "Auditoría y certificación permanecen codificadas pero inactivas en el flujo operativo.",
-    "El archivo de encuestas se captura como réplica secundaria; las fichas/microdatos técnicos no se infieren."
+    "Matriz 2023 completa disponible como SECONDARY_REPLICA_VERIFIED: 52 circunscripciones, 350 escaños y 24.487.414 votos a candidaturas.",
+    "El fallback territorial normaliza variantes de nombres sin alterar ningún dato electoral ni cálculo matemático.",
+    "Encuestas históricas: 140 últimas encuestas en ocho elecciones (2004-2023), réplica secundaria; fichas/microdatos técnicos no inferidos.",
+    "Útil para análisis de coaliciones, no para certificación oficial.",
+    "No es un predictor electoral validado.",
+    "Auditoría y certificación permanecen codificadas pero inactivas en el flujo operativo."
   ],
   "product_mode": "PREDICTION_FIRST",
   "audit_mode": "INACTIVE",
