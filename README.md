@@ -1,24 +1,58 @@
-undefined
+# COALICIÓN — PUNTO DE ENTRADA ÚNICO
 
----
+Este repositorio es la memoria operativa y reproducible del proyecto. Toda IA debe leer primero este README y `CONTRATO_MAESTRO_IA.md`.
 
-# PUNTO DE ENTRADA ÚNICO
+## Regla suprema
+**Mismos datos + mismas reglas + mismos parámetros + misma versión = mismo resultado.**
 
-**Contrato obligatorio para cualquier IA:** `CONTRATO_MAESTRO_IA.md`
+No se ajusta el modelo para acercarlo a una encuesta, partido, escaño o resultado esperado.
 
-Antes de tocar datos, código o resultados, leer el contrato y este README.
+## Cadena única
+FUENTES → DATOS → VALIDACIÓN → SESGOS → TERRITORIO → ESCENARIO → COALICIÓN → LEY ELECTORAL → MARGINALIDAD → INCERTIDUMBRE → RESULTADO → AUDITORÍA
 
-## Estado operativo 2026-10-06
+## Filtro anti-sesgos
+El modelo base compite contra correcciones candidatas mediante validación temporal fuera de muestra. No existe una corrección obligatoria por teoría o por observar que las encuestas se equivocaron.
 
-- Permiso de repositorio: escritura y administración disponibles.
-- Magnitudes electorales 2026: incorporadas en `data/2026_circunscripciones_oficiales.csv`.
-- Motor electoral determinista: `src/electoral.py`.
-- Pruebas mínimas: `tests/test_electoral.py`.
-- Fuentes y limitaciones: `docs/SOURCES_AND_STATUS.md`.
-- Plan de pruebas: `docs/TEST_PLAN.md`.
+Una corrección solo se acepta si:
+- usa únicamente información disponible antes del periodo validado;
+- se estima dentro de cada ventana de entrenamiento;
+- no depende de la elección que está siendo predicha;
+- mejora o mantiene las métricas predefinidas de voto, partido, territorio y escaños;
+- no degrada calibración/estabilidad;
+- y mejora estrictamente al menos una métrica, salvo justificación estadística preregistrada.
 
-**No existe todavía un resultado 2026 auditado.** La matriz oficial completa partido×circunscripción de 2023, el inventario consolidado de encuestas y la territorialización reproducible deben incorporarse y validarse antes de cerrar la simulación.
+Si ninguna corrección supera al modelo base, **la corrección es cero**.
 
-## Regla de continuidad
+## Precisión electoral
+- 52 circunscripciones y 350 diputados.
+- Umbral provincial del 3% de votos válidos.
+- D'Hondt con aritmética racional/exacta.
+- Desempate por votos totales.
+- Empate absoluto: bloqueo; nunca desempate arbitrario.
+- Ceuta y Melilla: un escaño por mayoría; no D'Hondt.
+- Coaliciones/fusiones: agregación de votos por circunscripción antes de asignar escaños.
+- Nunca se convierte una distribución de escaños publicada en porcentajes no publicados.
 
-El repositorio es la memoria operativa del proyecto. Ninguna IA debe depender de conversaciones anteriores para conocer las reglas. Toda modificación posterior debe ser reproducible, versionada y trazable.
+## Territorialización
+La cadena obligatoria es:
+**voto nacional → voto territorial → candidatura elegible → ley electoral → escaños**.
+
+No se inventa territorialidad para candidaturas sin base comparable. Toda imputación se etiqueta y propaga como incertidumbre. Las CCAA sirven para agregación/control; D'Hondt se ejecuta por circunscripción.
+
+## Estado actual
+- Contrato maestro: incorporado.
+- Magnitudes oficiales 2026: incorporadas.
+- Motor electoral: incorporado.
+- Tests legales básicos: incorporados.
+- Filtro OOS anti-sesgos: en esta versión.
+- Matriz oficial completa partido×circunscripción 2023: pendiente de incorporación/validación.
+- Archivo histórico completo de encuestas y resultados: pendiente de consolidación.
+- Territorialización reproducible 2026: pendiente de cierre.
+- Resultado 2026: **no declarado auditado** hasta superar todos los controles.
+
+## Regla de cierre
+**DATOS → PARÁMETROS → CÓDIGO → TESTS → RESULTADOS → HASH/VERSIÓN.**
+
+Si falta un dato esencial, existe contradicción, se necesita territorialidad inventada, falla una prueba o no se puede reproducir el resultado:
+
+**DETENER → IDENTIFICAR → REGISTRAR → NO PROPAGAR.**
