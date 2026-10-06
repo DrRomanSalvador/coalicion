@@ -19,3 +19,25 @@
 
 ## Regla de publicación
 Mientras falte cualquier dato esencial, el proyecto solo puede declarar AUDITADO CON LIMITACIONES, nunca 100% auditado ni resultado definitivo.
+
+
+## Bibliografía oficial estructurada
+
+La bibliografía canónica de procedencia queda integrada en `docs/BIBLIOGRAFIA_OFICIAL_ESTRUCTURADA.md`.
+
+### Jerarquía de evidencia
+- **PRIMARY:** Interior, JEC, BOE, CIS, INE y organismos electorales territoriales competentes.
+- **LEGAL:** BOE y normativa electoral vigente.
+- **METHODOLOGICAL:** fichas técnicas, microdatos y documentación metodológica oficial.
+- **SECONDARY:** medios/agregadores; solo descubrimiento o contraste.
+- **AUXILIARY:** contexto y validación cruzada.
+
+### Trazabilidad obligatoria
+Cada dato materializado debe conservar, cuando exista: `source_id`, URL, organismo, tipo, fechas, versión/identificador, `sha256`, transformación, ámbito territorial, nivel de evidencia, validación e incidencias.
+
+### Regla crítica
+La presencia de una fuente en la bibliografía no implica que sus datos estén ya materializados en `data/` ni conectados al pipeline. El estado de certificación no cambia hasta completar esa materialización y validación reproducible.
+
+### Regla de precedencia
+Ante discrepancias, prevalece la fuente oficial competente por autoridad, fecha y ámbito. No se promedian discrepancias ni se sustituyen fuentes primarias por medios.
+
