@@ -65,7 +65,16 @@ def main():
     rebuilt = {}
     for province in sorted(provinces, key=lambda x: x["name"]):
         rebuilt[province["name"]] = {r["name"]: r["votes"] for r in sorted(province["parties"], key=lambda x: x["name"])}
-    hashes = {n: sha256_json({"province": n, "parties": p}) for n, p in rebuilt.items()}
+    hashes = {
+        n: sha256_json({
+            "province": n,
+            "parties": p,
+            "seats": next(x["seats"] for x in provinces if x["name"] == n),
+            "valid_votes": valid_votes[n],
+            "blank_votes": blank_votes[n],
+        })
+        for n, p in rebuilt.items()
+    }
     level = [bytes.fromhex(hashes[n]) for n in sorted(hashes)]
     while len(level) > 1:
         if len(level) % 2: level.append(level[-1])
