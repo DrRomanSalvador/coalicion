@@ -12,9 +12,13 @@ class Allocation:
 def dhondt(votes: Dict[str, int], seats: int, valid_votes: int) -> Allocation:
     if seats < 1:
         raise ValueError("seats debe ser >= 1")
-    if valid_votes < 0:
-        raise ValueError("valid_votes no puede ser negativo")
-    eligible = {p: v for p, v in votes.items() if Fraction(v * 100, valid_votes or 1) >= 3}
+    if valid_votes <= 0:
+        raise ValueError("valid_votes debe ser > 0")
+    if any(not isinstance(v, int) or isinstance(v, bool) or v < 0 for v in votes.values()):
+        raise ValueError("Los votos deben ser enteros no negativos")
+    if sum(votes.values()) > valid_votes:
+        raise ValueError("Los votos de candidaturas no pueden superar los votos válidos")
+    eligible = {p: v for p, v in votes.items() if Fraction(v * 100, valid_votes) >= 3}
     quotients = [(Fraction(v, d), v, p, d) for p, v in eligible.items() for d in range(1, seats + 1)]
     quotients.sort(key=lambda x: (x[0], x[1]), reverse=True)
     selected = quotients[:seats]
