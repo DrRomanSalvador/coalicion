@@ -1,13 +1,16 @@
 # INVOCACIÓN — ESTADO HEREDABLE DE LA COLMENA
 
 ## PROM DE ARRANQUE — NO RECONSTRUIR
+
+**ÚNICA FUENTE DE CONTINUIDAD:** `docs/COLMENA_STATE.json`. El chat no es almacenamiento de estado.
 1. Leer `README.md`, `CONTRATO_MAESTRO_IA.md`, este archivo y `docs/COLMENA_STATE.json`.
-2. Ejecutar `python -m src.reproducibility_contract`.
-3. Ejecutar `pytest -q tests/test_reproducibility_contract.py`.
-4. Leer `next_single_action` del estado.
-5. Ejecutar únicamente esa acción.
-6. Persistir inmediatamente `last_action`, resultado, commit y una sola `next_single_action`.
-7. Si código, estado o evidencia discrepan: DETENER y registrar contradicción; no reconstruir desde el chat.
+2. Ejecutar `python -m src.colmena_resume`.
+3. Ejecutar `python -m src.reproducibility_contract`.
+4. Ejecutar `pytest -q tests/test_reproducibility_contract.py tests/test_error_registry.py tests/test_colmena_resume.py`.
+5. Leer `next_single_action` del estado.
+6. Ejecutar únicamente esa acción.
+7. Persistir inmediatamente `last_action`, resultado, commit y una sola `next_single_action`.
+8. Si código, estado o evidencia discrepan: DETENER y registrar contradicción; no reconstruir desde el chat.
 
 ## CONTRATO DETERMINISTA
 - Metodología única: SEEC.
@@ -41,3 +44,14 @@ CI del checkpoint anterior `ab31768ef7e3341d29113dfd4d28129dd9663524`: cero esta
 Estado global: **BLOCKED / FAIL-CLOSED**.
 Última acción: verificación del checkpoint, contrato, ancla y estado CI; después se persistió el estado máquina actualizado.
 Siguiente acción única: materializar y fijar los bytes originales del PDF en almacenamiento binario versionado y registrar identificador inmutable + SHA-256.
+
+
+## HUELLA CANÓNICA ACTUAL
+
+Último checkpoint persistido: `0e30da0742f871f31e2357da1424a340e03703d3`.
+Estado: **BLOCKED / FAIL-CLOSED**.
+La verificación del hash ahora exige los **bytes reales** del PDF; el manifiesto por sí solo no puede pasar.
+No se ha certificado el sistema: permanecen bloqueos explícitos en fuente binaria, reconciliación primaria, ejecución SEEC, calibración OOS y auditoría externa.
+Siguiente acción única: fijar el PDF binario con SHA-256 `b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7`.
+
+**Regla de mensaje incompleto:** si una IA muere, se queda sin tokens o termina una respuesta a mitad, se ignora cualquier intención no persistida. El siguiente agente ejecuta el estado del repositorio y no vuelve a pensar lo ya resuelto.
