@@ -31,8 +31,7 @@ def main():
         # Existing staged historical scripts use .audit_historico as their
         # working directory. They are execution components, not certification.
         r=run(name,cmd); results.append(r)
-        if r["returncode"] != 0:
-            break
+        # Continue independent stages; record every blocker in one run.
 
     survey=Path("data/encuestas_historicas_2004_2023.csv")
     seec_status={
@@ -60,9 +59,7 @@ def main():
     out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(payload,ensure_ascii=False,indent=2))
-    # Matrix/poll staging can legitimately be partial due external source
-    # availability; only an actual execution error in a completed stage is fatal.
-    if results and results[-1]["returncode"] != 0:
-        raise SystemExit(results[-1]["returncode"])
+    # The diagnostic bundle is the product of run26; consumers remain fail-closed
+    # when required inputs are unavailable.
 
 if __name__=="__main__": main()
