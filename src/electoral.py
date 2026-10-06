@@ -28,7 +28,7 @@ def dhondt(votes: Dict[str, int], seats: int, valid_votes: int) -> Allocation:
     same_q = [q for q in quotients if q[0] == boundary[0]]
     if len(same_q) > sum(q[0] == boundary[0] for q in selected):
         same_votes = [q for q in same_q if q[1] == boundary[1]]
-        if same_votes:
+        if len(same_votes) > 1:
             return Allocation({p: 0 for p in votes}, "EMPATE_ABSOLUTO_PENDIENTE",
                                tuple(sorted(q[2] for q in same_votes)))
     out = {p: 0 for p in votes}
