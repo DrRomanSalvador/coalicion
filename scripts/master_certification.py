@@ -58,8 +58,15 @@ def certify(root="."):
         gates.append(_gate("mc_10000",False,"sin posterior"))
     # Expanding OOS calibration gate.
     calib=r/"ci_evidence/oos_calibration.json"
-    gates.append(_gate("oos_calibration", calib.exists(),
-                       "backtest expanding-window"))
+    calib_ok=False
+    if calib.exists():
+        try:
+            cx=json.loads(calib.read_text(encoding="utf-8"))
+            calib_ok=cx.get("status") in {"PASS","CERTIFIED"}
+        except Exception:
+            calib_ok=False
+    gates.append(_gate("oos_calibration", calib_ok,
+                       "backtest expanding-window certificado"))
     if calib.exists():
         x=json.loads(calib.read_text())
         gates.append(_gate("coverage_90", x.get("status") in {"PASS","CERTIFIED"} and float(x.get("coverage_90",0))>=0.85,
