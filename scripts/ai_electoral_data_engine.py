@@ -398,6 +398,9 @@ def audit(matrix: dict, acquired: dict, validation: dict, conflicts: list) -> di
         province_hashes[province] = sha256_json({
             "province": province,
             "parties": parties,
+            "seats": matrix["seats"][province],
+            "valid_votes": matrix["valid_votes"][province],
+            "blank_votes": matrix["blank_votes"][province],
         })
 
     source_hashes = {
