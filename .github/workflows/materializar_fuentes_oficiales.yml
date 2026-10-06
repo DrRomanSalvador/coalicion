@@ -22,6 +22,10 @@ jobs:
       - name: Instalar dependencias
         run: python -m pip install --upgrade pip certifi openpyxl pandas
 
+      - name: Búsqueda exhaustiva multi-fuente
+        run: |
+          python scripts/exhaustive_data_acquisition.py --search --resolve || true
+
       - name: Ejecutar motor robusto
         run: |
           chmod +x scripts/run_ai_electoral_engine_robust.sh
