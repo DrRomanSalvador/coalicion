@@ -469,7 +469,7 @@ def canonical(matrix: dict, certificate: dict) -> dict:
             "provinces": provinces,
             "valid_votes": matrix["valid_votes"],
             "blank_votes": matrix["blank_votes"],
-            "special": {},
+            "special": {name: name for name in matrix["provinces"] if name.strip().lower() in {"ceuta", "melilla"}},
         },
     }
 
