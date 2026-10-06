@@ -53,3 +53,16 @@ def test_government_dimensions():
     ]
     assert set(by_government(rows)) == {"PP","PSOE"}
     assert set(by_government_status(rows)) == {"incumbent_government"}
+
+
+def test_change_vs_previous_election():
+    from src.poll_error import change_vs_previous_election
+    rows = [
+        row("2004", "2004-03-14", "A", 40, 42, "2004-03-01"),
+        row("2008", "2008-03-09", "A", 45, 44, "2008-03-01"),
+    ]
+    out = change_vs_previous_election(rows)
+    assert len(out) == 1
+    assert out[0].actual_change == 2
+    assert out[0].poll_change == 3
+    assert out[0].change_error == 1
