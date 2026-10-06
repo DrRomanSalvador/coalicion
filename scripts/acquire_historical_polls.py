@@ -10,6 +10,7 @@ import json, re
 from pathlib import Path
 import pandas as pd
 import requests
+import certifi
 from bs4 import BeautifulSoup
 
 URL = "https://www.pollingforecast.com/es/accuracy?lang=es&tab=parties"
@@ -96,7 +97,7 @@ def main():
         URL,
         headers={"User-Agent": "Mozilla/5.0 (compatible; coalicion/2026)"},
         timeout=60,
-        verify=True,
+        verify=certifi.where(),
     )
     response.raise_for_status()
     rows = parse_polls_from_html(response.content)
