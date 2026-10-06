@@ -45,3 +45,26 @@ jobs:
         with:
           name: auditoria-2023
           path: .audit_2023/
+
+
+  historico-interior:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: python -m pip install --upgrade pip pandas openpyxl
+      - name: Descargar fuente oficial Interior histórica
+        run: |
+          mkdir -p .audit_historico
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 20 --max-time 180 "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx" -o .audit_historico/Elecciones-Congreso.xlsx
+      - name: Versionar y extraer staging histórico
+        run: python scripts/stage_historico_interior.py
+      - name: Publicar dataset fuente y metadatos
+        uses: actions/upload-artifact@v4
+        with:
+          name: seec-historico-interior-staging
+          path: .audit_historico/
