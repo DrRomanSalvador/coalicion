@@ -77,10 +77,16 @@ df = max(frames, key=len).copy()
 df.to_csv(ROOT / "secondary_prov_raw.csv", index=False)
 
 date_col = next((c for c in ("date", "fecha") if c in df.columns), None)
-if date_col is None:
-    raise RuntimeError(f"No election-date column found; columns={list(df.columns)}")
-
-df["_date_iso"] = pd.to_datetime(df[date_col], errors="coerce").dt.strftime("%Y-%m-%d")
+if date_col is not None:
+    df["_date_iso"] = pd.to_datetime(df[date_col], errors="coerce").dt.strftime("%Y-%m-%d")
+elif "id_elec" in df.columns:
+    # pollspaindata encodes Congress election date as 02-YYYY-MM-DD.
+    df["_date_iso"] = (
+        df["id_elec"].astype(str)
+        .str.extract(r"(\d{4}-\d{2}-\d{2})", expand=False)
+    )
+else:
+    raise RuntimeError(f"No election-date field found; columns={list(df.columns)}")
 sel = df[df["_date_iso"].isin(TARGET_DATES)].copy()
 if sel.empty:
     raise RuntimeError("No target elections found in secondary source")
