@@ -21,7 +21,7 @@ class Allocation:
     tie: Tuple[str, ...] = ()
 
 
-def _validate_votes(votes: Mapping[str, int], valid_votes: int) -> None:
+def _validate_votes(votes: Mapping[str, int], valid_votes: int, blank_votes: int = 0) -> None:
     if not isinstance(votes, Mapping):
         raise TypeError("votes debe ser un mapping candidatura -> votos")
     if not votes:
@@ -65,7 +65,7 @@ def dhondt(
     """
     if not isinstance(seats, int) or isinstance(seats, bool) or seats < 1:
         raise ValueError("seats debe ser un entero >= 1")
-    _validate_votes(votes, valid_votes)
+    _validate_votes(votes, valid_votes, blank_votes)
 
     if not votes:
         return Allocation({}, "INSUFICIENTES_CANDIDATURAS")
@@ -126,7 +126,7 @@ def ceuta_melilla(votes: Mapping[str, int], valid_votes: Optional[int] = None) -
     if not votes:
         raise ValueError("Se requiere al menos una candidatura")
     if valid_votes is not None:
-        _validate_votes(votes, valid_votes)
+        _validate_votes(votes, valid_votes, blank_votes)
     elif any(
         not isinstance(v, int) or isinstance(v, bool) or v < 0
         for v in votes.values()
@@ -153,8 +153,8 @@ def allocate(
     if special in {"Ceuta", "Melilla"}:
         if seats != 1:
             raise ValueError("Ceuta/Melilla deben tener exactamente 1 diputado")
-        return ceuta_melilla(votes, valid_votes)
-    return dhondt(votes, seats, valid_votes)
+        return ceuta_melilla(votes, valid_votes, blank_votes)
+    return dhondt(votes, seats, valid_votes, blank_votes)
 
 
 def merge_candidacies(*matrices: Mapping[str, int]) -> Dict[str, int]:
