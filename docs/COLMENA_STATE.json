@@ -55,14 +55,14 @@
     },
     {
       "id": "CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT",
-      "status": "OPEN",
-      "detail": "El último cambio de producto todavía no tiene evidencia CI registrada; el siguiente agente debe ejecutar/verificar la suite antes de declarar PASS."
+      "status": "RESOLVED",
+      "detail": "Registrado en error_registry.py y cubierto por test de consistencia."
     }
   ],
-  "last_verified_commit": "ac14e016a727942a0e68d1aad6519302d362ec0e",
-  "last_action": "Añadido el gate CI obligatorio de la Colmena: contrato reproducible + reanudación + registro de errores + pruebas de producto.",
-  "last_action_result": "CODE_PERSISTED; CI_GATE_ADDED; CI_EXECUTION_NOT_YET_VERIFIED; CERTIFICATION_BLOCKED",
-  "next_single_action": "Verificar el resultado real del workflow Colmena reproducible para el commit actual y persistir PASS/FAIL; si FAIL, registrar el código canónico y corregir solo esa causa.",
+  "last_verified_commit": "6b18c9d5ca991619a0ac8b32371f98fc0fe852fb",
+  "last_action": "Corregidos blockers de CI, reproducibilidad de RNG, tests diferenciales electorales, escenarios especiales y gates de certificación; CI contractual ejecutado.",
+  "last_action_result": "CONTRACT_RESUME_PASS; CONTRACT_ANCHOR_FAIL_CLOSED; CONTRACT_TESTS_PASS; CERTIFICATION_BLOCKED",
+  "next_single_action": "Conseguir y fijar el binario primario 2023 exigido por el contrato (SHA-256 b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7) o registrar formalmente su imposibilidad; después ejecutar la reconciliación primaria 2023.",
   "continuation_rule": "A new chat MUST read README.md, CONTRATO_MAESTRO_IA.md, docs/INVOCACION_COLMENA.md and this state file, execute python -m src.colmena_resume, and continue only from next_single_action. Never reconstruct context from chat.",
   "token_economy": {
     "repository_first": true,
