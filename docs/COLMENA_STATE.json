@@ -4,7 +4,7 @@
   "checkpoint_date": "2026-10-06",
   "methodology": "SEEC",
   "methodology_version": "4.0",
-  "status": "BLOCKED",
+  "status": "OPERATIONAL_BETA",
   "fail_closed": true,
   "canonical_rng": "numpy.PCG64",
   "canonical_seed": 20261006,
@@ -75,5 +75,15 @@
     "single_next_action": true,
     "checkpoint_before_token_exhaustion": true,
     "resume_from_repository_not_chat": true
-  }
+  },
+  "certification": "PARTIAL",
+  "data_source": "SECONDARY_REPLICA_VERIFIED",
+  "primary_binary": "PENDING",
+  "use_allowed": true,
+  "warnings": [
+    "Datos 2023: réplica secundaria; no fuente primaria",
+    "Útil para análisis de coaliciones, no para certificación oficial",
+    "No es un predictor electoral validado"
+  ],
+  "next_action": "Materializar matriz oficial candidatura×circunscripción y generar informes reales de coalición usando la réplica secundaria mientras la certificación primaria permanece pendiente."
 }
