@@ -6,6 +6,7 @@ on:
     paths:
       - "scripts/queen_bee.py"
       - "scripts/queen_bee_v2.py"
+      - "scripts/queen_bee_v3.py"
       - "cli.py"
       - "scripts/ai_electoral_data_engine.py"
       - "scripts/exhaustive_data_acquisition.py"
@@ -41,16 +42,16 @@ jobs:
           cat artifacts/queue/hardening_tests.log
           printf '%s\n' "$rc" > artifacts/queue/hardening_tests.exit
           exit "$rc"
-      - name: Abeja Reina
+      - name: Abeja Reina v3
         env:
           COLMENA_MAX_RETRIES: "3"
           COLMENA_RETRY_DELAY: "10"
-        run: python scripts/queen_bee_v2.py
+        run: python scripts/queen_bee_v3.py
       - name: Publicar estado de colmena
         if: always()
         run: |
           python scripts/product_status.py || true
-          test ! -f artifacts/queen_bee_report.json || cat artifacts/queen_bee_report.json
+          test ! -f artifacts/queen_bee_v3_report.json || cat artifacts/queen_bee_v3_report.json
       - name: Persistir evidencia
         if: always()
         run: |
