@@ -14,7 +14,7 @@ def test_absolute_tie_blocks_not_lexicographic():
     r=dhondt({"ZZ":100,"AA":100},1,200)
     assert r.status=="EMPATE_ABSOLUTO_PENDIENTE" and r.tie==("AA","ZZ")
 def test_ceuta_majority():
-    assert ceuta_melilla({"A":40,"B":35},100).seats["A"]==1
+    assert ceuta_melilla({"A":40,"B":35},75).seats["A"]==1
 def test_ceuta_tie_blocks():
     assert ceuta_melilla({"A":50,"B":50},100).status=="EMPATE_MAYORIA_PENDIENTE"
 def test_special_one_seat():
