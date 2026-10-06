@@ -8,6 +8,7 @@ on:
       - "tests/**"
       - "scripts/audit_2023.py"
       - "scripts/stage_historico_secondary.py"
+      - "scripts/validate_historical_secondary.py"
   pull_request:
     paths:
       - ".github/workflows/auditoria_2023.yml"
@@ -82,6 +83,9 @@ jobs:
             echo "SOURCE_TIER=SECONDARY_REPLICA" | tee .audit_historico/source_tier.txt
             python scripts/stage_historico_secondary.py 2>&1 | tee .audit_historico/staging.log
           fi
+      - name: Validar histórico provincial
+        if: success()
+        run: python scripts/validate_historical_secondary.py
       - name: Publicar diagnóstico del staging
         if: always()
         run: |
