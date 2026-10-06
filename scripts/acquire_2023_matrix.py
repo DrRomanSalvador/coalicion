@@ -6,7 +6,6 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 import certifi
 import requests
-import pandas as pd
 from bs4 import BeautifulSoup
 
 OFFICIAL_XLSX = "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
@@ -65,51 +64,62 @@ def slug(name):
     x = key.replace(" ", "-")
     return re.sub(r"[^a-z0-9-]+", "-", x).strip("-")
 
+def _integer_text(value):
+    text = str(value).strip().replace("\xa0", " ")
+    text = re.sub(r"[^0-9-]", "", text)
+    if not text:
+        raise ValueError("numeric value missing")
+    return int(text)
+
 def parse_secondary(raw, province, seats):
-    """Lee la tabla de candidaturas actual de Dato Electoral."""
+    """Lee directamente las filas de la tabla de candidaturas de Dato Electoral."""
     soup = BeautifulSoup(raw.decode("utf-8", "replace"), "html.parser")
     for table in soup.find_all("table"):
-        try:
-            frames = pd.read_html(str(table))
-        except (ValueError, ImportError):
-            continue
-        if not frames:
-            continue
-        df = frames[0]
-        cols = [str(c).strip() for c in df.columns]
-        if "Candidatura" not in cols or "Votos" not in cols:
+        rows = []
+        for tr in table.find_all("tr"):
+            cells = [c.get_text(" ", strip=True) for c in tr.find_all(["th", "td"])]
+            if cells:
+                rows.append(cells)
+        if not rows:
             continue
 
+        header = rows[0]
+        if "Candidatura" not in header or "Votos" not in header:
+            continue
+        candidate_i = header.index("Candidatura")
+        votes_i = header.index("Votos")
         parties = {}
         blank = 0
         valid = None
-        for _, row in df.iterrows():
-            name = str(row.get("Candidatura", "")).strip()
+
+        for row in rows[1:]:
+            if len(row) <= max(candidate_i, votes_i):
+                continue
+            name = row[candidate_i].strip()
             if not name or name == "Resultado":
                 continue
-            raw_votes = row.get("Votos")
             try:
-                n = int(float(str(raw_votes).replace(".", "").replace(",", ".")))
-            except (TypeError, ValueError):
+                n = _integer_text(row[votes_i])
+            except ValueError:
                 continue
-            if name.casefold().startswith("votos en blanco"):
+            folded = name.casefold()
+            if folded.startswith("votos en blanco"):
                 blank = n
-            elif name.casefold().startswith("total votos válidos"):
+            elif folded.startswith("total votos válidos"):
                 valid = n
             else:
                 parties[name] = n
 
-        if not parties:
-            continue
-        if valid is None:
-            valid = sum(parties.values()) + blank
-        return {
-            "seats": seats,
-            "parties": parties,
-            "blank_votes": blank,
-            "valid_votes": valid,
-            "source_url": SECONDARY_BASE + slug(province),
-        }
+        if parties:
+            if valid is None:
+                valid = sum(parties.values()) + blank
+            return {
+                "seats": seats,
+                "parties": parties,
+                "blank_votes": blank,
+                "valid_votes": valid,
+                "source_url": SECONDARY_BASE + slug(province),
+            }
 
     raise ValueError(f"candidate table missing or unreadable: {province}")
 
