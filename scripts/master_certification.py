@@ -19,17 +19,17 @@ def certify(root="."):
     # Source materialization must be real and hashed.
     manifest=r/"ci_evidence/historico_manifest.json"
     tier=r/"ci_evidence/historico_source_tier.txt"
-    gates.append(_gate("source_manifest", manifest.exists(),
+    gates.append(_gate("source_manifest", manifest.exists() and manifest.read_text(encoding="utf-8").strip() != "",
                        "manifest de datos materializado"))
     tier_text=tier.read_text() if tier.exists() else ""
-    gates.append(_gate("primary_interior", "PRIMARY_INTERIOR" in tier_text,
-                       "la fuente primaria debe estar materializada"))
+    gates.append(_gate("primary_interior", tier_text.strip()=="PRIMARY_INTERIOR",
+                       "la fuente primaria debe estar materializada y declarada explícitamente"))
     # Exact reconciliation, never a warning-only path.
     recon=r/"ci_evidence/reconciliation.json"
     if recon.exists():
         x=json.loads(recon.read_text())
-        gates.append(_gate("reconciliation", x.get("status")=="PASS" and x.get("max_abs_diff",1)>-1,
-                           "reconciliación primaria/secundaria exacta"))
+        gates.append(_gate("reconciliation", x.get("status")=="PASS" and float(x.get("max_abs_diff",1))==0,
+                           "reconciliación exacta; diferencia máxima = 0"))
     else:
         gates.append(_gate("reconciliation",False,"falta evidencia de reconciliación"))
     # Full SEEC posterior and MC evidence.
@@ -57,8 +57,8 @@ def certify(root="."):
                   Gate("seat_mae","FAIL","sin calibración")]
     # Independent audit must be a separate evidence artifact.
     ext=r/"ci_evidence/external_audit.json"
-    gates.append(_gate("external_audit", ext.exists(),
-                       "auditoría independiente materializada"))
+    gates.append(_gate("external_audit", ext.exists() and json.loads(ext.read_text(encoding="utf-8")).get("status") in {"PASS","CERTIFIED"} and json.loads(ext.read_text(encoding="utf-8")).get("independent") is True and bool(json.loads(ext.read_text(encoding="utf-8")).get("auditor")),
+                       "auditoría independiente materializada y declarada"))
     ok=all(g.status=="PASS" for g in gates)
     return {"status":"CERTIFIED" if ok else "BLOCKED","gates":[g.__dict__ for g in gates]}
 
