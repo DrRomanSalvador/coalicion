@@ -196,3 +196,5 @@ result = {
 }
 (ROOT/"backtest_2023_baseline.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(result,ensure_ascii=False,indent=2))
+
+# Mission trigger: 2026-10-06 SEEC v3.1 audit.
