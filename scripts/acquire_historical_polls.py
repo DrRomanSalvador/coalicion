@@ -9,6 +9,7 @@ from __future__ import annotations
 import json, re
 from pathlib import Path
 import pandas as pd
+import requests
 
 URL = "https://www.pollingforecast.com/es/accuracy?lang=es&tab=parties"
 OUT = Path("data/encuestas_historicas_2004_2023.csv")
@@ -25,7 +26,9 @@ def clean(v):
     return None if s in {"", "–", "-", "nan"} else s
 
 def main():
-    tables = pd.read_html(URL)
+    response = requests.get(URL, headers={"User-Agent":"Mozilla/5.0 (compatible; coalicion/2026)"}, timeout=60)
+    response.raise_for_status()
+    tables = pd.read_html(response.content)
     rows = []
     for t in tables:
         cols = [str(c).strip() for c in t.columns]
