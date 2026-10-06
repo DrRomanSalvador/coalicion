@@ -27,6 +27,7 @@ jobs:
           python scripts/exhaustive_data_acquisition.py --search --resolve
 
       - name: Ejecutar motor robusto
+        continue-on-error: true
         run: |
           chmod +x scripts/run_ai_electoral_engine_robust.sh
           MAX_ATTEMPTS=5 RETRY_DELAY=10 bash scripts/run_ai_electoral_engine_robust.sh
@@ -124,6 +125,7 @@ jobs:
           PY
 
       - name: Verificar matriz canónica si fue generada
+        continue-on-error: true
         run: |
           if [ -s artifacts/data/election_2023_canonical.json ]; then
             python scripts/verify_canonical_2023.py
@@ -132,13 +134,23 @@ jobs:
           fi
 
       - name: Commit materialización, auditoría y matriz
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/raw/official data/raw/exhaustive data/processed data/manifests data/live             artifacts/data artifacts/audit artifacts/exhaustive_search_2023.json artifacts/execution_log.md
+          git add data/raw/official data/raw/exhaustive data/processed data/manifests data/live             artifacts/data artifacts/audit artifacts/exhaustive_search_2023.json artifacts/execution_log.md scripts/verify_canonical_2023.py
           if git diff --cached --quiet; then
             echo "NO_CHANGES"
           else
             git commit -m "data: materialize and audit official electoral sources"
             git push
           fi
+
+      - name: Gate final fail-closed
+        if: always()
+        run: |
+          if [ ! -s artifacts/data/election_2023_canonical.json ] || [ ! -s artifacts/audit/certificate_2023.json ]; then
+            echo "FAIL_CLOSED: no existe matriz/certificado oficial completo."
+            exit 1
+          fi
+          python scripts/verify_canonical_2023.py
