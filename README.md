@@ -410,3 +410,197 @@ Un modelo solo se considera **válido** cuando:
 > **Las reglas no cambian para obtener un resultado.**
 >
 > **Solo cambia una regla cuando la evidencia demuestra que la regla anterior era inferior.**
+
+
+---
+
+## 21. UNIVERSALIDAD TERRITORIAL: 52 CIRCUNSCRIPCIONES Y TODAS LAS CCAA
+
+La unidad matemática primaria del Congreso es la **circunscripción**, no la comunidad autónoma. La comunidad autónoma es una capa de agregación y control.
+
+La base histórica 2023 queda fijada para las **52 circunscripciones** y se vincula explícitamente a las **17 comunidades autónomas + Ceuta + Melilla** en:
+
+`data/2023_circunscripciones_oficiales.csv`
+
+El fichero procede del resumen oficial de la Junta Electoral Central publicado en el BOE. En 2023 contiene 350 escaños y 24.688.087 votos válidos estatales. La fuente oficial publica resultados generales y por circunscripción. citeturn0search1turn1view0
+
+Reglas obligatorias:
+
+- nunca sustituir las 52 circunscripciones por 19 agregados;
+- usar CCAA para controles, regularización y estimaciones jerárquicas, nunca para ejecutar D'Hondt;
+- toda estimación nacional debe conservar una distribución territorial;
+- toda estimación territorial debe poder agregarse de nuevo al total nacional;
+- cualquier suma CCAA→Estado debe coincidir exactamente con la suma de circunscripciones;
+- las ciudades autónomas conservan su regla especial de un diputado por mayoría de votos.
+
+La distribución 2026 debe proceder del decreto de convocatoria vigente; para la convocatoria de 29 de noviembre de 2026 el BOE fija 350 diputados y la magnitud de cada circunscripción. citeturn0search0
+
+---
+
+## 22. IMPUTACIÓN HOMOGÉNEA CUANDO FALTA UN DATO
+
+La ausencia de un dato **no permite cambiar de método**.
+
+Se utiliza un único procedimiento jerárquico, aplicado igual a todas las candidaturas:
+
+**circunscripción → CCAA → Estado → imputación → vuelta a CCAA → vuelta a circunscripción → D'Hondt.**
+
+Prioridad:
+
+1. dato observado de la circunscripción;
+2. dato observado de la misma candidatura en la misma CCAA;
+3. dato histórico comparable 2023 de la misma candidatura;
+4. si no existe candidatura comparable, distribución territorial basada en la estructura observable del escenario;
+5. si tampoco existe, imputación neutral documentada y aumento explícito de incertidumbre.
+
+Una imputación nunca se mezcla silenciosamente con observaciones.
+
+---
+
+## 23. ESTIMADOR DE IMPACTO DE DATO FALTANTE SOBRE ESCAÑOS
+
+Cuando falta un dato territorial, no se imputará simplemente por porcentaje nacional.
+
+Primero se calcula el impacto electoral de cada circunscripción con los resultados 2023:
+
+- (q_{win,c}): último cociente ganador;
+- (q_{loss,c}): primer cociente perdedor;
+- (g_c=q_{win,c}-q_{loss,c});
+- (T_{p,c}): votos adicionales mínimos necesarios para que la candidatura (p) desplace el escaño fronterizo;
+- (I_{p,c}): indicador de desplazamiento potencial.
+
+Para un incremento territorial estimado (Delta V_{p,c}):
+
+[
+I_{p,c}=minleft(1,rac{Delta V_{p,c}}{T_{p,c}}ight)
+]
+
+cuando (T_{p,c}>0), y (I_{p,c}=1) cuando el incremento alcanza o supera la frontera.
+
+El estimador de ausencia debe considerar simultáneamente:
+
+[
+	ext{impacto}_{p,c}
+=
+w_1rac{Delta V_{p,c}}{V_c}
++
+w_2 I_{p,c}
++
+w_3rac{Delta V_p}{V_{p,2023}^{base}}
+]
+
+con parámetros fijados **antes** de validar y sin optimizarlos para una elección concreta.
+
+Los pesos no se eligen para producir un reparto de escaños deseado. Se estiman mediante entrenamiento histórico y se congelan antes de la validación.
+
+---
+
+## 24. REGLA DE DESPLAZAMIENTO DE ESCAÑOS
+
+El modelo debe distinguir tres cantidades:
+
+1. **incremento de votos**;
+2. **incremento porcentual**;
+3. **capacidad de alterar un cociente D'Hondt**.
+
+No son equivalentes.
+
+Por tanto, cuando falte un dato, la decisión se hará con el siguiente orden:
+
+[
+Delta V_{nacional}
+ightarrow
+Delta p_{nacional}
+ightarrow
+Delta V_{CCAA}
+ightarrow
+Delta V_{circunscripción}
+ightarrow
+T_{p,c}
+ightarrow
+	ext{escaño desplazado/no desplazado}.
+]
+
+Un aumento nacional importante puede no producir ningún escaño adicional si no alcanza una frontera territorial. Un aumento menor puede desplazar un escaño si se concentra en una circunscripción marginal.
+
+La salida debe conservar ambos valores: **votos estimados** y **escaños resultantes**, sin confundir causalidad electoral con porcentaje nacional.
+
+---
+
+## 25. PROTECCIÓN CONTRA NUEVOS SESGOS
+
+Una corrección solo puede entrar en el modelo si cumple simultáneamente:
+
+- mejora o mantiene el error de voto global;
+- mejora o mantiene el error de escaños;
+- mejora o mantiene el error territorial;
+- mejora o mantiene el error por candidatura;
+- no empeora la calibración de incertidumbre;
+- no aumenta inestabilidad temporal;
+- no utiliza información futura;
+- no requiere una excepción territorial ad hoc;
+- no necesita parámetros distintos según la fuente;
+- no aumenta la dependencia de una sola elección.
+
+La regla de aceptación es **dominancia no inferior en todas las métricas predefinidas y mejora estricta en al menos una**, salvo que una razón estadística formal previamente registrada justifique otra decisión.
+
+Así se evita que una corrección mejore un indicador mientras introduce un nuevo sesgo en otro.
+
+---
+
+## 26. COMPARACIÓN CON EL MODELO ANTERIOR
+
+Toda versión nueva debe conservar una tabla de control:
+
+| Capa | Modelo anterior | Modelo nuevo | Cambio | Evidencia | Test fuera de muestra |
+|---|---|---|---|---|---|
+| territorialización | versión congelada | versión candidata | pendiente de prueba | 2023+histórico | obligatorio |
+| marginalidad | frontera D'Hondt | frontera exacta | exactitud | resultados oficiales | obligatorio |
+| coalición | suma territorial | suma territorial | sin prima | ley electoral | obligatorio |
+| partidos nuevos | imputación declarada | imputación jerárquica | explícita | datos disponibles | obligatorio |
+| precisión | redondeo de presentación | racional/exacto | mejora | matemática | control exacto |
+| datos faltantes | regla no uniforme | estimador único | homogeneización | histórico | obligatorio |
+
+Ninguna nueva versión puede declararse superior por apariencia, coherencia narrativa o proximidad a otro analista. Debe demostrarlo mediante backtesting.
+
+---
+
+## 27. CRITERIO DE PERFECCIÓN MATEMÁTICA
+
+La «perfección» exigida por el proyecto significa:
+
+- exactitud legal;
+- exactitud aritmética;
+- conservación de votos;
+- determinismo;
+- trazabilidad;
+- ausencia de ajustes manuales;
+- validación fuera de muestra;
+- tratamiento uniforme de datos completos y faltantes;
+- sensibilidad explícita en las fronteras;
+- incertidumbre separada del resultado puntual;
+- reproducción independiente.
+
+No significa afirmar una precisión empírica que los datos no contienen.
+
+El sistema **no puede garantizar que una encuesta futura sea correcta**; sí puede garantizar que, dados los mismos insumos y versión, el procedimiento sea reproducible y que cualquier corrección aceptada haya superado las pruebas definidas.
+
+---
+
+## 28. REGLA DE CONGELACIÓN
+
+Cuando una versión sea validada:
+
+**DATOS → PARÁMETROS → CÓDIGO → RESULTADOS → HASH/VERSIÓN**
+
+quedan congelados como unidad reproducible.
+
+Una actualización posterior crea una nueva versión y nunca reescribe retrospectivamente la validación anterior.
+
+---
+
+## 29. FUENTE LEGAL INVARIABLE
+
+La asignación de escaños debe ejecutar literalmente el artículo 163 LOREG: exclusión por debajo del 3% de votos válidos de la circunscripción, cocientes sucesivos, atribución por orden decreciente y desempate por mayor voto total; Ceuta y Melilla siguen su regla especial. citeturn0search2
+
+La fuente 2023 oficial es el BOE-A-2023-18907 de la Junta Electoral Central, que publica los resultados generales y por circunscripción a partir de las actas oficiales. citeturn0search1turn1view0
