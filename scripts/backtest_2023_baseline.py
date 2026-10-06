@@ -30,7 +30,15 @@ df = pd.read_csv(DATA)
 for c in ["ballots","blank_ballots","party_ballots","valid_ballots","total_ballots"]:
     df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0.0)
 df["party"] = df["abbrev_candidacies"].fillna(df["name_candidacies"]).astype(str).str.strip()
-df["prov"] = df["prov"].astype(str).str.strip()
+df["prov"] = df["prov"].astype(str).str.strip().replace(PROV_MAP)
+PROV_MAP = {
+    "Alicante/Alacant":"Alicante","Araba/Álava":"Araba/Álava","Álava/Araba":"Araba/Álava",
+    "Bizkaia":"Bizkaia","Vizcaya/Bizkaia":"Bizkaia",
+    "Castellón/Castelló":"Castellón","Guipúzcoa/Gipuzkoa":"Gipuzkoa",
+    "Islas Baleares/Illes Balears":"Illes Balears","La Coruña/A Coruña":"A Coruña",
+    "Navarra/Nafarroa":"Navarra","Orense/Ourense":"Ourense",
+    "Valencia/València":"Valencia",
+}
 
 train = df[df["election"].eq("2019N")].copy()
 target = df[df["election"].eq("2023")].copy()
