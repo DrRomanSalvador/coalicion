@@ -29,3 +29,22 @@
 
 ## Cierre
 No se declara cerrado el modelo 2026 hasta automatizar todos los controles esenciales y disponer de las fuentes oficiales necesarias.
+
+
+## Ejecución actual
+La auditoría de código se complementa con pruebas ejecutables del núcleo electoral. Se exige cobertura de:
+- validación de entradas;
+- umbral exacto y por debajo del 3%;
+- cocientes D'Hondt;
+- empate de cociente resuelto por votos;
+- empate absoluto bloqueado;
+- Ceuta y Melilla;
+- fusión a nivel de votos;
+- conservación de escaños;
+- determinismo;
+- estructura oficial 52/350 y magnitudes críticas.
+
+La ausencia de `run26.py` en el repositorio actual impide certificar un archivo con ese nombre.
+
+## Criterio de evidencia
+PASS solo si existe fuente primaria, prueba ejecutable o ambas. Ausencia de evidencia se marca NO DEMOSTRADO, nunca PASS por inferencia.
