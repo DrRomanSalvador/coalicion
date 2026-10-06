@@ -49,6 +49,7 @@ No se inventa territorialidad para candidaturas sin base comparable. Toda imputa
 - Analizador reproducible de error encuesta→resultado desde 2004: incorporado.
 - Esquema de datos históricos 2004–2023: incorporado; carga de observaciones documentadas pendiente de consolidación completa.
 - Archivo histórico completo de encuestas y resultados: pendiente de consolidación.
+- Contexto gobierno/oposición y análisis de movimiento entre elecciones: codificado; pendiente de carga documental de observaciones.
 - Territorialización reproducible 2026: pendiente de cierre.
 - Resultado 2026: **no declarado auditado** hasta superar todos los controles.
 
