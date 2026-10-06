@@ -78,3 +78,10 @@ DETENER → IDENTIFICAR → REGISTRAR → NO PROPAGAR
 
 ## 15. Continuidad
 Este contrato es la memoria operativa acumulada del proyecto. Una nueva IA debe poder reconstruir el procedimiento sin disponer de conversaciones anteriores. Toda ampliación debe ser compatible, explícita, versionada y comprobable.
+
+
+## 16. Registro exhaustivo de sesgos
+Antes de diseñar o aceptar una corrección debe consultarse `docs/REGISTRO_MAESTRO_SESGOS.md`. La hipótesis **Gobierno × partido × casa × fecha** debe probarse como interacción candidata, junto con recencia, modo, no respuesta, recuerdo, ocultación, turnout, dependencia/herding, ciclo electoral, fragmentación, nuevos partidos y todos los demás factores registrados. Ninguno se convierte en corrección fija sin evidencia OOS. Los efectos con poco soporte sufren shrinkage y, si no generalizan, se reducen a cero.
+
+## 17. Regla de amplitud sin sobreajuste
+La exhaustividad se obtiene registrando y probando todas las fuentes plausibles de error, no incluyendo todas simultáneamente. Los modelos se comparan anidados y fuera de muestra. La complejidad adicional solo sobrevive si mejora la generalización conjunta de voto, territorio, escaños, calibración y estabilidad.
