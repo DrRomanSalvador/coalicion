@@ -1,14 +1,14 @@
-"""Selector anti-sesgos por validación temporal fuera de muestra.
+"""Selector anti-sesgos temporal, robusto y conservador.
 
-Principio: el sesgo histórico solo se usa si una corrección demuestra utilidad
-predictiva fuera de muestra frente al modelo base. No fija correcciones por
-partido/casa de forma retrospectiva.
+No presupone que exista sesgo corregible. Aprende solo con información previa
+a cada elección y devuelve BASE si ninguna corrección domina fuera de muestra.
 """
 from __future__ import annotations
 from dataclasses import dataclass
+from datetime import date
 from math import sqrt
 from statistics import median
-from typing import Callable, Iterable, Sequence
+from typing import Callable, Sequence
 
 @dataclass(frozen=True)
 class Observation:
@@ -30,40 +30,64 @@ class Candidate:
     name: str
     predict: Callable[[Sequence[Observation], Observation], float]
 
-def _score(errors: Iterable[float]) -> Score:
-    e = list(errors)
-    if not e:
+def _score(errors: Sequence[float]) -> Score:
+    if not errors:
         raise ValueError("No hay observaciones de validación")
     return Score(
-        mae=sum(abs(x) for x in e) / len(e),
-        rmse=sqrt(sum(x*x for x in e) / len(e)),
-        max_abs=max(abs(x) for x in e),
+        mae=sum(abs(x) for x in errors) / len(errors),
+        rmse=sqrt(sum(x*x for x in errors) / len(errors)),
+        max_abs=max(abs(x) for x in errors),
     )
 
-def score_candidate(
-    train: Sequence[Observation],
-    test: Sequence[Observation],
-    candidate: Candidate,
-) -> Score:
-    return _score(candidate.predict(train, x) - x.actual for x in test)
-
-def robust_party_bias(train: Sequence[Observation], party: str) -> float:
-    """Mediana robusta del error poll-actual; solo con entrenamiento."""
-    e = [x.actual - x.poll for x in train if x.party == party]
-    return median(e) if e else 0.0
-
-def additive_party_bias(train: Sequence[Observation], obs: Observation) -> float:
-    return obs.poll + robust_party_bias(train, obs.party)
-
-def common_bias(train: Sequence[Observation], obs: Observation) -> float:
-    e = [x.actual - x.poll for x in train]
-    return obs.poll + (median(e) if e else 0.0)
+def _key(x: Observation):
+    # El orden temporal debe ser explícito. Si falta fecha, se rechaza:
+    # nunca se permite ordenar cronológicamente por nombre de elección.
+    if not x.field_end:
+        raise ValueError("field_end es obligatorio para validación temporal")
+    return date.fromisoformat(x.field_end)
 
 def base(train: Sequence[Observation], obs: Observation) -> float:
     return obs.poll
 
+def _common_bias(train: Sequence[Observation]) -> float:
+    e = [x.actual - x.poll for x in train]
+    return median(e) if e else 0.0
+
+def robust_party_bias(train: Sequence[Observation], party: str, shrink_k: float = 3.0) -> float:
+    e = [x.actual - x.poll for x in train if x.party == party]
+    if not e:
+        return _common_bias(train)
+    party_bias = median(e)
+    # Shrinkage conservador: una sola elección nunca equivale a evidencia fuerte.
+    w = len(e) / (len(e) + shrink_k)
+    return w * party_bias + (1.0 - w) * _common_bias(train)
+
+def additive_common(train: Sequence[Observation], obs: Observation) -> float:
+    return obs.poll + _common_bias(train)
+
+def additive_party(train: Sequence[Observation], obs: Observation) -> float:
+    return obs.poll + robust_party_bias(train, obs.party)
+
+def _errors(candidate: Candidate, observations: Sequence[Observation]):
+    ordered = sorted(observations, key=_key)
+    elections = []
+    for x in ordered:
+        if x.election not in elections:
+            elections.append(x.election)
+    base_errors: list[float] = []
+    cand_errors: list[float] = []
+    for election in elections:
+        test = [x for x in ordered if x.election == election]
+        train = [x for x in ordered if _key(x) < min(_key(t) for t in test)]
+        if not train:
+            continue
+        base_errors.extend(x.poll - x.actual for x in test)
+        cand_errors.extend(candidate.predict(train, x) - x.actual for x in test)
+    if not base_errors:
+        raise ValueError("No existe ventana OOS entrenable")
+    return _score(base_errors), _score(cand_errors)
+
 def dominates(base_score: Score, candidate_score: Score) -> bool:
-    """Aceptación conservadora: no empeorar ninguna métrica y mejorar una."""
     no_worse = (
         candidate_score.mae <= base_score.mae
         and candidate_score.rmse <= base_score.rmse
@@ -76,53 +100,19 @@ def dominates(base_score: Score, candidate_score: Score) -> bool:
     )
     return no_worse and strict
 
-def rolling_leave_one_election_out(
-    observations: Sequence[Observation],
-    candidate: Candidate,
-) -> tuple[Score, Score, bool]:
-    elections = sorted({x.election for x in observations})
-    base_errors: list[float] = []
-    cand_errors: list[float] = []
-    for election in elections:
-        train = [x for x in observations if x.election < election]
-        test = [x for x in observations if x.election == election]
-        if not train or not test:
-            continue
-        b = score_candidate(train, test, Candidate("base", base))
-        c = score_candidate(train, test, candidate)
-        # Guardamos errores, no promedios de promedios, para ponderar cada
-        # observación de forma transparente.
-        base_errors.extend([x.poll - x.actual for x in test])
-        cand_errors.extend([
-            candidate.predict(train, x) - x.actual for x in test
-        ])
-    if not base_errors:
-        raise ValueError("No existe ventana temporal entrenable")
-    bs = _score(base_errors)
-    cs = _score(cand_errors)
-    return bs, cs, dominates(bs, cs)
-
-def select_best(
-    observations: Sequence[Observation],
-    candidates: Sequence[Candidate],
-) -> Candidate:
-    """Selecciona solo por OOS; si ninguno domina al base, devuelve base."""
-    base_candidate = Candidate("BASE", base)
-    bs, _, _ = rolling_leave_one_election_out(observations, base_candidate)
-    accepted: list[tuple[Candidate, Score]] = []
-    for candidate in candidates:
-        _, cs, ok = rolling_leave_one_election_out(observations, candidate)
-        if ok:
+def select_best(observations: Sequence[Observation]) -> Candidate:
+    candidates = [
+        Candidate("BASE", base),
+        Candidate("BIAS_COMUN", additive_common),
+        Candidate("BIAS_PARTIDO_SHRINK", additive_party),
+    ]
+    bs, _ = _errors(candidates[0], observations)
+    accepted = []
+    for candidate in candidates[1:]:
+        _, cs = _errors(candidate, observations)
+        if dominates(bs, cs):
             accepted.append((candidate, cs))
     if not accepted:
-        return base_candidate
-    accepted.sort(key=lambda item: (item[1].mae, item[1].rmse, item[1].max_abs))
+        return candidates[0]
+    accepted.sort(key=lambda z: (z[1].mae, z[1].rmse, z[1].max_abs))
     return accepted[0][0]
-
-def guardrail(candidate: Candidate, train: Sequence[Observation]) -> Candidate:
-    """Bloquea resultados no finitos y evita extrapolaciones sin evidencia."""
-    for obs in train:
-        value = candidate.predict(train, obs)
-        if not isinstance(value, (int, float)) or not (value == value):
-            return Candidate("BASE", base)
-    return candidate
