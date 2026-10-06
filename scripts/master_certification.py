@@ -78,7 +78,14 @@ def certify(root="."):
                   Gate("seat_mae","FAIL","sin calibración")]
     # Independent audit must be a separate evidence artifact.
     ext=r/"ci_evidence/external_audit.json"
-    gates.append(_gate("external_audit", ext.exists() and json.loads(ext.read_text(encoding="utf-8")).get("status") in {"PASS","CERTIFIED"} and json.loads(ext.read_text(encoding="utf-8")).get("independent") is True and bool(json.loads(ext.read_text(encoding="utf-8")).get("auditor")),
+    external_ok=False
+    if ext.exists():
+        try:
+            ex=json.loads(ext.read_text(encoding="utf-8"))
+            external_ok=(ex.get("status") in {"PASS","CERTIFIED"} and ex.get("independent") is True and bool(ex.get("auditor")))
+        except Exception:
+            external_ok=False
+    gates.append(_gate("external_audit", external_ok,
                        "auditoría independiente materializada y declarada"))
     ok=all(g.status=="PASS" for g in gates)
     return {"status":"CERTIFIED" if ok else "BLOCKED","gates":[g.__dict__ for g in gates]}
