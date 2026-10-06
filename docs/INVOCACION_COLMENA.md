@@ -55,3 +55,30 @@ No se ha certificado el sistema: permanecen bloqueos explícitos en fuente binar
 Siguiente acción única: fijar el PDF binario con SHA-256 `b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7`.
 
 **Regla de mensaje incompleto:** si una IA muere, se queda sin tokens o termina una respuesta a mitad, se ignora cualquier intención no persistida. El siguiente agente ejecuta el estado del repositorio y no vuelve a pensar lo ya resuelto.
+
+
+## HUELLA DE PRODUCTO — CHECKPOINT ACTUAL
+
+Último cambio persistido: `0a1ba022d757124c7695ce7c3a4be2f6471e8921`.
+Artefacto añadido: `docs/CONTRATO_PRODUCTO_COLMENA.md`.
+Artefactos de continuidad: registro canónico de errores + gate de reanudación de contexto cero.
+Estado: **BLOCKED / FAIL-CLOSED**; no se declara producto certificado mientras existan BLOCKER abiertos.
+Regla: esta huella es la referencia de reanudación; no se reconstruye intención desde el chat.
+
+### PROM MÍNIMO PARA CUALQUIER CHAT NUEVO
+
+REPOSITORIO = MEMORIA.
+CHAT = INTERFAZ.
+
+1. Leer README.md.
+2. Leer CONTRATO_MAESTRO_IA.md.
+3. Leer docs/INVOCACION_COLMENA.md.
+4. Leer docs/COLMENA_STATE.json.
+5. Ejecutar: python -m src.colmena_resume
+6. Ejecutar los tests canónicos indicados por la invocación.
+7. Tomar únicamente docs/COLMENA_STATE.json.next_single_action.
+8. Ejecutar esa acción y ninguna otra acción paralela.
+9. Persistir resultado, errores, evidencia, commit y una única next_single_action.
+10. Detenerse.
+
+No buscar de nuevo fuentes ancladas. No repetir cálculos ya evidenciados. No usar memoria del chat para reconstruir estado.
