@@ -8,7 +8,6 @@ Technical sheets/microdata are deliberately not inferred from this table.
 from __future__ import annotations
 import json, re
 from pathlib import Path
-import pandas as pd
 import requests
 import certifi
 from bs4 import BeautifulSoup
@@ -23,67 +22,71 @@ ELECTIONS = {
 }
 
 def clean(v):
-    if pd.isna(v): return None
+    if v is None:
+        return None
     s = str(v).strip().replace("−", "-").replace(",", ".")
     return None if s in {"", "–", "-", "nan"} else s
 
 def parse_polls_from_html(html_content):
-    """Extrae las ocho tablas de últimas encuestas del HTML actual."""
+    """Extrae las ocho tablas de últimas encuestas directamente del HTML."""
     soup = BeautifulSoup(html_content, "html.parser")
     candidates = []
 
     for table in soup.find_all("table"):
-        try:
-            frames = pd.read_html(str(table))
-        except (ValueError, ImportError):
+        rows = []
+        for tr in table.find_all("tr"):
+            cells = [c.get_text(" ", strip=True) for c in tr.find_all(["th", "td"])]
+            if cells:
+                rows.append(cells)
+        if not rows:
             continue
-        if not frames:
+
+        header_index = next(
+            (i for i, row in enumerate(rows)
+             if "Empresa" in row and "Error medio" in row),
+            None,
+        )
+        if header_index is None:
             continue
-        t = frames[0]
-        cols = [str(c).strip() for c in t.columns]
-        if "Empresa" not in cols or "Error medio" not in cols:
-            continue
-        candidates.append((table, t, cols))
+        candidates.append((table, rows[header_index], rows[header_index + 1:]))
 
     if len(candidates) != len(ELECTIONS):
         raise ValueError(
             f"Se esperaban {len(ELECTIONS)} tablas de últimas encuestas y se encontraron {len(candidates)}"
         )
 
-    # La página publica las ocho elecciones en orden descendente: 2023,
-    # noviembre de 2019, abril de 2019, 2016, 2015, 2011, 2008 y 2004.
     fallback_order = ["2023", "2019N", "2019A", "2016", "2015", "2011", "2008", "2004"]
-    rows = []
+    rows_out = []
 
-    for index, (table, t, cols) in enumerate(candidates):
-        heading_text = ""
+    for index, (table, header, body) in enumerate(candidates):
         previous = table.find_all_previous(["h2", "h3", "h4"], limit=1)
-        if previous:
-            heading_text = previous[0].get_text(" ", strip=True)
+        heading_text = previous[0].get_text(" ", strip=True) if previous else ""
+        election = next(
+            (code for label, code in ELECTIONS.items() if label in heading_text),
+            fallback_order[index],
+        )
 
-        election = None
-        for label, code in ELECTIONS.items():
-            if label in heading_text:
-                election = code
-                break
-        if election is None:
-            election = fallback_order[index]
-
-        for _, record in t.iterrows():
-            company = clean(record.get("Empresa"))
+        for record in body:
+            if not record:
+                continue
+            company_i = header.index("Empresa")
+            error_i = header.index("Error medio")
+            if len(record) <= company_i:
+                continue
+            company = clean(record[company_i])
             if not company or company == "Resultado":
                 continue
-            for party in cols:
-                if party in {"Empresa", "Error medio"}:
+            for i, party in enumerate(header):
+                if i in {company_i, error_i} or i >= len(record):
                     continue
-                val = clean(record.get(party))
+                val = clean(record[i])
                 if val is None:
                     continue
                 try:
                     estimate = float(val)
                 except (TypeError, ValueError):
                     continue
-                rows.append({
+                rows_out.append({
                     "election": election,
                     "party": party,
                     "poll": company,
@@ -96,9 +99,10 @@ def parse_polls_from_html(html_content):
                     "poll_id": f"{election}:{company}",
                 })
 
-    if not rows:
+    if not rows_out:
         raise ValueError("No se encontraron observaciones de encuestas")
-    return rows
+    return rows_out
+
 
 def main():
     response = requests.get(
@@ -110,6 +114,7 @@ def main():
     response.raise_for_status()
     rows = parse_polls_from_html(response.content)
     # One row per poll-party observation; deterministic order.
+    import pandas as pd
     df = pd.DataFrame(rows)
     df = df.sort_values(["election","poll","party"], kind="stable")
     OUT.parent.mkdir(parents=True, exist_ok=True)
