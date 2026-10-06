@@ -38,6 +38,11 @@ def main():
     seats = [p.get("seats") for p in provinces]
     if any(not isinstance(s, int) or s < 1 for s in seats) or sum(seats) != EXPECTED_SEATS:
         fail("escaños ausentes o suma distinta de 350")
+    valid_votes = matrix.get("data", {}).get("valid_votes", {})
+    blank_votes = matrix.get("data", {}).get("blank_votes", {})
+    if set(valid_votes) != set(names) or set(blank_votes) != set(names):
+        fail("faltan votos válidos o votos en blanco para alguna circunscripción")
+
     for province in provinces:
         parties = province.get("parties")
         if not isinstance(parties, list) or not parties:
@@ -50,6 +55,10 @@ def main():
             seen.add(name)
             if not isinstance(votes, int) or votes < 0:
                 fail(f"{province.get('name')}/{name}: votos inválidos")
+        pname = province["name"]
+        party_sum = sum(r["votes"] for r in province["parties"])
+        if valid_votes[pname] != party_sum + blank_votes[pname]:
+            fail(f"{pname}: votos válidos != candidaturas + blancos")
     expected_merkle = cert.get("merkle_root")
     if matrix.get("validation", {}).get("merkle_root") != expected_merkle:
         fail("Merkle root inconsistente entre matriz y certificado")
