@@ -76,35 +76,21 @@ df = pd.concat(frames, ignore_index=True, sort=False)
 # Preserve the source table unchanged.
 df.to_csv(ROOT / "secondary_prov_raw.csv", index=False)
 
-date_col = next((c for c in ("date", "fecha") if c in df.columns), None)
-if date_col is not None:
-    df["_date_iso"] = pd.to_datetime(df[date_col], errors="coerce").dt.strftime("%Y-%m-%d")
-elif "id_elec" in df.columns:
-    # pollspaindata encodes Congress election date as 02-YYYY-MM-DD.
-    df["_date_iso"] = (
-        df["id_elec"].astype(str)
-        .str.extract(r"(\d{4}-\d{2}-\d{2})", expand=False)
-    )
-else:
-    raise RuntimeError(f"No election-date field found; columns={list(df.columns)}")
-sel = df[df["_date_iso"].isin(TARGET_DATES)].copy()
-if sel.empty:
-    raise RuntimeError("No target elections found in secondary source")
-
-sel["election"] = sel["_date_iso"].map(TARGET_DATES)
+# The per-file election label is authoritative for this secondary staging.
+sel = df.copy()
+sel["election"] = sel["_election"]
 sel.to_csv(ROOT / "historical_province_secondary.csv", index=False)
 
 manifest = {
-    "source": URL,
+    "sources": source_urls,
     "source_tier": "SECONDARY_REPLICA",
-    "source_sha256": sha,
-    "target_elections": list(TARGET_DATES.values()),
+    "source_sha256": source_hashes,
+    "target_elections": list(TARGET_FILES),
     "rows_selected": int(len(sel)),
     "note": (
-        "Derived from pollspaindata, which documents Spanish electoral data "
-        "downloaded from the Ministry of the Interior. Primary-source "
-        "certification remains blocked until the official Interior file is "
-        "retrieved and cross-checked."
+        "Derived from pollspaindata. This is a secondary replica, not a "
+        "primary-source certification. Official Interior cross-check remains "
+        "required before publication."
     ),
 }
 (ROOT / "secondary_manifest.json").write_text(
@@ -112,4 +98,5 @@ manifest = {
 )
 
 print(json.dumps(manifest, ensure_ascii=False, indent=2))
+print("ROWS_BY_ELECTION:", df.groupby("_election").size().to_dict())
 print("COLUMNS:", list(df.columns))
