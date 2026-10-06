@@ -2,8 +2,8 @@
   "schema": "EXECUTION_STATE_V1",
   "run_id": "autonomous-20261006",
   "started_at": "2026-10-06T20:03:24Z",
-  "last_updated_at": "2026-10-06T21:20:00Z",
-  "current_phase": "Decision Engine MVP",
+  "last_updated_at": "2026-10-06T21:35:00Z",
+  "current_phase": "Decision Engine MVP — validation",
   "completed_tasks": [
     "inspección estructural",
     "línea base persistida",
@@ -20,7 +20,8 @@
     "deterministic coalition engine",
     "explicit territorial shock engine",
     "Dockerfile and requirements.lock",
-    "Decision Engine regression tests"
+    "Decision Engine regression tests",
+    "contractual pytest suite passes after correcting fail-closed expectation"
   ],
   "in_progress_tasks": [],
   "blocked_tasks": [
@@ -37,7 +38,8 @@
   ],
   "warnings": [
     "CI histórico demostró que la fuente primaria puede descargarse, pero el parser primario completo aún no está implementado.",
-    "El backtest baseline 2023 existente usa réplica secundaria y no debe confundirse con certificación primaria."
+    "El backtest baseline 2023 existente usa réplica secundaria y no debe confundirse con certificación primaria.",
+    "Colmena reproducible gate remains intentionally red because PRIMARY_BINARY_NOT_REPOSITORY_PINNED; this is a certification blocker, not a hidden test failure."
   ],
   "artifacts": [
     "artifacts/baseline/repository_inventory.json",
@@ -48,6 +50,6 @@
   ],
   "certificates": [],
   "next_actions": [
-    "Materializar y reconciliar la matriz oficial candidatura×circunscripción 2023; después ejecutar casos PSOE+SUMAR y PP+VOX sin datos inventados."
+    "Materializar y reconciliar la matriz oficial candidatura×circunscripción 2023 y, si el binario primario contractual puede incorporarse, fijarlo por SHA-256; después ejecutar casos reales de coalición."
   ]
 }
