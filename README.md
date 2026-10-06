@@ -65,7 +65,15 @@ Si falta un dato esencial, la suma de votos no cuadra, existe contradicción, se
 
 Entrada obligatoria para cualquier IA nueva: `docs/INVOCACION_COLMENA.md`.
 
-Ese checkpoint contiene metodología, semilla, RNG, ancla primaria, estado real, último paso y siguiente acción. No se reconstruye el contexto desde el chat.
+Estado máquina heredable: `docs/COLMENA_STATE.json`.
+
+### Regla de reanudación
+La IA nueva debe leer primero `README.md`, `CONTRATO_MAESTRO_IA.md`, `docs/INVOCACION_COLMENA.md` y `docs/COLMENA_STATE.json`, ejecutar el contrato reproducible y continuar únicamente desde `next_single_action`.
+
+**No se reconstruye el contexto desde el chat.** El chat sirve para interacción; el repositorio contiene la memoria operativa.
+
+### Economía de tokens
+No repetir búsquedas, cálculos o auditorías ya registrados. No buscar de nuevo una fuente anclada. No narrar llamadas de herramientas. Si una comprobación ya tiene evidencia versionada, verificarla y avanzar.
 
 ### Contrato ejecutable
 `src/reproducibility_contract.py` verifica contrato y ancla primaria. Debe pasar antes de modelar:
@@ -78,4 +86,4 @@ pytest -q tests/test_reproducibility_contract.py
 Si falla: **DETENER**. No sustituir fuentes, parámetros, semilla ni metodología.
 
 ### Huella de continuidad
-Cada cierre debe actualizar `docs/INVOCACION_COLMENA.md` con commit exacto, pruebas, PASS/WARNING/FAIL, cambios, evidencias y siguiente paso único. El chat nuevo reanuda desde ahí, sin repetir investigación.
+Cada cierre debe actualizar `docs/COLMENA_STATE.json` y `docs/INVOCACION_COLMENA.md` con commit, estado, errores abiertos, evidencias y **una única siguiente acción**. Un razonamiento o mensaje no persistido no se considera heredable.
