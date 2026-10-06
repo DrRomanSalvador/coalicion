@@ -59,10 +59,10 @@
       "detail": "El último cambio de producto todavía no tiene evidencia CI registrada; el siguiente agente debe ejecutar/verificar la suite antes de declarar PASS."
     }
   ],
-  "last_verified_commit": "a4741173502eed562823e3c0787c7f89a59a7efe7",
-  "last_action": "Codificación del producto Colmena: contrato de producto, registro canónico de errores, gate de contexto cero, PROM de reanudación y pruebas de superficie.",
-  "last_action_result": "CODE_PERSISTED; CONTINUITY_PROTOCOL_HARDENED; PRODUCT_CONTRACT_ADDED; CERTIFICATION_REMAINS_BLOCKED",
-  "next_single_action": "Ejecutar la superficie canónica de pruebas de la Colmena y registrar el resultado real en CI; no iniciar ninguna acción paralela hasta cerrar ese checkpoint.",
+  "last_verified_commit": "ac14e016a727942a0e68d1aad6519302d362ec0e",
+  "last_action": "Añadido el gate CI obligatorio de la Colmena: contrato reproducible + reanudación + registro de errores + pruebas de producto.",
+  "last_action_result": "CODE_PERSISTED; CI_GATE_ADDED; CI_EXECUTION_NOT_YET_VERIFIED; CERTIFICATION_BLOCKED",
+  "next_single_action": "Verificar el resultado real del workflow Colmena reproducible para el commit actual y persistir PASS/FAIL; si FAIL, registrar el código canónico y corregir solo esa causa.",
   "continuation_rule": "A new chat MUST read README.md, CONTRATO_MAESTRO_IA.md, docs/INVOCACION_COLMENA.md and this state file, execute python -m src.colmena_resume, and continue only from next_single_action. Never reconstruct context from chat.",
   "token_economy": {
     "repository_first": true,
