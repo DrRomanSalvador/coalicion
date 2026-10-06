@@ -145,6 +145,18 @@ Si falta el binario o cambia un solo byte: `PRIMARY_BINARY_NOT_REPOSITORY_PINNED
 No se puede cambiar silenciosamente SEEC, semilla, RNG, número mínimo de simulaciones, ley electoral, ventanas OOS, umbrales de calibración, fuente primaria, reglas de desempate ni tratamiento territorial. Cualquier cambio exige nueva versión, evidencia y pruebas.
 
 
+## OPERATIONAL_BETA
+
+**Estado de producto: utilizable con transparencia; no certificado oficialmente.**
+
+- Motor D'Hondt: verificado y determinista.
+- Datos históricos/2023 disponibles: réplica secundaria verificable.
+- Comparación de coaliciones y escenarios explícitos: permitida.
+- Certificación estricta de fuente primaria: pendiente.
+- Predicción electoral: no validada.
+
+Los resultados beta deben mostrar siempre la procedencia secundaria y no deben presentarse como certificación oficial.
+
 ## Decision Engine MVP — uso operativo
 
 El repositorio incluye ahora `coalicion.py` como interfaz mínima:
