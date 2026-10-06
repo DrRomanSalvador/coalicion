@@ -141,7 +141,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/raw/official data/raw/exhaustive data/processed data/manifests data/live             artifacts/data artifacts/audit artifacts/exhaustive_search_2023.json artifacts/execution_log.md scripts/verify_canonical_2023.py
+          git add -A
           if git diff --cached --quiet; then
             echo "NO_CHANGES"
           else
