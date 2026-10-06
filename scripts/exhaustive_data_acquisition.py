@@ -106,7 +106,9 @@ def search() -> dict:
             })
     result={"generated_at":datetime.now(timezone.utc).isoformat(),
             "election":"2023","sources":SOURCES,"attempts":attempts,
-            "successful":[x for x in attempts if x["status"]=="SUCCESS"]}
+            "successful":[x for x in attempts if x["status"]=="SUCCESS"],
+            "failed":[x for x in attempts if x["status"]!="SUCCESS"],
+            "policy":{"primary_precedence":True,"vote_averaging":False,"invented_values":False}}
     ART.mkdir(parents=True,exist_ok=True)
     LOG.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
     return result
@@ -144,7 +146,17 @@ def main():
     print("Descargas correctas:",sum(x["status"]=="SUCCESS" for x in data["attempts"]))
     print("Registro:",LOG)
     if args.resolve:
-        print("Resolución: la precedencia primaria se aplica por celda; conflictos secundarios no se promedian.")
+        successes = data["successful"]
+        primary_ok = any(x["tier"] == "PRIMARY" for x in successes)
+        data["resolution"] = {
+            "status": "PRIMARY_EVIDENCE_AVAILABLE" if primary_ok else "BLOCKED_PRIMARY_UNAVAILABLE",
+            "primary_sources_successful": sorted({x["source_id"] for x in successes if x["tier"] == "PRIMARY"}),
+            "secondary_sources_successful": sorted({x["source_id"] for x in successes if x["tier"] == "SECONDARY"}),
+            "tertiary_sources_successful": sorted({x["source_id"] for x in successes if x["tier"] == "TERTIARY"}),
+            "rule": "PRIMARY_WINS; equal-tier conflicts remain UNRESOLVED; never average official vote cells"
+        }
+        LOG.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        print("Resolución:", data["resolution"]["status"])
     return 0
 
 if __name__=="__main__":
