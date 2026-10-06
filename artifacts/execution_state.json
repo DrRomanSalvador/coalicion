@@ -2,8 +2,8 @@
   "schema": "EXECUTION_STATE_V1",
   "run_id": "autonomous-20261006",
   "started_at": "2026-10-06T20:03:24Z",
-  "last_updated_at": "2026-10-06T20:50:00Z",
-  "current_phase": "Fase 3 — pipeline de datos / certificación 2023",
+  "last_updated_at": "2026-10-06T21:20:00Z",
+  "current_phase": "Decision Engine MVP",
   "completed_tasks": [
     "inspección estructural",
     "línea base persistida",
@@ -15,15 +15,19 @@
     "escenario especial Ceuta/Melilla preservado",
     "workflow CI endurecido para continuar tareas independientes",
     "master certification gates made fail-closed against fake PASS artifacts",
-    "CI results persisted"
+    "CI results persisted",
+    "CLI audit/coalition/scenario/verify",
+    "deterministic coalition engine",
+    "explicit territorial shock engine",
+    "Dockerfile and requirements.lock",
+    "Decision Engine regression tests"
   ],
-  "in_progress_tasks": [
-    "validación CI de la rama"
-  ],
+  "in_progress_tasks": [],
   "blocked_tasks": [
     "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
     "PRIMARY_RECONCILIATION",
-    "SEEC_PRODUCTION_EXECUTION",
+    "OFFICIAL_2023_CANDIDACY_MATRIX",
+    "COALITION_REAL_CASE_CERTIFICATION",
     "OOS_CALIBRATION",
     "EXTERNAL_AUDIT"
   ],
@@ -44,8 +48,6 @@
   ],
   "certificates": [],
   "next_actions": [
-    "pin primary PDF",
-    "implement primary 2023 semantic parser/reconciliation",
-    "then historical primary ingestion"
+    "Materializar y reconciliar la matriz oficial candidatura×circunscripción 2023; después ejecutar casos PSOE+SUMAR y PP+VOX sin datos inventados."
   ]
 }
