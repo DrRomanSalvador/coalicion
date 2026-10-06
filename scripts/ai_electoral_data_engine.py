@@ -157,14 +157,18 @@ def is_number(value) -> bool:
 
 
 def parse_interior(path: Path) -> dict:
-    """Parsea tablas provinciales del XLSX sin alterar etiquetas electorales."""
+    """Parsea una tabla oficial completa de Congreso sin duplicar hojas.
+
+    Fail-closed: si hay varias tablas completas incompatibles, no se elige
+    arbitrariamente una. Los escaños deben constar en el workbook.
+    """
     try:
         import openpyxl
     except ImportError as exc:
         raise RuntimeError("openpyxl es obligatorio para parsear Interior") from exc
 
     def norm(v):
-        return "".join(c for c in str(v or "").lower() if c.isalnum())
+        return "".join(ch for ch in str(v or "").lower() if ch.isalnum())
 
     def find(headers, *names):
         ns = {norm(x) for x in names}
@@ -178,7 +182,7 @@ def parse_interior(path: Path) -> dict:
         return None
 
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
-    rows = []
+    candidates = []
     for ws in wb.worksheets:
         it = ws.iter_rows(values_only=True)
         headers = list(next(it, ()))
@@ -187,8 +191,12 @@ def parse_interior(path: Path) -> dict:
         p = find(headers, "Provincia", "Circunscripción", "Province")
         party = find(headers, "Candidatura", "Candidaturas", "Partido", "Siglas")
         votes = find(headers, "Votos", "Votos candidatura")
+        seats = find(headers, "Escaños", "Escanos", "Diputados", "Seats")
         if p is None or party is None or votes is None:
             continue
+
+        matrix = defaultdict(dict)
+        seat_map = {}
         for row in it:
             if len(row) <= max(p, party, votes):
                 continue
@@ -197,26 +205,48 @@ def parse_interior(path: Path) -> dict:
             value = row[votes]
             if not province or not candidacy or not is_number(value) or value < 0:
                 continue
-            rows.append({
+            vote = int(value)
+            if candidacy in matrix[province] and matrix[province][candidacy] != vote:
+                raise RuntimeError(f"Tabla {ws.title}: celda duplicada con valores distintos en {province}/{candidacy}")
+            matrix[province][candidacy] = vote
+            if seats is not None and len(row) > seats and is_number(row[seats]) and row[seats] >= 0:
+                seat_value = int(row[seats])
+                previous = seat_map.get(province)
+                if previous is not None and previous != seat_value:
+                    raise RuntimeError(f"Tabla {ws.title}: escaños inconsistentes en {province}")
+                seat_map[province] = seat_value
+
+        if matrix:
+            candidates.append({
                 "sheet": ws.title,
-                "province": province,
-                "party": candidacy,
-                "votes": int(value),
+                "provinces": {p: dict(sorted(v.items())) for p, v in sorted(matrix.items())},
+                "seats": dict(sorted(seat_map.items())),
             })
 
-    if not rows:
+    complete = [x for x in candidates if len(x["provinces"]) == 52]
+    if not complete:
         raise RuntimeError(
-            "No se encontró tabla provincia/candidatura/votos en Interior."
+            "Interior no contiene una tabla reconocible de 52 circunscripciones; "
+            f"candidatas={[(x['sheet'], len(x['provinces'])) for x in candidates]}"
         )
 
-    matrix = defaultdict(lambda: defaultdict(int))
-    for row in rows:
-        matrix[row["province"]][row["party"]] += row["votes"]
+    fingerprints = {
+        sha256_json({"provinces": x["provinces"], "seats": x["seats"]})
+        for x in complete
+    }
+    if len(fingerprints) != 1:
+        raise RuntimeError("Interior contiene varias tablas completas incompatibles; resolución bloqueada.")
+
+    chosen = complete[0]
+    if len(chosen["seats"]) != 52 or sum(chosen["seats"].values()) != 350:
+        raise RuntimeError("La tabla oficial no aporta 52 magnitudes de circunscripción que sumen 350 escaños.")
 
     return {
         "source": "interior",
-        "provinces": {p: dict(sorted(v.items())) for p, v in sorted(matrix.items())},
-        "row_count": len(rows),
+        "sheet": chosen["sheet"],
+        "provinces": chosen["provinces"],
+        "seats": chosen["seats"],
+        "row_count": sum(len(v) for v in chosen["provinces"].values()),
     }
 
 
@@ -303,6 +333,7 @@ def reconcile_primary_only(normalized: dict[str, dict]) -> dict:
 
     return {
         "provinces": primary["provinces"],
+        "seats": primary["seats"],
         "source": "INTERIOR_PRIMARY",
         "conflicts": conflicts,
     }
@@ -366,7 +397,7 @@ def canonical(matrix: dict, certificate: dict) -> dict:
     for name in sorted(matrix["provinces"]):
         provinces.append({
             "name": name,
-            "seats": None,
+            "seats": matrix["seats"].get(name),
             "parties": [
                 {"name": party, "votes": votes}
                 for party, votes in sorted(matrix["provinces"][name].items())
@@ -377,6 +408,8 @@ def canonical(matrix: dict, certificate: dict) -> dict:
         "READY_FOR_VOTE_ENGINE"
         if certificate["province_count"] == 52
         and certificate["validation_status"] == "PASS"
+        and all(p.get("seats") for p in provinces)
+        and sum(p.get("seats", 0) for p in provinces) == 350
         else "PARTIAL"
     )
 
@@ -428,6 +461,9 @@ def run(force: bool = False, retry_on_fail: bool = False, fallback_to_secondary:
     if validation["status"] != "PASS":
         print("BLOCKED: validación matemática crítica fallida.")
         return 1
+    if len(normalized["interior"]["provinces"]) != 52 or sum(normalized["interior"]["seats"].values()) != 350:
+        print("BLOCKED: estructura oficial incompleta: se requieren 52 circunscripciones y 350 escaños.")
+        return 1
 
     matrix = reconcile_primary_only(normalized)
     conflicts = matrix["conflicts"]
@@ -477,7 +513,7 @@ def main() -> int:
     parser.add_argument("--retry-on-fail", action="store_true")
     parser.add_argument("--fallback-to-secondary", action="store_true")
     parser.add_argument("--source", default=None)
-    parser.add_argument("--step", default=None)
+    parser.add_argument("--step", choices=["acquire","parse","validate","audit","canonical","all"], default="all")
     args = parser.parse_args()
     if args.fallback_to_secondary:
         log(f"FALLBACK_REQUEST source={args.source or 'unspecified'} status=SECONDARY_NOT_PRIMARY")
