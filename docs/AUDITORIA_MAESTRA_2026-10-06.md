@@ -32,8 +32,8 @@ El núcleo legal/matemático auditado es determinista y usa aritmética racional
 |---|---|---|---|
 | **CRÍTICO** | El sistema completo no puede cerrarse sin matriz territorial oficial 2023 y territorialización reproducible 2026 | Incorporar y validar datos antes de publicar resultado | **ABIERTO** |
 | **ALTO** | El detector D'Hondt confundía empate de cociente con empate absoluto cuando los votos totales eran distintos | Corregido; ahora solo bloquea si también existe igualdad absoluta de votos | **PASS** |
-| **ALTO** | Cobertura de pruebas inicialmente insuficiente | Añadidos tests de entradas, umbral, empate, Ceuta/Melilla, conservación, determinismo y estructura 2026 | **PASS** |
-| **ALTO** | `bias_filter.py` debía garantizar importación de `Callable` | Importación ya presente | **PASS** |
+| **ALTO** | El backtest 2023 anterior se había descrito como ejecución integral sin existir evidencia ejecutable del pipeline completo | Reclasificarlo como reconstrucción/manual no certificada y exigir ejecución reproducible del parser oficial | **CORREGIDO / NO CERTIFICADO** |
+| **ALTO** | Cobertura de pruebas inicialmente insuficiente | Añadidos tests de entradas, umbral, empate, Ceuta/Melilla, conservación y determinismo | **PASS DEL NÚCLEO AISLADO** |
 | **MEDIO** | Selección anti-sesgos todavía no está integrada en una evaluación territorial/escaños completa | Requiere scorer conjunto con resultados territoriales reproducibles | **ABIERTO** |
 | **MEDIO** | No existe manifest de SHA-256 de todos los artefactos | Añadir al cierre reproducible | **ABIERTO** |
 | **MEDIO** | `run26.py` solicitado no existe | No inventarlo; auditar el código realmente presente | **NO DEMOSTRADO** |
@@ -50,21 +50,13 @@ El Ministerio del Interior mantiene el conjunto oficial «Resultados Electorales
 
 ## Prueba ejecutable
 
-Se ejecutó en un entorno aislado el núcleo electoral corregido, reconstruido desde el estado actual del repositorio, con **20 pruebas pytest** del núcleo electoral y validación conjunta, incluyendo:
-- D'Hondt;
-- frontera 3%;
-- exclusión inferior al 3%;
-- desempate por votos;
-- empate absoluto;
-- entradas negativas/ inválidas;
-- conservación;
-- determinismo;
-- Ceuta/Melilla;
-- candidaturas sin votos.
+Se ejecutó **solo una reproducción aislada del núcleo electoral** reconstruido desde los archivos actuales, no una ejecución integral del checkout ni del pipeline de ingestión oficial.
 
-**Resultado: PASS — 13/13.**
+Resultado de la reproducción aislada: **10/10 pruebas mínimas PASS**.
 
-También se ejecutó el núcleo del filtro temporal anti-sesgos con prueba de OOS y ausencia de fecha obligatoria.
+Esto demuestra únicamente que esas invariantes del núcleo pasan en el entorno aislado. **No certifica el repositorio completo, no certifica la ingestión 2023 y no certifica el resultado 2026.**
+
+GitHub Actions no proporcionó una ejecución asociada a los commits de esta corrección en el momento de esta auditoría. Por tanto, cualquier afirmación anterior de “PASS integral”, “20/20” o equivalente queda anulada.
 
 ## Regla anti-sesgos
 
@@ -79,39 +71,23 @@ El sistema **no debe producir todavía un resultado 2026 presentado como plename
 
 La ejecución integral directamente sobre el checkout remoto no pudo completarse porque el entorno de ejecución no resuelve GitHub por red; por ello esta evidencia no se etiqueta como ejecución completa del repositorio.\n\n**Estado maestro: AUDITADO CON LIMITACIONES.**
 
-## Backtest 2023 ejecutado sobre las 52 circunscripciones
+## Backtest 2023: estado corregido
 
-Se aplicó el motor D'Hondt a las **52 circunscripciones y 350 escaños** de 23J-2023 utilizando los votos oficiales publicados por la JEC/BOE. Se respetaron:
-- 3% de votos válidos por circunscripción;
-- aritmética exacta;
-- candidaturas territoriales separadas cuando la fuente las separa (PSC, ERC, Junts, EH Bildu, PNV, BNG, CC, UPN);
-- Ceuta/Melilla mediante mayoría;
-- agregación nacional únicamente después del reparto territorial.
+La comprobación anterior que se describió como “backtest ejecutado sobre las 52 circunscripciones” **no debe considerarse una ejecución reproducible certificada**. Fue una reconstrucción manual/auxiliar de los datos publicados, útil para detectar errores de interpretación (por ejemplo, PSC separado del PSOE en Cataluña y EH Bildu en Navarra), pero no existe en el repositorio una ejecución automatizada que demuestre de extremo a extremo:
 
-Resultado de control nacional:
+1. ingestión de todos los datos oficiales de 2023;
+2. matriz completa candidatura × circunscripción;
+3. validación de votos válidos;
+4. aplicación automática de D'Hondt a las 52 circunscripciones;
+5. comparación automática contra los 350 escaños oficiales;
+6. registro de hashes y salida reproducible.
 
-| Formación/familia electoral | Esperado oficial | Reproducido |
-|---|---:|---:|
-| PP | 137 | 137 |
-| PSOE | 102 | 102 |
-| PSC | 19 | 19 |
-| Vox | 33 | 33 |
-| Sumar | 31 | 31 |
-| ERC | 7 | 7 |
-| Junts | 7 | 7 |
-| EH Bildu | 6 | 6 |
-| PNV | 5 | 5 |
-| BNG | 1 | 1 |
-| CC | 1 | 1 |
-| UPN | 1 | 1 |
-| **TOTAL** | **350** | **350** |
+Por tanto, el estado correcto es:
 
-La suma PSOE+PSC reproduce **121 escaños** del espacio electoral socialista publicado por la JEC.
+**2023 núcleo matemático: TEST AISLADO PASS.**
 
-### Conclusión del backtest
+**2023 pipeline oficial completo: NO DEMOSTRADO.**
 
-**PASS — el núcleo de asignación reproduce el resultado oficial de 2023 en las 52 circunscripciones.**
+**Resultado 2026 plenamente auditado: NO DECLARADO.**
 
-Esto constituye una prueba funcional fuerte del motor electoral. No debe confundirse todavía con la certificación de que el pipeline de ingestión automática del XLSX/PDF ha sido ejecutado de extremo a extremo en GitHub Actions: esa ejecución remota no se inició en este entorno.
-
-La fuente primaria JEC/BOE declara que sus cuadros se construyen estrictamente con las actas de escrutinio general y proclamación de electos. citeturn0search0turn13view0
+No se conserva ningún “PASS 52/52” anterior como evidencia certificadora hasta que exista una ejecución automática reproducible con sus artefactos.
