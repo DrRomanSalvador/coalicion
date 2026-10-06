@@ -9,6 +9,7 @@ on:
       - "scripts/audit_2023.py"
       - "scripts/stage_historico_secondary.py"
       - "scripts/validate_historical_secondary.py"
+      - "scripts/backtest_2023_baseline.py"
   pull_request:
     paths:
       - ".github/workflows/auditoria_2023.yml"
@@ -86,6 +87,9 @@ jobs:
       - name: Validar histórico provincial
         if: success()
         run: python scripts/validate_historical_secondary.py
+      - name: Ejecutar backtesting 2023 baseline
+        if: success()
+        run: python scripts/backtest_2023_baseline.py
       - name: Publicar diagnóstico del staging
         if: always()
         run: |
