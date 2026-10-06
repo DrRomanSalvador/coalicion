@@ -1,0 +1,55 @@
+{
+  "schema": "COLMENA_STATE_V1",
+  "project": "REINA-SEEC",
+  "checkpoint_date": "2026-10-06",
+  "methodology": "SEEC",
+  "status": "BLOCKED",
+  "fail_closed": true,
+  "canonical_rng": "numpy.PCG64",
+  "canonical_seed": 20261006,
+  "minimum_mc_draws": 10000,
+  "source_anchor": {
+    "id": "INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO",
+    "document_sha256": "b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7",
+    "manifest": "data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.json",
+    "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH"
+  },
+  "completed": [
+    "reproducibility contract",
+    "source anchor manifest",
+    "master certification gate",
+    "electoral-law corrections: blank votes, Ceuta/Melilla, 2019A/2019N"
+  ],
+  "blocking_errors": [
+    {
+      "id": "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
+      "status": "OPEN",
+      "detail": "The original PDF binary is not yet stored in a binary-capable repository object; only its immutable manifest and SHA-256 are versioned."
+    },
+    {
+      "id": "PRIMARY_RECONCILIATION",
+      "status": "OPEN",
+      "detail": "Primary Interior data have not yet passed complete end-to-end reconciliation against the retained historical replica."
+    },
+    {
+      "id": "SEEC_PRODUCTION_EXECUTION",
+      "status": "OPEN",
+      "detail": "The production hierarchical Bayesian SEEC pipeline has not yet produced the required certified posterior evidence."
+    },
+    {
+      "id": "OOS_CALIBRATION",
+      "status": "OPEN",
+      "detail": "Required expanding-window calibration thresholds have not been demonstrated."
+    },
+    {
+      "id": "EXTERNAL_AUDIT",
+      "status": "OPEN",
+      "detail": "No real independent external audit evidence is registered."
+    }
+  ],
+  "last_verified_commit": "a05043c009996e981ebfe2ec5d93118dfa592b65",
+  "next_single_action": "Verify the CI run triggered by the reproducibility-contract integration, then execute the next unresolved certification gate without repeating completed research.",
+  "continuation_rule": "A new chat MUST read README.md, CONTRATO_MAESTRO_IA.md, docs/INVOCACION_COLMENA.md and this state file before doing any research. It MUST continue only from next_single_action.",
+  "token_economy": "Use repository evidence first. Do not re-search anchored sources. Do not narrate tool calls. Do not recompute completed work unless verification fails.",
+  "unfinished_chat_messages_are_not_state": true
+}
