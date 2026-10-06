@@ -195,11 +195,15 @@ def parse_interior(path: Path) -> dict:
         party = find(headers, "Candidatura", "Candidaturas", "Partido", "Siglas")
         votes = find(headers, "Votos", "Votos candidatura")
         seats = find(headers, "Escaños", "Escanos", "Diputados", "Seats")
+        valid_col = find(headers, "Votos válidos", "Votos validos", "Valid votes")
+        blank_col = find(headers, "Votos en blanco", "Votos blancos", "Blank votes")
         if p is None or party is None or votes is None:
             continue
 
         matrix = defaultdict(dict)
         seat_map = {}
+        blank_map = {}
+        valid_map = {}
         for row in it:
             if len(row) <= max(p, party, votes):
                 continue
@@ -209,9 +213,29 @@ def parse_interior(path: Path) -> dict:
             if not province or not candidacy or not is_number(value) or value < 0:
                 continue
             vote = int(value)
-            if candidacy in matrix[province] and matrix[province][candidacy] != vote:
+            party_key = "".join(ch for ch in candidacy.lower() if ch.isalnum())
+            is_blank = "votosenblanco" in party_key or "votosblancos" in party_key or "votoenblanco" in party_key
+            if is_blank:
+                previous_blank = blank_map.get(province)
+                if previous_blank is not None and previous_blank != vote:
+                    raise RuntimeError(f"Tabla {ws.title}: votos en blanco inconsistentes en {province}")
+                blank_map[province] = vote
+            elif candidacy in matrix[province] and matrix[province][candidacy] != vote:
                 raise RuntimeError(f"Tabla {ws.title}: celda duplicada con valores distintos en {province}/{candidacy}")
-            matrix[province][candidacy] = vote
+            if not is_blank:
+                matrix[province][candidacy] = vote
+            if valid_col is not None and len(row) > valid_col and is_number(row[valid_col]) and row[valid_col] >= 0:
+                vv = int(row[valid_col])
+                previous_valid = valid_map.get(province)
+                if previous_valid is not None and previous_valid != vv:
+                    raise RuntimeError(f"Tabla {ws.title}: votos válidos inconsistentes en {province}")
+                valid_map[province] = vv
+            if blank_col is not None and len(row) > blank_col and is_number(row[blank_col]) and row[blank_col] >= 0:
+                blank_value = int(row[blank_col])
+                previous_blank = blank_map.get(province)
+                if previous_blank is not None and previous_blank != blank_value:
+                    raise RuntimeError(f"Tabla {ws.title}: votos en blanco inconsistentes en {province}")
+                blank_map[province] = blank_value
             if seats is not None and len(row) > seats and is_number(row[seats]) and row[seats] >= 0:
                 seat_value = int(row[seats])
                 previous = seat_map.get(province)
@@ -224,6 +248,8 @@ def parse_interior(path: Path) -> dict:
                 "sheet": ws.title,
                 "provinces": {p: dict(sorted(v.items())) for p, v in sorted(matrix.items())},
                 "seats": dict(sorted(seat_map.items())),
+                "blank_votes": dict(sorted(blank_map.items())),
+                "valid_votes": dict(sorted(valid_map.items())),
             })
 
     complete = [x for x in candidates if len(x["provinces"]) == 52]
@@ -243,12 +269,20 @@ def parse_interior(path: Path) -> dict:
     chosen = complete[0]
     if len(chosen["seats"]) != 52 or sum(chosen["seats"].values()) != 350:
         raise RuntimeError("La tabla oficial no aporta 52 magnitudes de circunscripción que sumen 350 escaños.")
+    if len(chosen["valid_votes"]) != 52:
+        derived = {p: sum(v.values()) + chosen["blank_votes"].get(p, 0) for p, v in chosen["provinces"].items()}
+        if len(chosen["blank_votes"]) == 52:
+            chosen["valid_votes"] = derived
+        else:
+            raise RuntimeError("Faltan votos válidos oficiales por circunscripción y no puede inferirse su magnitud sin datos de blancos.")
 
     return {
         "source": "interior",
         "sheet": chosen["sheet"],
         "provinces": chosen["provinces"],
         "seats": chosen["seats"],
+        "blank_votes": chosen["blank_votes"],
+        "valid_votes": chosen["valid_votes"],
         "row_count": sum(len(v) for v in chosen["provinces"].values()),
     }
 
@@ -337,6 +371,8 @@ def reconcile_primary_only(normalized: dict[str, dict]) -> dict:
     return {
         "provinces": primary["provinces"],
         "seats": primary["seats"],
+        "blank_votes": primary["blank_votes"],
+        "valid_votes": primary["valid_votes"],
         "source": "INTERIOR_PRIMARY",
         "conflicts": conflicts,
     }
@@ -401,6 +437,8 @@ def canonical(matrix: dict, certificate: dict) -> dict:
         provinces.append({
             "name": name,
             "seats": matrix["seats"].get(name),
+            "blank_votes": matrix["blank_votes"].get(name),
+            "valid_votes": matrix["valid_votes"].get(name),
             "parties": [
                 {"name": party, "votes": votes}
                 for party, votes in sorted(matrix["provinces"][name].items())
@@ -427,7 +465,12 @@ def canonical(matrix: dict, certificate: dict) -> dict:
             "reconciliation_hash": certificate["reconciliation_hash"],
             "merkle_root": certificate["merkle_root"],
         },
-        "data": {"provinces": provinces},
+        "data": {
+            "provinces": provinces,
+            "valid_votes": matrix["valid_votes"],
+            "blank_votes": matrix["blank_votes"],
+            "special": {},
+        },
     }
 
 
