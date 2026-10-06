@@ -26,11 +26,6 @@ seats["escanos_2023"] = seats["escanos_2023"].astype(int)
 if int(seats["escanos_2023"].sum()) != 350:
     raise SystemExit("2023 seat structure does not sum to 350")
 
-df = pd.read_csv(DATA)
-for c in ["ballots","blank_ballots","party_ballots","valid_ballots","total_ballots"]:
-    df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0.0)
-df["party"] = df["abbrev_candidacies"].fillna(df["name_candidacies"]).astype(str).str.strip()
-df["prov"] = df["prov"].astype(str).str.strip().replace(PROV_MAP)
 PROV_MAP = {
     "Alicante/Alacant":"Alicante","Araba/Álava":"Araba/Álava","Álava/Araba":"Araba/Álava",
     "Bizkaia":"Bizkaia","Vizcaya/Bizkaia":"Bizkaia",
@@ -40,6 +35,11 @@ PROV_MAP = {
     "Valencia/València":"Valencia",
 }
 
+df = pd.read_csv(DATA)
+for c in ["ballots","blank_ballots","party_ballots","valid_ballots","total_ballots"]:
+    df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0.0)
+df["party"] = df["abbrev_candidacies"].fillna(df["name_candidacies"]).astype(str).str.strip()
+df["prov"] = df["prov"].astype(str).str.strip().replace(PROV_MAP)
 train = df[df["election"].eq("2019N")].copy()
 target = df[df["election"].eq("2023")].copy()
 
