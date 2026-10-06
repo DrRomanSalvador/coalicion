@@ -1,0 +1,15 @@
+{
+  "task_id": "acquisition",
+  "status": "FAIL_CLOSED",
+  "started_at": "2026-10-06T22:25:36.144081+00:00",
+  "finished_at": "2026-10-06T22:30:52.220582+00:00",
+  "attempts": 3,
+  "argv": [
+    "/opt/hostedtoolcache/Python/3.12.14/x64/bin/python",
+    "scripts/ai_electoral_data_engine.py",
+    "--retry-on-fail"
+  ],
+  "stdout": "=== AI ELECTORAL DATA ENGINE 2023 ===\nBLOCKED: fuente primaria Interior no disponible.\n",
+  "stderr": "",
+  "returncode": 1
+}

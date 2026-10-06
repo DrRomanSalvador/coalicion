@@ -1,0 +1,92 @@
+EEE..F.EE
+======================================================================
+ERROR: test_decision_engine (unittest.loader._FailedTest.test_decision_engine)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_decision_engine
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/coalicion/coalicion/tests/test_decision_engine.py", line 1, in <module>
+    import pytest
+ModuleNotFoundError: No module named 'pytest'
+
+
+======================================================================
+ERROR: test_electoral (unittest.loader._FailedTest.test_electoral)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_electoral
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/coalicion/coalicion/tests/test_electoral.py", line 1, in <module>
+    import pytest
+ModuleNotFoundError: No module named 'pytest'
+
+
+======================================================================
+ERROR: test_electoral_differential (unittest.loader._FailedTest.test_electoral_differential)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_electoral_differential
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/coalicion/coalicion/tests/test_electoral_differential.py", line 2, in <module>
+    import pytest
+ModuleNotFoundError: No module named 'pytest'
+
+
+======================================================================
+ERROR: test_master_certification_strict (unittest.loader._FailedTest.test_master_certification_strict)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_master_certification_strict
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/coalicion/coalicion/tests/test_master_certification_strict.py", line 1
+    import json\nfrom scripts.master_certification import certify\n\ndef test_present_but_invalid_evidence_cannot_certify(tmp_path):\n    d=tmp_path / "ci_evidence"\n    d.mkdir()\n    (d / "historico_manifest.json").write_text(json.dumps({"status":"FAIL","source_tier":"SECONDARY_REPLICA"}))\n    (d / "historico_source_tier.txt").write_text("PRIMARY_INTERIOR")\n    (d / "reconciliation.json").write_text(json.dumps({"status":"PASS","max_abs_diff":1722}))\n    (d / "seec_posterior.json").write_text(json.dumps({"status":"PASS","draws":10000}))\n    (d / "oos_calibration.json").write_text(json.dumps({"status":"PASS","coverage_90":0.90,"seat_mae":5}))\n    (d / "external_audit.json").write_text(json.dumps({"status":"PASS","independent":False,"auditor":""}))\n    out=certify(tmp_path)\n    assert out["status"]=="BLOCKED"\n    assert any(g["name"]=="reconciliation" and g["status"]=="FAIL" for g in out["gates"])\n    assert any(g["name"]=="external_audit" and g["status"]=="FAIL" for g in out["gat
+                ^
+SyntaxError: unexpected character after line continuation character
+
+
+======================================================================
+ERROR: test_scenarios (unittest.loader._FailedTest.test_scenarios)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_scenarios
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/coalicion/coalicion/tests/test_scenarios.py", line 1, in <module>
+    import pytest
+ModuleNotFoundError: No module named 'pytest'
+
+
+======================================================================
+FAIL: test_exhaustive_resolver_never_averages (test_hardening.HardeningTests.test_exhaustive_resolver_never_averages)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/coalicion/coalicion/tests/test_hardening.py", line 33, in test_exhaustive_resolver_never_averages
+    self.assertEqual(result["status"], "RESOLVED_PRIMARY")
+AssertionError: 'RESOLVED' != 'RESOLVED_PRIMARY'
+- RESOLVED
++ RESOLVED_PRIMARY
+
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.024s
+
+FAILED (failures=1, errors=5)

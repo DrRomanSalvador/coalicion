@@ -1,0 +1,621 @@
+{
+  "generated_at": "2026-10-06T22:38:07.294920+00:00",
+  "election": "2023",
+  "sources": [
+    {
+      "id": "INTERIOR_CONGRESO_XLSX",
+      "tier": "PRIMARY",
+      "authority": "MINISTERIO_INTERIOR",
+      "urls": [
+        "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
+      ],
+      "format": "xlsx",
+      "role": "official_vote_matrix"
+    },
+    {
+      "id": "INTERIOR_CARGOS_ELECTOS_XLSX",
+      "tier": "PRIMARY",
+      "authority": "MINISTERIO_INTERIOR",
+      "urls": [
+        "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso-cargos-electos.xlsx"
+      ],
+      "format": "xlsx",
+      "role": "elected_members"
+    },
+    {
+      "id": "BOE_JEC_2023_RESULTS",
+      "tier": "PRIMARY",
+      "authority": "JUNTA_ELECTORAL_CENTRAL",
+      "urls": [
+        "https://www.boe.es/buscar/doc.php?id=BOE-A-2023-18907",
+        "https://www.boe.es/boe/dias/2023/09/01/pdfs/BOE-A-2023-18907.pdf"
+      ],
+      "format": "html_or_pdf",
+      "role": "official_results_and_seats"
+    },
+    {
+      "id": "BOE_JEC_2023_CORRECTION",
+      "tier": "PRIMARY",
+      "authority": "JUNTA_ELECTORAL_CENTRAL",
+      "urls": [
+        "https://www.boe.es/buscar/doc.php?id=BOE-A-2023-19537"
+      ],
+      "format": "html",
+      "role": "official_correction"
+    },
+    {
+      "id": "DATOS_GOB_INTERIOR_CATALOG",
+      "tier": "PRIMARY",
+      "authority": "MINISTERIO_INTERIOR",
+      "urls": [
+        "https://datos.gob.es/es/catalogo/e00003801-resultados-electorales",
+        "https://datos.gob.es/ca/catalogo/a14002961-elecciones-generales-legislativas-congreso-principales-resultados"
+      ],
+      "format": "html",
+      "role": "official_catalog_provenance"
+    },
+    {
+      "id": "INTERIOR_DOWNLOADS_CATALOG",
+      "tier": "PRIMARY",
+      "authority": "MINISTERIO_INTERIOR",
+      "urls": [
+        "https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/"
+      ],
+      "format": "html",
+      "role": "official_download_catalog"
+    },
+    {
+      "id": "JEC_OFFICIAL",
+      "tier": "PRIMARY",
+      "authority": "JUNTA_ELECTORAL_CENTRAL",
+      "urls": [
+        "https://www.juntaelectoralcentral.es/"
+      ],
+      "format": "html",
+      "role": "official_legal_provenance"
+    },
+    {
+      "id": "ELECCIONESDB_2023",
+      "tier": "SECONDARY",
+      "authority": "SPAIN_ELECTORAL_PROJECT",
+      "urls": [
+        "https://eleccionesdb.spainelectoralproject.com/api/2023/general",
+        "https://eleccionesdb.spainelectoralproject.com/datos/2023.json"
+      ],
+      "format": "json",
+      "role": "corroboration"
+    },
+    {
+      "id": "POLITPRO_2023",
+      "tier": "SECONDARY",
+      "authority": "POLITPRO",
+      "urls": [
+        "https://politpro.eu/en/spain/election/parliament/2023/results"
+      ],
+      "format": "html",
+      "role": "corroboration"
+    },
+    {
+      "id": "ELPAIS_2023",
+      "tier": "SECONDARY",
+      "authority": "EL_PAIS",
+      "urls": [
+        "https://elpais.com/espana/elecciones/generales/2023/resultados/"
+      ],
+      "format": "html",
+      "role": "corroboration"
+    },
+    {
+      "id": "ELMUNDO_2023",
+      "tier": "SECONDARY",
+      "authority": "EL_MUNDO",
+      "urls": [
+        "https://www.elmundo.es/espana/elecciones/2023/resultados.html"
+      ],
+      "format": "html",
+      "role": "corroboration"
+    },
+    {
+      "id": "LAVANGUARDIA_2023",
+      "tier": "SECONDARY",
+      "authority": "LA_VANGUARDIA",
+      "urls": [
+        "https://www.lavanguardia.com/elecciones/2023/resultados"
+      ],
+      "format": "html",
+      "role": "corroboration"
+    },
+    {
+      "id": "RTVE_2023",
+      "tier": "SECONDARY",
+      "authority": "RTVE",
+      "urls": [
+        "https://resultados-elecciones.rtve.es/"
+      ],
+      "format": "html",
+      "role": "corroboration"
+    },
+    {
+      "id": "WIKIPEDIA_2023",
+      "tier": "TERTIARY",
+      "authority": "WIKIPEDIA",
+      "urls": [
+        "https://es.wikipedia.org/wiki/Elecciones_generales_de_Espa%C3%B1a_de_2023"
+      ],
+      "format": "html",
+      "role": "discovery"
+    }
+  ],
+  "attempts": [
+    {
+      "timestamp": "2026-10-06T22:31:23.966279+00:00",
+      "source_id": "INTERIOR_CONGRESO_XLSX",
+      "tier": "PRIMARY",
+      "authority": "MINISTERIO_INTERIOR",
+      "url": "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+      "format": "xlsx",
+      "role": "official_vote_matrix",
+      "status": "FAILED",
+      "attempt": 5,
+      "error": "URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)>"
+    },
+    {
+      "timestamp": "2026-10-06T22:31:55.632210+00:00",
+      "source_id": "INTERIOR_CARGOS_ELECTOS_XLSX",
+      "tier": "PRIMARY",
+      "authority": "MINISTERIO_INTERIOR",
+      "url": "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso-cargos-electos.xlsx",
+      "format": "xlsx",
+      "role": "elected_members",
+      "status": "FAILED",
+      "attempt": 5,
+      "error": "URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)>"
+    },
+    {
+      "timestamp": "2026-10-06T22:31:56.553014+00:00",
+      "source_id": "BOE_JEC_2023_RESULTS",
+      "tier": "PRIMARY",
+      "authority": "JUNTA_ELECTORAL_CENTRAL",
+      "url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2023-18907",
+      "format": "html_or_pdf",
+      "role": "official_results_and_seats",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/BOE_JEC_2023_RESULTS_433baec55ba0",
+      "sha256": "7c2ff9eac201fa23ce6e9621e97d62bbf574884b52aac7c618f92586fc73f537",
+      "bytes": 283696
+    },
+    {
+      "timestamp": "2026-10-06T22:31:57.750176+00:00",
+      "source_id": "BOE_JEC_2023_RESULTS",
+      "tier": "PRIMARY",
+      "authority": "JUNTA_ELECTORAL_CENTRAL",
+      "url": "https://www.boe.es/boe/dias/2023/09/01/pdfs/BOE-A-2023-18907.pdf",
+      "format": "html_or_pdf",
+      "role": "official_results_and_seats",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/BOE_JEC_2023_RESULTS_1e76715ab6d4",
+      "sha256": "f2146cfbf00d2b6eb6f8dd0dcdebc1e10298019589b2254e244e0ebc513d2f8a",
+      "bytes": 1915000
+    },
+    {
+      "timestamp": "2026-10-06T22:31:58.312215+00:00",
+      "source_id": "BOE_JEC_2023_CORRECTION",
+      "tier": "PRIMARY",
+      "authority": "JUNTA_ELECTORAL_CENTRAL",
+      "url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2023-19537",
+      "format": "html",
+      "role": "official_correction",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/BOE_JEC_2023_CORRECTION_314a9ced6e00",
+      "sha256": "947dad8c30428a9a8b0f00224e442dc12d191b15d8b243b80ab82f352f1ba3ad",
+      "bytes": 16615
+    },
+    {
+      "timestamp": "2026-10-06T22:32:00.833545+00:00",
+      "source_id": "DATOS_GOB_INTERIOR_CATALOG",
+      "tier": "PRIMARY",
+      "authority": "MINISTERIO_INTERIOR",
+      "url": "https://datos.gob.es/es/catalogo/e00003801-resultados-electorales",
+      "format": "html",
+      "role": "official_catalog_provenance",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/DATOS_GOB_INTERIOR_CATALOG_4d3ea0228a49",
+      "sha256": "4fc8e5cb21f93c90bb4e47bb18cc28ff7a9f93c6c2f568ebc8f166542bc4150d",
+      "bytes": 210485
+    },
+    {
+      "timestamp": "2026-10-06T22:32:01.884045+00:00",
+      "source_id": "DATOS_GOB_INTERIOR_CATALOG",
+      "tier": "PRIMARY",
+      "authority": "MINISTERIO_INTERIOR",
+      "url": "https://datos.gob.es/ca/catalogo/a14002961-elecciones-generales-legislativas-congreso-principales-resultados",
+      "format": "html",
+      "role": "official_catalog_provenance",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/DATOS_GOB_INTERIOR_CATALOG_59d14668b5a5",
+      "sha256": "9579dddd9cac169de4f97404e6ca008d5936961073e1b861e1abc23d750e9f7e",
+      "bytes": 109886
+    },
+    {
+      "timestamp": "2026-10-06T22:37:32.331950+00:00",
+      "source_id": "INTERIOR_DOWNLOADS_CATALOG",
+      "tier": "PRIMARY",
+      "authority": "MINISTERIO_INTERIOR",
+      "url": "https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/",
+      "format": "html",
+      "role": "official_download_catalog",
+      "status": "FAILED",
+      "attempt": 5,
+      "error": "URLError: <urlopen error timed out>"
+    },
+    {
+      "timestamp": "2026-10-06T22:37:32.987723+00:00",
+      "source_id": "JEC_OFFICIAL",
+      "tier": "PRIMARY",
+      "authority": "JUNTA_ELECTORAL_CENTRAL",
+      "url": "https://www.juntaelectoralcentral.es/",
+      "format": "html",
+      "role": "official_legal_provenance",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/JEC_OFFICIAL_f0e853bcbfb3",
+      "sha256": "96a7323d5dd8f8acee4819d2ca57ed3fe1ee51914b65c6cd21631e63d0aac03f",
+      "bytes": 148
+    },
+    {
+      "timestamp": "2026-10-06T22:37:39.312977+00:00",
+      "source_id": "ELECCIONESDB_2023",
+      "tier": "SECONDARY",
+      "authority": "SPAIN_ELECTORAL_PROJECT",
+      "url": "https://eleccionesdb.spainelectoralproject.com/api/2023/general",
+      "format": "json",
+      "role": "corroboration",
+      "status": "FAILED",
+      "attempt": 3,
+      "error": "HTTPError: HTTP Error 404: Not Found"
+    },
+    {
+      "timestamp": "2026-10-06T22:37:45.449517+00:00",
+      "source_id": "ELECCIONESDB_2023",
+      "tier": "SECONDARY",
+      "authority": "SPAIN_ELECTORAL_PROJECT",
+      "url": "https://eleccionesdb.spainelectoralproject.com/datos/2023.json",
+      "format": "json",
+      "role": "corroboration",
+      "status": "FAILED",
+      "attempt": 3,
+      "error": "HTTPError: HTTP Error 404: Not Found"
+    },
+    {
+      "timestamp": "2026-10-06T22:37:46.165148+00:00",
+      "source_id": "POLITPRO_2023",
+      "tier": "SECONDARY",
+      "authority": "POLITPRO",
+      "url": "https://politpro.eu/en/spain/election/parliament/2023/results",
+      "format": "html",
+      "role": "corroboration",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/POLITPRO_2023_fe30bd3bd87b",
+      "sha256": "cd04d332c2780aaa3241ebe343b8856d00e499c114bcbf2e2a75ee9e5d58479c",
+      "bytes": 113906
+    },
+    {
+      "timestamp": "2026-10-06T22:37:53.748239+00:00",
+      "source_id": "ELPAIS_2023",
+      "tier": "SECONDARY",
+      "authority": "EL_PAIS",
+      "url": "https://elpais.com/espana/elecciones/generales/2023/resultados/",
+      "format": "html",
+      "role": "corroboration",
+      "status": "FAILED",
+      "attempt": 3,
+      "error": "HTTPError: HTTP Error 404: Not Found"
+    },
+    {
+      "timestamp": "2026-10-06T22:38:00.072877+00:00",
+      "source_id": "ELMUNDO_2023",
+      "tier": "SECONDARY",
+      "authority": "EL_MUNDO",
+      "url": "https://www.elmundo.es/espana/elecciones/2023/resultados.html",
+      "format": "html",
+      "role": "corroboration",
+      "status": "FAILED",
+      "attempt": 3,
+      "error": "HTTPError: HTTP Error 404: Not Found"
+    },
+    {
+      "timestamp": "2026-10-06T22:38:06.573808+00:00",
+      "source_id": "LAVANGUARDIA_2023",
+      "tier": "SECONDARY",
+      "authority": "LA_VANGUARDIA",
+      "url": "https://www.lavanguardia.com/elecciones/2023/resultados",
+      "format": "html",
+      "role": "corroboration",
+      "status": "FAILED",
+      "attempt": 3,
+      "error": "HTTPError: HTTP Error 404: Not Found"
+    },
+    {
+      "timestamp": "2026-10-06T22:38:07.172535+00:00",
+      "source_id": "RTVE_2023",
+      "tier": "SECONDARY",
+      "authority": "RTVE",
+      "url": "https://resultados-elecciones.rtve.es/",
+      "format": "html",
+      "role": "corroboration",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/RTVE_2023_b09cd52cc9c3",
+      "sha256": "6c76ade4dee7b1ebd29934f739dc93ab7a51c4faeb4254a5a5e7047870dd7e5f",
+      "bytes": 55068
+    },
+    {
+      "timestamp": "2026-10-06T22:38:07.294901+00:00",
+      "source_id": "WIKIPEDIA_2023",
+      "tier": "TERTIARY",
+      "authority": "WIKIPEDIA",
+      "url": "https://es.wikipedia.org/wiki/Elecciones_generales_de_Espa%C3%B1a_de_2023",
+      "format": "html",
+      "role": "discovery",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/WIKIPEDIA_2023_e7037d75b3d2",
+      "sha256": "cde88c67b9282fd5770f4986d54723f95829cec0c98b60dadcb802201ec1a468",
+      "bytes": 1086697
+    }
+  ],
+  "successful": [
+    {
+      "timestamp": "2026-10-06T22:31:56.553014+00:00",
+      "source_id": "BOE_JEC_2023_RESULTS",
+      "tier": "PRIMARY",
+      "authority": "JUNTA_ELECTORAL_CENTRAL",
+      "url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2023-18907",
+      "format": "html_or_pdf",
+      "role": "official_results_and_seats",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/BOE_JEC_2023_RESULTS_433baec55ba0",
+      "sha256": "7c2ff9eac201fa23ce6e9621e97d62bbf574884b52aac7c618f92586fc73f537",
+      "bytes": 283696
+    },
+    {
+      "timestamp": "2026-10-06T22:31:57.750176+00:00",
+      "source_id": "BOE_JEC_2023_RESULTS",
+      "tier": "PRIMARY",
+      "authority": "JUNTA_ELECTORAL_CENTRAL",
+      "url": "https://www.boe.es/boe/dias/2023/09/01/pdfs/BOE-A-2023-18907.pdf",
+      "format": "html_or_pdf",
+      "role": "official_results_and_seats",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/BOE_JEC_2023_RESULTS_1e76715ab6d4",
+      "sha256": "f2146cfbf00d2b6eb6f8dd0dcdebc1e10298019589b2254e244e0ebc513d2f8a",
+      "bytes": 1915000
+    },
+    {
+      "timestamp": "2026-10-06T22:31:58.312215+00:00",
+      "source_id": "BOE_JEC_2023_CORRECTION",
+      "tier": "PRIMARY",
+      "authority": "JUNTA_ELECTORAL_CENTRAL",
+      "url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2023-19537",
+      "format": "html",
+      "role": "official_correction",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/BOE_JEC_2023_CORRECTION_314a9ced6e00",
+      "sha256": "947dad8c30428a9a8b0f00224e442dc12d191b15d8b243b80ab82f352f1ba3ad",
+      "bytes": 16615
+    },
+    {
+      "timestamp": "2026-10-06T22:32:00.833545+00:00",
+      "source_id": "DATOS_GOB_INTERIOR_CATALOG",
+      "tier": "PRIMARY",
+      "authority": "MINISTERIO_INTERIOR",
+      "url": "https://datos.gob.es/es/catalogo/e00003801-resultados-electorales",
+      "format": "html",
+      "role": "official_catalog_provenance",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/DATOS_GOB_INTERIOR_CATALOG_4d3ea0228a49",
+      "sha256": "4fc8e5cb21f93c90bb4e47bb18cc28ff7a9f93c6c2f568ebc8f166542bc4150d",
+      "bytes": 210485
+    },
+    {
+      "timestamp": "2026-10-06T22:32:01.884045+00:00",
+      "source_id": "DATOS_GOB_INTERIOR_CATALOG",
+      "tier": "PRIMARY",
+      "authority": "MINISTERIO_INTERIOR",
+      "url": "https://datos.gob.es/ca/catalogo/a14002961-elecciones-generales-legislativas-congreso-principales-resultados",
+      "format": "html",
+      "role": "official_catalog_provenance",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/DATOS_GOB_INTERIOR_CATALOG_59d14668b5a5",
+      "sha256": "9579dddd9cac169de4f97404e6ca008d5936961073e1b861e1abc23d750e9f7e",
+      "bytes": 109886
+    },
+    {
+      "timestamp": "2026-10-06T22:37:32.987723+00:00",
+      "source_id": "JEC_OFFICIAL",
+      "tier": "PRIMARY",
+      "authority": "JUNTA_ELECTORAL_CENTRAL",
+      "url": "https://www.juntaelectoralcentral.es/",
+      "format": "html",
+      "role": "official_legal_provenance",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/JEC_OFFICIAL_f0e853bcbfb3",
+      "sha256": "96a7323d5dd8f8acee4819d2ca57ed3fe1ee51914b65c6cd21631e63d0aac03f",
+      "bytes": 148
+    },
+    {
+      "timestamp": "2026-10-06T22:37:46.165148+00:00",
+      "source_id": "POLITPRO_2023",
+      "tier": "SECONDARY",
+      "authority": "POLITPRO",
+      "url": "https://politpro.eu/en/spain/election/parliament/2023/results",
+      "format": "html",
+      "role": "corroboration",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/POLITPRO_2023_fe30bd3bd87b",
+      "sha256": "cd04d332c2780aaa3241ebe343b8856d00e499c114bcbf2e2a75ee9e5d58479c",
+      "bytes": 113906
+    },
+    {
+      "timestamp": "2026-10-06T22:38:07.172535+00:00",
+      "source_id": "RTVE_2023",
+      "tier": "SECONDARY",
+      "authority": "RTVE",
+      "url": "https://resultados-elecciones.rtve.es/",
+      "format": "html",
+      "role": "corroboration",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/RTVE_2023_b09cd52cc9c3",
+      "sha256": "6c76ade4dee7b1ebd29934f739dc93ab7a51c4faeb4254a5a5e7047870dd7e5f",
+      "bytes": 55068
+    },
+    {
+      "timestamp": "2026-10-06T22:38:07.294901+00:00",
+      "source_id": "WIKIPEDIA_2023",
+      "tier": "TERTIARY",
+      "authority": "WIKIPEDIA",
+      "url": "https://es.wikipedia.org/wiki/Elecciones_generales_de_Espa%C3%B1a_de_2023",
+      "format": "html",
+      "role": "discovery",
+      "status": "SUCCESS",
+      "attempt": 1,
+      "path": "data/raw/exhaustive/WIKIPEDIA_2023_e7037d75b3d2",
+      "sha256": "cde88c67b9282fd5770f4986d54723f95829cec0c98b60dadcb802201ec1a468",
+      "bytes": 1086697
+    }
+  ],
+  "failed": [
+    {
+      "timestamp": "2026-10-06T22:31:23.966279+00:00",
+      "source_id": "INTERIOR_CONGRESO_XLSX",
+      "tier": "PRIMARY",
+      "authority": "MINISTERIO_INTERIOR",
+      "url": "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+      "format": "xlsx",
+      "role": "official_vote_matrix",
+      "status": "FAILED",
+      "attempt": 5,
+      "error": "URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)>"
+    },
+    {
+      "timestamp": "2026-10-06T22:31:55.632210+00:00",
+      "source_id": "INTERIOR_CARGOS_ELECTOS_XLSX",
+      "tier": "PRIMARY",
+      "authority": "MINISTERIO_INTERIOR",
+      "url": "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso-cargos-electos.xlsx",
+      "format": "xlsx",
+      "role": "elected_members",
+      "status": "FAILED",
+      "attempt": 5,
+      "error": "URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)>"
+    },
+    {
+      "timestamp": "2026-10-06T22:37:32.331950+00:00",
+      "source_id": "INTERIOR_DOWNLOADS_CATALOG",
+      "tier": "PRIMARY",
+      "authority": "MINISTERIO_INTERIOR",
+      "url": "https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/",
+      "format": "html",
+      "role": "official_download_catalog",
+      "status": "FAILED",
+      "attempt": 5,
+      "error": "URLError: <urlopen error timed out>"
+    },
+    {
+      "timestamp": "2026-10-06T22:37:39.312977+00:00",
+      "source_id": "ELECCIONESDB_2023",
+      "tier": "SECONDARY",
+      "authority": "SPAIN_ELECTORAL_PROJECT",
+      "url": "https://eleccionesdb.spainelectoralproject.com/api/2023/general",
+      "format": "json",
+      "role": "corroboration",
+      "status": "FAILED",
+      "attempt": 3,
+      "error": "HTTPError: HTTP Error 404: Not Found"
+    },
+    {
+      "timestamp": "2026-10-06T22:37:45.449517+00:00",
+      "source_id": "ELECCIONESDB_2023",
+      "tier": "SECONDARY",
+      "authority": "SPAIN_ELECTORAL_PROJECT",
+      "url": "https://eleccionesdb.spainelectoralproject.com/datos/2023.json",
+      "format": "json",
+      "role": "corroboration",
+      "status": "FAILED",
+      "attempt": 3,
+      "error": "HTTPError: HTTP Error 404: Not Found"
+    },
+    {
+      "timestamp": "2026-10-06T22:37:53.748239+00:00",
+      "source_id": "ELPAIS_2023",
+      "tier": "SECONDARY",
+      "authority": "EL_PAIS",
+      "url": "https://elpais.com/espana/elecciones/generales/2023/resultados/",
+      "format": "html",
+      "role": "corroboration",
+      "status": "FAILED",
+      "attempt": 3,
+      "error": "HTTPError: HTTP Error 404: Not Found"
+    },
+    {
+      "timestamp": "2026-10-06T22:38:00.072877+00:00",
+      "source_id": "ELMUNDO_2023",
+      "tier": "SECONDARY",
+      "authority": "EL_MUNDO",
+      "url": "https://www.elmundo.es/espana/elecciones/2023/resultados.html",
+      "format": "html",
+      "role": "corroboration",
+      "status": "FAILED",
+      "attempt": 3,
+      "error": "HTTPError: HTTP Error 404: Not Found"
+    },
+    {
+      "timestamp": "2026-10-06T22:38:06.573808+00:00",
+      "source_id": "LAVANGUARDIA_2023",
+      "tier": "SECONDARY",
+      "authority": "LA_VANGUARDIA",
+      "url": "https://www.lavanguardia.com/elecciones/2023/resultados",
+      "format": "html",
+      "role": "corroboration",
+      "status": "FAILED",
+      "attempt": 3,
+      "error": "HTTPError: HTTP Error 404: Not Found"
+    }
+  ],
+  "policy": {
+    "primary_precedence": true,
+    "vote_averaging": false,
+    "invented_values": false
+  },
+  "resolution": {
+    "status": "PRIMARY_EVIDENCE_AVAILABLE",
+    "primary_sources_successful": [
+      "BOE_JEC_2023_CORRECTION",
+      "BOE_JEC_2023_RESULTS",
+      "DATOS_GOB_INTERIOR_CATALOG",
+      "JEC_OFFICIAL"
+    ],
+    "secondary_sources_successful": [
+      "POLITPRO_2023",
+      "RTVE_2023"
+    ],
+    "tertiary_sources_successful": [
+      "WIKIPEDIA_2023"
+    ],
+    "rule": "PRIMARY_WINS; equal-tier conflicts remain UNRESOLVED; never average official vote cells"
+  }
+}
