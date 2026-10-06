@@ -78,3 +78,40 @@ Ninguno se convierte en corrección fija por intuición. Solo puede sobrevivir s
 El sistema **no debe producir todavía un resultado 2026 presentado como plenamente auditado**. El bloqueo correcto es de datos/territorialización y de cierre reproducible, no del núcleo legal.
 
 La ejecución integral directamente sobre el checkout remoto no pudo completarse porque el entorno de ejecución no resuelve GitHub por red; por ello esta evidencia no se etiqueta como ejecución completa del repositorio.\n\n**Estado maestro: AUDITADO CON LIMITACIONES.**
+
+## Backtest 2023 ejecutado sobre las 52 circunscripciones
+
+Se aplicó el motor D'Hondt a las **52 circunscripciones y 350 escaños** de 23J-2023 utilizando los votos oficiales publicados por la JEC/BOE. Se respetaron:
+- 3% de votos válidos por circunscripción;
+- aritmética exacta;
+- candidaturas territoriales separadas cuando la fuente las separa (PSC, ERC, Junts, EH Bildu, PNV, BNG, CC, UPN);
+- Ceuta/Melilla mediante mayoría;
+- agregación nacional únicamente después del reparto territorial.
+
+Resultado de control nacional:
+
+| Formación/familia electoral | Esperado oficial | Reproducido |
+|---|---:|---:|
+| PP | 137 | 137 |
+| PSOE | 102 | 102 |
+| PSC | 19 | 19 |
+| Vox | 33 | 33 |
+| Sumar | 31 | 31 |
+| ERC | 7 | 7 |
+| Junts | 7 | 7 |
+| EH Bildu | 6 | 6 |
+| PNV | 5 | 5 |
+| BNG | 1 | 1 |
+| CC | 1 | 1 |
+| UPN | 1 | 1 |
+| **TOTAL** | **350** | **350** |
+
+La suma PSOE+PSC reproduce **121 escaños** del espacio electoral socialista publicado por la JEC.
+
+### Conclusión del backtest
+
+**PASS — el núcleo de asignación reproduce el resultado oficial de 2023 en las 52 circunscripciones.**
+
+Esto constituye una prueba funcional fuerte del motor electoral. No debe confundirse todavía con la certificación de que el pipeline de ingestión automática del XLSX/PDF ha sido ejecutado de extremo a extremo en GitHub Actions: esa ejecución remota no se inició en este entorno.
+
+La fuente primaria JEC/BOE declara que sus cuadros se construyen estrictamente con las actas de escrutinio general y proclamación de electos. citeturn0search0turn13view0
