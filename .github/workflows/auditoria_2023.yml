@@ -89,7 +89,7 @@ jobs:
         run: python scripts/validate_historical_secondary.py
       - name: Ejecutar backtesting 2023 baseline
         if: success()
-        run: python scripts/backtest_2023_baseline.py
+        run: python scripts/backtest_2023_baseline.py 2>&1 | tee .audit_historico/backtest.log
       - name: Publicar diagnóstico del staging
         if: always()
         run: |
@@ -99,6 +99,7 @@ jobs:
           cp .audit_historico/validation.json ci_evidence/historico_validation.json 2>/dev/null || true
           cp .audit_historico/secondary_manifest.json ci_evidence/historico_manifest.json 2>/dev/null || true
           cp .audit_historico/backtest_2023_baseline.json ci_evidence/backtest_2023_baseline.json 2>/dev/null || true
+          cp .audit_historico/backtest.log ci_evidence/backtest_2023_baseline.log 2>/dev/null || true
           git config user.name "SEEC CI"
           git config user.email "seec-ci@users.noreply.github.com"
           git add ci_evidence/
