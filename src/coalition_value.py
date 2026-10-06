@@ -33,12 +33,11 @@ def coalition_delta(
         s = seats[c]
         vv = valid_votes[c]
 
-        separate = 0
         for p in coalition:
             if p not in votes:
                 raise ValueError(f"Falta {p} en {c}")
-            result = allocate({p: votes[p]}, s, votes[p])
-            separate += result.seats[p]
+        separate_result = allocate(dict(votes), s, vv)
+        separate = sum(separate_result.seats[p] for p in coalition)
 
         merged = dict(votes)
         merged_name = "+".join(coalition)
