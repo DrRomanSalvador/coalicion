@@ -240,3 +240,27 @@ Fuentes metodológicas principales:
 - Pavía & Larraz, REIS: no respuesta y modelos de superpoblación.
 - Alaminos & Alaminos-Fernández, REIS: recuerdo de voto, ocultación y transferencias tras 2023.
 - LOREG art. 69: requisitos técnicos y transparencia de encuestas.
+
+
+## D8. Contexto de gobierno y movimiento electoral
+
+Desde 2004, cada observación histórica debe conservar, cuando esté documentado:
+- quién gobernaba;
+- si el partido analizado era gobierno, oposición o socio;
+- si hubo cambio de gobierno antes de la elección;
+- error con signo y magnitud;
+- cambio real del partido frente a la elección anterior;
+- cambio que sugería la encuesta;
+- diferencia entre ambos cambios.
+
+La métrica clave no será únicamente **encuesta − resultado**. Se analizará también:
+
+**cambio real = resultado_t − resultado_t-1**
+
+**cambio observado = encuesta_t − resultado_t-1**
+
+**error de cambio = cambio observado − cambio real**
+
+Así se separa un nivel sistemáticamente mal estimado de una incapacidad para detectar el movimiento entre elecciones.
+
+No se atribuirá un efecto al gobierno solo porque coincida con un error. La variable gobierno compite con casa, partido, fecha de campo, método, elección y otros controles dentro de validación temporal.
