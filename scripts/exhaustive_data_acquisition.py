@@ -44,6 +44,16 @@ SOURCES = [
     {"id":"BOE_JEC_2023_CORRECTION","tier":"PRIMARY","authority":"JUNTA_ELECTORAL_CENTRAL",
      "urls":["https://www.boe.es/buscar/doc.php?id=BOE-A-2023-19537"],
      "format":"html","role":"official_correction"},
+    {"id":"DATOS_GOB_INTERIOR_CATALOG","tier":"PRIMARY","authority":"MINISTERIO_INTERIOR",
+     "urls":["https://datos.gob.es/es/catalogo/e00003801-resultados-electorales",
+            "https://datos.gob.es/ca/catalogo/a14002961-elecciones-generales-legislativas-congreso-principales-resultados"],
+     "format":"html","role":"official_catalog_provenance"},
+    {"id":"INTERIOR_DOWNLOADS_CATALOG","tier":"PRIMARY","authority":"MINISTERIO_INTERIOR",
+     "urls":["https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/"],
+     "format":"html","role":"official_download_catalog"},
+    {"id":"JEC_OFFICIAL","tier":"PRIMARY","authority":"JUNTA_ELECTORAL_CENTRAL",
+     "urls":["https://www.juntaelectoralcentral.es/"],
+     "format":"html","role":"official_legal_provenance"},
 
     # Secondary: only corroboration, never replacement of primary official cells.
     {"id":"ELECCIONESDB_2023","tier":"SECONDARY","authority":"SPAIN_ELECTORAL_PROJECT",
@@ -61,6 +71,9 @@ SOURCES = [
      "format":"html","role":"corroboration"},
     {"id":"LAVANGUARDIA_2023","tier":"SECONDARY","authority":"LA_VANGUARDIA",
      "urls":["https://www.lavanguardia.com/elecciones/2023/resultados"],
+     "format":"html","role":"corroboration"},
+    {"id":"RTVE_2023","tier":"SECONDARY","authority":"RTVE",
+     "urls":["https://resultados-elecciones.rtve.es/"],
      "format":"html","role":"corroboration"},
 
     # Tertiary / discovery leads. Never promoted automatically.
