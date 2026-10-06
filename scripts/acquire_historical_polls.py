@@ -28,10 +28,9 @@ def clean(v):
     return None if s in {"", "–", "-", "nan"} else s
 
 def parse_polls_from_html(html_content):
-    """Extrae las tablas de últimas encuestas del HTML actual, sin depender de clases CSS."""
+    """Extrae las ocho tablas de últimas encuestas del HTML actual."""
     soup = BeautifulSoup(html_content, "html.parser")
-    rows = []
-    parsed_tables = 0
+    candidates = []
 
     for table in soup.find_all("table"):
         try:
@@ -44,19 +43,32 @@ def parse_polls_from_html(html_content):
         cols = [str(c).strip() for c in t.columns]
         if "Empresa" not in cols or "Error medio" not in cols:
             continue
+        candidates.append((table, t, cols))
 
-        # El formato actual pone "2023 · 22 encuestas", etc., justo antes de la tabla.
-        heading = table.find_previous(["h2", "h3", "h4"])
-        heading_text = heading.get_text(" ", strip=True) if heading else ""
+    if len(candidates) != len(ELECTIONS):
+        raise ValueError(
+            f"Se esperaban {len(ELECTIONS)} tablas de últimas encuestas y se encontraron {len(candidates)}"
+        )
+
+    # La página publica las ocho elecciones en orden descendente: 2023,
+    # noviembre de 2019, abril de 2019, 2016, 2015, 2011, 2008 y 2004.
+    fallback_order = ["2023", "2019N", "2019A", "2016", "2015", "2011", "2008", "2004"]
+    rows = []
+
+    for index, (table, t, cols) in enumerate(candidates):
+        heading_text = ""
+        previous = table.find_all_previous(["h2", "h3", "h4"], limit=1)
+        if previous:
+            heading_text = previous[0].get_text(" ", strip=True)
+
         election = None
         for label, code in ELECTIONS.items():
             if label in heading_text:
                 election = code
                 break
         if election is None:
-            continue
+            election = fallback_order[index]
 
-        parsed_tables += 1
         for _, record in t.iterrows():
             company = clean(record.get("Empresa"))
             if not company or company == "Resultado":
@@ -84,10 +96,6 @@ def parse_polls_from_html(html_content):
                     "poll_id": f"{election}:{company}",
                 })
 
-    if parsed_tables != len(ELECTIONS):
-        raise ValueError(
-            f"Se esperaban {len(ELECTIONS)} tablas electorales y se encontraron {parsed_tables}"
-        )
     if not rows:
         raise ValueError("No se encontraron observaciones de encuestas")
     return rows
