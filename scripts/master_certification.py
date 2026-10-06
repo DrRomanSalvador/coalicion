@@ -19,8 +19,15 @@ def certify(root="."):
     # Source materialization must be real and hashed.
     manifest=r/"ci_evidence/historico_manifest.json"
     tier=r/"ci_evidence/historico_source_tier.txt"
-    gates.append(_gate("source_manifest", manifest.exists() and manifest.read_text(encoding="utf-8").strip() != "",
-                       "manifest de datos materializado"))
+    manifest_ok=False
+    if manifest.exists():
+        try:
+            mx=json.loads(manifest.read_text(encoding="utf-8"))
+            manifest_ok=mx.get("status") in {"PASS","CERTIFIED"} and mx.get("source_tier")=="PRIMARY_INTERIOR"
+        except Exception:
+            manifest_ok=False
+    gates.append(_gate("source_manifest", manifest_ok,
+                       "manifest primario materializado y validado"))
     tier_text=tier.read_text() if tier.exists() else ""
     gates.append(_gate("primary_interior", tier_text.strip()=="PRIMARY_INTERIOR",
                        "la fuente primaria debe estar materializada y declarada explícitamente"))
