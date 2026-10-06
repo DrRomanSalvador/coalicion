@@ -25,8 +25,9 @@ No rehacer análisis registrados. No volver a buscar una fuente si existe un anc
 1. Manifiesto de fuente ancla y README del ancla: versionados.
 2. Contrato reproducible: codificado en `src/reproducibility_contract.py`.
 3. Prueba del contrato: `tests/test_reproducibility_contract.py`.
-4. Siguiente paso obligatorio: integrar el contrato en CI/master gate y ejecutar la suite.
-5. Después: checkpoint JSON por commit con pruebas, estado y siguiente paso único.
+4. Integración CI: realizada en `.github/workflows/auditoria_2023.yml`; el job `tests` ejecuta primero `python -m src.reproducibility_contract` y después `pytest`.
+5. Evidencia CI: run 63 (`36524be21479de8f9295c0edf856968a7b41f5b6`) tuvo `tests=success`; el job histórico seguía en curso al registrar este checkpoint.
+6. Siguiente paso único: cerrar y verificar el run activado por el commit de integración `a05043c009996e981ebfe2ec5d93118dfa592b65`, y después continuar con el siguiente hueco de certificación.
 6. Certificación global sigue bloqueada hasta fuente primaria reconciliada, SEEC completo, calibración OOS y auditoría externa real.
 
 ## Arranque de un chat nuevo
@@ -39,5 +40,5 @@ No rehacer análisis registrados. No volver a buscar una fuente si existe un anc
 7. Continuar solo desde el siguiente paso no completado. Nunca empezar de cero.
 
 ## Última huella
-Estado: IMPLEMENTACIÓN DEL CONTRATO DE CONTINUIDAD EN CURSO.
+Estado: CONTRATO DE CONTINUIDAD CODIFICADO E INTEGRADO EN CI; VERIFICACIÓN GLOBAL AÚN BLOQUEADA.
 Objetivo: que metodología, estado y punto de reanudación sobrevivan al cambio de conversación sin depender de memoria del modelo.
