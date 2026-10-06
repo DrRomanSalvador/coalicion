@@ -68,20 +68,23 @@ def evaluate(rows: Sequence[PollObservation]) -> dict[str, ContextScore]:
     for name in candidate_names():
         if name == "BASE":
             pass
-        errors: list[float] = []
+        election_maes: list[float] = []
+        election_rmses: list[float] = []
         seen = 0
         for election in elections:
             test = [r for r in rows if r.election == election]
             train = [r for r in rows if r.election_date < min(x.election_date for x in test)]
             if not train:
                 continue
-            errors.extend(predict(name, train, r) - r.actual for r in test)
+            errors = [predict(name, train, r) - r.actual for r in test]
+            election_maes.append(sum(abs(x) for x in errors) / len(errors))
+            election_rmses.append((sum(x*x for x in errors) / len(errors)) ** 0.5)
             seen += 1
-        if not errors:
+        if not election_maes:
             continue
         out[name] = ContextScore(
-            mae=sum(abs(x) for x in errors) / len(errors),
-            rmse=(sum(x*x for x in errors) / len(errors)) ** 0.5,
+            mae=sum(election_maes) / seen,
+            rmse=sum(election_rmses) / seen,
             n_elections=seen,
         )
     return out
