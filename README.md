@@ -42,10 +42,10 @@ No se inventa territorialidad para candidaturas sin base comparable. Toda imputa
 ## Estado actual
 - Contrato maestro: incorporado.
 - Magnitudes oficiales 2026: incorporadas.
-- Motor electoral: incorporado.
-- Tests legales básicos: incorporados.
+- Motor electoral: incorporado y endurecido en modo fail-closed.
+- Tests legales básicos: incorporados; ejecución aislada del núcleo verificada.
 - Filtro OOS anti-sesgos: en esta versión.
-- Matriz oficial completa partido×circunscripción 2023: pendiente de incorporación/validación.
+- Matriz oficial completa candidatura×circunscripción 2023: pendiente de ingestión automática y validación reproducible.
 - Archivo histórico completo de encuestas y resultados: pendiente de consolidación.
 - Territorialización reproducible 2026: pendiente de cierre.
 - Resultado 2026: **no declarado auditado** hasta superar todos los controles.
@@ -53,6 +53,6 @@ No se inventa territorialidad para candidaturas sin base comparable. Toda imputa
 ## Regla de cierre
 **DATOS → PARÁMETROS → CÓDIGO → TESTS → RESULTADOS → HASH/VERSIÓN.**
 
-Si falta un dato esencial, existe contradicción, se necesita territorialidad inventada, falla una prueba o no se puede reproducir el resultado:
+Si falta un dato esencial, la suma de votos no cuadra, existe contradicción, se necesita territorialidad inventada, falla una prueba o no se puede reproducir el resultado:
 
 **DETENER → IDENTIFICAR → REGISTRAR → NO PROPAGAR.**
