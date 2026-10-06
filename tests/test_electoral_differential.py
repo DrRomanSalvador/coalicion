@@ -34,8 +34,11 @@ def test_reference_matches_production_for_reproducible_random_cases():
         votes,seats,valid,blank=_case(seed)
         a=dhondt(votes,seats,valid,blank)
         b=allocate_reference(votes,seats,valid,blank)
-        assert a.status=="OK"
-        assert a.seats==b
+        if a.status=="OK":
+            assert a.seats==b
+        else:
+            with pytest.raises(RuntimeError, match="EMPATE_ABSOLUTO_PENDIENTE"):
+                allocate_reference(votes,seats,valid,blank)
 
 
 def test_reference_also_blocks_absolute_tie():
