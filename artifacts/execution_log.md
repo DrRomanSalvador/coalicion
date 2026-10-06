@@ -28,3 +28,8 @@
 - Escenarios ambiguos quedan bloqueados.
 - Dockerfile, lock de dependencias y documentación de reproducibilidad añadidos.
 - No se generaron casos reales PSOE+SUMAR/PP+VOX porque la matriz oficial candidatura×circunscripción todavía no está materializada; inventarla violaría el contrato.
+
+## 21:35 — Validación
+- Suite contractual: PASS (incluye comportamiento fail-closed).
+- Gate de reproducibilidad: FAIL intencionado por ausencia del binario primario contractual.
+- No se fabricaron resultados PSOE+SUMAR ni PP+VOX porque falta la matriz oficial candidatura×circunscripción.
