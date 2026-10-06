@@ -14,42 +14,19 @@
     "manifest": "data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.json",
     "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH"
   },
-  "completed": [
-    "reproducibility contract",
-    "source anchor manifest",
-    "master certification gate",
-    "electoral-law corrections: blank votes, Ceuta/Melilla, 2019A/2019N"
-  ],
+  "completed": ["reproducibility contract","source anchor manifest","master certification gate","electoral-law corrections: blank votes, Ceuta/Melilla, 2019A/2019N","continuity checkpoint and token-economy protocol"],
   "blocking_errors": [
-    {
-      "id": "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
-      "status": "OPEN",
-      "detail": "The original PDF binary is not yet stored in a binary-capable repository object; only its immutable manifest and SHA-256 are versioned."
-    },
-    {
-      "id": "PRIMARY_RECONCILIATION",
-      "status": "OPEN",
-      "detail": "Primary Interior data have not yet passed complete end-to-end reconciliation against the retained historical replica."
-    },
-    {
-      "id": "SEEC_PRODUCTION_EXECUTION",
-      "status": "OPEN",
-      "detail": "The production hierarchical Bayesian SEEC pipeline has not yet produced the required certified posterior evidence."
-    },
-    {
-      "id": "OOS_CALIBRATION",
-      "status": "OPEN",
-      "detail": "Required expanding-window calibration thresholds have not been demonstrated."
-    },
-    {
-      "id": "EXTERNAL_AUDIT",
-      "status": "OPEN",
-      "detail": "No real independent external audit evidence is registered."
-    }
+    {"id":"PRIMARY_BINARY_NOT_REPOSITORY_PINNED","status":"OPEN","detail":"Original PDF binary is not yet stored in a binary-capable repository object; manifest and SHA-256 are versioned."},
+    {"id":"PRIMARY_RECONCILIATION","status":"OPEN","detail":"Primary Interior data have not passed complete end-to-end reconciliation against the retained historical replica."},
+    {"id":"SEEC_PRODUCTION_EXECUTION","status":"OPEN","detail":"Production hierarchical Bayesian SEEC has not produced certified posterior evidence."},
+    {"id":"OOS_CALIBRATION","status":"OPEN","detail":"Required expanding-window calibration thresholds have not been demonstrated."},
+    {"id":"EXTERNAL_AUDIT","status":"OPEN","detail":"No real independent external audit evidence is registered."},
+    {"id":"CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT","status":"OPEN","detail":"get_commit_combined_status for commit ab31768ef7e3341d29113dfd4d28129dd9663524 returned zero statuses. CI verification is inconclusive, not PASS."}
   ],
-  "last_verified_commit": "a05043c009996e981ebfe2ec5d93118dfa592b65",
-  "next_single_action": "Verify the CI run triggered by the reproducibility-contract integration, then execute the next unresolved certification gate without repeating completed research.",
-  "continuation_rule": "A new chat MUST read README.md, CONTRATO_MAESTRO_IA.md, docs/INVOCACION_COLMENA.md and this state file before doing any research. It MUST continue only from next_single_action.",
-  "token_economy": "Use repository evidence first. Do not re-search anchored sources. Do not narrate tool calls. Do not recompute completed work unless verification fails.",
-  "unfinished_chat_messages_are_not_state": true
+  "last_verified_commit": "ab31768ef7e3341d29113dfd4d28129dd9663524",
+  "last_action": "Verified repository checkpoint, reproducibility contract, source anchor manifest, and CI status for the continuity commit.",
+  "last_action_result": "REPOSITORY_STATE_VALID; CI_STATUS_EMPTY; NO_CERTIFICATION",
+  "next_single_action": "Materialize and pin the original Infoelectoral PDF bytes in binary-capable versioned storage, then record its immutable object identifier and hash before any further electoral modeling.",
+  "continuation_rule": "A new chat MUST read README.md, CONTRATO_MAESTRO_IA.md, docs/INVOCACION_COLMENA.md and this state file before doing research. It MUST continue only from next_single_action.",
+  "token_economy": {"repository_first":true,"do_not_research_anchored_sources":true,"do_not_repeat_completed_work":true,"do_not_narrate_tool_calls":true,"do_not_recompute_without_failed_verification":true,"persist_every_atomic_checkpoint":true,"unfinished_chat_messages_are_not_state":true}
 }
