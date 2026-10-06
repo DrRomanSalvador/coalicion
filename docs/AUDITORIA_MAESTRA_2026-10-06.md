@@ -50,7 +50,7 @@ El Ministerio del Interior mantiene el conjunto oficial «Resultados Electorales
 
 ## Prueba ejecutable
 
-Se ejecutó independientemente el núcleo electoral corregido con **13 aserciones críticas**, incluyendo:
+Se ejecutó en un entorno aislado el núcleo electoral corregido, reconstruido desde el estado actual del repositorio, con **20 pruebas pytest** del núcleo electoral y validación conjunta, incluyendo:
 - D'Hondt;
 - frontera 3%;
 - exclusión inferior al 3%;
@@ -77,4 +77,4 @@ Ninguno se convierte en corrección fija por intuición. Solo puede sobrevivir s
 
 El sistema **no debe producir todavía un resultado 2026 presentado como plenamente auditado**. El bloqueo correcto es de datos/territorialización y de cierre reproducible, no del núcleo legal.
 
-**Estado maestro: AUDITADO CON LIMITACIONES.**
+La ejecución integral directamente sobre el checkout remoto no pudo completarse porque el entorno de ejecución no resuelve GitHub por red; por ello esta evidencia no se etiqueta como ejecución completa del repositorio.\n\n**Estado maestro: AUDITADO CON LIMITACIONES.**
