@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "rule": "IMMUTABLE_DATA_IS_MATERIALIZED;_LIVE_DATA_IS_INDEXED_TO_PRIMARY_SOURCE_AND_SNAPSHOTTED_WHEN_ACQUIRED",
+  "sources": [
+    {
+      "source_id": "INTERIOR_RESULTADOS_CONGRESO",
+      "authority": "Ministerio del Interior",
+      "type": "electoral_results",
+      "mode": "SNAPSHOT_AND_LIVE",
+      "url": "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+      "catalog_url": "https://datos.gob.es/es/catalogo/e00003801-resultados-electorales",
+      "materialization": "data/raw/official/Elecciones-Congreso.xlsx",
+      "manifest": "data/manifests/INTERIOR_RESULTADOS_CONGRESO.json",
+      "reason": "Official distribution may be updated; each acquired version is hashed and retained in Git history."
+    },
+    {
+      "source_id": "INE_PADRON_MUNICIPAL",
+      "authority": "Instituto Nacional de Estadística",
+      "type": "population",
+      "mode": "SNAPSHOT_AND_LIVE",
+      "url": "https://www.ine.es/pob_xls/pobmun.zip",
+      "catalog_url": "https://www.ine.es/dynt3/inebase/es/index.htm?padre=525",
+      "materialization": "data/raw/official/ine/pobmun.zip",
+      "manifest": "data/manifests/INE_PADRON_MUNICIPAL.json",
+      "reason": "Official municipal population distribution is updated by release; acquired versions are hashed."
+    },
+    {
+      "source_id": "CIS_CATALOGO_ESTUDIOS",
+      "authority": "Centro de Investigaciones Sociológicas",
+      "type": "polls_and_microdata_catalog",
+      "mode": "LIVE_INDEX",
+      "url": "https://www.cis.es/es/estudios/catalogo?catalogo=estudio",
+      "materialization": "data/live/CIS_CATALOGO_ESTUDIOS.json",
+      "reason": "The catalogue is continuously extended; the primary catalogue remains authoritative. Individual study artifacts should be snapshotted by study code when acquired."
+    },
+    {
+      "source_id": "BOE_LEGISLACION",
+      "authority": "Boletín Oficial del Estado",
+      "type": "legal",
+      "mode": "LIVE_INDEX",
+      "url": "https://www.boe.es/",
+      "materialization": "data/live/BOE_LEGISLACION.json",
+      "reason": "Current legal state is time-dependent; historical legal versions must be pinned by BOE identifier/date."
+    },
+    {
+      "source_id": "JEC",
+      "authority": "Junta Electoral Central",
+      "type": "electoral_legal_results",
+      "mode": "LIVE_INDEX",
+      "url": "https://www.juntaelectoralcentral.es/",
+      "materialization": "data/live/JEC.json",
+      "reason": "Primary source index; immutable election documents are snapshotted by election and document identifier."
+    }
+  ]
+}
