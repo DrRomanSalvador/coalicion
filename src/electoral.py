@@ -11,7 +11,7 @@ Principios:
 """
 from dataclasses import dataclass
 from fractions import Fraction
-from typing import Dict, Iterable, Mapping, Optional, Tuple
+from typing import Dict, Mapping, Optional, Tuple
 
 
 @dataclass(frozen=True)
@@ -99,7 +99,6 @@ def dhondt(
     ]
 
     if len(tied_at_boundary) > len(selected_at_boundary):
-        tied_candidates = tuple(sorted({q[2] for q in tied_at_boundary}))
         tied_same_total_votes = tuple(
             sorted({q[2] for q in tied_at_boundary if q[1] == boundary_votes})
         )
