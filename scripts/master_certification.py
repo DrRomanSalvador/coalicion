@@ -41,12 +41,19 @@ def certify(root="."):
         gates.append(_gate("reconciliation",False,"falta evidencia de reconciliación"))
     # Full SEEC posterior and MC evidence.
     posterior=r/"ci_evidence/seec_posterior.json"
-    gates.append(_gate("seec_posterior", posterior.exists(),
-                       "posterior jerárquico ejecutado"))
+    posterior_ok=False
+    if posterior.exists():
+        try:
+            px=json.loads(posterior.read_text(encoding="utf-8"))
+            posterior_ok=px.get("status") in {"PASS","CERTIFIED"} and int(px.get("draws",0))>=10000
+        except Exception:
+            posterior_ok=False
+    gates.append(_gate("seec_posterior", posterior_ok,
+                       "posterior jerárquico ejecutado y certificado"))
     if posterior.exists():
         x=json.loads(posterior.read_text())
-        gates.append(_gate("mc_10000", int(x.get("draws",0))>=10000,
-                           ">=10.000 simulaciones"))
+        gates.append(_gate("mc_10000", x.get("status") in {"PASS","CERTIFIED"} and int(x.get("draws",0))>=10000,
+                           ">=10.000 simulaciones en posterior válido"))
     else:
         gates.append(_gate("mc_10000",False,"sin posterior"))
     # Expanding OOS calibration gate.
@@ -55,9 +62,9 @@ def certify(root="."):
                        "backtest expanding-window"))
     if calib.exists():
         x=json.loads(calib.read_text())
-        gates.append(_gate("coverage_90", float(x.get("coverage_90",0))>=0.85,
+        gates.append(_gate("coverage_90", x.get("status") in {"PASS","CERTIFIED"} and float(x.get("coverage_90",0))>=0.85,
                            "cobertura nominal 90% >= 85%"))
-        gates.append(_gate("seat_mae", float(x.get("seat_mae",1e9))<10,
+        gates.append(_gate("seat_mae", x.get("status") in {"PASS","CERTIFIED"} and float(x.get("seat_mae",1e9))<10,
                            "MAE escaños < 10"))
     else:
         gates += [Gate("coverage_90","FAIL","sin calibración"),
