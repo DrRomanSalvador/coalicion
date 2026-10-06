@@ -33,3 +33,15 @@ Resolver siempre significa:
 El catálogo usa el XLSX de Congreso publicado por el Ministerio del Interior y la resolución oficial de la JEC publicada en BOE para los resultados de 2023. La resolución contiene resultados por circunscripción, votos y escaños, y existe una corrección oficial posterior.
 
 Las fuentes auxiliares permanecen separadas de la evidencia primaria.
+
+## Endurecimiento operativo
+
+- Los reintentos de red se registran individualmente con estado, bytes y SHA-256.
+- La ausencia de una fuente primaria no se convierte en una matriz secundaria.
+- El runner robusto termina con código distinto de cero si no existe matriz + certificado.
+- GitHub Actions conserva los artefactos de evidencia aunque el gate final falle.
+- La matriz canónica exige exactamente 52 circunscripciones, 350 escaños y contabilidad de votos válidos.
+- Se rechazan celdas electorales no enteras; nunca se truncan floats.
+- La interfaz CLI bloquea coaliciones/escenarios si faltan votos válidos oficiales.
+- Ceuta y Melilla se codifican como circunscripciones de mayoría, no D'Hondt.
+- La marginalidad usa aritmética racional exacta y no flotantes.
