@@ -143,3 +143,15 @@ Si falta el binario o cambia un solo byte: `PRIMARY_BINARY_NOT_REPOSITORY_PINNED
 ### Regla de metodología
 
 No se puede cambiar silenciosamente SEEC, semilla, RNG, número mínimo de simulaciones, ley electoral, ventanas OOS, umbrales de calibración, fuente primaria, reglas de desempate ni tratamiento territorial. Cualquier cambio exige nueva versión, evidencia y pruebas.
+
+
+## Decision Engine MVP — uso operativo
+
+El repositorio incluye ahora `coalicion.py` como interfaz mínima:
+
+- `python coalicion.py audit 2023` — comprueba el estado de la cadena de auditoría y falla cerrado si falta evidencia primaria.
+- `python coalicion.py coalition A B --input scenario.json` — fusiona votos por circunscripción y vuelve a ejecutar D'Hondt.
+- `python coalicion.py scenario --party A --shift 2 --distribution uniform_by_province --input scenario.json` — aplica un shock de +2 puntos con territorialización explícita.
+- `python coalicion.py verify certificate.json` — inspecciona el estado del certificado.
+
+El MVP **no inventa una matriz candidatura×circunscripción**. Mientras esa matriz oficial no esté materializada y reconciliada, los análisis reales de coalición quedan bloqueados. Esto es intencionado.
