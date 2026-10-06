@@ -33,3 +33,9 @@
 - Suite contractual: PASS (incluye comportamiento fail-closed).
 - Gate de reproducibilidad: FAIL intencionado por ausencia del binario primario contractual.
 - No se fabricaron resultados PSOE+SUMAR ni PP+VOX porque falta la matriz oficial candidatura×circunscripción.
+
+## 21:55 — OPERATIONAL_BETA
+- Producto desbloqueado para uso analítico sobre réplica secundaria.
+- La habilitación beta exige manifest SECONDARY_REPLICA + validation PASS + 0 arithmetic_bad_cells.
+- Certificación estricta sigue independiente y bloqueada por evidencia primaria pendiente.
+- No se han fabricado resultados de PSOE+SUMAR/PP+VOX: falta confirmar/montar una matriz candidatura×circunscripción utilizable.
