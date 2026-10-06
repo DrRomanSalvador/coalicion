@@ -59,7 +59,7 @@ Siguiente acción única: fijar el PDF binario con SHA-256 `b5ed11be35ef4ad05b95
 
 ## HUELLA DE PRODUCTO — CHECKPOINT ACTUAL
 
-Último checkpoint persistido: `4ba02bac8c0d60cae43714df8435584203d50a03`.
+Último checkpoint persistido: `be9b7dd8fee0940b9f63d2e4e14b041b126cf086`.
 Artefacto añadido: `docs/CONTRATO_PRODUCTO_COLMENA.md`.
 Artefactos de continuidad: registro canónico de errores + gate de reanudación de contexto cero.
 Estado: **BLOCKED / FAIL-CLOSED**; no se declara producto certificado mientras existan BLOCKER abiertos.
