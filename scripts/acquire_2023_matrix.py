@@ -5,11 +5,12 @@ import hashlib, json, re, ssl, time
 from pathlib import Path
 from urllib.request import Request, urlopen
 import certifi
+import requests
 
 OFFICIAL_XLSX = "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
 SECONDARY_BASE = "https://datoelectoral.es/circunscripciones/"
 SLUG_ALIASES = {
-    "Valencia/València": "valencia",
+    "Valencia/València": "valencia-valencia",
     "Balears, Illes": "illes-balears",
     "Castellón/Castelló": "castellon",
     "Araba/Álava": "araba-alava",
