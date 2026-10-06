@@ -89,7 +89,9 @@ jobs:
         run: python scripts/validate_historical_secondary.py
       - name: Ejecutar backtesting 2023 baseline
         if: success()
-        run: python scripts/backtest_2023_baseline.py 2>&1 | tee .audit_historico/backtest.log
+        run: |
+          set -o pipefail
+          python scripts/backtest_2023_baseline.py 2>&1 | tee .audit_historico/backtest.log
       - name: Publicar diagnóstico del staging
         if: always()
         run: |
