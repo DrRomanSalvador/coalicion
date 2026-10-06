@@ -143,8 +143,14 @@ def resolve(values: list[dict]) -> dict:
     if len(vals)==1:
         return {"status":"RESOLVED","value":top.get("value"),"source":top.get("source_id"),"reason":"same_tier_agreement"}
     if top.get("tier")=="PRIMARY":
-        return {"status":"RESOLVED_PRIMARY","value":top.get("value"),"source":top.get("source_id"),
-                "reason":"official_precedence","alternatives":same}
+        # Conflicting independent primary values are NOT resolved by authority
+        # sorting. Only an explicit corrective relation may select a winner.
+        corrective = [x for x in same if x.get("role") == "official_correction"]
+        if len(corrective) == 1 and len(same) == 2:
+            return {"status":"RESOLVED_PRIMARY_CORRECTION","value":corrective[0].get("value"),
+                    "source":corrective[0].get("source_id"), "reason":"explicit_official_correction",
+                    "alternatives":same}
+        return {"status":"UNRESOLVED","value":None,"reason":"independent_primary_conflict","evidence":same}
     return {"status":"UNRESOLVED","value":None,"reason":"same_tier_conflict","evidence":same}
 
 def main():
@@ -160,7 +166,11 @@ def main():
     print("Registro:",LOG)
     if args.resolve:
         successes = data["successful"]
-        primary_ok = any(x["tier"] == "PRIMARY" for x in successes)
+        primary_ok = any(
+            x["tier"] == "PRIMARY"
+            and x["role"] in {"official_vote_matrix", "official_results_and_seats"}
+            for x in successes
+        )
         data["resolution"] = {
             "status": "PRIMARY_EVIDENCE_AVAILABLE" if primary_ok else "BLOCKED_PRIMARY_UNAVAILABLE",
             "primary_sources_successful": sorted({x["source_id"] for x in successes if x["tier"] == "PRIMARY"}),
