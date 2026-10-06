@@ -46,6 +46,8 @@ No se inventa territorialidad para candidaturas sin base comparable. Toda imputa
 - Tests legales básicos: incorporados; ejecución aislada del núcleo verificada.
 - Filtro OOS anti-sesgos: en esta versión.
 - Matriz oficial completa candidatura×circunscripción 2023: pendiente de ingestión automática y validación reproducible.
+- Analizador reproducible de error encuesta→resultado desde 2004: incorporado.
+- Esquema de datos históricos 2004–2023: incorporado; carga de observaciones documentadas pendiente de consolidación completa.
 - Archivo histórico completo de encuestas y resultados: pendiente de consolidación.
 - Territorialización reproducible 2026: pendiente de cierre.
 - Resultado 2026: **no declarado auditado** hasta superar todos los controles.
