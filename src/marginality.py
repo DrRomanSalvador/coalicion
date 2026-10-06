@@ -1,5 +1,6 @@
 """Margen electoral: votos necesarios para cambiar el último escaño bajo D'Hondt."""
 from __future__ import annotations
+from fractions import Fraction
 from .electoral import allocate
 
 def marginal_seat(votes, seats, blank_votes=0, special=""):
@@ -15,10 +16,10 @@ def marginal_seat(votes, seats, blank_votes=0, special=""):
     awarded=[]
     for party,n in base.seats.items():
         if n:
-            awarded.append((votes[party]/n,party))
+            awarded.append((Fraction(votes[party], n),party))
     if not awarded: return None
     last_party=min(awarded)[1]
-    last_q=votes[last_party]/base.seats[last_party]
+    last_q=Fraction(votes[last_party], base.seats[last_party])
     challengers=[]
     for party,v in votes.items():
         if party==last_party or v==0: continue
