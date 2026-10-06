@@ -7,6 +7,7 @@ on:
       - "src/**"
       - "tests/**"
       - "scripts/audit_2023.py"
+      - "scripts/stage_historico_secondary.py"
   pull_request:
     paths:
       - ".github/workflows/auditoria_2023.yml"
@@ -39,11 +40,14 @@ jobs:
       - name: Instalar dependencias
         run: python -m pip install --upgrade pip pandas openpyxl
       - name: Descargar fuente oficial Interior
+        continue-on-error: true
+        id: official
         run: |
           mkdir -p .audit_2023
-          curl --fail --location --retry 3 "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx" -o .audit_2023/Elecciones-Congreso.xlsx
+          curl --fail --location --retry 3 --retry-all-errors --connect-timeout 20 --max-time 180 "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx" -o .audit_2023/Elecciones-Congreso.xlsx
           sha256sum .audit_2023/Elecciones-Congreso.xlsx | tee .audit_2023/source.sha256
       - name: Ejecutar auditoría 2023
+        if: steps.official.outcome == 'success'
         run: python scripts/audit_2023.py
       - name: Publicar evidencia
         if: always()
@@ -51,7 +55,6 @@ jobs:
         with:
           name: auditoria-2023
           path: .audit_2023/
-
 
   historico-interior:
     runs-on: ubuntu-latest
@@ -62,14 +65,21 @@ jobs:
         with:
           python-version: "3.12"
       - name: Instalar dependencias
-        run: python -m pip install --upgrade pip pandas openpyxl
-      - name: Descargar fuente oficial Interior histórica
+        run: python -m pip install --upgrade pip pandas openpyxl pyreadr
+      - name: Intentar fuente primaria Interior
+        id: official
+        continue-on-error: true
         run: |
           mkdir -p .audit_historico
           curl --fail --location --retry 5 --retry-all-errors --connect-timeout 20 --max-time 180 "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx" -o .audit_historico/Elecciones-Congreso.xlsx
-      - name: Versionar y extraer staging histórico
+      - name: Staging primario Interior
+        if: steps.official.outcome == 'success'
         run: python scripts/stage_historico_interior.py
+      - name: Staging secundario reproducible
+        if: steps.official.outcome != 'success'
+        run: python scripts/stage_historico_secondary.py
       - name: Publicar dataset fuente y metadatos
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: seec-historico-interior-staging
