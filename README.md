@@ -87,3 +87,59 @@ Si falla: **DETENER**. No sustituir fuentes, parámetros, semilla ni metodologí
 
 ### Huella de continuidad
 Cada cierre debe actualizar `docs/COLMENA_STATE.json` y `docs/INVOCACION_COLMENA.md` con commit, estado, errores abiertos, evidencias y **una única siguiente acción**. Un razonamiento o mensaje no persistido no se considera heredable.
+
+
+## PROTOCOLO CANÓNICO DE REANUDACIÓN — NO RECONSTRUIR DESDE EL CHAT
+
+La continuidad de la colmena está **codificada**, no confiada a memoria conversacional.
+
+Archivos canónicos:
+- `config/seec_reproducibility.json`: metodología, RNG, semilla, MC, ley electoral, OOS y reglas de invariancia.
+- `src/reproducibility_contract.py`: gate ejecutable; verifica también los bytes reales de la fuente primaria.
+- `src/error_registry.py`: catálogo cerrado de errores; los errores críticos bloquean.
+- `src/colmena_resume.py`: arranque de contexto cero.
+- `docs/COLMENA_STATE.json`: único estado máquina heredable.
+- `docs/INVOCACION_COLMENA.md`: PROM mínimo de arranque y huella de continuidad.
+
+### PROM DE ARRANQUE PARA UN CHAT NUEVO
+
+```
+LEER README.md
+LEER CONTRATO_MAESTRO_IA.md
+LEER docs/INVOCACION_COLMENA.md
+LEER docs/COLMENA_STATE.json
+EJECUTAR python -m src.colmena_resume
+EJECUTAR pytest -q tests/test_reproducibility_contract.py tests/test_error_registry.py tests/test_colmena_resume.py
+LEER next_single_action
+EJECUTAR SOLO next_single_action
+PERSISTIR checkpoint inmediatamente
+NO RECONSTRUIR EL CHAT
+NO REPETIR INVESTIGACIÓN YA VERSIONADA
+```
+
+### Regla de herencia
+
+El último mensaje del chat, incluso si quedó incompleto o no llegó a enviarse, **no es estado**. Solo es heredable lo que haya quedado persistido en el repositorio.
+
+Cada unidad de trabajo debe cerrar con:
+1. commit;
+2. `last_action`;
+3. `last_action_result`;
+4. evidencias/errores abiertos;
+5. **una única** `next_single_action`.
+
+### Regla de ahorro de tokens
+
+Repositorio primero. Si una fuente, cálculo, hash, prueba o decisión ya está versionada y verificada, no se vuelve a investigar ni explicar. El nuevo agente debe consumir el estado y actuar sobre la siguiente acción, no volver a descubrir el proyecto.
+
+### Regla de fuente primaria
+
+El manifiesto no sustituye al documento. El PDF canónico debe existir como objeto binario versionado y su SHA-256 debe coincidir exactamente con:
+
+`b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7`
+
+Si falta el binario o cambia un solo byte: `PRIMARY_BINARY_NOT_REPOSITORY_PINNED` / `PRIMARY_HASH_MISMATCH` → **DETENER**. No buscar sustituto automáticamente.
+
+### Regla de metodología
+
+No se puede cambiar silenciosamente SEEC, semilla, RNG, número mínimo de simulaciones, ley electoral, ventanas OOS, umbrales de calibración, fuente primaria, reglas de desempate ni tratamiento territorial. Cualquier cambio exige nueva versión, evidencia y pruebas.
