@@ -56,13 +56,13 @@
     {
       "id": "CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT",
       "status": "OPEN",
-      "detail": "The referenced continuity commit has no registered CI statuses; CI is inconclusive, not PASS."
+      "detail": "El último cambio de producto todavía no tiene evidencia CI registrada; el siguiente agente debe ejecutar/verificar la suite antes de declarar PASS."
     }
   ],
-  "last_verified_commit": "68b8e98ab1b6877f02c0eaa04c27648d759065c4",
-  "last_action": "Codified deterministic SEEC contract, canonical error registry, zero-context resume gate, and actual-byte primary-source verification.",
-  "last_action_result": "CODE_PERSISTED; SOURCE_BINARY_GATE_CORRECTLY_BLOCKS_UNPINNED_PDF; NO_CERTIFICATION",
-  "next_single_action": "Materialize and pin the original Infoelectoral PDF bytes at data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.pdf, verify SHA-256 exactly, then update this state with the immutable object identifier.",
+  "last_verified_commit": "a4741173502eed562823e3c0787c7f89a59a7efe7",
+  "last_action": "Codificación del producto Colmena: contrato de producto, registro canónico de errores, gate de contexto cero, PROM de reanudación y pruebas de superficie.",
+  "last_action_result": "CODE_PERSISTED; CONTINUITY_PROTOCOL_HARDENED; PRODUCT_CONTRACT_ADDED; CERTIFICATION_REMAINS_BLOCKED",
+  "next_single_action": "Ejecutar la superficie canónica de pruebas de la Colmena y registrar el resultado real en CI; no iniciar ninguna acción paralela hasta cerrar ese checkpoint.",
   "continuation_rule": "A new chat MUST read README.md, CONTRATO_MAESTRO_IA.md, docs/INVOCACION_COLMENA.md and this state file, execute python -m src.colmena_resume, and continue only from next_single_action. Never reconstruct context from chat.",
   "token_economy": {
     "repository_first": true,
@@ -72,6 +72,8 @@
     "do_not_recompute_without_failed_verification": true,
     "persist_every_atomic_checkpoint": true,
     "unfinished_chat_messages_are_not_state": true,
-    "single_next_action": true
+    "single_next_action": true,
+    "checkpoint_before_token_exhaustion": true,
+    "resume_from_repository_not_chat": true
   }
 }
