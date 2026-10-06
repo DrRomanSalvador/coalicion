@@ -1,0 +1,8 @@
+{
+  "mode": "OPERATIONAL_BETA",
+  "strict_certification_unchanged": true,
+  "secondary_replica_allowed": true,
+  "secondary_replica_requires": ["source_manifest", "internal_consistency", "explicit_warning"],
+  "use_allowed_when_partial": true,
+  "prediction_certified": false
+}

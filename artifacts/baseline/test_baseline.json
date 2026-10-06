@@ -1,0 +1,16 @@
+{
+  "schema": "TEST_BASELINE_V1",
+  "captured_at": "2026-10-06T20:03:24Z",
+  "commit": "49334640c99fc98b4aa466b75c9b784a001ad961",
+  "local_execution": "UNAVAILABLE_NETWORK",
+  "ci": {
+    "workflow": "Colmena reproducible",
+    "run_id": 37523506246,
+    "job": "contract",
+    "conclusion": "failure",
+    "failed_step": "python -m src.colmena_resume",
+    "error": "UNKNOWN_ERROR_CODE:CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT"
+  },
+  "consequence": "Contract-specific pytest steps were skipped because the resume gate failed first.",
+  "status": "BASELINE_BLOCKED"
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "KNOWN_FAILURES_V1",
+  "captured_at": "2026-10-06T20:03:24Z",
+  "failures": [
+    {
+      "code": "CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT",
+      "severity": "BLOCKING",
+      "observed_in_run": 37523506246,
+      "detail": "State contains blocker not present in error registry; resume gate raises UNKNOWN_ERROR_CODE."
+    },
+    {
+      "code": "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
+      "severity": "BLOCKING",
+      "detail": "Canonical PDF binary absent from repository."
+    },
+    {
+      "code": "PRIMARY_RECONCILIATION",
+      "severity": "BLOCKING",
+      "detail": "Primary Interior end-to-end reconciliation not demonstrated."
+    },
+    {
+      "code": "SEEC_PRODUCTION_EXECUTION",
+      "severity": "BLOCKING",
+      "detail": "Certified posterior evidence absent."
+    },
+    {
+      "code": "OOS_CALIBRATION",
+      "severity": "BLOCKING",
+      "detail": "Required expanding-window calibration evidence absent."
+    },
+    {
+      "code": "EXTERNAL_AUDIT",
+      "severity": "BLOCKING",
+      "detail": "Independent external audit evidence absent."
+    }
+  ]
+}

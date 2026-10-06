@@ -1,0 +1,333 @@
+{
+  "schema": "ELECTION_2023_NATIONAL_OVERVIEW_V1",
+  "election": 2023,
+  "chamber": "Congreso",
+  "month": "July",
+  "scope": "Ambito Nacional",
+  "source_tier": "SECONDARY_REPLICA_VERIFIED",
+  "source_note": "Datos transcritos del material aportado por el usuario; no sustituyen la matriz oficial candidatura×circunscripción.",
+  "population": 47475420,
+  "municipalities": 8131,
+  "polling_stations": 60314,
+  "census": 37469458,
+  "voters": 24952447,
+  "candidate_ballots": 24487414,
+  "blank_votes": 200673,
+  "valid_votes": 24688087,
+  "abstentions": 12517011,
+  "null_votes": 264360,
+  "first_update_voters": 14226892,
+  "second_update_voters": 18671607,
+  "voters_20": 24744016,
+  "candidacies": [
+    {
+      "name": "PP - PARTIDO POPULAR",
+      "votes": 8160837,
+      "seats": 137
+    },
+    {
+      "name": "PSOE - PARTIDO SOCIALISTA OBRERO ESPAÑOL",
+      "votes": 7821718,
+      "seats": 121
+    },
+    {
+      "name": "VOX - VOX",
+      "votes": 3057000,
+      "seats": 33
+    },
+    {
+      "name": "SUMAR - SUMAR",
+      "votes": 3044996,
+      "seats": 31
+    },
+    {
+      "name": "ERC - ESQUERRA REPUBLICANA DE CATALUNYA",
+      "votes": 466020,
+      "seats": 7
+    },
+    {
+      "name": "JxCAT - JUNTS - JUNTS PER CATALUNYA - JUNTS",
+      "votes": 395429,
+      "seats": 7
+    },
+    {
+      "name": "EH Bildu - EUSKAL HERRIA BILDU",
+      "votes": 335129,
+      "seats": 6
+    },
+    {
+      "name": "EAJ-PNV - EUZKO ALDERDI JELTZALEA-PARTIDO NACIONALISTA VASCO",
+      "votes": 277289,
+      "seats": 5
+    },
+    {
+      "name": "PACMA - PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE",
+      "votes": 169237,
+      "seats": 0
+    },
+    {
+      "name": "B.N.G. - BLOQUE NACIONALISTA GALEGO",
+      "votes": 153995,
+      "seats": 1
+    },
+    {
+      "name": "CCa - COALICIÓN CANARIA",
+      "votes": 116363,
+      "seats": 1
+    },
+    {
+      "name": "CUP-PR - CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA",
+      "votes": 99644,
+      "seats": 0
+    },
+    {
+      "name": "U.P.N. - UNION DEL PUEBLO NAVARRO",
+      "votes": 52188,
+      "seats": 1
+    },
+    {
+      "name": "FO - FRENTE OBRERO",
+      "votes": 46274,
+      "seats": 0
+    },
+    {
+      "name": "NC-bc - NUEVA CANARIAS - BLOQUE CANARISTA",
+      "votes": 45595,
+      "seats": 0
+    },
+    {
+      "name": "PDeCAT-E-CiU - PARTIT DEMÒCRATA EUROPEU CATALÀ-ESPAI CIU",
+      "votes": 32016,
+      "seats": 0
+    },
+    {
+      "name": "RECORTES CERO - RECORTES CERO",
+      "votes": 23421,
+      "seats": 0
+    },
+    {
+      "name": "PUM+J - POR UN MUNDO MÁS JUSTO",
+      "votes": 23290,
+      "seats": 0
+    },
+    {
+      "name": "U.P.L. - UNIÓN DEL PUEBLO LEONÉS",
+      "votes": 23201,
+      "seats": 0
+    },
+    {
+      "name": "EXISTE - ARAGÓN EXISTE - COALICIÓN EXISTE",
+      "votes": 20440,
+      "seats": 0
+    },
+    {
+      "name": "PCTE - PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA",
+      "votes": 18218,
+      "seats": 0
+    },
+    {
+      "name": "GBAI - GEROA BAI",
+      "votes": 9938,
+      "seats": 0
+    },
+    {
+      "name": "SY - SORIA ¡YA!",
+      "votes": 9697,
+      "seats": 0
+    },
+    {
+      "name": "ADELANTE ANDALUCÍA - ADELANTE ANDALUCÍA",
+      "votes": 9191,
+      "seats": 0
+    },
+    {
+      "name": "ESCAÑOS EN BLANCO - ESCAÑOS EN BLANCO PARA DEJAR ESCAÑOS VACÍOS",
+      "votes": 8448,
+      "seats": 0
+    },
+    {
+      "name": "JM+ - JAÉN MERECE MÁS",
+      "votes": 8293,
+      "seats": 0
+    },
+    {
+      "name": "XAV - POR ÁVILA",
+      "votes": 7362,
+      "seats": 0
+    },
+    {
+      "name": "BQEX - BLOQUE EXTREMEÑO",
+      "votes": 5807,
+      "seats": 0
+    },
+    {
+      "name": "CJ - CAMINANDO JUNTOS",
+      "votes": 5620,
+      "seats": 0
+    },
+    {
+      "name": "FE de las JONS - FALANGE ESPAÑOLA DE LAS J.O.N.S.",
+      "votes": 4683,
+      "seats": 0
+    },
+    {
+      "name": "PAR - PARTIDO ARAGONÉS",
+      "votes": 4173,
+      "seats": 0
+    },
+    {
+      "name": "ESPAÑA VACIADA - ESPAÑA VACIADA",
+      "votes": 3158,
+      "seats": 0
+    },
+    {
+      "name": "PH - PARTIDO HUMANISTA",
+      "votes": 2902,
+      "seats": 0
+    },
+    {
+      "name": "ASTURIAS EXISTE EV - ASTURIAS EXISTE-ESPAÑA VACIADA",
+      "votes": 2314,
+      "seats": 0
+    },
+    {
+      "name": "XH - POR HUELVA",
+      "votes": 1931,
+      "seats": 0
+    },
+    {
+      "name": "VP - VAMOS PALENCIA",
+      "votes": 1917,
+      "seats": 0
+    },
+    {
+      "name": "Zsi - ZAMORA SÍ",
+      "votes": 1843,
+      "seats": 0
+    },
+    {
+      "name": "VB - VÍA BURGALESA",
+      "votes": 1774,
+      "seats": 0
+    },
+    {
+      "name": "POR MI REGIÓN - POR MI REGIÓN",
+      "votes": 1698,
+      "seats": 0
+    },
+    {
+      "name": "AHORA CANARIAS-PCPC - AHORA CANARIAS-PARTIDO COMUNISTA DEL PUEBLO CANARIO",
+      "votes": 1674,
+      "seats": 0
+    },
+    {
+      "name": "PARTIDO AUTÓNOMOS - PARTIDO AUTÓNOMOS",
+      "votes": 1446,
+      "seats": 0
+    },
+    {
+      "name": "EVB - ESTAT VALENCIÀ DEL BENESTAR",
+      "votes": 1442,
+      "seats": 0
+    },
+    {
+      "name": "CpM - COALICIÓN POR MELILLA",
+      "votes": 1298,
+      "seats": 0
+    },
+    {
+      "name": "JxG - JUNTOS POR GRANADA",
+      "votes": 1218,
+      "seats": 0
+    },
+    {
+      "name": "EV-PCAS-TC - ESPAÑA VACIADA-PARTIDO CASTELLANO-TIERRA COMUNERA",
+      "votes": 1184,
+      "seats": 0
+    },
+    {
+      "name": "PREPAL - PARTIDO REGIONALISTA DEL PAÍS LEONÉS",
+      "votes": 964,
+      "seats": 0
+    },
+    {
+      "name": "Somos Cc - SOMOS CÁCERES",
+      "votes": 963,
+      "seats": 0
+    },
+    {
+      "name": "ALM - ALMERIENSES - REGIONALISTAS PRO ALMERÍA",
+      "votes": 874,
+      "seats": 0
+    },
+    {
+      "name": "F.I.A. - FEDERACIÓN DE LOS INDEPENDIENTES DE ARAGÓN",
+      "votes": 506,
+      "seats": 0
+    },
+    {
+      "name": "3e - TERCERA EDAD EN ACCIÓN",
+      "votes": 484,
+      "seats": 0
+    },
+    {
+      "name": "Ud.Ca - UNIDAD CASTELLANA",
+      "votes": 463,
+      "seats": 0
+    },
+    {
+      "name": "GITV - GRUPO INDEPENDIENTE PALENCIA TIERRA VIVA",
+      "votes": 366,
+      "seats": 0
+    },
+    {
+      "name": "PUEDE - PARTIDO UNIONISTA ESTADO DE ESPAÑA",
+      "votes": 269,
+      "seats": 0
+    },
+    {
+      "name": "EVC - ENTRE VEÏNS CATALUNYA",
+      "votes": 265,
+      "seats": 0
+    },
+    {
+      "name": "LB - LIBRES",
+      "votes": 263,
+      "seats": 0
+    },
+    {
+      "name": "UNIDOS SI - UNIDOS POR LA SOLIDARIDAD INTERNACIONAL",
+      "votes": 253,
+      "seats": 0
+    },
+    {
+      "name": "+RDS+ - REFERÉNDUM SISTEMA DINERO",
+      "votes": 165,
+      "seats": 0
+    },
+    {
+      "name": "CCD - COALICIÓN DE CENTRO DEMOCRÁTICO",
+      "votes": 153,
+      "seats": 0
+    },
+    {
+      "name": "FUERZA CÍVICA - FUERZA CÍVICA",
+      "votes": 115,
+      "seats": 0
+    }
+  ],
+  "validation": {
+    "arithmetic": {
+      "candidate_ballots_plus_blank": 24688087,
+      "valid_plus_null": 24952447,
+      "voters_plus_abstentions": 37469458,
+      "candidate_votes_sum": 24487414
+    },
+    "expected": {
+      "voters": 24952447,
+      "valid_votes": 24688087,
+      "census": 37469458,
+      "candidate_ballots": 24487414
+    }
+  }
+}

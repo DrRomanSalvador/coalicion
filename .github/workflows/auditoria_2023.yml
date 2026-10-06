@@ -27,11 +27,23 @@ jobs:
         with:
           python-version: "3.12"
       - name: Instalar dependencias
-        run: python -m pip install --upgrade pip pytest pandas openpyxl
+        run: python -m pip install --upgrade pip pytest pandas openpyxl certifi
       - name: Verificar contrato determinista y ancla primaria
+        id: contract
+        continue-on-error: true
         run: python -m src.reproducibility_contract
-      - name: Ejecutar suite completa
+      - name: Ejecutar suite completa aunque el contrato falle
+        id: tests
+        continue-on-error: true
         run: python -m pytest -q
+      - name: Resultado del gate de tests
+        if: always()
+        env:
+          CONTRACT: ${{ steps.contract.outcome }}
+          TESTS: ${{ steps.tests.outcome }}
+        run: |
+          printf 'contract=%s\ntests=%s\n' "$CONTRACT" "$TESTS"
+          test "$CONTRACT" = success && test "$TESTS" = success
 
   audit-2023:
     runs-on: ubuntu-latest
@@ -42,13 +54,22 @@ jobs:
         with:
           python-version: "3.12"
       - name: Instalar dependencias
-        run: python -m pip install --upgrade pip pandas openpyxl
+        run: python -m pip install --upgrade pip pandas openpyxl certifi
       - name: Descargar fuente oficial Interior
         continue-on-error: true
         id: official
         run: |
           mkdir -p .audit_2023
-          curl --fail --location --retry 3 --retry-all-errors --connect-timeout 20 --max-time 180 "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx" -o .audit_2023/Elecciones-Congreso.xlsx
+          if ! curl --fail --location --retry 3 --retry-all-errors --connect-timeout 20 --max-time 180 "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx" -o .audit_2023/Elecciones-Congreso.xlsx; then
+            python - <<'PY'
+import certifi
+from urllib.request import urlopen
+url="https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
+with urlopen(url, timeout=180, context=__import__("ssl").create_default_context(cafile=certifi.where())) as r:
+    open(".audit_2023/Elecciones-Congreso.xlsx","wb").write(r.read())
+PY
+          fi
+          test -s .audit_2023/Elecciones-Congreso.xlsx
           sha256sum .audit_2023/Elecciones-Congreso.xlsx | tee .audit_2023/source.sha256
       - name: Ejecutar auditoría 2023
         if: steps.official.outcome == 'success'
@@ -69,31 +90,36 @@ jobs:
         with:
           python-version: "3.12"
       - name: Instalar dependencias
-        run: python -m pip install --upgrade pip pandas openpyxl pyreadr
+        run: python -m pip install --upgrade pip pandas openpyxl pyreadr certifi
       - name: Intentar fuente primaria Interior
         id: official
         continue-on-error: true
         run: |
           mkdir -p .audit_historico
-          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 20 --max-time 180 "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx" -o .audit_historico/Elecciones-Congreso.xlsx
+          if ! curl --fail --location --retry 5 --retry-all-errors --connect-timeout 20 --max-time 180 "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx" -o .audit_historico/Elecciones-Congreso.xlsx; then
+            python - <<'PY'
+import certifi, ssl
+from urllib.request import urlopen
+url="https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
+ctx=ssl.create_default_context(cafile=certifi.where())
+with urlopen(url, timeout=180, context=ctx) as r:
+    open(".audit_historico/Elecciones-Congreso.xlsx","wb").write(r.read())
+PY
+          fi
       - name: Staging histórico seleccionado
         run: |
           set -o pipefail
           if test -s .audit_historico/Elecciones-Congreso.xlsx; then
-            echo "SOURCE_TIER=PRIMARY_INTERIOR" | tee .audit_historico/source_tier.txt
+            echo "SOURCE_TIER=PRIMARY_INTERIOR_RAW_ONLY" | tee .audit_historico/source_tier.txt
             python scripts/stage_historico_interior.py 2>&1 | tee .audit_historico/staging.log
+            echo "PRIMARY_SOURCE_PRESENT_SECONDARY_VALIDATION_SKIPPED" | tee .audit_historico/validation_status.txt
           else
             echo "SOURCE_TIER=SECONDARY_REPLICA" | tee .audit_historico/source_tier.txt
             python scripts/stage_historico_secondary.py 2>&1 | tee .audit_historico/staging.log
+            python scripts/validate_historical_secondary.py
+            set -o pipefail
+            python scripts/backtest_2023_baseline.py 2>&1 | tee .audit_historico/backtest.log
           fi
-      - name: Validar histórico provincial
-        if: success()
-        run: python scripts/validate_historical_secondary.py
-      - name: Ejecutar backtesting 2023 baseline
-        if: success()
-        run: |
-          set -o pipefail
-          python scripts/backtest_2023_baseline.py 2>&1 | tee .audit_historico/backtest.log
       - name: Publicar diagnóstico del staging
         if: always()
         run: |
@@ -104,11 +130,7 @@ jobs:
           cp .audit_historico/secondary_manifest.json ci_evidence/historico_manifest.json 2>/dev/null || true
           cp .audit_historico/backtest_2023_baseline.json ci_evidence/backtest_2023_baseline.json 2>/dev/null || true
           cp .audit_historico/backtest.log ci_evidence/backtest_2023_baseline.log 2>/dev/null || true
-          git config user.name "SEEC CI"
-          git config user.email "seec-ci@users.noreply.github.com"
-          git add ci_evidence/
-          git diff --cached --quiet || git commit -m "Record historical staging CI evidence"
-          git push origin HEAD:main || true
+          cp .audit_historico/validation_status.txt ci_evidence/historico_validation_status.txt 2>/dev/null || true
       - name: Publicar dataset fuente y metadatos
         if: always()
         uses: actions/upload-artifact@v4

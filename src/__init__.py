@@ -1,0 +1,1 @@
+"""COALICIÓN source package."""

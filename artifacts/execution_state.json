@@ -1,0 +1,57 @@
+{
+  "schema": "EXECUTION_STATE_V1",
+  "run_id": "autonomous-20261006",
+  "started_at": "2026-10-06T20:03:24Z",
+  "last_updated_at": "2026-10-06T21:55:00Z",
+  "current_phase": "OPERATIONAL_BETA — evidence-backed utility",
+  "completed_tasks": [
+    "inspección estructural",
+    "línea base persistida",
+    "registro canónico de blocker corregido",
+    "regresión de consistencia del registro de errores",
+    "oráculo electoral independiente añadido",
+    "pruebas diferenciales reproducibles añadidas",
+    "RNG Monte Carlo alineado con contrato PCG64",
+    "escenario especial Ceuta/Melilla preservado",
+    "workflow CI endurecido para continuar tareas independientes",
+    "master certification gates made fail-closed against fake PASS artifacts",
+    "CI results persisted",
+    "CLI audit/coalition/scenario/verify",
+    "deterministic coalition engine",
+    "explicit territorial shock engine",
+    "Dockerfile and requirements.lock",
+    "Decision Engine regression tests",
+    "contractual pytest suite passes after correcting fail-closed expectation",
+    "OPERATIONAL_BETA mode activated",
+    "secondary-replica eligibility made evidence-backed",
+    "product status evaluator and transparency docs added"
+  ],
+  "in_progress_tasks": [],
+  "blocked_tasks": [
+    "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
+    "PRIMARY_RECONCILIATION",
+    "OFFICIAL_2023_CANDIDACY_MATRIX",
+    "COALITION_REAL_CASE_CERTIFICATION",
+    "OOS_CALIBRATION",
+    "EXTERNAL_AUDIT"
+  ],
+  "failed_tasks": [
+    "CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT (resolved)",
+    "pytest import path (resolved)"
+  ],
+  "warnings": [
+    "Strict official certification remains BLOCKED until primary Interior evidence is materialized and reconciled.",
+    "Beta mode is not predictive certification."
+  ],
+  "artifacts": [
+    "artifacts/baseline/repository_inventory.json",
+    "artifacts/baseline/test_baseline.json",
+    "artifacts/baseline/dependency_inventory.json",
+    "artifacts/baseline/git_state.json",
+    "artifacts/baseline/known_failures.json"
+  ],
+  "certificates": [],
+  "next_actions": [
+    "Materialize official candidate-by-constituency 2023 dataset if available; otherwise create a documented adapter from the existing secondary dataset and run real coalition reports without inventing party totals."
+  ]
+}
