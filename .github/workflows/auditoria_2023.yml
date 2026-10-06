@@ -1,4 +1,4 @@
-name: Auditoria 2023 completa
+name: Auditoria 2023 y suite SEEC
 
 on:
   push:
@@ -9,32 +9,38 @@ on:
       - "scripts/audit_2023.py"
 
 jobs:
-  audit-2023:
+  tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Preparar Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Instalar dependencias
+        run: python -m pip install --upgrade pip pytest pandas openpyxl
+      - name: Ejecutar suite completa
+        run: python -m pytest -q
 
+  audit-2023:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: Instalar dependencias
         run: python -m pip install --upgrade pip pandas openpyxl
-
       - name: Descargar fuente oficial Interior
         run: |
           mkdir -p .audit_2023
-          curl --fail --location --retry 3             "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"             -o .audit_2023/Elecciones-Congreso.xlsx
+          curl --fail --location --retry 3 "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx" -o .audit_2023/Elecciones-Congreso.xlsx
           sha256sum .audit_2023/Elecciones-Congreso.xlsx | tee .audit_2023/source.sha256
-
       - name: Ejecutar auditoría 2023
         run: python scripts/audit_2023.py
-
-      - name: Ejecutar tests
-        run: python -m pytest -q
-
       - name: Publicar evidencia
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: auditoria-2023

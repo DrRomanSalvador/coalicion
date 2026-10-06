@@ -1,170 +1,77 @@
-"""Motor electoral determinista y fail-closed para el Congreso de los Diputados.
-
-Principios:
-- aritmética exacta con Fraction;
-- umbral del 3 % sobre votos válidos;
-- D'Hondt por circunscripción;
-- empate por votos totales;
-- empate absoluto: nunca se decide implícitamente;
-- Ceuta/Melilla: mayoría simple, no D'Hondt;
-- datos incompletos: bloqueo explícito.
-"""
+"""Motor electoral español exacto, fail-closed y reproducible."""
+from __future__ import annotations
 from dataclasses import dataclass
 from fractions import Fraction
-from typing import Dict, Mapping, Optional, Tuple
-
+from typing import Mapping, Optional
 
 @dataclass(frozen=True)
 class Allocation:
-    seats: Dict[str, int]
+    seats: dict[str, int]
     status: str
-    tie: Tuple[str, ...] = ()
+    tie: tuple[str, ...] = ()
 
+def _validate_common(votes: Mapping[str, int]) -> None:
+    if not isinstance(votes, Mapping): raise TypeError("votes debe ser un mapping")
+    if any(not isinstance(p, str) or not p.strip() for p in votes): raise ValueError("nombres inválidos")
+    if any(isinstance(v,bool) or not isinstance(v,int) or v<0 for v in votes.values()): raise ValueError("votos inválidos")
 
-def _validate_votes(votes: Mapping[str, int], valid_votes: int, blank_votes: int = 0) -> None:
-    if not isinstance(votes, Mapping):
-        raise TypeError("votes debe ser un mapping candidatura -> votos")
-    if not votes:
-        return
-    if not isinstance(valid_votes, int) or isinstance(valid_votes, bool) or valid_votes <= 0:
-        raise ValueError("valid_votes debe ser un entero > 0")
-    names = list(votes)
-    if any(not isinstance(p, str) or not p.strip() for p in names):
-        raise ValueError("Los nombres de candidatura deben ser cadenas no vacías")
-    if len(set(names)) != len(names):
-        raise ValueError("No puede haber candidaturas duplicadas")
-    if any(
-        not isinstance(v, int) or isinstance(v, bool) or v < 0
-        for v in votes.values()
-    ):
-        raise ValueError("Los votos deben ser enteros no negativos")
-    if sum(votes.values()) != valid_votes:
-        raise ValueError(
-            "Los votos de candidaturas deben sumar exactamente los votos válidos; "
-            "si faltan candidaturas/datos, la asignación se bloquea"
-        )
+def valid_votes(votes: Mapping[str,int], blank_votes:int=0)->int:
+    _validate_common(votes)
+    if isinstance(blank_votes,bool) or not isinstance(blank_votes,int) or blank_votes<0: raise ValueError("blank_votes inválido")
+    return sum(votes.values())+blank_votes
 
+def _validate_matrix(votes, valid, blank):
+    if isinstance(valid,bool) or not isinstance(valid,int) or valid<=0: raise ValueError("valid_votes inválido")
+    if valid_votes(votes,blank)!=valid: raise ValueError("candidaturas + blancos debe coincidir con votos válidos")
 
-def _eligible(votes: Mapping[str, int], valid_votes: int) -> Dict[str, int]:
-    return {
-        party: value
-        for party, value in votes.items()
-        if Fraction(value * 100, valid_votes) >= 3
-    }
+def _eligible(votes, valid, threshold):
+    return {p:v for p,v in votes.items() if Fraction(v,valid)>=threshold}
 
+def dhondt(votes:Mapping[str,int], seats:int, valid_votes_total:int, blank_votes:int=0, threshold:Fraction=Fraction(3,100))->Allocation:
+    if isinstance(seats,bool) or not isinstance(seats,int) or seats<1: raise ValueError("seats inválido")
+    if not 0<=threshold<=1: raise ValueError("threshold inválido")
+    _validate_matrix(votes,valid_votes_total,blank_votes)
+    result={p:0 for p in votes}
+    eligible=_eligible(votes,valid_votes_total,threshold)
+    if not eligible: return Allocation(result,"INSUFICIENTES_CANDIDATURAS")
+    for _ in range(seats):
+        qs={p:Fraction(v,result[p]+1) for p,v in eligible.items()}
+        top=max(qs.values()); tied=[p for p,q in qs.items() if q==top]
+        if len(tied)>1:
+            max_votes=max(eligible[p] for p in tied); tied=[p for p in tied if eligible[p]==max_votes]
+            if len(tied)>1: return Allocation(result,"EMPATE_ABSOLUTO_PENDIENTE",tuple(sorted(tied)))
+        result[tied[0]]+=1
+    return Allocation(result,"OK")
 
-def dhondt(
-    votes: Mapping[str, int],
-    seats: int,
-    valid_votes: int,
-) -> Allocation:
-    """Asigna escaños D'Hondt de forma exacta y determinista.
+def ceuta_melilla(votes:Mapping[str,int], valid_votes_total:Optional[int]=None, blank_votes:int=0)->Allocation:
+    _validate_common(votes)
+    if not votes: raise ValueError("sin candidaturas")
+    if valid_votes_total is not None: _validate_matrix(votes,valid_votes_total,blank_votes)
+    winners=[p for p,v in votes.items() if v==max(votes.values())]
+    if len(winners)>1: return Allocation({p:0 for p in votes},"EMPATE_MAYORIA_PENDIENTE",tuple(sorted(winners)))
+    return Allocation({p:int(p==winners[0]) for p in votes},"OK")
 
-    No acepta datos parciales. Si existe un empate absoluto en el último
-    cociente, devuelve un estado pendiente en lugar de inventar un sorteo.
-    """
-    if not isinstance(seats, int) or isinstance(seats, bool) or seats < 1:
-        raise ValueError("seats debe ser un entero >= 1")
-    _validate_votes(votes, valid_votes, blank_votes)
+def allocate(votes,seats,valid_votes_total,special="",blank_votes=0):
+    if special in {"Ceuta","Melilla"}:
+        if seats!=1: raise ValueError("Ceuta/Melilla: 1 escaño")
+        return ceuta_melilla(votes,valid_votes_total,blank_votes)
+    return dhondt(votes,seats,valid_votes_total,blank_votes)
 
-    if not votes:
-        return Allocation({}, "INSUFICIENTES_CANDIDATURAS")
-
-    eligible = _eligible(votes, valid_votes)
-    if not eligible:
-        return Allocation({p: 0 for p in votes}, "INSUFICIENTES_CANDIDATURAS")
-
-    quotients = [
-        (Fraction(value, divisor), value, party, divisor)
-        for party, value in eligible.items()
-        for divisor in range(1, seats + 1)
-    ]
-    # La ley solo permite desempatar un cociente idéntico por votos totales.
-    # El nombre/orden del diccionario jamás puede decidir un empate.
-    quotients.sort(key=lambda item: (item[0], item[1]), reverse=True)
-
-    if len(quotients) < seats:
-        return Allocation({p: 0 for p in votes}, "INSUFICIENTES_CANDIDATURAS")
-
-    selected = quotients[:seats]
-    boundary_q, boundary_votes, _, _ = selected[-1]
-
-    tied_at_boundary = [
-        q for q in quotients
-        if q[0] == boundary_q
-    ]
-    selected_at_boundary = [
-        q for q in selected
-        if q[0] == boundary_q
-    ]
-
-    if len(tied_at_boundary) > len(selected_at_boundary):
-        tied_same_total_votes = tuple(
-            sorted({q[2] for q in tied_at_boundary if q[1] == boundary_votes})
-        )
-        if len(tied_same_total_votes) >= 2:
-            return Allocation(
-                {p: 0 for p in votes},
-                "EMPATE_ABSOLUTO_PENDIENTE",
-                tied_same_total_votes,
-            )
-
-    out = {p: 0 for p in votes}
-    for _, _, party, _ in selected:
-        out[party] += 1
-
-    if sum(out.values()) != seats:
-        raise AssertionError("Invariante rota: no se han conservado los escaños")
-    return Allocation(out, "OK")
-
-
-def ceuta_melilla(votes: Mapping[str, int], valid_votes: Optional[int] = None) -> Allocation:
-    """Adjudica el único escaño a la candidatura más votada.
-
-    Si se suministra valid_votes, se valida además la integridad de los votos.
-    """
-    if not votes:
-        raise ValueError("Se requiere al menos una candidatura")
-    if valid_votes is not None:
-        _validate_votes(votes, valid_votes, blank_votes)
-    elif any(
-        not isinstance(v, int) or isinstance(v, bool) or v < 0
-        for v in votes.values()
-    ):
-        raise ValueError("Los votos deben ser enteros no negativos")
-
-    maximum = max(votes.values())
-    winners = tuple(sorted(p for p, v in votes.items() if v == maximum))
-    if len(winners) > 1:
-        return Allocation(
-            {p: 0 for p in votes},
-            "EMPATE_MAYORIA_PENDIENTE",
-            winners,
-        )
-    return Allocation({p: int(p == winners[0]) for p in votes}, "OK")
-
-
-def allocate(
-    votes: Mapping[str, int],
-    seats: int,
-    valid_votes: int,
-    special: str = "",
-) -> Allocation:
-    if special in {"Ceuta", "Melilla"}:
-        if seats != 1:
-            raise ValueError("Ceuta/Melilla deben tener exactamente 1 diputado")
-        return ceuta_melilla(votes, valid_votes, blank_votes)
-    return dhondt(votes, seats, valid_votes, blank_votes)
-
-
-def merge_candidacies(*matrices: Mapping[str, int]) -> Dict[str, int]:
-    """Fusiona votos antes de aplicar la ley electoral."""
-    out: Dict[str, int] = {}
-    for matrix in matrices:
-        if not isinstance(matrix, Mapping):
-            raise TypeError("Cada matriz debe ser un mapping")
-        for party, votes in matrix.items():
-            if not isinstance(votes, int) or isinstance(votes, bool) or votes < 0:
-                raise ValueError("Los votos a fusionar deben ser enteros no negativos")
-            out[party] = out.get(party, 0) + votes
+def merge_candidacies(*matrices):
+    out={}
+    for m in matrices:
+        _validate_common(m)
+        for p,v in m.items(): out[p]=out.get(p,0)+v
     return out
+
+def allocate_congress(constituencies,seats_by_constituency,blank_votes_by_constituency,special_by_constituency=None):
+    special_by_constituency=special_by_constituency or {}
+    if set(constituencies)!=set(seats_by_constituency) or set(constituencies)!=set(blank_votes_by_constituency): raise ValueError("claves de circunscripción no coinciden")
+    if sum(seats_by_constituency.values())!=350: raise ValueError("la magnitud debe sumar 350")
+    national={}
+    for c,votes in constituencies.items():
+        a=allocate(votes,seats_by_constituency[c],valid_votes(votes,blank_votes_by_constituency[c]),special_by_constituency.get(c,""),blank_votes_by_constituency[c])
+        if a.status!="OK": raise RuntimeError(f"asignación bloqueada en {c}: {a.status}")
+        for p,s in a.seats.items(): national[p]=national.get(p,0)+s
+    if sum(national.values())!=350: raise AssertionError("resultado no suma 350")
+    return national
