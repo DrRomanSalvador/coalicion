@@ -10,6 +10,7 @@ on:
       - "cli.py"
       - "scripts/ai_electoral_data_engine.py"
       - "scripts/exhaustive_data_acquisition.py"
+      - "scripts/acquire_with_boe_fallback.py"
       - "scripts/worker_bee.py"
       - ".github/workflows/activate_colmena.yml"
 
@@ -42,6 +43,8 @@ jobs:
           cat artifacts/queue/hardening_tests.log
           printf '%s\n' "$rc" > artifacts/queue/hardening_tests.exit
           exit "$rc"
+      - name: Adquisición BOE + EleccionesDB
+        run: python scripts/acquire_with_boe_fallback.py
       - name: Abeja Reina v3
         env:
           COLMENA_MAX_RETRIES: "3"
