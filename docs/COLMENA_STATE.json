@@ -3,30 +3,75 @@
   "project": "REINA-SEEC",
   "checkpoint_date": "2026-10-06",
   "methodology": "SEEC",
+  "methodology_version": "4.0",
   "status": "BLOCKED",
   "fail_closed": true,
   "canonical_rng": "numpy.PCG64",
   "canonical_seed": 20261006,
   "minimum_mc_draws": 10000,
+  "preferred_mc_draws": 50000,
   "source_anchor": {
     "id": "INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO",
     "document_sha256": "b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7",
     "manifest": "data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.json",
+    "binary": "data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.pdf",
     "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH"
   },
-  "completed": ["reproducibility contract","source anchor manifest","master certification gate","electoral-law corrections: blank votes, Ceuta/Melilla, 2019A/2019N","continuity checkpoint and token-economy protocol"],
-  "blocking_errors": [
-    {"id":"PRIMARY_BINARY_NOT_REPOSITORY_PINNED","status":"OPEN","detail":"Original PDF binary is not yet stored in a binary-capable repository object; manifest and SHA-256 are versioned."},
-    {"id":"PRIMARY_RECONCILIATION","status":"OPEN","detail":"Primary Interior data have not passed complete end-to-end reconciliation against the retained historical replica."},
-    {"id":"SEEC_PRODUCTION_EXECUTION","status":"OPEN","detail":"Production hierarchical Bayesian SEEC has not produced certified posterior evidence."},
-    {"id":"OOS_CALIBRATION","status":"OPEN","detail":"Required expanding-window calibration thresholds have not been demonstrated."},
-    {"id":"EXTERNAL_AUDIT","status":"OPEN","detail":"No real independent external audit evidence is registered."},
-    {"id":"CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT","status":"OPEN","detail":"get_commit_combined_status for commit ab31768ef7e3341d29113dfd4d28129dd9663524 returned zero statuses. CI verification is inconclusive, not PASS."}
+  "completed": [
+    "reproducibility contract",
+    "actual-byte hash gate",
+    "source anchor manifest",
+    "master certification gate",
+    "electoral-law corrections: blank votes, Ceuta/Melilla, 2019A/2019N",
+    "zero-context invocation protocol",
+    "canonical error registry",
+    "token-economy protocol"
   ],
-  "last_verified_commit": "ab31768ef7e3341d29113dfd4d28129dd9663524",
-  "last_action": "Verified repository checkpoint, reproducibility contract, source anchor manifest, and CI status for the continuity commit.",
-  "last_action_result": "REPOSITORY_STATE_VALID; CI_STATUS_EMPTY; NO_CERTIFICATION",
-  "next_single_action": "Materialize and pin the original Infoelectoral PDF bytes in binary-capable versioned storage, then record its immutable object identifier and hash before any further electoral modeling.",
-  "continuation_rule": "A new chat MUST read README.md, CONTRATO_MAESTRO_IA.md, docs/INVOCACION_COLMENA.md and this state file before doing research. It MUST continue only from next_single_action.",
-  "token_economy": {"repository_first":true,"do_not_research_anchored_sources":true,"do_not_repeat_completed_work":true,"do_not_narrate_tool_calls":true,"do_not_recompute_without_failed_verification":true,"persist_every_atomic_checkpoint":true,"unfinished_chat_messages_are_not_state":true}
+  "blocking_errors": [
+    {
+      "id": "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
+      "status": "OPEN",
+      "detail": "Original PDF binary is not yet stored in versioned binary-capable storage."
+    },
+    {
+      "id": "PRIMARY_RECONCILIATION",
+      "status": "OPEN",
+      "detail": "Primary Interior data have not passed complete end-to-end reconciliation against the retained historical replica."
+    },
+    {
+      "id": "SEEC_PRODUCTION_EXECUTION",
+      "status": "OPEN",
+      "detail": "Production hierarchical Bayesian SEEC has not produced certified posterior evidence."
+    },
+    {
+      "id": "OOS_CALIBRATION",
+      "status": "OPEN",
+      "detail": "Required expanding-window calibration thresholds have not been demonstrated."
+    },
+    {
+      "id": "EXTERNAL_AUDIT",
+      "status": "OPEN",
+      "detail": "No real independent external audit evidence is registered."
+    },
+    {
+      "id": "CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT",
+      "status": "OPEN",
+      "detail": "The referenced continuity commit has no registered CI statuses; CI is inconclusive, not PASS."
+    }
+  ],
+  "last_verified_commit": "68b8e98ab1b6877f02c0eaa04c27648d759065c4",
+  "last_action": "Codified deterministic SEEC contract, canonical error registry, zero-context resume gate, and actual-byte primary-source verification.",
+  "last_action_result": "CODE_PERSISTED; SOURCE_BINARY_GATE_CORRECTLY_BLOCKS_UNPINNED_PDF; NO_CERTIFICATION",
+  "next_single_action": "Materialize and pin the original Infoelectoral PDF bytes at data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.pdf, verify SHA-256 exactly, then update this state with the immutable object identifier.",
+  "continuation_rule": "A new chat MUST read README.md, CONTRATO_MAESTRO_IA.md, docs/INVOCACION_COLMENA.md and this state file, execute python -m src.colmena_resume, and continue only from next_single_action. Never reconstruct context from chat.",
+  "token_economy": {
+    "repository_first": true,
+    "do_not_research_anchored_sources": true,
+    "do_not_repeat_completed_work": true,
+    "do_not_narrate_tool_calls": true,
+    "do_not_recompute_without_failed_verification": true,
+    "persist_every_atomic_checkpoint": true,
+    "unfinished_chat_messages_are_not_state": true,
+    "single_next_action": true
+  }
 }
