@@ -90,19 +90,29 @@ def log(message: str) -> None:
         f.write(f"- {now()} — {message}\n")
 
 
-def fetch(url: str, destination: Path, timeout: int = 120) -> dict:
+def fetch(url: str, destination: Path, timeout: int = 120, attempts: int = 5) -> dict:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    tmp = destination.with_suffix(destination.suffix + ".part")
-    req = Request(url, headers={"User-Agent": "REINA-SEEC/1.0"})
-    try:
-        with urlopen(req, timeout=timeout) as response, tmp.open("wb") as out:
-            shutil.copyfileobj(response, out, 1024 * 1024)
-        if tmp.stat().st_size == 0:
-            raise RuntimeError("respuesta vacía")
-        tmp.replace(destination)
-    except (HTTPError, URLError, TimeoutError, OSError, RuntimeError):
-        tmp.unlink(missing_ok=True)
-        raise
+    last_exc = None
+    for attempt in range(1, attempts + 1):
+        tmp = destination.with_suffix(destination.suffix + ".part")
+        req = Request(url, headers={"User-Agent": "REINA-SEEC/1.0", "Accept": "*/*", "Connection": "close"})
+        try:
+            with urlopen(req, timeout=timeout) as response, tmp.open("wb") as out:
+                shutil.copyfileobj(response, out, 1024 * 1024)
+            if tmp.stat().st_size == 0:
+                raise RuntimeError("respuesta vacía")
+            tmp.replace(destination)
+            log(f"FETCH {url}: OK intento={attempt} sha256={sha256_file(destination)}")
+            break
+        except (HTTPError, URLError, TimeoutError, OSError, RuntimeError) as exc:
+            last_exc = exc
+            tmp.unlink(missing_ok=True)
+            log(f"FETCH {url}: ERROR intento={attempt}/{attempts} {type(exc).__name__}: {exc}")
+            if attempt < attempts:
+                import time
+                time.sleep(min(10 * attempt, 30))
+    else:
+        raise last_exc
     return {
         "source_url": url,
         "retrieved_at": now(),
@@ -112,7 +122,7 @@ def fetch(url: str, destination: Path, timeout: int = 120) -> dict:
     }
 
 
-def acquire(force: bool = False) -> dict:
+def acquire(force: bool = False, retry_on_fail: bool = False) -> dict:
     acquired = {}
     failures = []
     for name, cfg in SOURCES.items():
@@ -128,7 +138,7 @@ def acquire(force: bool = False) -> dict:
                     "status": "existing_snapshot",
                 }
             else:
-                meta = fetch(cfg["url"], path)
+                meta = fetch(cfg["url"], path, attempts=(5 if retry_on_fail else 1))
                 meta["status"] = "downloaded"
             acquired[name] = {**cfg, **meta}
             log(f"ACQUIRE {name}: OK sha256={meta['sha256']}")
@@ -393,10 +403,10 @@ def write_json(path: Path, obj) -> None:
     )
 
 
-def run(force: bool = False) -> int:
+def run(force: bool = False, retry_on_fail: bool = False, fallback_to_secondary: bool = False, source: str | None = None) -> int:
     print("=== AI ELECTORAL DATA ENGINE 2023 ===")
 
-    acquired_result = acquire(force=force)
+    acquired_result = acquire(force=force, retry_on_fail=retry_on_fail)
     acquired = acquired_result["sources"]
 
     if "interior" not in acquired:
@@ -464,8 +474,15 @@ def run(force: bool = False) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--force", action="store_true")
+    parser.add_argument("--retry-on-fail", action="store_true")
+    parser.add_argument("--fallback-to-secondary", action="store_true")
+    parser.add_argument("--source", default=None)
+    parser.add_argument("--step", default=None)
     args = parser.parse_args()
-    return run(force=args.force)
+    if args.fallback_to_secondary:
+        log(f"FALLBACK_REQUEST source={args.source or 'unspecified'} status=SECONDARY_NOT_PRIMARY")
+        print("FALLBACK: la réplica secundaria no sustituye a Interior ni se publica como oficial.")
+    return run(force=args.force, retry_on_fail=args.retry_on_fail, fallback_to_secondary=args.fallback_to_secondary, source=args.source)
 
 
 if __name__ == "__main__":
