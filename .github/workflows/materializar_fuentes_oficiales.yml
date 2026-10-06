@@ -1,4 +1,5 @@
 name: Materializar fuentes oficiales
+# Canonical ingestion: immutable snapshots + live primary indexes
 
 on:
   workflow_dispatch:
