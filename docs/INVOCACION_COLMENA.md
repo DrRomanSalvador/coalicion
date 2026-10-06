@@ -1,58 +1,43 @@
 # INVOCACIÓN — ESTADO HEREDABLE DE LA COLMENA
 
-## Propósito
-Este archivo es el checkpoint de arranque para cualquier IA nueva. Evita reconstruir por conversación lo que ya está codificado.
+## PROM DE ARRANQUE — NO RECONSTRUIR
+1. Leer `README.md`, `CONTRATO_MAESTRO_IA.md`, este archivo y `docs/COLMENA_STATE.json`.
+2. Ejecutar `python -m src.reproducibility_contract`.
+3. Ejecutar `pytest -q tests/test_reproducibility_contract.py`.
+4. Leer `next_single_action` del estado.
+5. Ejecutar únicamente esa acción.
+6. Persistir inmediatamente `last_action`, resultado, commit y una sola `next_single_action`.
+7. Si código, estado o evidencia discrepan: DETENER y registrar contradicción; no reconstruir desde el chat.
 
-## Economía de tokens
-- El repositorio es la memoria operativa primaria; el chat no lo es.
-- No rehacer análisis registrados.
-- No volver a buscar una fuente si existe un ancla local con hash válido.
-- No pedir al usuario información ya presente.
-- Ejecutar, verificar y registrar; no narrar llamadas de herramientas.
-- Un mensaje no enviado o un razonamiento no persistido **no es estado heredable**.
-- Al cerrar una tarea, persistir siempre estado, errores abiertos, último commit y siguiente acción única.
-
-## Contrato determinista
-- Metodología: SEEC.
+## CONTRATO DETERMINISTA
+- Metodología única: SEEC.
 - Cadena: FUENTES → DATOS → VALIDACIÓN → SESGOS → TERRITORIO → ESCENARIO → COALICIÓN → LEY ELECTORAL → MARGINALIDAD → INCERTIDUMBRE → RESULTADO → AUDITORÍA.
 - RNG: NumPy PCG64.
 - Semilla canónica: 20261006.
-- Monte Carlo mínimo: 10.000; preferencia 50.000+ cuando sea viable.
-- Fail-closed: contradicción, ausencia esencial, hash incorrecto o resultado no reproducible bloquea.
-- No cambiar metodología, semilla o parámetros sin cambio versionado y backtest OOS.
-- La misma versión de código + mismos datos + mismos parámetros + misma semilla debe producir la misma salida.
+- Monte Carlo mínimo: 10.000; preferencia 50.000+.
+- Misma versión + mismos datos + mismos parámetros + misma semilla = misma salida.
+- Fail-closed ante ausencia, contradicción, hash incorrecto, no reproducibilidad o evidencia insuficiente.
+- Ninguna corrección metodológica sin validación OOS predefinida.
 
-## Estado máquina
-Fuente de verdad estructurada: `docs/COLMENA_STATE.json`.
-Ese archivo contiene el estado, errores bloqueantes, trabajos completados, último punto verificado y **una sola siguiente acción**.
-
-## Ancla primaria
+## ANCLA PRIMARIA
 `data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.json`
-- source_id: `INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO`
-- SHA-256 del documento original: `b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7`
-- Si falta el ancla o su hash declarado no coincide: DETENER. No sustituirla automáticamente.
-- Importante: el manifiesto fija la identidad criptográfica del PDF; el binario original aún debe incorporarse a un almacenamiento binario versionado para que el repositorio conserve también los bytes originales.
+SHA-256: `b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7`
+Hash incorrecto o ancla ausente = DETENER. No buscar sustitutos automáticamente.
+El manifiesto fija la identidad; el PDF binario aún debe fijarse en almacenamiento versionado.
 
-## Punto exacto de ejecución
-1. Contrato reproducible: `src/reproducibility_contract.py`.
-2. Prueba: `tests/test_reproducibility_contract.py`.
-3. Ancla: `data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.json`.
-4. Estado heredable: `docs/COLMENA_STATE.json`.
-5. La certificación global permanece bloqueada hasta superar los gates registrados en el estado.
-6. **Siguiente acción única:** verificar el estado real de CI para el contrato reproducible; si no existe evidencia verificable para el commit registrado, ejecutar la suite y registrar el resultado. Después, continuar con el primer error bloqueante, sin repetir investigación ya cerrada.
+## ECONOMÍA DE TOKENS
+- Repositorio primero.
+- No repetir búsquedas/cálculos/auditorías ya evidenciados.
+- No volver a buscar una fuente anclada.
+- No narrar herramientas.
+- No pedir información ya presente.
+- Un razonamiento o mensaje no enviado no es estado heredable.
+- Cada unidad de trabajo termina en checkpoint persistido.
+- El estado máquina prevalece sobre memoria conversacional.
 
-## Arranque de un chat nuevo
-1. Leer `README.md`.
-2. Leer `CONTRATO_MAESTRO_IA.md`.
-3. Leer `docs/INVOCACION_COLMENA.md`.
-4. Leer `docs/COLMENA_STATE.json`.
-5. Ejecutar `python -m src.reproducibility_contract`.
-6. Ejecutar `pytest -q tests/test_reproducibility_contract.py`.
-7. Continuar **solo** desde `next_single_action`.
-8. Si el estado y el código discrepan, detener y registrar la contradicción; no reconstruirla por memoria del chat.
-
-## Última huella
-- Checkpoint anterior: `a05043c009996e981ebfe2ec5d93118dfa592b65`.
-- Nuevo estado persistido: `ab31768ef7e3341d29113dfd4d28129dd9663524`.
-- Estado: **CONTRATO DE CONTINUIDAD CODIFICADO; CERTIFICACIÓN GLOBAL BLOQUEADA**.
-- Objetivo: que metodología, estado, errores y punto de reanudación sobrevivan al cambio de conversación sin depender de memoria del modelo.
+## ÚLTIMA HUELLA
+Checkpoint verificado: `d86b037d37ed63a1293583c60c931cef48c9171a`.
+CI del checkpoint anterior `ab31768ef7e3341d29113dfd4d28129dd9663524`: cero estados registrados; **INCONCLUSO**, nunca PASS.
+Estado global: **BLOCKED / FAIL-CLOSED**.
+Última acción: verificación del checkpoint, contrato, ancla y estado CI; después se persistió el estado máquina actualizado.
+Siguiente acción única: materializar y fijar los bytes originales del PDF en almacenamiento binario versionado y registrar identificador inmutable + SHA-256.
