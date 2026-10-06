@@ -82,9 +82,12 @@ def cmd_scenario(a):
     votes = apply_absolute_shift(d["votes"], a.party, a.shift, a.distribution)
     result = {}
     for constituency, row in votes.items():
-        valid = d["valid_votes"].get(constituency)
-        if valid is None:
-            raise SystemExit(f"BLOCKED: {constituency}: faltan votos válidos")
+        # A national_shift changes the party vote total. Valid votes must be
+        # recomputed from the scenario, never copied from the baseline.
+        blank = d.get("blank", {}).get(constituency, 0)
+        valid = sum(row.values()) + blank
+        if valid < 0:
+            raise SystemExit(f"BLOCKED: {constituency}: votos válidos negativos")
         x = allocate(row, d["seats"][constituency], valid,
                      d.get("special", {}).get(constituency, ""),
                      d.get("blank", {}).get(constituency, 0))
