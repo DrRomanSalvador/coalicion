@@ -43,14 +43,14 @@
       "status": "DEFERRED"
     },
     {
-      "id": "CONSTITUENCY_MATRIX_2023_MISSING",
+      "id": "PRIMARY_2023_MATRIX_MATERIALIZATION",
       "status": "IN_PROGRESS",
-      "detail": "Adquisición automatizada desplegada: Interior primero, Dato Electoral como réplica secundaria; la matriz solo se materializa tras validar 52 circunscripciones, 350 escaños y el total nacional de votos."
+      "detail": "La adquisición primaria está codificada y se ejecuta primero; la réplica secundaria solo sirve como fallback OPERATIONAL_BETA."
     }
   ],
-  "last_action": "Implementado núcleo prediction-first y Decision Engine de coaliciones por circunscripción.",
-  "last_action_result": "PREDICTION_ENGINE_AND_COALITION_DECISION_DEPLOYED",
-  "next_single_action": "Ejecutar scripts/acquire_2023_matrix.py en un runner con salida de red y materializar artifacts/data/election_2023_canonical.json.",
+  "last_action": "Desplegado run26.py como pipeline único prediction-first: matriz 2023, histórico, encuestas, backtest, SEEC condicional y manifiesto SHA-256.",
+  "last_action_result": "RUN26_PRODUCT_PIPELINE_DEPLOYED",
+  "next_single_action": "Ejecutar run26.py en GitHub Actions y materializar el bundle de resultados; cualquier insumo no disponible queda BLOCKED sin sustitución silenciosa.",
   "certification": "PARTIAL",
   "data_source": "SECONDARY_REPLICA_VERIFIED",
   "primary_binary": "PENDING",
@@ -59,7 +59,8 @@
     "Datos 2023: réplica secundaria mientras no se materialice la fuente primaria",
     "Útil para análisis de coaliciones, no para certificación oficial",
     "No es un predictor electoral validado",
-    "Auditoría y certificación permanecen codificadas pero inactivas en el flujo operativo."
+    "Auditoría y certificación permanecen codificadas pero inactivas en el flujo operativo.",
+    "El archivo de encuestas se captura como réplica secundaria; las fichas/microdatos técnicos no se infieren."
   ],
   "product_mode": "PREDICTION_FIRST",
   "audit_mode": "INACTIVE",
