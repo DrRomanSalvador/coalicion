@@ -153,7 +153,10 @@ def normalise_text(value) -> str:
 
 
 def is_number(value) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+    """Solo acepta cantidades enteras finitas; nunca trunca floats."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+        return False
+    return float(value).is_integer()
 
 
 def parse_interior(path: Path) -> dict:
