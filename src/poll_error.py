@@ -172,3 +172,49 @@ def leave_one_election_out(rows: Sequence[PollObservation]) -> dict[str, dict[st
             "bias": bias,
         }
     return result
+
+@dataclass(frozen=True)
+class ChangeSummary:
+    election: str
+    party: str
+    actual_change: float
+    poll_change: float
+    change_error: float
+
+
+def change_vs_previous_election(rows: Sequence[PollObservation]) -> list[ChangeSummary]:
+    """Compara cambio de encuesta y cambio real frente a la elección anterior.
+
+    Solo compara elecciones con la misma etiqueta normalizada de partido.
+    No inventa continuidad entre marcas/coaliciones: esa normalización debe venir
+    documentada en los datos.
+    """
+    elections = sorted(
+        {r.election for r in rows},
+        key=lambda e: min(r.election_date for r in rows if r.election == e),
+    )
+    by_key = {(r.election, r.party): r for r in rows}
+    out = []
+    for i in range(1, len(elections)):
+        prev, cur = elections[i - 1], elections[i]
+        parties = sorted(
+            {p for e, p in by_key if e == cur}
+            & {p for e, p in by_key if e == prev}
+        )
+        for party in parties:
+            old = by_key[(prev, party)]
+            new = by_key[(cur, party)]
+            out.append(ChangeSummary(
+                cur, party,
+                new.actual - old.actual,
+                new.poll - old.actual,
+                (new.poll - old.actual) - (new.actual - old.actual),
+            ))
+    return out
+
+
+def direction_counts(rows: Iterable[PollObservation]) -> dict[str, int]:
+    out = {"SOBREESTIMACION": 0, "SUBESTIMACION": 0, "CERO": 0}
+    for row in rows:
+        out[row.error_direction] += 1
+    return out
