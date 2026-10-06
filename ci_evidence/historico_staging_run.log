@@ -1,7 +1,25 @@
 {
-  "source": "https://raw.githubusercontent.com/dadosdelaplace/pollspaindata/main/inst/extdata/summary_elec/summary_elec_prov_2023-07-24.rda",
+  "sources": {
+    "2004": "https://raw.githubusercontent.com/dadosdelaplace/pollspaindata/main/inst/extdata/summary_elec/summary_elec_prov_2004-03-14.rda",
+    "2008": "https://raw.githubusercontent.com/dadosdelaplace/pollspaindata/main/inst/extdata/summary_elec/summary_elec_prov_2008-03-09.rda",
+    "2011": "https://raw.githubusercontent.com/dadosdelaplace/pollspaindata/main/inst/extdata/summary_elec/summary_elec_prov_2011-11-20.rda",
+    "2015": "https://raw.githubusercontent.com/dadosdelaplace/pollspaindata/main/inst/extdata/summary_elec/summary_elec_prov_2015-12-20.rda",
+    "2016": "https://raw.githubusercontent.com/dadosdelaplace/pollspaindata/main/inst/extdata/summary_elec/summary_elec_prov_2016-06-26.rda",
+    "2019A": "https://raw.githubusercontent.com/dadosdelaplace/pollspaindata/main/inst/extdata/summary_elec/summary_elec_prov_2019-04-28.rda",
+    "2019N": "https://raw.githubusercontent.com/dadosdelaplace/pollspaindata/main/inst/extdata/summary_elec/summary_elec_prov_2019-11-10.rda",
+    "2023": "https://raw.githubusercontent.com/dadosdelaplace/pollspaindata/main/inst/extdata/summary_elec/summary_elec_prov_2023-07-24.rda"
+  },
   "source_tier": "SECONDARY_REPLICA",
-  "source_sha256": "3ffe2351a816aa0c1c4b7ef50525bb24edc70d2beec26e2063221659ccc0875e",
+  "source_sha256": {
+    "2004": "334199b9bfe2a535f072d159f9c208b9e94cb4edf9496601f53116525aaf33d0",
+    "2008": "62ea17fb6d97cab951c3ee6d552ce604ce14effed676f3ae7a131604d9de7088",
+    "2011": "521ab4ccd9ba5078c76ed15470f811a1a2783a56dba3ef003bcb66b9dbc3c2ef",
+    "2015": "e3a6db7fae1aab9af0f7d6b594aad81e71e013adbe249165f8da9d6e15cd395b",
+    "2016": "ac2a19a4f5083af759b8f2ad11c96a7aada249e58ab6bb3b3863a56386d5c337",
+    "2019A": "2256e32e93265277bca902be03236b64eaefda9f5186616e82a38b0b8ded11f2",
+    "2019N": "5d80d6d0b349cbe6a69d189837fc346a982251d5eba04189871f3e8ba5a66b3e",
+    "2023": "3ffe2351a816aa0c1c4b7ef50525bb24edc70d2beec26e2063221659ccc0875e"
+  },
   "target_elections": [
     "2004",
     "2008",
@@ -12,7 +30,8 @@
     "2019N",
     "2023"
   ],
-  "rows_selected": 550,
-  "note": "Derived from pollspaindata, which documents Spanish electoral data downloaded from the Ministry of the Interior. Primary-source certification remains blocked until the official Interior file is retrieved and cross-checked."
+  "rows_selected": 5538,
+  "note": "Derived from pollspaindata. This is a secondary replica, not a primary-source certification. Official Interior cross-check remains required before publication."
 }
-COLUMNS: ['id_elec', 'id_INE_prov', 'ccaa', 'prov', 'ballots_1', 'ballots_2', 'blank_ballots', 'invalid_ballots', 'party_ballots', 'valid_ballots', 'total_ballots', 'n_poll_stations', 'id_candidacies', 'abbrev_candidacies', 'name_candidacies', 'ballots', 'pop_res_prov', 'census_counting_prov', 'porc_candidacies_parties', 'porc_candidacies_valid', 'porc_candidacies_census', '_date_iso']
+ROWS_BY_ELECTION: {'2004': 886, '2008': 1121, '2011': 596, '2015': 622, '2016': 546, '2019A': 585, '2019N': 632, '2023': 550}
+COLUMNS: ['id_elec', 'id_INE_prov', 'ccaa', 'prov', 'ballots_1', 'ballots_2', 'blank_ballots', 'invalid_ballots', 'party_ballots', 'valid_ballots', 'total_ballots', 'n_poll_stations', 'id_candidacies', 'abbrev_candidacies', 'name_candidacies', 'ballots', 'pop_res_prov', 'census_counting_prov', 'porc_candidacies_parties', 'porc_candidacies_valid', 'porc_candidacies_census', '_election', '_source_sha256']
