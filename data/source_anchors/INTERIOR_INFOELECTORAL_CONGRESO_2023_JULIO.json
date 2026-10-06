@@ -1,0 +1,40 @@
+{
+  "source_id": "INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO",
+  "source_name": "Infoelectoral | Resultados electorales.pdf",
+  "authority": "Ministerio del Interior / Infoelectoral",
+  "election": "Congreso",
+  "election_date": "2023-07-23",
+  "document_scope": "Mapa electoral / resultados electorales; 4 páginas",
+  "acquisition": "user_uploaded_source",
+  "acquisition_date": "2026-10-06",
+  "sha256": "b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7",
+  "immutable_role": "ANCHOR_PRIMARY_SOURCE",
+  "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH",
+  "extracted_facts": {
+    "population": 47475420,
+    "polling_stations": 60314,
+    "census": 37469458,
+    "ballot_papers_candidates": 24487414,
+    "voters": 24952447,
+    "blank_votes": 200673,
+    "abstentions": 12517011,
+    "valid_votes": 24688087,
+    "null_votes": 264360
+  },
+  "canonical_candidate_labels": [
+    "PARTIDO POPULAR",
+    "PARTIDO SOCIALISTA OBRERO ESPAÑOL",
+    "VOX",
+    "SUMAR",
+    "ESQUERRA REPUBLICANA DE CATALUNYA",
+    "JUNTS PER CATALUNYA - JUNTS",
+    "EUSKAL HERRIA BILDU",
+    "EUZKO ALDERDI JELTZALEA-PARTIDO NACIONALISTA VASCO",
+    "PARTIDO ANIMALISTA POR EL MEDIO AMBIENTE",
+    "BLOQUE NACIONALISTA GALEGO",
+    "COALICIÓN CANARIA",
+    "CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA",
+    "UNION DEL PUEBLO NAVARRO"
+  ],
+  "notes": "La copia canónica es evidencia de fuente, no una reinterpretación de resultados. Los valores extraídos deben conservarse con su trazabilidad."
+}
