@@ -27,7 +27,16 @@ jobs:
       - name: Instalar dependencias
         run: python -m pip install --upgrade pip certifi openpyxl pandas
       - name: Endurecimiento
-        run: python -m unittest discover -s tests -p "test_*.py"
+        id: hardening
+        continue-on-error: true
+        run: |
+          mkdir -p artifacts/queue
+          set +e
+          python -m unittest discover -s tests -p "test_*.py" > artifacts/queue/hardening_tests.log 2>&1
+          rc=$?
+          cat artifacts/queue/hardening_tests.log
+          printf '%s\n' "$rc" > artifacts/queue/hardening_tests.exit
+          exit "$rc"
       - name: Abeja Reina
         env:
           COLMENA_MAX_RETRIES: "3"
@@ -43,7 +52,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add artifacts/queue artifacts/queen_bee_report.json reports
+          git add -A artifacts reports
           if git diff --cached --quiet; then
             echo "NO_CHANGES"
           else
