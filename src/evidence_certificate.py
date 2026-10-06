@@ -162,3 +162,38 @@ def certificate_for_context(
         "Casa y contexto de gobierno están documentados",
         "Leave-one-election-out; comparar BASE con modelos contextuales y exigir no degradación conjunta",
     )
+
+
+@dataclass(frozen=True)
+class SectorVarianceIdentity:
+    election: str
+    party: str
+    mean_error: float
+    mean_squared_error: float
+    common_squared_error: float
+    dispersion_squared: float
+
+    @property
+    def exact_residual(self) -> float:
+        return self.mean_squared_error - self.common_squared_error - self.dispersion_squared
+
+
+def sector_variance_identity(rows: Sequence[PollObservation]) -> list[SectorVarianceIdentity]:
+    """Identidad exacta: E[e²] = (E[e])² + Var(e).
+
+    No es una estimación causal. Permite saber qué parte del MSE es error común
+    al sector y qué parte es dispersión entre casas.
+    """
+    groups: dict[tuple[str, str], list[PollObservation]] = {}
+    for r in rows:
+        groups.setdefault((r.election, r.party), []).append(r)
+    out = []
+    for (election, party), group in sorted(groups.items()):
+        errors = [r.error for r in group]
+        mean = sum(errors) / len(errors)
+        mse = sum(e * e for e in errors) / len(errors)
+        dispersion = sum((e - mean) ** 2 for e in errors) / len(errors)
+        out.append(SectorVarianceIdentity(
+            election, party, mean, mse, mean * mean, dispersion
+        ))
+    return out
