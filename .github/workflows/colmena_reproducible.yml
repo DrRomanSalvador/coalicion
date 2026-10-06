@@ -1,0 +1,19 @@
+name: Colmena reproducible
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip pytest numpy
+      - run: python -m src.colmena_resume
+      - run: python -m src.reproducibility_contract
+      - run: pytest -q tests/test_reproducibility_contract.py tests/test_error_registry.py tests/test_colmena_resume.py tests/test_product_contract.py
