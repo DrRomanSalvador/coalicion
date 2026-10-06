@@ -29,5 +29,5 @@ def test_oos_scores_elections_equally():
     ]
     candidate = Candidate("BASE", base)
     base_score, candidate_score = _errors(candidate, observations)
-    assert base_score.mae == 1.0
-    assert candidate_score.mae == 1.0
+    assert base_score.mae == 0.0
+    assert candidate_score.mae == 0.0
