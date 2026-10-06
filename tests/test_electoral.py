@@ -122,3 +122,9 @@ def test_zero_vote_party_cannot_qualify():
 def test_missing_candidate_capacity_reports_failure():
     r = dhondt({}, 1, 100)
     assert r.status == "INSUFICIENTES_CANDIDATURAS"
+
+
+def test_valid_votes_include_blank_ballots():
+    from src.electoral import allocate
+    result = allocate({"A": 970, "B": 20}, 1, 1000, blank_votes=10)
+    assert result.seats["A"] == 1
