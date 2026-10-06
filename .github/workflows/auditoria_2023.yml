@@ -7,6 +7,12 @@ on:
       - "src/**"
       - "tests/**"
       - "scripts/audit_2023.py"
+  pull_request:
+    paths:
+      - ".github/workflows/auditoria_2023.yml"
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
 
 jobs:
   tests:

@@ -38,3 +38,5 @@ print("WORKBOOK_SHA256",sha)
 print("SHEETS",list(sheets))
 for name,df in sheets.items():
     print("SHEET",repr(name),"ROWS",len(df),"COLS",list(map(str,df.columns)))
+
+# Mission-1 execution marker: workflow must publish raw staging evidence before modeling.
