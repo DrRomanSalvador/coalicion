@@ -22,6 +22,13 @@ class PollObservation:
     field_end: str
     source: str
     poll_id: str = ""
+    governing_party: str = ""
+    government_status: str = ""
+    government_change: str = ""
+    party_family: str = ""
+    poll_method: str = ""
+    sample_size: int | None = None
+    source_tier: str = ""
 
     @property
     def error(self) -> float:
@@ -29,6 +36,19 @@ class PollObservation:
 
     @property
     def abs_error(self) -> float:
+        return abs(self.error)
+
+    @property
+    @property
+    def error_direction(self) -> str:
+        if self.error > 0:
+            return "SOBREESTIMACION"
+        if self.error < 0:
+            return "SUBESTIMACION"
+        return "CERO"
+
+    @property
+    def change_magnitude(self) -> float:
         return abs(self.error)
 
     @property
@@ -100,6 +120,27 @@ def by_house(rows: Iterable[PollObservation]) -> dict[str, ErrorSummary]:
     groups: dict[str, list[PollObservation]] = {}
     for row in rows:
         groups.setdefault(row.house, []).append(row)
+    return {k: summarize(v) for k, v in sorted(groups.items())}
+
+
+def by_government(rows: Iterable[PollObservation]) -> dict[str, ErrorSummary]:
+    groups: dict[str, list[PollObservation]] = {}
+    for row in rows:
+        groups.setdefault(row.governing_party or "DESCONOCIDO", []).append(row)
+    return {k: summarize(v) for k, v in sorted(groups.items())}
+
+
+def by_government_status(rows: Iterable[PollObservation]) -> dict[str, ErrorSummary]:
+    groups: dict[str, list[PollObservation]] = {}
+    for row in rows:
+        groups.setdefault(row.government_status or "DESCONOCIDO", []).append(row)
+    return {k: summarize(v) for k, v in sorted(groups.items())}
+
+
+def by_direction(rows: Iterable[PollObservation]) -> dict[str, ErrorSummary]:
+    groups: dict[str, list[PollObservation]] = {}
+    for row in rows:
+        groups.setdefault(row.error_direction, []).append(row)
     return {k: summarize(v) for k, v in sorted(groups.items())}
 
 
