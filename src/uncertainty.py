@@ -2,13 +2,13 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from math import floor
-from random import Random
+import numpy as np
 from statistics import mean
 @dataclass(frozen=True)
 class SimulationConfig:
     iterations:int=10000
     seed:int=0
-    rng_algorithm:str="Python Random MT19937"
+    rng_algorithm:str="numpy.PCG64"
     version:str="seec-mc-1"
 @dataclass(frozen=True)
 class SimulationResult:
@@ -19,7 +19,7 @@ def _q(xs,q):
     return ys[lo]+(ys[hi]-ys[lo])*(pos-lo)
 def run_monte_carlo(sampler,seats_by_constituency,blank_votes_by_constituency,special_by_constituency,config):
     if config.iterations<10000: raise ValueError("se requieren al menos 10.000 simulaciones")
-    rng=Random(config.seed); draws=[]
+    rng=np.random.Generator(np.random.PCG64(config.seed)); draws=[]
     for _ in range(config.iterations):
         scenario=sampler(rng); national={}
         if set(scenario)!=set(seats_by_constituency): raise ValueError("escenario territorial incompleto")
