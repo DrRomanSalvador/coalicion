@@ -69,23 +69,45 @@ def additive_party(train: Sequence[Observation], obs: Observation) -> float:
     return obs.poll + robust_party_bias(train, obs.party)
 
 def _errors(candidate: Candidate, observations: Sequence[Observation]):
+    """Evalúa OOS sin permitir que una elección con más encuestas domine.
+
+    Primero calcula la métrica dentro de cada elección y después hace la media
+    entre elecciones. Así 2023 no pesa más que 2004 solo porque tenga más
+    encuestas disponibles.
+    """
     ordered = sorted(observations, key=_key)
     elections = []
     for x in ordered:
         if x.election not in elections:
             elections.append(x.election)
-    base_errors: list[float] = []
-    cand_errors: list[float] = []
+
+    election_scores_base: list[Score] = []
+    election_scores_candidate: list[Score] = []
+
     for election in elections:
         test = [x for x in ordered if x.election == election]
         train = [x for x in ordered if _key(x) < min(_key(t) for t in test)]
         if not train:
             continue
-        base_errors.extend(x.poll - x.actual for x in test)
-        cand_errors.extend(candidate.predict(train, x) - x.actual for x in test)
-    if not base_errors:
+
+        base_errors = [x.poll - x.actual for x in test]
+        candidate_errors = [
+            candidate.predict(train, x) - x.actual for x in test
+        ]
+        election_scores_base.append(_score(base_errors))
+        election_scores_candidate.append(_score(candidate_errors))
+
+    if not election_scores_base:
         raise ValueError("No existe ventana OOS entrenable")
-    return _score(base_errors), _score(cand_errors)
+
+    def macro(scores: Sequence[Score]) -> Score:
+        return Score(
+            mae=sum(s.mae for s in scores) / len(scores),
+            rmse=sum(s.rmse for s in scores) / len(scores),
+            max_abs=sum(s.max_abs for s in scores) / len(scores),
+        )
+
+    return macro(election_scores_base), macro(election_scores_candidate)
 
 def dominates(base_score: Score, candidate_score: Score) -> bool:
     no_worse = (
