@@ -39,7 +39,6 @@ class PollObservation:
         return abs(self.error)
 
     @property
-    @property
     def error_direction(self) -> str:
         if self.error > 0:
             return "SOBREESTIMACION"
