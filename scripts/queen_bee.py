@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""REINA-SEEC: fail-closed orchestrator for the real repository pipeline."""
+"""REINA-SEEC: fail-closed orchestrator for the real repository pipeline.\n\nActivation revision: 2026-10-07.\n"""
 from __future__ import annotations
 import json, os, subprocess, sys, time
 from datetime import datetime, timezone
