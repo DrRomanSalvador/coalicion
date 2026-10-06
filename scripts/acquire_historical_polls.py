@@ -110,6 +110,7 @@ def main():
     response.raise_for_status()
     rows = parse_polls_from_html(response.content)
     # One row per poll-party observation; deterministic order.
+    df = pd.DataFrame(rows)
     df = df.sort_values(["election","poll","party"], kind="stable")
     OUT.parent.mkdir(parents=True, exist_ok=True)
     META.parent.mkdir(parents=True, exist_ok=True)
