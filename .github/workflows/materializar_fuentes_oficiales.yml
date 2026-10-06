@@ -1,5 +1,5 @@
 name: Materializar fuentes oficiales
-# Canonical ingestion: immutable snapshots + live primary indexes
+# Canonical ingestion: immutable snapshots + live primary indexes + audit
 
 on:
   workflow_dispatch:
@@ -19,33 +19,32 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Instalar dependencias de datos
+      - name: Instalar dependencias
         run: python -m pip install --upgrade pip certifi openpyxl pandas
 
-      - name: Descargar distribución oficial del Interior
+      - name: Descargar Interior
         run: |
           mkdir -p data/raw/official data/manifests
           curl -fL --retry 5 --retry-delay 5             "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"             -o data/raw/official/Elecciones-Congreso.xlsx
 
-      - name: Descargar padrón oficial INE
+      - name: Descargar INE
         run: |
           mkdir -p data/raw/official/ine
           curl -fL --retry 5 --retry-delay 5             "https://www.ine.es/pob_xls/pobmun.zip"             -o data/raw/official/ine/pobmun.zip
 
-      - name: Registrar hashes y procedencia
-        shell: bash
+      - name: Registrar hashes de fuentes binarias
         run: |
           python - <<'PY'
           import hashlib, json
           from datetime import datetime, timezone
           from pathlib import Path
 
-          def manifest(source_id, url, path, catalog_url=None):
+          def manifest(source_id, authority, url, path, catalog_url):
               p = Path(path)
               data = p.read_bytes()
               return {
                   "source_id": source_id,
-                  "authority": "Ministerio del Interior" if "interior.gob.es" in url else "Instituto Nacional de Estadística",
+                  "authority": authority,
                   "source_url": url,
                   "catalog_url": catalog_url,
                   "retrieved_at": datetime.now(timezone.utc).isoformat(),
@@ -55,24 +54,22 @@ jobs:
               }
 
           Path("data/manifests").mkdir(parents=True, exist_ok=True)
-          Path("data/manifests/INTERIOR_RESULTADOS_CONGRESO.json").write_text(
-              json.dumps(manifest(
-                  "INTERIOR_RESULTADOS_CONGRESO",
-                  "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
-                  "data/raw/official/Elecciones-Congreso.xlsx",
-                  "https://datos.gob.es/es/catalogo/e00003801-resultados-electorales"
-              ), ensure_ascii=False, indent=2) + "\n",
-              encoding="utf-8"
-          )
-          Path("data/manifests/INE_PADRON_MUNICIPAL.json").write_text(
-              json.dumps(manifest(
-                  "INE_PADRON_MUNICIPAL",
-                  "https://www.ine.es/pob_xls/pobmun.zip",
-                  "data/raw/official/ine/pobmun.zip",
-                  "https://www.ine.es/dynt3/inebase/es/index.htm?padre=525"
-              ), ensure_ascii=False, indent=2) + "\n",
-              encoding="utf-8"
-          )
+          specs = [
+              ("INTERIOR_RESULTADOS_CONGRESO", "Ministerio del Interior",
+               "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+               "data/raw/official/Elecciones-Congreso.xlsx",
+               "https://datos.gob.es/es/catalogo/e00003801-resultados-electorales"),
+              ("INE_PADRON_MUNICIPAL", "Instituto Nacional de Estadística",
+               "https://www.ine.es/pob_xls/pobmun.zip",
+               "data/raw/official/ine/pobmun.zip",
+               "https://www.ine.es/dynt3/inebase/es/index.htm?padre=525"),
+          ]
+          for args in specs:
+              payload = manifest(*args)
+              Path("data/manifests", payload["source_id"] + ".json").write_text(
+                  json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+                  encoding="utf-8"
+              )
           PY
 
       - name: Inspeccionar y normalizar Interior
@@ -80,14 +77,13 @@ jobs:
           python cli.py inspect data/raw/official/Elecciones-Congreso.xlsx
           python cli.py normalize data/raw/official/Elecciones-Congreso.xlsx             --output data/processed/congress_rows.json
 
-      - name: Registrar catálogo vivo del CIS
+      - name: Registrar catálogo CIS vivo
         run: |
           mkdir -p data/live
           python - <<'PY'
-          import hashlib, json
+          import hashlib, json, urllib.request
           from datetime import datetime, timezone
           from pathlib import Path
-          import urllib.request
 
           url = "https://www.cis.es/es/estudios/catalogo?catalogo=estudio"
           req = urllib.request.Request(url, headers={"User-Agent": "REINA-SEEC/1.0"})
@@ -96,23 +92,29 @@ jobs:
           Path("data/live/CIS_CATALOGO_ESTUDIOS.json").write_text(
               json.dumps({
                   "source_id": "CIS_CATALOGO_ESTUDIOS",
+                  "authority": "Centro de Investigaciones Sociológicas",
                   "source_url": url,
                   "retrieved_at": datetime.now(timezone.utc).isoformat(),
                   "sha256": hashlib.sha256(raw).hexdigest(),
-                  "size_bytes": len(raw)
+                  "size_bytes": len(raw),
+                  "mode": "LIVE_INDEX_WITH_SNAPSHOT"
               }, ensure_ascii=False, indent=2) + "\n",
               encoding="utf-8"
           )
           PY
 
-      - name: Commit materialización si cambió
+      - name: Ejecutar auditoría y generar matriz canónica
+        run: |
+          python scripts/ai_electoral_data_engine.py
+
+      - name: Commit materialización, auditoría y matriz
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/raw/official data/processed/congress_rows.json data/manifests data/live
+          git add data/raw/official data/processed data/manifests data/live             artifacts/data artifacts/audit artifacts/execution_log.md
           if git diff --cached --quiet; then
             echo "NO_CHANGES"
           else
-            git commit -m "data: materialize official sources and hashes"
+            git commit -m "data: materialize and audit official electoral sources"
             git push
           fi
