@@ -5,6 +5,10 @@ on:
   push:
     paths:
       - "scripts/queen_bee.py"
+      - "scripts/queen_bee_v2.py"
+      - "cli.py"
+      - "scripts/ai_electoral_data_engine.py"
+      - "scripts/exhaustive_data_acquisition.py"
       - "scripts/worker_bee.py"
       - ".github/workflows/activate_colmena.yml"
 
@@ -41,7 +45,7 @@ jobs:
         env:
           COLMENA_MAX_RETRIES: "3"
           COLMENA_RETRY_DELAY: "10"
-        run: python scripts/queen_bee.py
+        run: python scripts/queen_bee_v2.py
       - name: Publicar estado de colmena
         if: always()
         run: |
