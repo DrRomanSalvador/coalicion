@@ -6,6 +6,8 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 import certifi
 import requests
+import pandas as pd
+from bs4 import BeautifulSoup
 
 OFFICIAL_XLSX = "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
 SECONDARY_BASE = "https://datoelectoral.es/circunscripciones/"
@@ -50,7 +52,7 @@ def normalize_label(name):
     """Normaliza únicamente la escritura de una etiqueta; no aproxima entidades."""
     x = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
     x = re.sub(r"[^a-zA-Z0-9]+", " ", x).strip().casefold()
-    return re.sub(r"\\s+", " ", x)
+    return re.sub(r"\s+", " ", x)
 
 _NORMALIZED_ALIASES = {
     normalize_label(k): v for k, v in SLUG_ALIASES.items()
@@ -64,24 +66,52 @@ def slug(name):
     return re.sub(r"[^a-z0-9-]+", "-", x).strip("-")
 
 def parse_secondary(raw, province, seats):
-    text = raw.decode("utf-8","replace")
-    table = re.search(r"<table[\s\S]*?</table>", text, re.I)
-    if not table: raise ValueError(f"candidate table missing: {province}")
-    cells = re.findall(r"<(?:td|th)[^>]*>([\s\S]*?)</(?:td|th)>", table.group(0), re.I)
-    clean = [re.sub(r"\s+"," ",re.sub(r"<[^>]+>"," ",x)).strip() for x in cells]
-    start = next((i for i,x in enumerate(clean) if x == "Candidatura"), None)
-    if start is None: raise ValueError(f"candidate header missing: {province}")
-    parties = {}; blank = 0; valid = None
-    for i in range(start+3, len(clean)-2, 3):
-        name,votes,pct = clean[i:i+3]
-        digits = re.sub(r"[^0-9]","",votes)
-        if not digits: continue
-        n = int(digits)
-        if name.lower().startswith("votos en blanco"): blank = n
-        elif name.lower().startswith("total votos válidos"): valid = n
-        else: parties[name] = n
-    if valid is None: valid = sum(parties.values()) + blank
-    return {"seats":seats,"parties":parties,"blank_votes":blank,"valid_votes":valid,"source_url":SECONDARY_BASE+slug(province)}
+    """Lee la tabla de candidaturas actual de Dato Electoral."""
+    soup = BeautifulSoup(raw.decode("utf-8", "replace"), "html.parser")
+    for table in soup.find_all("table"):
+        try:
+            frames = pd.read_html(str(table))
+        except (ValueError, ImportError):
+            continue
+        if not frames:
+            continue
+        df = frames[0]
+        cols = [str(c).strip() for c in df.columns]
+        if "Candidatura" not in cols or "Votos" not in cols:
+            continue
+
+        parties = {}
+        blank = 0
+        valid = None
+        for _, row in df.iterrows():
+            name = str(row.get("Candidatura", "")).strip()
+            if not name or name == "Resultado":
+                continue
+            raw_votes = row.get("Votos")
+            try:
+                n = int(float(str(raw_votes).replace(".", "").replace(",", ".")))
+            except (TypeError, ValueError):
+                continue
+            if name.casefold().startswith("votos en blanco"):
+                blank = n
+            elif name.casefold().startswith("total votos válidos"):
+                valid = n
+            else:
+                parties[name] = n
+
+        if not parties:
+            continue
+        if valid is None:
+            valid = sum(parties.values()) + blank
+        return {
+            "seats": seats,
+            "parties": parties,
+            "blank_votes": blank,
+            "valid_votes": valid,
+            "source_url": SECONDARY_BASE + slug(province),
+        }
+
+    raise ValueError(f"candidate table missing or unreadable: {province}")
 
 def build_from_official(raw, root):
     from src.data_pipeline import load_rows
