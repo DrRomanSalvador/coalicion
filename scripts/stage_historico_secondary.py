@@ -19,58 +19,58 @@ import pyreadr
 ROOT = Path(".audit_historico")
 ROOT.mkdir(parents=True, exist_ok=True)
 
-URL = (
-    "https://raw.githubusercontent.com/dadosdelaplace/pollspaindata/"
-    "main/inst/extdata/summary_elec/summary_elec_prov_2023-07-24.rda"
-)
-TARGET_DATES = {
-    "2004-03-14": "2004",
-    "2008-03-09": "2008",
-    "2011-11-20": "2011",
-    "2015-12-20": "2015",
-    "2016-06-26": "2016",
-    "2019-04-28": "2019A",
-    "2019-11-10": "2019N",
-    "2023-07-24": "2023",
+TARGET_FILES = {
+    "2004": "2004-03-14",
+    "2008": "2008-03-09",
+    "2011": "2011-11-20",
+    "2015": "2015-12-20",
+    "2016": "2016-06-26",
+    "2019A": "2019-04-28",
+    "2019N": "2019-11-10",
+    # pollspaindata encodes the 23-Jul-2023 Congress election as 2023-07-24.
+    "2023": "2023-07-24",
 }
+BASE_URL = (
+    "https://raw.githubusercontent.com/dadosdelaplace/pollspaindata/"
+    "main/inst/extdata/summary_elec/summary_elec_prov_{date}.rda"
+)
+
 
 out = ROOT / "secondary_pollspaindata.rda"
-req = Request(URL, headers={"User-Agent": "SEEC-historical-staging/1.0"})
-with urlopen(req, timeout=60) as resp:
-    out.write_bytes(resp.read())
-
-sha = hashlib.sha256(out.read_bytes()).hexdigest()
-(ROOT / "secondary.sha256").write_text(f"{sha}  {out.name}\n", encoding="utf-8")
-
-objects = pyreadr.read_r(str(out))
-if not objects:
-    raise RuntimeError("No R objects found in secondary source")
-
 frames = []
-for name, df in objects.items():
-    if isinstance(df, pd.DataFrame):
-        frames.append(df)
+source_hashes = {}
+source_urls = {}
 
-if not frames:
-    raise RuntimeError("Secondary RDA contained no tabular object")
+for election, date in TARGET_FILES.items():
+    url = BASE_URL.format(date=date)
+    local = ROOT / f"secondary_{election}.rda"
+    req = Request(url, headers={"User-Agent": "SEEC-historical-staging/1.0"})
+    try:
+        with urlopen(req, timeout=60) as resp:
+            local.write_bytes(resp.read())
+    except Exception as exc:
+        raise RuntimeError(f"Unable to retrieve {election} from secondary source: {exc}") from exc
 
-df = max(frames, key=len).copy()
-(ROOT / "secondary_schema.json").write_text(
-    json.dumps(
-        {
-            "source": URL,
-            "source_tier": "SECONDARY_REPLICA",
-            "sha256": sha,
-            "object_names": list(objects),
-            "rows": int(len(df)),
-            "columns": list(df.columns),
-            "dtypes": {c: str(t) for c, t in df.dtypes.items()},
-        },
-        ensure_ascii=False,
-        indent=2,
-        default=str,
-    ),
-    encoding="utf-8",
+    if not local.exists() or local.stat().st_size == 0:
+        raise RuntimeError(f"Empty secondary file for {election}")
+
+    sha = hashlib.sha256(local.read_bytes()).hexdigest()
+    source_hashes[election] = sha
+    source_urls[election] = url
+
+    objects = pyreadr.read_r(str(local))
+    tabs = [x for x in objects.values() if isinstance(x, pd.DataFrame)]
+    if not tabs:
+        raise RuntimeError(f"No tabular object found for {election}")
+    frame = max(tabs, key=len).copy()
+    frame["_election"] = election
+    frame["_source_sha256"] = sha
+    frames.append(frame)
+
+df = pd.concat(frames, ignore_index=True, sort=False)
+
+(ROOT / "secondary.sha256.json").write_text(
+    json.dumps(source_hashes, ensure_ascii=False, indent=2), encoding="utf-8"
 )
 
 # Preserve the source table unchanged.
