@@ -20,3 +20,11 @@
 - Monte Carlo alineado con PCG64.
 - Escenarios preservan Ceuta/Melilla.
 - CI modificado para ejecutar tests independientes aunque falle el contrato y para no hacer push automático a main.
+
+## 21:20 — Decision Engine MVP
+- CLI añadido: audit / coalition / scenario / verify.
+- Motor determinista de coaliciones añadido: fusiona votos por circunscripción y recalcula D'Hondt.
+- Motor de shocks +X añadido con territorialización obligatoria.
+- Escenarios ambiguos quedan bloqueados.
+- Dockerfile, lock de dependencias y documentación de reproducibilidad añadidos.
+- No se generaron casos reales PSOE+SUMAR/PP+VOX porque la matriz oficial candidatura×circunscripción todavía no está materializada; inventarla violaría el contrato.
