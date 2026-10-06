@@ -2,8 +2,8 @@
   "schema": "EXECUTION_STATE_V1",
   "run_id": "autonomous-20261006",
   "started_at": "2026-10-06T20:03:24Z",
-  "last_updated_at": "2026-10-06T20:45:00Z",
-  "current_phase": "Fase 1 — corrección electoral / Fase 3 — pipeline de datos",
+  "last_updated_at": "2026-10-06T20:50:00Z",
+  "current_phase": "Fase 3 — pipeline de datos / certificación 2023",
   "completed_tasks": [
     "inspección estructural",
     "línea base persistida",
@@ -13,7 +13,9 @@
     "pruebas diferenciales reproducibles añadidas",
     "RNG Monte Carlo alineado con contrato PCG64",
     "escenario especial Ceuta/Melilla preservado",
-    "workflow CI endurecido para continuar tareas independientes"
+    "workflow CI endurecido para continuar tareas independientes",
+    "master certification gates made fail-closed against fake PASS artifacts",
+    "CI results persisted"
   ],
   "in_progress_tasks": [
     "validación CI de la rama"
@@ -26,7 +28,8 @@
     "EXTERNAL_AUDIT"
   ],
   "failed_tasks": [
-    "CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT (resolved)"
+    "CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT (resolved)",
+    "pytest import path (resolved)"
   ],
   "warnings": [
     "CI histórico demostró que la fuente primaria puede descargarse, pero el parser primario completo aún no está implementado.",
@@ -41,9 +44,8 @@
   ],
   "certificates": [],
   "next_actions": [
-    "esperar/verificar CI de la rama",
-    "implementar parser semántico primario 2023",
-    "crear reconciliación primaria",
-    "cerrar binary anchor o registrar bloqueo permanente"
+    "pin primary PDF",
+    "implement primary 2023 semantic parser/reconciliation",
+    "then historical primary ingestion"
   ]
 }
