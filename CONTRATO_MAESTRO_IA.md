@@ -42,7 +42,7 @@ Queda prohibido:
 ## 6. Ley electoral
 El Congreso tiene 350 escaños y 52 circunscripciones. Para las elecciones de 29-11-2026 se usan exclusivamente las magnitudes del Real Decreto 806/2026.
 
-En circunscripciones provinciales se aplica el 3% de votos válidos y D'Hondt con cocientes exactos. Los empates de cocientes se resuelven por mayor voto total; si también hay igualdad absoluta, el programa no decide arbitrariamente: devuelve un estado de empate pendiente del mecanismo legal de sorteo/alternancia.
+En circunscripciones provinciales se aplica el 3% de votos válidos y D'Hondt con cocientes exactos. La matriz de candidaturas debe ser completa: la suma de votos de todas las candidaturas debe coincidir exactamente con los votos válidos (incluidos los votos en blanco cuando el denominador sea el total de votos válidos). Si no coincide, se bloquea el reparto. Los empates de cocientes se resuelven por mayor voto total; si también hay igualdad absoluta, el programa no decide arbitrariamente: devuelve un estado de empate pendiente del mecanismo legal de sorteo/alternancia.
 
 Ceuta y Melilla tienen un diputado cada una y se adjudican al candidato/candidatura con mayor número de votos; no se aplica D'Hondt.
 
