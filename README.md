@@ -422,7 +422,7 @@ La base histórica 2023 queda fijada para las **52 circunscripciones** y se vinc
 
 `data/2023_circunscripciones_oficiales.csv`
 
-El fichero procede del resumen oficial de la Junta Electoral Central publicado en el BOE. En 2023 contiene 350 escaños y 24.688.087 votos válidos estatales. La fuente oficial publica resultados generales y por circunscripción. citeturn0search1turn1view0
+El fichero procede del resumen oficial de la Junta Electoral Central publicado en el BOE. En 2023 contiene 350 escaños y 24.688.087 votos válidos estatales. La fuente oficial publica resultados generales y por circunscripción.
 
 Reglas obligatorias:
 
@@ -433,7 +433,7 @@ Reglas obligatorias:
 - cualquier suma CCAA→Estado debe coincidir exactamente con la suma de circunscripciones;
 - las ciudades autónomas conservan su regla especial de un diputado por mayoría de votos.
 
-La distribución 2026 debe proceder del decreto de convocatoria vigente; para la convocatoria de 29 de noviembre de 2026 el BOE fija 350 diputados y la magnitud de cada circunscripción. citeturn0search0
+La distribución 2026 debe proceder del decreto de convocatoria vigente; para la convocatoria de 29 de noviembre de 2026 el BOE fija 350 diputados y la magnitud de cada circunscripción.
 
 ---
 
@@ -601,6 +601,6 @@ Una actualización posterior crea una nueva versión y nunca reescribe retrospec
 
 ## 29. FUENTE LEGAL INVARIABLE
 
-La asignación de escaños debe ejecutar literalmente el artículo 163 LOREG: exclusión por debajo del 3% de votos válidos de la circunscripción, cocientes sucesivos, atribución por orden decreciente y desempate por mayor voto total; Ceuta y Melilla siguen su regla especial. citeturn0search2
+La asignación de escaños debe ejecutar literalmente el artículo 163 LOREG: exclusión por debajo del 3% de votos válidos de la circunscripción, cocientes sucesivos, atribución por orden decreciente y desempate por mayor voto total; Ceuta y Melilla siguen su regla especial.
 
-La fuente 2023 oficial es el BOE-A-2023-18907 de la Junta Electoral Central, que publica los resultados generales y por circunscripción a partir de las actas oficiales. citeturn0search1turn1view0
+La fuente 2023 oficial es el BOE-A-2023-18907 de la Junta Electoral Central, que publica los resultados generales y por circunscripción a partir de las actas oficiales.
