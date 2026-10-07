@@ -117,7 +117,7 @@ jobs:
             [ -n "$run_id" ] || continue
             started="$(date -d "$created_at" +%s)"
             age=$((now-started))
-            if [ "$age" -ge 900 ]; then
+            if [ "$age" -ge 300 ]; then
               echo "RECOVERY: cancelling stuck canonical run $run_id (age=$age seconds)."
               api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "repos/$REPOSITORY/actions/runs/$run_id/cancel" || \
                 api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "repos/$REPOSITORY/actions/runs/$run_id/force-cancel"
