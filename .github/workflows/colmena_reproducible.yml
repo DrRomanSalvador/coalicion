@@ -22,7 +22,6 @@ jobs:
       - run: python -m pip install --upgrade pip pytest numpy
       - name: Reanudación de contexto
         id: resume
-        continue-on-error: true
         run: python -m src.colmena_resume
       - name: Contrato reproducible
         id: contract
