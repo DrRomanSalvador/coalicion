@@ -24,9 +24,20 @@
       "data": [
         "actas",
         "resoluciones",
-        "recursos",
-        "criterios de escrutinio"
-      ]
+        "resultados generales por circunscripción",
+        "resultados por candidatura",
+        "escaños"
+      ],
+      "result_pages": {
+        "2004": "https://www.juntaelectoralcentral.es/cs/jec/documentos/GENERALES_2004_Resultados.pdf",
+        "2008": "https://www.juntaelectoralcentral.es/cs/jec/documentos/GENERALES_2008_Resultados.pdf",
+        "2011": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2011-19391",
+        "2015": "https://www.juntaelectoralcentral.es/cs/jec/elecciones/Generales-diciembre2015",
+        "2016": "https://www.juntaelectoralcentral.es/cs/jec/elecciones/Generales-junio2016",
+        "2023": "https://www.juntaelectoralcentral.es/cs/jec/elecciones/Generales-julio2023",
+        "2019-04": "https://www.juntaelectoralcentral.es/cs/jec/elecciones/Generales-abril2019",
+        "2019-11": "https://www.juntaelectoralcentral.es/cs/jec/elecciones/Generales-noviembre2019"
+      }
     },
     {
       "id": "ine",
@@ -61,6 +72,20 @@
         "inmuebles",
         "valoraciones",
         "seccion_censal"
+      ]
+    },
+    {
+      "id": "datos_gob_es_interior_distribution",
+      "name": "Datos.gob.es — distribución oficial del Ministerio del Interior",
+      "url": "https://datos.gob.es/es/catalogo/e00003801-resultados-electorales",
+      "role": "official_catalog_primary_distribution",
+      "data": [
+        "Elecciones Congreso XLSX",
+        "Elecciones Congreso cargos electos XLSX"
+      ],
+      "download_urls": [
+        "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+        "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso-cargos-electos.xlsx"
       ]
     }
   ],
