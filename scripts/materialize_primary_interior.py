@@ -13,6 +13,23 @@ XLSX=ROOT/"data/raw/Elecciones-Congreso.xlsx"
 OUT=ROOT/"data/resultados_oficiales_2004_2023.csv"
 MAN=ROOT/"data/manifests/INTERIOR_ACQUISITION.json"
 DATES={"2004":"2004-03-14","2008":"2008-03-09","2011":"2011-11-20","2015":"2015-12-20","2016":"2016-06-26","2019A":"2019-04-28","2019N":"2019-11-10","2023J":"2023-07-23"}
+FNMT_SERVER_ROOT_PEM="""-----BEGIN CERTIFICATE-----
+MIICbjCCAfOgAwIBAgIQYvYybOXE42hcG2LdnC6dlTAKBggqhkjOPQQDAzB4MQsw
+CQYDVQQGEwJFUzERMA8GA1UECgwIRk5NVC1SQ00xDjAMBgNVBAsMBUNlcmVzMRgw
+FgYDVQRhDA9WQVRFUy1RMjgyNjAwNEoxLDAqBgNVBAMMI0FDIFJBSVogRk5NVC1S
+Q00gU0VSVklET1JFUyBTRUdVUk9TMB4XDTE4MTIyMDA5MzczM1oXDTQzMTIyMDA5
+MzczM1oweDELMAkGA1UEBhMCRVMxETAPBgNVBAoMCEZOTVQtUkNNMQ4wDAYDVQQL
+DAVDZXJlczEYMBYGA1UEYQwPVkFURVMtUTI4MjYwMDRKMSwwKgYDVQQDDCNBQyBS
+QUlaIEZOTVQtUkNNIFNFUlZJRE9SRVMgU0VHVVJPUzB2MBAGByqGSM49AgEGBSuB
+BAAiA2IABPa6V1PIyqvfNkpSIeSX0oNnnvBlUdBeh8dHsVnyV0ebAAKTRBdp20LH
+sbI6GA60XYyzZl2hNPk2LEnb80b8s0RpRBNm/dfF/a82Tc4DTQdxz69qBdKiQ1oK
+Um8BA06Oi6NCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAQYwHQYD
+VR0OBBYEFAG5L++/EYZg8k/QQW6rcx/n0m5JMAoGCCqGSM49BAMDA2kAMGYCMQCu
+SuMrQMN0EfKVrRYj3k4MGuZdpSRea0R7/DjiT8ucRRcRTBQnJlU5dUoDzBOQn5IC
+MQD6SmxgiHPz7riYYqnOK8LZiqZwMR2vsJRM60/G49HzYqc8/5MuB1xJAWdpEgJy
+v+c=
+-----END CERTIFICATE-----
+"""
 
 def main():
     XLSX.parent.mkdir(parents=True,exist_ok=True)
@@ -22,6 +39,16 @@ def main():
     if not ca_candidates:
         raise RuntimeError("FAIL-CLOSED: no trusted CA bundle available")
     ca=ca_candidates[0]
+    bundle_tmp=Path(tempfile.mkstemp(suffix=".pem")[1])
+    try:
+        der=ssl.PEM_cert_to_DER_cert(FNMT_SERVER_ROOT_PEM).encode("latin1")
+        if hashlib.sha256(der).hexdigest().upper()!="554153B13D2CF9DDB753BFBE1A4E0AE08D0AA4187058FE60A2B862B2E4B87BCB":
+            raise RuntimeError("FAIL-CLOSED: embedded FNMT server-root fingerprint mismatch")
+        bundle_tmp.write_bytes(Path(ca).read_bytes()+b"\n"+FNMT_SERVER_ROOT_PEM.encode("ascii"))
+        ca=bundle_tmp.as_posix()
+    except Exception:
+        bundle_tmp.unlink(missing_ok=True)
+        raise
     with tempfile.NamedTemporaryFile(suffix=".xlsx",delete=False) as tmp:
         tmp_path=Path(tmp.name)
     curl_base=["curl","-fL","--http1.1","--retry","5","--retry-all-errors","--retry-delay","3",
@@ -37,6 +64,7 @@ def main():
             tmp_path.unlink(missing_ok=True)
     finally:
         tmp_path.unlink(missing_ok=True)
+        bundle_tmp.unlink(missing_ok=True)
     if data is None:
         raise RuntimeError("FAIL-CLOSED: verified HTTPS acquisition from official Interior failed via all trusted CA paths")
     if len(data)<=10000 or data[:4]!=b"PK\x03\x04":
