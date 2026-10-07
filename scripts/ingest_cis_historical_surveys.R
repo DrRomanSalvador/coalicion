@@ -117,3 +117,5 @@ result <- result |>
 readr::write_csv(result, "data/encuestas_historicas_2004_2023.csv")
 message("Wrote ", nrow(result), " CIS vote-intention observations from ",
         dplyr::n_distinct(result$codigo_estudio), " studies.")
+
+# Trigger CIS-only ingestion.
