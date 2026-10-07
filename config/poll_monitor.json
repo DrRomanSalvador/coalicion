@@ -1,0 +1,27 @@
+{
+  "schema": "POLL_MONITOR_CONFIG_V2",
+  "timezone": "Europe/Madrid",
+  "sources": [
+    {"id":"cis_rss","name":"CIS","url":"https://www.cis.es/cis/opencm/ES/1_encuestas/estudios/rss.xml","format":"rss","method":"GET"},
+    {"id":"electomania_ajax","name":"Electomanía","url":"https://electomania.es/wp-admin/admin-ajax.php","format":"electomania_json","method":"POST","data":{"action":"get_encuestas"}},
+    {"id":"datoelectoral","name":"Dato Electoral","url":"https://www.datoelectoral.es/encuestas","format":"datoelectoral_html","method":"GET"},
+    {"id":"europe_elects_spain","name":"Europe Elects","url":"https://europeelects.eu/spain/","format":"page","method":"GET"},
+    {"id":"myfdata","name":"MyF Data","url":"https://www.myfdata.com/elecciones-generales/","format":"page","method":"GET"},
+    {"id":"sigma_dos","name":"Sigma Dos","url":"https://www.elmundo.es/sigmasdos/","format":"page","method":"GET"},
+    {"id":"gad3","name":"GAD3","url":"https://www.gad3.com/estudios/","format":"page","method":"GET"},
+    {"id":"nc_report","name":"NC Report","url":"https://www.ncreport.es/encuestas/","format":"page","method":"GET"},
+    {"id":"demoscopia","name":"Demoscopia","url":"https://www.demoscopia.es/encuestas/","format":"page","method":"GET"},
+    {"id":"celeste_tel","name":"Celeste-Tel","url":"https://www.abc.es/tema/celesta/","format":"page","method":"GET"},
+    {"id":"invymark","name":"Invymark","url":"https://invymark.com/encuestas/","format":"page","method":"GET"},
+    {"id":"political_stats_spain","name":"Political Stats","url":"https://politicalstats.eu/spain","format":"page","method":"GET"},
+    {"id":"europe_elects_twitter","name":"Europe Elects X","url":"https://api.twitter.com/2/users/{user_id}/tweets","format":"twitter","method":"GET","user_id":"","optional":true}
+  ],
+  "policy": {
+    "no_search_engine_inference": true,
+    "no_unverified_poll_values": true,
+    "no_national_to_territorial_conversion": true,
+    "fail_closed": true,
+    "alert_on_new_or_changed_validated_poll": true,
+    "alert_on_first_or_changed_source_failure": true
+  }
+}
