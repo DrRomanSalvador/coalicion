@@ -1,6 +1,6 @@
 {
   "schema": "INTERIOR_OFFICIAL_ACQUISITION_V4",
-  "status": "PASS",
+  "status": "SOURCE_VALIDATED_DERIVATION_PENDING",
   "source_tier": "PRIMARY_INTERIOR",
   "source_kind": "OFFICIAL_XLSX_SUPPLIED_BY_USER",
   "source_sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
@@ -20,5 +20,7 @@
     "2023J": "2023-07-23"
   },
   "duplicate_rows": "aggregated_by_(election,fecha,circunscripcion,partido,metric)",
-  "fail_closed": true
+  "fail_closed": true,
+  "reason": "Fuente primaria validada; falta que el runner ensamble y persista el CSV histórico monolítico antes de declarar PASS.",
+  "binary_repository_copy": false
 }
