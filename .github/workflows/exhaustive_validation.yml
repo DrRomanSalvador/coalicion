@@ -1,0 +1,40 @@
+name: Exhaustive fail-closed validation
+
+on:
+  push:
+    branches:
+      - "fix/seec-oos-main-current"
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - "requirements.txt"
+      - ".github/workflows/exhaustive_validation.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - "requirements.txt"
+      - ".github/workflows/exhaustive_validation.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+      - name: Run fail-closed gate
+        run: python scripts/autonomous_fix_and_validate.py --strict
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autonomous-validation
+          path: artifacts/verification/autonomous_validation.json

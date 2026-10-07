@@ -1,0 +1,39 @@
+name: Product pipeline 2026
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "run26.py"
+      - "scripts/**"
+      - "src/**"
+      - "data/**"
+      - "config/**"
+      - "tests/**"
+      - "requirements.txt"
+      - ".github/workflows/product_pipeline.yml"
+
+jobs:
+  product:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt pandas pyreadr
+      - name: Execute run26
+        env:
+          USE_CERTIFI: "true"
+        run: python run26.py
+      - name: Upload execution artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run26-product-artifacts
+          path: |
+            artifacts/
+            ci_evidence/
+            data/encuestas_historicas_2004_2023.csv

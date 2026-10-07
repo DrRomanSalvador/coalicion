@@ -4,7 +4,8 @@ from src.reproducibility_contract import ANCHOR_SHA256, ANCHOR_MANIFEST, verify_
 def test_reproducibility_contract_is_fail_closed():
     result = verify_contract(Path("."))
     anchor_path = Path(ANCHOR_MANIFEST)
-    if anchor_path.exists():
+    binary_path = Path("data/source_anchors") / "INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.pdf"
+    if anchor_path.exists() and binary_path.exists():
         assert result["status"] == "PASS"
     else:
         assert result["status"] == "FAIL"
