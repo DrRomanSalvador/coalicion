@@ -1,0 +1,24 @@
+{
+  "schema": "TERRITORIAL_OBSERVATION_CONTRACT_V1",
+  "required_constituencies": 52,
+  "required_seats": 350,
+  "input_type": "explicit_constituency_poll_or_other_explicit_territorial_observation",
+  "allowed": [
+    "party_votes_by_constituency",
+    "party_vote_shares_by_constituency",
+    "territorial_draws_with_provenance"
+  ],
+  "forbidden": [
+    "national_poll_to_constituency_conversion",
+    "seat_reconstruction_from_national_shares",
+    "unverified_web_values",
+    "manual_overrides",
+    "silent_imputation"
+  ],
+  "promotion": {
+    "requires_source_evidence": true,
+    "requires_52_constituencies": true,
+    "requires_350_seats": true,
+    "requires_dhondt_status_ok": true
+  }
+}
