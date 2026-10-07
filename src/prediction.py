@@ -2,8 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, asdict
 from fractions import Fraction
-from statistics import mean
-from typing import Mapping
+from typing import Mapping, Sequence
 from .electoral import allocate
 
 @dataclass(frozen=True)
