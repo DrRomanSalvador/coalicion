@@ -23,3 +23,10 @@ def test_label_permutation_preserves_math():
 
 def test_enumerates_all_pairs_and_triple():
     assert list(enumerate_coalitions(["C","A","B"]))==[("A","B"),("A","C"),("B","C"),("A","B","C")]
+
+def test_report_preserves_non_universe_votes():
+    from scripts.generate_neutral_coalition_report import build_votes
+    rows=[{"name":"A","parties":{"X":600,"Y":250,"OTHER":150}}]
+    resolved={"X":{"X"},"Y":{"Y"}}
+    votes=build_votes(rows,resolved)
+    assert votes["A"] == {"X":600,"Y":250,"OTHER":150}
