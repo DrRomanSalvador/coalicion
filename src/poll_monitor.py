@@ -268,8 +268,9 @@ class PollMonitor:
 
     def _load_state(self) -> dict[str, Any]:
         if not self.state_path.exists():
-            return {"schema":"POLL_MONITOR_STATE_V1","poll_hashes":{},
-                    "source_hashes":{},"failure_hashes":{},"runs":0,"total_validated":0}
+            return {"schema":"POLL_MONITOR_STATE_V2","poll_hashes":{},
+                    "discovery_hashes":{},"source_hashes":{},"failure_hashes":{},
+                    "runs":0,"total_validated":0}
         return json.loads(self.state_path.read_text(encoding="utf-8"))
 
     def _save_raw(self, source_id: str, body: bytes) -> str:
@@ -300,8 +301,13 @@ class PollMonitor:
                 failures.append({"source_id":source["id"],"error":message})
         return polls, discoveries, failures
 
-    def detect_new(self, polls: Iterable[Poll]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-        new, changed = [], []
+    def detect_new(self, polls: Iterable[Poll], discoveries: Iterable[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+        new, changed, new_discoveries = [], [], []
+        for discovery in discoveries:
+            key = f"{discovery['source_id']}::{discovery['discovery_id']}"
+            if self.state["discovery_hashes"].get(key) != discovery.get("source_hash"):
+                self.state["discovery_hashes"][key] = discovery.get("source_hash")
+                new_discoveries.append(discovery)
         for poll in polls:
             h = poll_hash(poll)
             old = self.state["poll_hashes"].get(poll.poll_id)
@@ -311,9 +317,11 @@ class PollMonitor:
                 new.append(event)
             elif old != h:
                 changed.append(event)
-        return new, changed
+        return new, changed, new_discoveries
 
-    def save(self, payload: dict[str, Any]) -> Path:
+    def save(self, payload: dict[str, Any], *, meaningful: bool) -> Path | None:
+        if not meaningful:
+            return None
         SURVEYS.mkdir(parents=True, exist_ok=True)
         stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         path = SURVEYS / f"polls_{stamp}.json"
@@ -327,6 +335,7 @@ class PollMonitor:
         self.state["last_status"] = payload["status"]
         self.state["last_new"] = len(payload["new_polls"])
         self.state["last_changed"] = len(payload["changed_polls"])
+        self.state["last_discoveries"] = len(payload["discoveries"])
         self.state["last_failures"] = payload["failures"]
         self.state_path.parent.mkdir(parents=True, exist_ok=True)
         self.state_path.write_text(json.dumps(self.state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -373,17 +382,18 @@ class PollMonitor:
     def run(self) -> dict[str, Any]:
         checked = datetime.now(timezone.utc).isoformat()
         polls, discoveries, failures = self.fetch_all()
-        new, changed = self.detect_new(polls)
+        new, changed, new_discoveries = self.detect_new(polls, discoveries)
         payload = {
             "schema":"POLL_MONITOR_V2","checked_at":checked,
             "status":"BLOCKED" if failures and not polls and not discoveries else
                      ("ALERT" if new or changed else "READY"),
             "found_polls":len(polls),"new_polls":new,"changed_polls":changed,
-            "discoveries":discoveries,"failures":failures,
+            "discoveries":new_discoveries,"failures":failures,
             "descriptive_only":True,
             "seat_projection":"BLOCKED_NO_TERRITORIAL_INPUT",
         }
-        path = self.save(payload)
+        meaningful = bool(new or changed or new_discoveries or failures)
+        path = self.save(payload, meaningful=meaningful)
         print(f"Encontradas {len(polls)} encuestas validadas")
         print(f"{len(new)+len(changed)} encuestas nuevas/cambiadas")
         print(f"Guardado en {path}")
