@@ -86,3 +86,25 @@ def test_validate_poll_accepts_published_subset_without_manufacturing_residual()
                 {"PP":31.6,"PSOE":27.4,"VOX":18.4,"SUMAR":5.6,"PODEMOS":2.7})
     ok, reason = validate_poll(poll)
     assert ok and reason == "OK"
+
+
+def test_coverage_contract_blocks_unstructured_primary_sources():
+    from src.poll_monitor import PollMonitor
+    monitor = PollMonitor.__new__(PollMonitor)
+    monitor.config = {"coverage_contract":{"scope":"configured_national_poll_universe"},
+                      "sources":[{"id":"primary","coverage_role":"primary","format":"page"}]}
+    monitor.state = {"source_status":{"primary":{"status":"OK"}}}
+    result = monitor.audit_coverage([], [])
+    assert result["total"] is False
+    assert "PRIMARY_WITHOUT_STRUCTURED_EXTRACTOR:primary" in result["blockers"]
+
+
+def test_coverage_contract_can_reach_total_for_structured_healthy_sources():
+    from src.poll_monitor import PollMonitor
+    monitor = PollMonitor.__new__(PollMonitor)
+    monitor.config = {"coverage_contract":{"scope":"configured_national_poll_universe"},
+                      "sources":[{"id":"primary","coverage_role":"primary","format":"national_html"}]}
+    monitor.state = {"source_status":{"primary":{"status":"OK"}}}
+    result = monitor.audit_coverage([], [])
+    assert result["total"] is True
+    assert result["claim"] == "COBERTURA_TOTAL_VERIFICADA"
