@@ -1,0 +1,20 @@
+{
+  "schema": "HISTORICAL_DATA_MATERIALIZATION_V5",
+  "status": "PASS_WITH_EXPLICIT_LIMITATIONS",
+  "scope": "Spain; national snapshot only",
+  "canonical_primary_download": "NOT_ACQUIRED_IN_EXECUTION_ENVIRONMENT",
+  "official_reproduction": "Dato Electoral reproduces Ministerio del Interior Elecciones-Congreso.xlsx",
+  "results_rows": 28,
+  "poll_rows": 28,
+  "coverage_elections": 8,
+  "sha256": {
+    "results": "a86cbab4a592fe3d26ee2f46fb5c8080bb068239f18d9079ebd581437029caab"
+  },
+  "certification_gate": {
+    "official_primary_direct": "NOT_PASS",
+    "official_reproduced_primary": "PASS",
+    "cis_official_published_estimates": "PASS",
+    "synthetic_values": "PROHIBITED",
+    "future_leakage": "PASS"
+  }
+}
