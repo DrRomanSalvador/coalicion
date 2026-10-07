@@ -47,7 +47,8 @@ jobs:
           python -m unittest discover -s tests -p "test_*.py" > artifacts/queue/hardening_tests.log 2>&1
           rc=$?
           cat artifacts/queue/hardening_tests.log
-          printf '%s\n' "$rc" > artifacts/queue/hardening_tests.exit
+          printf '%s
+' "$rc" > artifacts/queue/hardening_tests.exit
           exit "$rc"
       - name: Adquirir y validar matriz 2023
         run: python scripts/acquire_2023_matrix.py
