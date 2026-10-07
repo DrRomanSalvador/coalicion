@@ -89,7 +89,8 @@ jobs:
           assert all(r["nivel_fuente"]=="PRIMARY_OFFICIAL" for r in rows)
           assert all(r["nivel_fuente"]=="PRIMARY_OFFICIAL_MICRODATA" for r in poll_rows)
           manifest={
-            "schema":"HISTORICAL_DATA_MATERIALIZATION_V1","status":"PASS",\n            "scope_note":"Spain general elections present in official Interior workbook; 2023 general election is 2023-07-23 (no 2023N election).",
+            "schema":"HISTORICAL_DATA_MATERIALIZATION_V1","status":"PASS",
+            "scope_note":"Spain general elections present in official Interior workbook; 2023 general election is 2023-07-23 (no 2023N election).",
             "official_results":{"path":str(elections),"sha256":hashlib.sha256(elections.read_bytes()).hexdigest(),"rows":len(rows),"elections":sorted(got)},
             "cis_surveys":{"path":str(polls),"sha256":hashlib.sha256(polls.read_bytes()).hexdigest(),"rows":len(poll_rows),"studies":len({r["codigo_estudio"] for r in poll_rows})}
           }
