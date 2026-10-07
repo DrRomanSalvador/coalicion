@@ -43,7 +43,7 @@ jobs:
           mkdir -p ci_evidence
           python -m pytest -q > ci_evidence/pytest.log 2>&1 || true
           python -m src.reproducibility_contract > ci_evidence/reproducibility_contract.json 2>&1 || true
-          printf 'contract=%s\ntests=%s\n' "\${CONTRACT}" "\${TESTS}" > ci_evidence/test_outcomes.txt
+          printf 'contract=%s\ntests=%s\n' "${{ steps.contract.outcome }}" "${{ steps.tests.outcome }}" > ci_evidence/test_outcomes.txt
       - name: Publicar artifacts de tests
         if: always()
         uses: actions/upload-artifact@v4
@@ -88,6 +88,11 @@ PY
       - name: Ejecutar auditoría 2023
         if: steps.official.outcome == 'success'
         run: python scripts/audit_2023.py
+      - name: Capturar diagnóstico de auditoría
+        if: always()
+        run: |
+          mkdir -p .audit_2023
+          printf 'official=%s\n' "${{ steps.official.outcome }}" > .audit_2023/job_outcome.txt
       - name: Publicar evidencia
         if: always()
         uses: actions/upload-artifact@v4
