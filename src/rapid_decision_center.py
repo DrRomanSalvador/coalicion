@@ -166,8 +166,8 @@ def decision_snapshot(
             "input_hash": _hash({
                 "votes": votes_by_constituency,
                 "seats": seats_by_constituency,
-                "blank": blank,
-                "special": special,
+                "blank": {k: int(blank.get(k, 0)) for k in sorted(votes_by_constituency)},
+                "special": {k: special.get(k, "") for k in sorted(votes_by_constituency)},
                 "share_changes": share_changes or {},
                 "turnout_factors": turnout_factors or {},
                 "coalitions": coalitions or [],
