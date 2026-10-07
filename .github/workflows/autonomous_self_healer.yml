@@ -1,8 +1,23 @@
-name: Autonomous workflow self-healer
+name: Autonomous repository self-healer
 
 on:
   workflow_run:
-    workflows: ["Autonomous poll monitor"]
+    workflows:
+      - "Acquire and certify 2023 coalition matrix"
+      - "Activar Colmena"
+      - "Auditoria 2023 y suite SEEC"
+      - "Colmena reproducible"
+      - "Exhaustive fail-closed validation"
+      - "Force workflow dispatcher"
+      - "Historical data — canonical integration"
+      - "Historical Spain data materialization"
+      - "Inspect official Interior download transport"
+      - "Materializar fuentes oficiales"
+      - "Neutral coalition tests"
+      - "Autonomous poll monitor"
+      - "Product Layer Tests"
+      - "Product pipeline 2026"
+      - "Reproducibility and Product Verification"
     types: [completed]
 
 permissions:
@@ -26,7 +41,7 @@ jobs:
           FAILED_RUN_ID: ${{ github.event.workflow_run.id }}
           FAILED_SHA: ${{ github.event.workflow_run.head_sha }}
           RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
-          WORKFLOW_FILE: poll_monitor.yml
+          WORKFLOW_ID: ${{ github.event.workflow_run.workflow_id }}
         shell: bash
         run: |
           set -euo pipefail
@@ -38,11 +53,11 @@ jobs:
           fi
 
           current_sha="$(gh api "repos/$REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          workflow_file="$(gh api "repos/$REPOSITORY/actions/workflows/$WORKFLOW_ID" --jq '.path')"
 
           if [ "$FAILED_SHA" != "$current_sha" ]; then
-            echo "AUTO-HEAL: la ejecución falló sobre SHA antiguo $FAILED_SHA."
-            echo "AUTO-HEAL: main ya está en $current_sha; lanzando el monitor con el código actual."
-            gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "repos/$REPOSITORY/actions/workflows/$WORKFLOW_FILE/dispatches" -f ref=main
+            echo "AUTO-HEAL: ejecución antigua; relanzando $workflow_file sobre main=$current_sha."
+            gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "repos/$REPOSITORY/actions/workflows/$workflow_file/dispatches" -f ref=main
             echo "AUTO-HEAL: nueva ejecución lanzada sobre main."
             exit 0
           fi
