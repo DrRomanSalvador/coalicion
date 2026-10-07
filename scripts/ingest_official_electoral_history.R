@@ -53,20 +53,6 @@ download_candidate <- function(url, destination) {
       py_status <- system2(py, c("-c", py_code, url, tmp))
       ok <- identical(py_status, 0L) && file.exists(tmp) && file.info(tmp)$size > 10000
     }
-  # The Interior endpoint can expose an incomplete TLS chain on hosted CI.
-  # Keep the exact official URL; if verified HTTPS fails, use transport-only
-  # fallback and enforce XLSX magic bytes plus downstream schema validation.
-  if (!ok && nzchar(curl_bin)) {
-    if (file.exists(tmp)) unlink(tmp)
-    status_insecure <- system2(curl_bin, c(
-      "-fL", "--retry", "3", "--retry-all-errors", "--connect-timeout", "30",
-      "--max-time", "900", "--insecure",
-      "-A", "Mozilla/5.0-coalicion-historical-ingest/2.1",
-      "-o", tmp, url
-    ))
-    ok <- identical(status_insecure, 0L) && file.exists(tmp) && file.info(tmp)$size > 10000
-    }
-  }
   if (ok) {
     con <- file(tmp, "rb"); on.exit(close(con), add=TRUE)
     magic <- readBin(con, "raw", n=4)
