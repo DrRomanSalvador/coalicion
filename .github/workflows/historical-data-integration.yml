@@ -53,8 +53,9 @@ jobs:
         env:
           INTERIOR_XLSX_URL: https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx
         run: |
+          python -m pip install --disable-pip-version-check --quiet certifi
           python - <<'PY'
-          import os, ssl, time, urllib.request
+          import os, ssl, time, urllib.request, certifi
           from pathlib import Path
           url = os.environ["INTERIOR_XLSX_URL"]
           dst = Path("data/raw/Elecciones-Congreso.xlsx")
@@ -63,7 +64,7 @@ jobs:
           last = None
           for attempt in range(1, 4):
               try:
-                  with urllib.request.urlopen(req, timeout=120, context=ssl.create_default_context()) as r:
+                  with urllib.request.urlopen(req, timeout=120, context=ssl.create_default_context(cafile=certifi.where())) as r:
                       data = r.read()
                   if len(data) <= 1000 or not data.startswith(b"PK"):
                       raise RuntimeError("official response is not a valid XLSX payload")
