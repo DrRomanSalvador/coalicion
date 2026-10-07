@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from src.coalition_decision_engine import CoalitionDecisionEngine, CoalitionScenario
+from src.coalition_matrix import load_2023_matrix
 
 
 def main() -> None:
@@ -21,6 +22,7 @@ def main() -> None:
     parser.add_argument("--input", required=True, help="JSON con seats y escenarios")
     parser.add_argument("--parties", nargs="+", required=True,
                         help="Universo de candidaturas observadas")
+    parser.add_argument("--matrix-2023", action="store_true")
     parser.add_argument("--min-size", type=int, default=2)
     parser.add_argument("--max-size", type=int, default=None)
     parser.add_argument("--max-combinations", type=int, default=100_000)
@@ -28,6 +30,10 @@ def main() -> None:
     args = parser.parse_args()
 
     source = json.loads(Path(args.input).read_text(encoding="utf-8"))
+    if args.matrix_2023:
+        matrix = load_2023_matrix()
+        source["seats"] = matrix["seats"]
+        source["matrix_2023_source"] = matrix["source"]
     scenarios = [
         CoalitionScenario(
             name=s["name"],
