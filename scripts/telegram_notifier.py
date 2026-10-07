@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Send neutral new-poll alerts through the Telegram Bot API."""
+"""Send Telegram alerts to the chat that initiated the bot conversation."""
 from __future__ import annotations
 
 import json
@@ -35,13 +35,18 @@ def build_message(report):
                 "Estimación publicada: "
                 + ", ".join(f"{k} {v:g}%" for k, v in sorted(parties.items()))
             )
-            # National sums are descriptive vote-share arithmetic only.
-            # Never label them as seat or electoral projections.
             for coalition in SCENARIOS:
                 members = [p for p in coalition if p in parties]
                 total = sum(float(parties[p]) for p in members)
-                lines.append("Voto nacional conjunto (" + " + ".join(members) + "): " + f"{total:g}%")
-            lines.append("Proyección de escaños: BLOQUEADA — faltan datos territoriales verificables.")
+                lines.append(
+                    "Voto nacional conjunto ("
+                    + " + ".join(members)
+                    + f"): {total:g}%"
+                )
+            lines.append(
+                "Proyección de escaños: BLOQUEADA — "
+                "faltan datos territoriales verificables."
+            )
     return "\n".join(lines)[:4090]
 
 
@@ -62,10 +67,9 @@ def _telegram_request(token, method, data=None):
             payload = json.loads(body)
         except json.JSONDecodeError:
             payload = {}
-        description = payload.get("description") or f"HTTP {exc.code}"
         raise RuntimeError(
             f"BLOCKED: Telegram {method} rejected the request: "
-            f"HTTP {exc.code}: {description}"
+            f"HTTP {exc.code}: {payload.get('description', 'unknown error')}"
         ) from exc
     except urllib.error.URLError as exc:
         raise RuntimeError(
@@ -80,54 +84,91 @@ def _telegram_request(token, method, data=None):
     return payload["result"]
 
 
+def resolve_initiating_chat(token):
+    """Resolve the private chat from Telegram's incoming message.chat.id."""
+    updates = _telegram_request(
+        token,
+        "getUpdates",
+        {"limit": "100", "allowed_updates": json.dumps(["message"])},
+    )
+
+    candidates = []
+    for update in updates:
+        message = update.get("message") or {}
+        chat = message.get("chat") or {}
+        sender = message.get("from") or {}
+        if chat.get("type") != "private":
+            continue
+        if chat.get("id") is None or sender.get("id") is None:
+            continue
+
+        candidates.append(
+            {
+                "update_id": int(update.get("update_id", 0)),
+                "chat_id": int(chat["id"]),
+                "user_id": int(sender["id"]),
+                "username": sender.get("username"),
+                "text": str(message.get("text") or "").strip(),
+            }
+        )
+
+    if not candidates:
+        raise RuntimeError(
+            "BLOCKED: no hay conversación privada entrante. "
+            "La persona debe abrir el bot y enviar /start."
+        )
+
+    starts = [
+        item for item in candidates
+        if item["text"].split()[0:1] == ["/start"]
+    ]
+    selected = max(starts or candidates, key=lambda item: item["update_id"])
+
+    print(
+        "Telegram destination resolved dynamically: "
+        f"user_id={selected['user_id']} chat_id={selected['chat_id']} "
+        f"username=@{selected['username'] or 'sin_username'}"
+    )
+    return selected["chat_id"]
+
+
 def send(text):
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
-    if not token or not chat_id:
-        raise RuntimeError("BLOCKED: Telegram secrets are required")
+    if not token:
+        raise RuntimeError("BLOCKED: TELEGRAM_BOT_TOKEN is required")
 
-    # getMe validates the bot token and lets us reject the common mistake
-    # of configuring the bot's own user id as the destination chat.
-    bot = _telegram_request(token, "getMe")
-    bot_id = str(bot.get("id", ""))
-    if chat_id == bot_id:
-        # Resolve the real private chat from the user's /start update.
-        # This avoids requiring an external user-info bot.
-        target_username = os.environ.get(
-            "TELEGRAM_TARGET_USERNAME", "DrRomanSalvador"
-        ).lstrip("@").lower()
-        updates = _telegram_request(
-            token,
-            "getUpdates",
-            {"limit": "20", "allowed_updates": json.dumps(["message"])},
-        )
-        candidates = []
-        for update in updates:
-            message = update.get("message") or {}
-            chat = message.get("chat") or {}
-            user = message.get("from") or {}
-            if chat.get("type") != "private":
-                continue
-            username = str(user.get("username") or chat.get("username") or "").lower()
-            if username == target_username and chat.get("id") is not None:
-                candidates.append(str(chat["id"]))
-        if not candidates:
-            raise RuntimeError(
-                "BLOCKED: Telegram bot is configured as the destination and "
-                f"no private chat update was found for @{target_username}. "
-                "Open the bot, press Start, and send /start again."
-            )
-        chat_id = candidates[-1]
-        print(
-            f"Telegram destination resolved from @{target_username}: "
-            f"private chat id {chat_id}"
-        )
+    # TELEGRAM_CHAT_ID is optional. If absent, resolve the destination from
+    # the incoming Telegram message, never from a hard-coded user id.
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID") or resolve_initiating_chat(token)
 
     return _telegram_request(
         token,
         "sendMessage",
         {
-            "chat_id": chat_id,
+            "chat_id": str(chat_id),
+            "text": text,
+            "disable_web_page_preview": "true",
+        },
+    )
+
+
+def reply_to_update(update, text):
+    """Reply to exactly the same chat that produced this incoming update."""
+    message = update.get("message") or {}
+    chat = message.get("chat") or {}
+    chat_id = chat.get("id")
+    if chat_id is None:
+        raise RuntimeError("BLOCKED: incoming Telegram update has no chat.id")
+
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    if not token:
+        raise RuntimeError("BLOCKED: TELEGRAM_BOT_TOKEN is required")
+
+    return _telegram_request(
+        token,
+        "sendMessage",
+        {
+            "chat_id": str(chat_id),
             "text": text,
             "disable_web_page_preview": "true",
         },
