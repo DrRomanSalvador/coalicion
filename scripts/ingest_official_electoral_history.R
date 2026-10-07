@@ -161,3 +161,5 @@ if (nrow(bad))
 
 readr::write_csv(result, "data/resultados_oficiales_2004_2023.csv")
 message("Wrote ", nrow(result), " official constituency-party rows from ", official_url)
+
+# Re-run with current official workbook endpoint.
