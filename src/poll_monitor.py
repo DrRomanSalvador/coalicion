@@ -57,6 +57,7 @@ class Poll:
     fieldwork_end: str | None = None
     sample_size: int | None = None
     methodology: str | None = None
+    territorial: dict[str, dict[str, int]] | None = None
     validation: str = "VALIDATED"
 
 def normalize_party_name(name: str) -> str:
@@ -69,7 +70,7 @@ def poll_hash(poll: Poll) -> str:
         "pollster": poll.pollster, "source_id": poll.source_id,
         "source_url": poll.source_url, "parties": dict(sorted(poll.parties.items())),
         "fieldwork_start": poll.fieldwork_start, "fieldwork_end": poll.fieldwork_end,
-        "sample_size": poll.sample_size, "methodology": poll.methodology,
+        "sample_size": poll.sample_size, "methodology": poll.methodology, "territorial": poll.territorial,
     }
     return hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True,
                                      separators=(",", ":")).encode()).hexdigest()
@@ -307,6 +308,7 @@ def parse_electomania_json(body: bytes, source: dict[str, Any]) -> list[Poll]:
             fieldwork_start=raw.get("fieldwork_start"), fieldwork_end=raw.get("fieldwork_end"),
             sample_size=raw.get("sample_size"),
             methodology=raw.get("methodology"),
+            territorial=raw.get("territorial"),
         )
         ok, _ = validate_poll(poll)
         if ok:
