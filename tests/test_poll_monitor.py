@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from src.poll_monitor import Poll, normalize_party_name, poll_hash, validate_poll, parse_rss_metadata, parse_dato_electoral, parse_national_html
+from src.poll_monitor import Poll, normalize_party_name, poll_hash, poll_identity, validate_poll, parse_rss_metadata, parse_dato_electoral, parse_national_html
 
 def valid_poll():
     return Poll("p1","2026-10-07","Demo","x","https://example.test",
@@ -118,3 +118,37 @@ def test_coverage_manifest_is_structurally_valid():
     assert all("id" in s and "url" in s and "format" in s for s in active)
     assert len({s["id"] for s in active}) == len(active)
     assert cfg["sources"][-1]["url"].endswith("/tweets")
+
+
+def test_poll_identity_ignores_source_and_values():
+    a = valid_poll()
+    b = Poll(a.poll_id, a.publication_date, a.pollster, "mirror", "https://mirror.test",
+             {**a.parties, "PP": 24.0}, a.fieldwork_start, a.fieldwork_end, a.sample_size, a.methodology)
+    assert poll_identity(a) == poll_identity(b)
+
+
+def test_replica_is_preserved_but_not_reported_as_new():
+    from src.poll_monitor import PollMonitor
+    monitor = PollMonitor.__new__(PollMonitor)
+    monitor.state = {"poll_hashes": {}, "poll_identities": {}, "discovery_hashes": {}}
+    first = valid_poll()
+    second = Poll(first.poll_id + "-mirror", first.publication_date, first.pollster, "mirror",
+                  "https://mirror.test", first.parties, first.fieldwork_start, first.fieldwork_end,
+                  first.sample_size, first.methodology)
+    new, changed, discoveries = monitor.detect_new([first, second], [])
+    assert len(new) == 1
+    assert changed == []
+    assert monitor.state["poll_hashes"][second.poll_id]
+    assert "replica_of" in monitor.state.get("last_replica", {}) or monitor.state["poll_identities"]
+
+
+def test_coverage_blocks_failed_source_and_status_cannot_be_ready():
+    from src.poll_monitor import PollMonitor
+    monitor = PollMonitor.__new__(PollMonitor)
+    monitor.config = {"coverage_contract":{"scope":"configured_national_poll_universe",
+                                           "require_zero_unresolved_discoveries": True},
+                      "sources":[{"id":"primary","coverage_role":"primary","format":"national_html"}]}
+    monitor.state = {"source_status":{"primary":{"status":"FAILED"}}}
+    result = monitor.audit_coverage([{"source_id":"primary","error":"timeout"}], [])
+    assert result["total"] is False
+    assert "SOURCE_NOT_HEALTHY:primary" in result["blockers"]

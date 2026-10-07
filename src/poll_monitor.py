@@ -77,6 +77,20 @@ def poll_hash(poll: Poll) -> str:
 def canonical_poll(poll: Poll) -> dict[str, Any]:
     return asdict(poll)
 
+def poll_identity(poll: Poll) -> str:
+    """Stable study identity independent of mirror/source and published values."""
+    payload = {
+        "pollster": re.sub(r"\s+", " ", poll.pollster.strip().upper()),
+        "publication_date": poll.publication_date,
+        "fieldwork_start": poll.fieldwork_start,
+        "fieldwork_end": poll.fieldwork_end,
+        "sample_size": poll.sample_size,
+        "methodology": poll.methodology,
+    }
+    return hashlib.sha256(json.dumps(
+        payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode()).hexdigest()
+
 def validate_poll(poll: Poll, *, min_parties: int = 5) -> tuple[bool, str]:
     if len(poll.parties) < min_parties:
         return False, "INSUFFICIENT_PARTY_VALUES"
@@ -367,11 +381,12 @@ class PollMonitor:
 
     def _load_state(self) -> dict[str, Any]:
         if not self.state_path.exists():
-            return {"schema":"POLL_MONITOR_STATE_V2","poll_hashes":{},
-                    "discovery_hashes":{},"source_hashes":{},"failure_hashes":{}, "failure_streaks": {}, "failure_reported": {},
+            return {"schema":"POLL_MONITOR_STATE_V3","poll_hashes":{},
+                    "poll_identities":{},"discovery_hashes":{},"source_hashes":{},"failure_hashes":{},
+                    "failure_streaks": {}, "failure_reported": {},
                     "runs":0,"total_validated":0,"baseline_completed":False}
         state = json.loads(self.state_path.read_text(encoding="utf-8"))
-        for key, default in {"poll_hashes": {}, "discovery_hashes": {}, "source_hashes": {}, "failure_hashes": {}, "runs": 0, "total_validated": 0, "baseline_completed": False}.items():
+        for key, default in {"poll_hashes": {}, "poll_identities": {}, "discovery_hashes": {}, "source_hashes": {}, "failure_hashes": {}, "runs": 0, "total_validated": 0, "baseline_completed": False}.items():
             state.setdefault(key, default)
         return state
 
@@ -442,15 +457,27 @@ class PollMonitor:
                 self.state["discovery_hashes"][key] = fingerprint
                 if discovery.get("alertable", False):
                     new_discoveries.append(discovery)
+        identities = self.state.setdefault("poll_identities", {})
         for poll in polls:
             h = poll_hash(poll)
+            identity = poll_identity(poll)
             old = self.state["poll_hashes"].get(poll.poll_id)
+            event = {"poll":canonical_poll(poll),"poll_hash":h,"previous_poll_hash":old,
+                     "poll_identity":identity}
+            if old is not None:
+                self.state["poll_hashes"][poll.poll_id] = h
+                identities[identity] = poll.poll_id
+                if old != h:
+                    changed.append(event)
+                continue
+            replica_of = identities.get(identity)
+            if replica_of and replica_of != poll.poll_id:
+                event["replica_of"] = replica_of
+                self.state["poll_hashes"][poll.poll_id] = h
+                continue
             self.state["poll_hashes"][poll.poll_id] = h
-            event = {"poll":canonical_poll(poll),"poll_hash":h,"previous_poll_hash":old}
-            if old is None:
-                new.append(event)
-            elif old != h:
-                changed.append(event)
+            identities[identity] = poll.poll_id
+            new.append(event)
         return new, changed, new_discoveries
 
     def audit_coverage(self, failures: list[dict[str, Any]], discoveries: list[dict[str, Any]]) -> dict[str, Any]:
@@ -459,14 +486,21 @@ class PollMonitor:
         blockers: list[str] = []
         statuses = self.state.get("source_status", {})
         failed_ids = {f["source_id"] for f in failures}
+        structured = {"national_html", "datoelectoral_html", "electomania_json"}
         for source in sources:
             sid = source["id"]
             if source.get("optional"):
                 continue
             if sid in failed_ids or statuses.get(sid, {}).get("status") != "OK":
                 blockers.append(f"SOURCE_NOT_HEALTHY:{sid}")
-            if source.get("coverage_role") == "primary" and source.get("format", "page") == "page":
+            if source.get("coverage_role") == "primary" and source.get("format", "page") not in structured:
                 blockers.append(f"PRIMARY_WITHOUT_STRUCTURED_EXTRACTOR:{sid}")
+        unresolved = [
+            d.get("discovery_id") for d in discoveries
+            if d.get("validation") in {"DISCOVERY_ONLY", "UNVERIFIED", "PENDING"}
+        ]
+        if self.config.get("coverage_contract", {}).get("require_zero_unresolved_discoveries") and unresolved:
+            blockers.append(f"UNRESOLVED_DISCOVERIES:{len(unresolved)}")
         unclassified = [s["id"] for s in sources if s.get("coverage_role") not in {"primary", "discovery", "optional"}]
         if unclassified:
             blockers.append("UNCLASSIFIED_SOURCES:" + ",".join(unclassified))
@@ -611,14 +645,15 @@ class PollMonitor:
         baseline = not self.state.get("baseline_completed", False)
         polls, discoveries, failures = self.fetch_all()
         new, changed, new_discoveries = self.detect_new(polls, discoveries)
+        coverage = self.audit_coverage(failures, discoveries)
+        if baseline and coverage["total"]:
+            self.state["baseline_completed"] = True
         if baseline:
             new, changed, new_discoveries = [], [], []
-            self.state["baseline_completed"] = True
-        coverage = self.audit_coverage(failures, discoveries)
         payload = {
             "schema":"POLL_MONITOR_V3","checked_at":checked,
             "coverage": coverage,
-            "status":"BLOCKED" if failures else ("ALERT" if new or changed else "READY"),
+            "status":"BLOCKED" if not coverage["total"] else ("ALERT" if new or changed else "READY"),
             "found_polls":len(polls),"new_polls":new,"changed_polls":changed,
             "discoveries":new_discoveries,"failures":failures,
             "descriptive_only":True,
