@@ -1,0 +1,43 @@
+{
+  "schema": "ELECTORAL_ALERTS_V1",
+  "version": "1.0",
+  "scope": "ELECCIONES_GENERALES_2026_CONGRESO",
+  "election_date": "2026-11-29",
+  "official_source": "BOE-A-2026-20742",
+  "alert_domains": [
+    "calendar_deadlines",
+    "national_vote_and_seat_changes",
+    "territorial_marginality",
+    "coalition_counterfactuals",
+    "uncertainty_width",
+    "source_health",
+    "data_integrity"
+  ],
+  "thresholds": {
+    "national_vote_share_absolute": 0.005,
+    "national_seat_absolute": 1,
+    "marginality_votes_to_change_absolute": 25,
+    "uncertainty_seat_interval_width": 1
+  },
+  "delivery_policy": {
+    "telegram_is_transport_only": true,
+    "core_engine_must_not_depend_on_telegram": true,
+    "send_only_validated_alerts": true,
+    "include_evidence_reference": true,
+    "include_as_of_timestamp": true,
+    "no_recommendations": true,
+    "no_rankings": true,
+    "no_outcome_probability_claims": true,
+    "no_national_to_territorial_inference": true
+  },
+  "required_report_sections": [
+    "what_changed",
+    "where",
+    "magnitude",
+    "electoral_effect_if_calculable",
+    "uncertainty",
+    "source_and_evidence",
+    "calendar_deadlines",
+    "open_blockers"
+  ]
+}
