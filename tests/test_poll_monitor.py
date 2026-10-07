@@ -44,3 +44,18 @@ def test_poll_monitor_module_loads_config():
     cfg=json.loads(Path("config/poll_monitor.json").read_text())
     assert cfg["policy"]["fail_closed"] is True
     assert len(cfg["sources"]) >= 10
+
+def test_validate_poll_rejects_impossible_calendar_date():
+    poll = Poll("bad-date","2026-02-30","Demo","x","https://example.test",
+                {"PSOE":31.0,"PP":25.0,"VOX":16.0,"SUMAR":6.0,"PODEMOS":4.0,
+                 "ERC":2.0,"JUNTS":2.0,"BNG":1.0,"OTROS PARTIDOS":13.0})
+    assert validate_poll(poll) == (False, "INVALID_PUBLICATION_DATE")
+
+def test_page_fingerprint_is_not_an_election_alert():
+    from src.poll_monitor import SourceMonitor
+    import requests
+    monitor = SourceMonitor({"id":"page","url":"https://example.test","format":"page"}, requests.Session())
+    polls, discoveries = monitor.parse(b"changed page")
+    assert polls == []
+    assert discoveries[0]["validation"] == "PAGE_FINGERPRINT_ONLY"
+    assert discoveries[0]["alertable"] is False
