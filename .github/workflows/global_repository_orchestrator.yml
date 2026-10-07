@@ -85,7 +85,7 @@ jobs:
           #    with required manual inputs are deliberately skipped.
           while IFS=$'\t' read -r workflow_id workflow_path workflow_name; do
             case "$workflow_path" in
-              .github/workflows/global_repository_orchestrator.yml|.github/workflows/autonomous_self_healer.yml|.github/workflows/force_workflow.yml)
+              .github/workflows/global_repository_orchestrator.yml|.github/workflows/autonomous_self_healer.yml|.github/workflows/force_workflow.yml|.github/workflows/historical-data-integration.yml)
                 continue
                 ;;
             esac
