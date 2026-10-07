@@ -10,10 +10,15 @@ missing <- required[!vapply(required, requireNamespace, logical(1), quietly=TRUE
 if (length(missing)) stop("Missing R packages: ", paste(missing, collapse=", "))
 dir.create("data", showWarnings=FALSE, recursive=TRUE)
 
-queries <- c("barometro","preelectoral","postelectoral")
-studies <- dplyr::bind_rows(lapply(queries, function(q)
-  opencis::search_all_cis(q=q, from="2004-01-01", to="2023-12-31",
-                          sort="publishDate+", catalogo="estudio"))) |>
+queries <- c("barometro","preelectoral","postelectoral","elecciones generales")
+search_complete <- function(q) {
+  x <- opencis::search_all_cis(q=q, from="2004-01-01", to="2023-12-31",
+                               sort="publishDate+", catalogo="estudio")
+  complete <- attr(x, "complete")
+  if (!isTRUE(complete)) stop("FAIL-CLOSED: incomplete CIS catalog response for query: ", q)
+  x
+}
+studies <- dplyr::bind_rows(lapply(queries, search_complete)) |>
   dplyr::distinct(study, .keep_all=TRUE) |>
   dplyr::filter(date >= as.Date("2004-01-01"), date <= as.Date("2023-12-31")) |>
   dplyr::arrange(date, study)
