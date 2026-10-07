@@ -13,7 +13,7 @@ if str(ROOT) not in sys.path:
 
 from scripts.integrate_2023_calculator import load_matrix
 from src.coalition_reports import (
-    REQUESTED_IDENTITIES, baseline_seats, build_scenario,
+    DEFAULT_REPORT_IDENTITIES, baseline_seats, build_scenario,
     markdown_all, markdown_executive, pairwise_report, supported_parties,
 )
 
@@ -28,7 +28,7 @@ def main() -> None:
     data = matrix["data"]["constituencies"]
     if len(data) != 52 or sum(c["seats"] for c in data.values()) != 350:
         raise SystemExit("MATRIX_FAIL_CLOSED: 52 circunscripciones y 350 escaños son obligatorios")
-    selected, unsupported = supported_parties(matrix, args.parties or REQUESTED_IDENTITIES)
+    selected, unsupported = supported_parties(matrix, args.parties or DEFAULT_REPORT_IDENTITIES)
     if len(selected) < 2:
         raise SystemExit("MATRIX_FAIL_CLOSED: menos de dos candidaturas separables")
 
