@@ -117,6 +117,10 @@ def build_model(
 
     party_idx = {p: i for i, p in enumerate(parties)}
     prov_idx = {p: i for i, p in enumerate(provinces)}
+    if any(x.party not in party_idx for x in historical):
+        raise ValueError("observación histórica con partido fuera del universo")
+    if any(x.province not in prov_idx for x in historical):
+        raise ValueError("observación histórica con provincia fuera del universo")
 
     polls: dict[str, list[SurveyRow]] = {}
     for row in surveys:
@@ -136,6 +140,8 @@ def build_model(
     if any(len({r.field_date for r in rows}) != 1 for rows in polls.values()):
         raise ValueError("una encuesta debe tener una única field_date")
     for poll_id, rows in polls.items():
+        if len({r.house for r in rows}) != 1:
+            raise ValueError(f"encuesta {poll_id}: debe tener una única casa")
         _survey_counts(parties, rows)
 
     houses = sorted({s.house for s in surveys})
