@@ -25,11 +25,9 @@ jobs:
         run: python -m src.colmena_resume
       - name: Contrato reproducible
         id: contract
-        continue-on-error: true
         run: python -m src.reproducibility_contract
       - name: Suite contractual
         id: tests
-        continue-on-error: true
         run: pytest -q tests/test_reproducibility_contract.py tests/test_error_registry.py tests/test_colmena_resume.py tests/test_product_contract.py tests/test_resume_error_registry_consistency.py
       - name: Resultado del gate
         if: always()
