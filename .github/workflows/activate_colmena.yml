@@ -23,7 +23,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: colmena-2023
+  group: colmena-neutral-2023-v2
   cancel-in-progress: true
 
 jobs:
