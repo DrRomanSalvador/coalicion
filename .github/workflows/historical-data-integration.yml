@@ -49,17 +49,13 @@ jobs:
           python-version: "3.12"
 
       - name: Setup R
-        timeout-minutes: 10
-        shell: bash
+        timeout-minutes: 8
         run: |
           set -euxo pipefail
-          if command -v Rscript >/dev/null 2>&1; then
-            Rscript --version
-            exit 0
+          if ! command -v Rscript >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y r-base r-base-dev
           fi
-          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list /etc/apt/sources.list.d/*.sources 2>/dev/null || true
-          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update
-          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y r-base r-base-dev
           Rscript --version
 
       - name: Install system libraries
