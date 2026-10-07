@@ -34,7 +34,8 @@ jobs:
           set -euo pipefail
           mkdir -p ci_evidence
           cp data/manifests/INTERIOR_ACQUISITION.json ci_evidence/interior_acquisition.json
-          printf 'PRIMARY_INTERIOR\n' > ci_evidence/historico_source_tier.txt
+          printf 'PRIMARY_INTERIOR
+' > ci_evidence/historico_source_tier.txt
       - name: Commit primary materialization
         run: |
           set -euo pipefail
@@ -46,7 +47,9 @@ jobs:
           from pathlib import Path
           p=Path(".github/workflows/primary-interior-materialization.yml")
           s=p.read_text()
-          s=s.replace('  schedule:\n    - cron: "*/5 * * * *"\n','')
+          s=s.replace('  schedule:
+    - cron: "*/5 * * * *"
+','')
           p.write_text(s)
           PY
           git add .github/workflows/primary-interior-materialization.yml
