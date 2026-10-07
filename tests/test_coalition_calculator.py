@@ -27,7 +27,7 @@ def test_all_constituencies_are_analyzed():
     result = engine.analyze_coalition(
         ("P1", "P2"),
         [CoalitionScenario("central", {
-            "A": {"P1": 500, "P2": 301, "P3": 199},
+            "A": {"P1": 600, "P2": 20, "P3": 380},
             "B": {"P1": 500, "P2": 301, "P3": 199},
         })],
     )
