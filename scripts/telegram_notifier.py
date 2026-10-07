@@ -88,11 +88,38 @@ def send(text):
     bot = _telegram_request(token, "getMe")
     bot_id = str(bot.get("id", ""))
     if chat_id == bot_id:
-        raise RuntimeError(
-            "BLOCKED: TELEGRAM_CHAT_ID is the bot's own user id. "
-            "Set TELEGRAM_CHAT_ID to the real destination chat id "
-            "(private chat, group, or channel), not the bot id."
+        # Resolve the real private chat from the user's /start update.
+        # This avoids requiring an external user-info bot.
+        target_username = os.environ.get(
+            "TELEGRAM_TARGET_USERNAME", "DrRomanSalvador"
+        ).lstrip("@").lower()
+        updates = _telegram_request(
+            token,
+            "getUpdates",
+            {"limit": "20", "allowed_updates": json.dumps(["message"])},
         )
+        candidates = []
+        for update in updates:
+            message = update.get("message") or {}
+            chat = message.get("chat") or {}
+            user = message.get("from") or {}
+            if chat.get("type") != "private":
+                continue
+            username = str(user.get("username") or chat.get("username") or "").lower()
+            if username == target_username and chat.get("id") is not None:
+                candidates.append(str(chat["id"]))
+        if not candidates:
+            raise RuntimeError(
+                "BLOCKED: Telegram bot is configured as the destination and "
+                f"no private chat update was found for @{target_username}. "
+                "Open the bot, press Start, and send /start again."
+            )
+        chat_id = candidates[-1]
+        print(
+            f"Telegram destination resolved from @{target_username}: "
+            f"private chat id {chat_id}"
+        )
+
     return _telegram_request(
         token,
         "sendMessage",
