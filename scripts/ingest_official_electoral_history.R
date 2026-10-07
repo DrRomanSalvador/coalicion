@@ -3,7 +3,7 @@
 
 options(stringsAsFactors=FALSE)
 
-required <- c("readxl","dplyr","readr","tibble")
+required <- c("readxl","dplyr","readr","tibble","jsonlite")
 missing <- required[!vapply(required, requireNamespace, logical(1), quietly=TRUE)]
 if (length(missing)) stop("Missing R packages: ", paste(missing, collapse=", "))
 
