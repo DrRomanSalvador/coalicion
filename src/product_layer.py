@@ -159,17 +159,20 @@ def rank_coalitions(
     result = engine.analyze_all_coalitions(
         parties, scenarios, min_size, max_size, max_combinations
     )
+    # Presentación exhaustiva determinista, no recomendación.
     ranking = []
-    for position, item in enumerate(result["ranking"], 1):
+    for position, item in enumerate(result["all_coalitions"], 1):
+        robustness = item["robustness"]
+        risk = item["risk"]
         ranking.append({
             "position": position,
             "coalition": item["coalition"],
-            "separate_seats": item["separate"],
+            "separate_seats": item["separate_seats"],
             "coalition_seats": item["coalition_seats"],
-            "seat_delta": item["difference"],
-            "risk": _risk_text(item["risk"]),
-            "weighted_mean_delta": item["weighted_mean_difference"],
-            "worst_case_delta": item["worst_case_difference"],
+            "seat_delta": item["benefit"],
+            "risk": _risk_text(risk["level"]),
+            "weighted_mean_delta": robustness["weighted_mean_delta"],
+            "worst_case_delta": robustness["worst_case_delta"],
         })
     return _product_envelope(
         "ranking",
