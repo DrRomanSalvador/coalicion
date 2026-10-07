@@ -20,8 +20,13 @@ on:
       - "requirements.txt"
       - ".github/workflows/exhaustive_validation.yml"
 
+concurrency:
+  group: validate-main
+  cancel-in-progress: true
+
 jobs:
   validate:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
