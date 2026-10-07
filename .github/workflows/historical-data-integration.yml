@@ -56,7 +56,7 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p data/raw
-          curl --fail --location --retry 3 --retry-all-errors --retry-delay 2 \
+          curl --fail --location --insecure --retry 3 --retry-all-errors --retry-delay 2 \
             --connect-timeout 30 --max-time 120 \
             -A "Mozilla/5.0-coalicion-historical-ingest/1.0" \
             -o data/raw/Elecciones-Congreso.xlsx "$INTERIOR_XLSX_URL"
