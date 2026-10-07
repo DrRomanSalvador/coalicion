@@ -63,6 +63,51 @@ jobs:
           python -m pip install --disable-pip-version-check --no-input certifi requests beautifulsoup4 lxml pytest
           python -c 'import certifi; print(certifi.where())'
 
+      - name: Validate or acquire official Interior results
+        timeout-minutes: 30
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -d data/official_materialization_parts ] && [ "$(find data/official_materialization_parts -name "*.csv" | wc -l)" -eq 11 ]; then
+            if ! python scripts/materialize_official_history_from_parts.py; then
+              echo "Materialization parts incomplete/incompatible; falling back to primary Interior acquisition."
+            fi
+          fi
+          if [ -s data/resultados_oficiales_2004_2023.csv ] && [ -s data/manifests/INTERIOR_ACQUISITION.json ]; then
+            python - <<'PY'
+            import json
+            from pathlib import Path
+            m=json.loads(Path("data/manifests/INTERIOR_ACQUISITION.json").read_text(encoding="utf-8"))
+            assert m["status"] == "PASS"
+            assert m["source_tier"] == "PRIMARY_INTERIOR"
+            assert m["official_results"]["rows"] == 50700
+            assert len(m["official_results"]["elections"]) == 8
+            assert m["official_results"]["constituencies_per_election"] == 52
+            assert m["official_results"]["seats_per_election"] == 350
+            PY
+            echo "Using validated primary Interior materialization."
+          else
+            echo "Primary materialization unavailable; acquisition will run after R setup."
+          fi
+
+      - name: Materialize canonical historical manifest
+        if: ${{ hashFiles('data/resultados_oficiales_2004_2023.csv') != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          src=Path("data/manifests/INTERIOR_ACQUISITION.json")
+          dst=Path("data/manifests/HISTORICAL_DATA_MATERIALIZATION.json")
+          x=json.loads(src.read_text(encoding="utf-8"))
+          assert x["status"] == "PASS"
+          x["schema"]="HISTORICAL_DATA_MATERIALIZATION_V2"
+          x["source_tier"]="PRIMARY_INTERIOR"
+          x["official_results"]["csv"]="data/resultados_oficiales_2004_2023.csv"
+          dst.write_text(json.dumps(x,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          PY
+
       - name: Setup R
         uses: r-lib/actions/setup-r@v2
         with:
