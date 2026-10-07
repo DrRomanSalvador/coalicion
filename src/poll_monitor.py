@@ -313,6 +313,7 @@ class PollMonitor:
                 body = monitor.fetch()
                 digest = self._save_raw(source["id"], body)
                 self.state["source_hashes"][source["id"]] = digest
+                self.state.setdefault("failure_hashes", {}).pop(source["id"], None)
                 p, d = monitor.parse(body)
                 polls.extend(p)
                 for x in d:
@@ -360,12 +361,6 @@ class PollMonitor:
             fh.write(json.dumps(payload, ensure_ascii=False, sort_keys=True) + "\n")
         self.state["runs"] = int(self.state.get("runs", 0)) + 1
         self.state["total_validated"] = len(self.state["poll_hashes"])
-        self.state["last_run"] = payload["checked_at"]
-        self.state["last_status"] = payload["status"]
-        self.state["last_new"] = len(payload["new_polls"])
-        self.state["last_changed"] = len(payload["changed_polls"])
-        self.state["last_discoveries"] = len(payload["discoveries"])
-        self.state["last_failures"] = payload["failures"]
         self.state_path.parent.mkdir(parents=True, exist_ok=True)
         self.state_path.write_text(json.dumps(self.state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         return path
@@ -423,8 +418,7 @@ class PollMonitor:
             self.state["baseline_completed"] = True
         payload = {
             "schema":"POLL_MONITOR_V2","checked_at":checked,
-            "status":"BLOCKED" if failures and not polls and not discoveries else
-                     ("ALERT" if new or changed else "READY"),
+            "status":"BLOCKED" if failures else ("ALERT" if new or changed else "READY"),
             "found_polls":len(polls),"new_polls":new,"changed_polls":changed,
             "discoveries":new_discoveries,"failures":failures,
             "descriptive_only":True,
@@ -432,9 +426,18 @@ class PollMonitor:
         }
         meaningful = baseline or bool(new or changed or new_discoveries or failures)
         path = self.save(payload, meaningful=meaningful)
+        self.state["last_run"] = checked
+        self.state["last_status"] = payload["status"]
+        self.state["last_new"] = len(new)
+        self.state["last_changed"] = len(changed)
+        self.state["last_discoveries"] = len(new_discoveries)
+        self.state["last_failures"] = failures
+        self.state["total_validated"] = len(self.state["poll_hashes"])
+        self.state_path.parent.mkdir(parents=True, exist_ok=True)
+        self.state_path.write_text(json.dumps(self.state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"Encontradas {len(polls)} encuestas validadas")
         print(f"{len(new)+len(changed)} encuestas nuevas/cambiadas")
-        print(f"Guardado en {path}")
+        print(f"Guardado en {path}" if path else "Sin cambios persistibles.")
         self.alert(payload)
         # alert() may update failure deduplication state.
         self.state_path.write_text(
