@@ -1,6 +1,6 @@
 import pytest
 
-from src.prediction_engine import apply_share_swing, historical_share_changes, predict
+from src.prediction import apply_share_swing, historical_share_changes, predict
 
 def test_historical_median_share_change_is_explicit_and_deterministic():
     current={"A":{"X":600,"Y":400}}
