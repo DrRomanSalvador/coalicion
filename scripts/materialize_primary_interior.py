@@ -137,8 +137,11 @@ def main():
     print("RAW_SEAT_SUMS",raw_seat_sums)
     keys={}
     for e,d,p,party,metric,v in out:
-        keys.setdefault((e,d,p,party),{})[metric]=v
-    if any(set(v)!= {"votos","escaños"} for v in keys.values()): raise RuntimeError("Missing/duplicate Votos/Escaños")
+        bucket=keys.setdefault((e,d,p,party),{"votos":0,"escaños":0,"metrics":set()})
+        bucket[metric]+=v
+        bucket["metrics"].add(metric)
+    if any(v["metrics"] != {"votos","escaños"} for v in keys.values()):
+        raise RuntimeError("Missing Votos/Escaños for a constituency-party key")
     result=[]
     for (e,d,p,party),v in sorted(keys.items()):
         result.append([e,d,p,party,v["votos"],v["escaños"],"Ministerio del Interior / portal oficial de datos abiertos","PRIMARY_OFFICIAL"])
