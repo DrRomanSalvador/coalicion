@@ -82,7 +82,18 @@ def certify(root="."):
                            "al menos un holdout walk-forward estrictamente futuro"))
     else:
         gates.append(Gate("oos_walk_forward","FAIL","sin calibración OOS"))
-    # Poll-source coverage is an explicit gate.\n    coverage=r/"ci_evidence/poll_source_coverage.json"\n    coverage_ok=False\n    if coverage.exists():\n        try:\n            cv=json.loads(coverage.read_text(encoding="utf-8"))\n            coverage_ok=cv.get("status")=="PASS"\n        except Exception:\n            coverage_ok=False\n    gates.append(_gate("poll_source_coverage", coverage_ok,\n                       "cobertura de transporte y roles materializada; no equivale a validar cada sondeo"))\n    # Independent audit must be a separate evidence artifact.
+    # Poll-source coverage is an explicit gate.
+    coverage=r/"ci_evidence/poll_source_coverage.json"
+    coverage_ok=False
+    if coverage.exists():
+        try:
+            cv=json.loads(coverage.read_text(encoding="utf-8"))
+            coverage_ok=cv.get("status")=="PASS"
+        except Exception:
+            coverage_ok=False
+    gates.append(_gate("poll_source_coverage", coverage_ok,
+                       "cobertura de transporte y roles materializada; no equivale a validar cada sondeo"))
+    # Independent audit must be a separate evidence artifact.
     ext=r/"ci_evidence/external_audit.json"
     external_ok=False
     if ext.exists():
