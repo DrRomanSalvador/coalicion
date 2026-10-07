@@ -7,6 +7,12 @@ on:
       - "scripts/ingest_official_electoral_history.R"
       - "scripts/ingest_cis_historical_surveys.R"
       - ".github/workflows/integrate-official-history.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "scripts/ingest_official_electoral_history.R"
+      - "scripts/ingest_cis_historical_surveys.R"
+      - ".github/workflows/integrate-official-history.yml"
   workflow_dispatch:
 
 permissions:
