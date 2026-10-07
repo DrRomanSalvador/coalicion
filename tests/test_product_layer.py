@@ -10,7 +10,7 @@ from src.product_layer import (
 
 class ProductLayerTests(unittest.TestCase):
     def setUp(self):
-        self.seats = {"A": 2, "B": 2}
+        self.seats = {"A": 1, "B": 2}
         self.votes = {
             "A": {"P1": 18, "P2": 18, "P3": 64},
             "B": {"P1": 18, "P2": 18, "P3": 64},
