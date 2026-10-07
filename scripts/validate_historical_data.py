@@ -12,6 +12,7 @@ RESULTS = Path("data/resultados_oficiales_2004_2023.csv")
 POLLS = Path("data/encuestas_historicas_2004_2023.csv")
 REGISTRY = Path("config/electoral_sources.json")
 MANIFEST = Path("data/manifests/HISTORICAL_DATA_MATERIALIZATION.json")
+LIMITATIONS = Path("data/manifests/HISTORICAL_DATA_LIMITATIONS.json")
 
 EXPECTED_DATES = {
     "2004": "2004-03-14", "2008": "2008-03-09", "2011": "2011-11-20",
@@ -154,6 +155,23 @@ def main() -> None:
             "future_leakage": "PROHIBITED",
         },
     }
+    manifest["limitations_artifact"] = str(LIMITATIONS)
+    LIMITATIONS.parent.mkdir(parents=True, exist_ok=True)
+    LIMITATIONS.write_text(json.dumps({
+        "schema": "HISTORICAL_DATA_LIMITATIONS_V1",
+        "status": "EXPLICIT_NON_CANONICAL_BOUNDARIES",
+        "canonical_sources": ["Ministerio del Interior", "Centro de Investigaciones Sociológicas (CIS)"],
+        "secondary_sources": limitations,
+        "cis_interpretation": manifest["cis_surveys"]["interpretation"],
+        "cis_limitation": manifest["cis_surveys"]["limitation"],
+        "rules": {
+            "synthetic_values": "PROHIBITED",
+            "future_leakage": "PROHIBITED",
+            "secondary_overwrite": "PROHIBITED",
+            "seat_to_vote_backcalculation": "PROHIBITED",
+            "national_to_territorial_conversion": "PROHIBITED"
+        }
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     MANIFEST.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(manifest, ensure_ascii=False, indent=2))
