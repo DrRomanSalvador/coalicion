@@ -391,14 +391,72 @@ class PollMonitor:
             self.state.setdefault("failure_hashes", {})[f["source_id"]] = key
             lines += ["", f"⚠️ FUENTE BLOQUEADA: {f['source_id']}", f"Error: {f['error']}"]
         text = "\n".join(lines)[:4090]
-        token, chat = os.environ.get("TELEGRAM_BOT_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
-        if not token or not chat:
+        token = os.environ.get("TELEGRAM_BOT_TOKEN")
+        if not token:
             print("Telegram no configurado; alerta registrada pero no enviada.")
             return False
+
+        # Telegram identifies the conversation in every incoming message as
+        # message.chat.id. Resolve the latest private conversation dynamically
+        # so the bot replies to the person who actually started/talked to it,
+        # without a hard-coded user/chat id.
+        try:
+            updates = self.session.get(
+                f"https://api.telegram.org/bot{token}/getUpdates",
+                params={"limit": 100, "allowed_updates": json.dumps(["message"])},
+                timeout=10,
+            )
+            updates.raise_for_status()
+            update_items = updates.json().get("result", [])
+        except requests.RequestException as exc:
+            print(f"Telegram getUpdates error: {exc}", file=sys.stderr)
+            return False
+
+        candidates = []
+        for update in update_items:
+            message = update.get("message") or {}
+            chat_info = message.get("chat") or {}
+            sender = message.get("from") or {}
+            if chat_info.get("type") != "private":
+                continue
+            if chat_info.get("id") is None or sender.get("id") is None:
+                continue
+            candidates.append({
+                "update_id": int(update.get("update_id", 0)),
+                "chat_id": int(chat_info["id"]),
+                "user_id": int(sender["id"]),
+                "username": sender.get("username"),
+                "text": str(message.get("text") or "").strip(),
+            })
+
+        if not candidates:
+            print(
+                "Telegram: no hay conversación privada entrante; "
+                "el usuario debe abrir el bot y enviar /start."
+            )
+            return False
+
+        starts = [
+            item for item in candidates
+            if item["text"].split()[0:1] == ["/start"]
+        ]
+        selected = max(starts or candidates, key=lambda item: item["update_id"])
+        chat_id = str(selected["chat_id"])
+
+        print(
+            "Telegram destination resolved from incoming message: "
+            f"user_id={selected['user_id']} chat_id={chat_id} "
+            f"username=@{selected['username'] or 'sin_username'}"
+        )
+
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         for attempt in range(2):
             try:
-                r = self.session.post(url, json={"chat_id":chat,"text":text}, timeout=10)
+                r = self.session.post(
+                    url,
+                    json={"chat_id": chat_id, "text": text},
+                    timeout=10,
+                )
                 r.raise_for_status()
                 return True
             except requests.RequestException as exc:
