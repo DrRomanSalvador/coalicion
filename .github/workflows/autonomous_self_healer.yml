@@ -54,6 +54,14 @@ jobs:
 
           current_sha="$(gh api "repos/$REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
           workflow_file="$(gh api "repos/$REPOSITORY/actions/workflows/$WORKFLOW_ID" --jq '.path')"
+
+          active_same_sha="$(gh api --paginate \
+            "repos/$REPOSITORY/actions/workflows/$WORKFLOW_ID/runs?head_sha=$FAILED_SHA&per_page=100" \
+            --jq '[.workflow_runs[] | select(.status == "queued" or .status == "in_progress" or .status == "pending" or .status == "waiting")] | length')"
+          if [ "$active_same_sha" -gt 0 ]; then
+            echo "AUTO-HEAL: ya existe una ejecución activa para el mismo workflow y SHA; no duplicar."
+            exit 0
+          fi
           jobs_count="$(gh api "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/jobs?per_page=100" --jq '.jobs | length')"
 
           rerun_full() {
