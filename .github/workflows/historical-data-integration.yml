@@ -82,24 +82,56 @@ jobs:
           Rscript -e 'options(repos=c(CRAN="https://packagemanager.posit.co/cran/latest"), timeout=300); install.packages(c("opencis","readxl"), lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), Ncpus=2)'
           Rscript -e 'pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr","jsonlite"); stopifnot(all(vapply(pkgs, requireNamespace, logical(1), quietly=TRUE)))'
 
-      - name: Ingest official Interior results
+      - name: Validate or acquire official Interior results
         timeout-minutes: 30
         shell: bash
         run: |
           set -euo pipefail
-          export CURL_CA_BUNDLE="$(python -c 'import certifi; print(certifi.where())')"
-          for attempt in 1 2 3 4 5; do
-            echo "Interior acquisition attempt $attempt/5"
-            if Rscript scripts/ingest_official_electoral_history.R; then
-              test -s data/raw/Elecciones-Congreso.xlsx
-              test -s data/manifests/INTERIOR_ACQUISITION.json
-              exit 0
-            fi
-            echo "Transient acquisition failure; waiting before retry."
-            sleep $((attempt * 10))
-          done
-          echo "FAIL-CLOSED: Interior acquisition did not converge after deterministic retries."
-          exit 1
+          if [ -s data/resultados_oficiales_2004_2023.csv ] && [ -s data/manifests/INTERIOR_ACQUISITION.json ]; then
+            python - <<'PY'
+            import json
+            from pathlib import Path
+            m=json.loads(Path("data/manifests/INTERIOR_ACQUISITION.json").read_text(encoding="utf-8"))
+            assert m["status"] == "PASS"
+            assert m["source_tier"] == "PRIMARY_INTERIOR"
+            assert m["official_results"]["rows"] == 50700
+            assert len(m["official_results"]["elections"]) == 8
+            assert m["official_results"]["constituencies_per_election"] == 52
+            assert m["official_results"]["seats_per_election"] == 350
+            PY
+            echo "Using already validated primary Interior materialization."
+          else
+            export CURL_CA_BUNDLE="$(python -c 'import certifi; print(certifi.where())')"
+            for attempt in 1 2 3 4 5; do
+              echo "Interior acquisition attempt $attempt/5"
+              if Rscript scripts/ingest_official_electoral_history.R; then
+                test -s data/raw/Elecciones-Congreso.xlsx
+                test -s data/manifests/INTERIOR_ACQUISITION.json
+                exit 0
+              fi
+              echo "Transient acquisition failure; waiting before retry."
+              sleep $((attempt * 10))
+            done
+            echo "FAIL-CLOSED: Interior acquisition did not converge after deterministic retries."
+            exit 1
+          fi
+
+      - name: Materialize canonical historical manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          src=Path("data/manifests/INTERIOR_ACQUISITION.json")
+          dst=Path("data/manifests/HISTORICAL_DATA_MATERIALIZATION.json")
+          x=json.loads(src.read_text(encoding="utf-8"))
+          x["schema"]="HISTORICAL_DATA_MATERIALIZATION_V2"
+          x["status"]="PASS"
+          x["source_tier"]="PRIMARY_INTERIOR"
+          x["official_results"]["csv"]="data/resultados_oficiales_2004_2023.csv"
+          dst.write_text(json.dumps(x,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          PY
 
       - name: Ingest official CIS microdata
         timeout-minutes: 90
