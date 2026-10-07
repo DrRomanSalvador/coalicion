@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 
 from src.data_pipeline import download_workbook, inspect_workbook, load_rows, write_json
-from src.decision_engine import coalition_result, apply_absolute_shift, Scenario, validate_scenario
+from src.decision import coalition_result, apply_absolute_shift, Scenario, validate_scenario
 from src.marginality import marginal_seat
 from src.electoral import allocate
 
