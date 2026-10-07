@@ -227,5 +227,8 @@ def test_canonical_electoral_source_registry():
     assert cfg["data_policy"]["no_synthetic_values"] is True
     assert any(s["id"] == "interior" and s["role"] == "primary_official" for s in cfg["official_results"])
     assert any(s["id"] == "cis" and s["role"] == "primary_official" for s in cfg["official_surveys"])
+    all_sources = cfg["official_results"] + cfg["official_surveys"] + cfg["private_pollsters"] + cfg["aggregators_discovery"]
+    assert len({s["id"] for s in all_sources}) == len(all_sources)
+    assert any(s["id"] == "sigma_dos" and "EL MUNDO" in s["publication_media"] for s in cfg["private_pollsters"])
     assert cfg["election_scope_correction"]["general_elections_2023"] == "2023-07-23"
     assert cfg["election_scope_correction"]["invalid_claim_rejected"] == "2023-11-23"
