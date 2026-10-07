@@ -51,11 +51,13 @@ jobs:
           python-version: "3.12"
 
       - name: Setup R
-        timeout-minutes: 5
-        uses: s-u/R-actions/install@v2
-        with:
-          r-version: "release"
-          tools: base
+        timeout-minutes: 15
+        run: |
+          set -euxo pipefail
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
+          sudo apt-get update -o Acquire::Retries=3
+          sudo apt-get install -y --no-install-recommends r-base r-base-dev libcurl4-openssl-dev libssl-dev libxml2-dev
+          Rscript --version
 
       - name: Install R dependencies
         timeout-minutes: 20
