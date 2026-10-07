@@ -1,6 +1,7 @@
 name: Exhaustive fail-closed validation
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "fix/seec-oos-main-current"
