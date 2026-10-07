@@ -203,7 +203,7 @@ prov <- list(
   schema = "INTERIOR_OFFICIAL_ACQUISITION_V2",
   source_url = source_url,
   download_page = official_download_page,
-  sha256 = unname(tools::md5sum(local_xlsx)), # legacy checksum retained for compatibility
+  sha256 = sub("  .*", "", system2("sha256sum", local_xlsx, stdout=TRUE)),
   file_bytes = file.info(local_xlsx)$size,
   elections = target_dates,
   n_rows = nrow(result),
