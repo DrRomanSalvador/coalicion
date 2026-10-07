@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   heal:
-    if: ${{ github.event.workflow_run.name != 'Autonomous repository self-healer' && (github.event.workflow_run.conclusion == 'failure' || github.event.workflow_run.conclusion == 'cancelled') }}
+    if: ${{ github.event.workflow_run.name != 'Autonomous repository self-healer' && github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
