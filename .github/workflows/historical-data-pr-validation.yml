@@ -77,4 +77,4 @@ jobs:
           git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json
           git diff --cached --quiet && exit 0
           git commit -m "Add official Interior and CIS historical Spain data"
-          git push origin "HEAD:$(git branch --show-current)"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
