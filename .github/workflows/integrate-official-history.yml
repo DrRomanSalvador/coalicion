@@ -53,6 +53,25 @@ jobs:
                   print(repr(tuple(row[:20])))
           PY
 
+      - name: Validate official election scope
+        shell: bash
+        run: |
+          python - <<'PY'
+          from openpyxl import load_workbook
+          from datetime import datetime
+          p="data/raw/Elecciones-Congreso.xlsx"
+          wb=load_workbook(p, read_only=True, data_only=True)
+          ws=wb["Congreso"]
+          dates=set()
+          for row in ws.iter_rows(min_row=5, values_only=True):
+              d=row[0]
+              if isinstance(d, datetime) and d.year in {2004,2008,2011,2015,2016,2019,2023}:
+                  dates.add(d.strftime("%Y-%m-%d"))
+          expected={"2004-03-14","2008-03-09","2011-11-20","2015-12-20","2016-06-26","2019-04-28","2019-11-10","2023-07-23"}
+          assert expected <= dates, (sorted(expected-dates), sorted(dates))
+          assert "2023-11-23" not in dates
+          print("OFFICIAL_ELECTION_SCOPE_PASS", sorted(expected))
+          PY
       - name: Setup R
         uses: r-lib/actions/setup-r@v2
         with:
