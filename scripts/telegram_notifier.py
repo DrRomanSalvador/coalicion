@@ -83,8 +83,16 @@ def send(text):
     if not token or not chat_id:
         raise RuntimeError("BLOCKED: Telegram secrets are required")
 
-    # getMe validates the bot token separately from the destination chat.
-    _telegram_request(token, "getMe")
+    # getMe validates the bot token and lets us reject the common mistake
+    # of configuring the bot's own user id as the destination chat.
+    bot = _telegram_request(token, "getMe")
+    bot_id = str(bot.get("id", ""))
+    if chat_id == bot_id:
+        raise RuntimeError(
+            "BLOCKED: TELEGRAM_CHAT_ID is the bot's own user id. "
+            "Set TELEGRAM_CHAT_ID to the real destination chat id "
+            "(your private chat, group, or channel), not the bot id."
+        )
     return _telegram_request(
         token,
         "sendMessage",
