@@ -704,7 +704,7 @@ class PollMonitor:
             "schema":"POLL_MONITOR_V3","checked_at":checked,
             "coverage": coverage,
             "status":"BLOCKED" if not coverage["total"] else ("ALERT" if new or changed else "READY"),
-            "found_polls":len(polls),"new_polls":new,"changed_polls":changed,
+            "found_polls":len(polls),"validated_polls":[canonical_poll(p) for p in polls],"new_polls":new,"changed_polls":changed,
             "discoveries":new_discoveries,"failures":failures,
             "descriptive_only":True,
             "seat_projection":"BLOCKED_NO_TERRITORIAL_INPUT",
