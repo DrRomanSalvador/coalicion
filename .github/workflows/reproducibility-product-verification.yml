@@ -1,6 +1,7 @@
 name: Reproducibility and Product Verification
 
 on:
+  workflow_dispatch:
   push:
     branches: ["main"]
     paths:
