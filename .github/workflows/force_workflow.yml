@@ -15,8 +15,6 @@ on:
           - exhaustive_validation.yml
           - historical-data-integration.yml
           - inspect-interior-source.yml
-          - integrate-cis-history.yml
-          - integrate-official-history.yml
           - materializar_fuentes_oficiales.yml
           - neutral_tests.yml
           - poll_monitor.yml
@@ -72,8 +70,6 @@ jobs:
               "exhaustive_validation.yml",
               "historical-data-integration.yml",
               "inspect-interior-source.yml",
-              "integrate-cis-history.yml",
-              "integrate-official-history.yml",
               "materializar_fuentes_oficiales.yml",
               "neutral_tests.yml",
               "poll_monitor.yml",
