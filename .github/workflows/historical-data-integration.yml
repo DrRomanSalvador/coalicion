@@ -35,6 +35,8 @@ jobs:
   integrate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+    env:
+      R_LIBS_USER: ${{ runner.temp }}/r-lib
     timeout-minutes: 150
 
     steps:
