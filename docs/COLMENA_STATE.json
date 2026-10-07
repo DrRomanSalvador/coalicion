@@ -48,10 +48,15 @@
       "detail": "Matriz 2023 completa materializada desde Dato Electoral como réplica secundaria verificada: 52 circunscripciones, 350 escaños y 24.487.414 votos a candidaturas. La descarga primaria del Interior sigue bloqueada por verificación TLS; no se degrada a primaria."
     }
   ],
-  "last_action": "Integrada la calculadora accesible y generación reproducible de informes bilaterales sobre la matriz 2023.",
-  "last_action_result": "COALITION_REPORTS_REAL_MATRIX_VALIDATED",
+  "last_action": "Separados explícitamente solicitud y aprobación de certificación; no se declara certificación.",
+  "last_action_result": "CERTIFICATION_PENDING_APPROVAL",
   "next_single_action": "Regenerar reports/ mediante run26.py cuando el pipeline de producto vuelva a emitir un check-run; no declarar certificación primaria.",
-  "certification": "PARTIAL",
+  "certification": {
+    "status": "PENDING_APPROVAL",
+    "request": "PENDING",
+    "approval": "PENDING",
+    "official_certification": false
+  },
   "data_source": "SECONDARY_REPLICA_VERIFIED",
   "primary_binary": "PENDING",
   "use_allowed": true,
