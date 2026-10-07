@@ -133,3 +133,5 @@ jsonlite::write_json(manifest, "ci_evidence/historical_data_manifest.json", pret
 cat("INTEGRATION PASS\n")
 cat("Official rows:",nrow(results)," elections:",dplyr::n_distinct(results$election),"\n")
 cat("CIS rows:",nrow(cis)," studies:",nrow(studies),"\n")
+
+# CI trigger: source integration is deterministic and fail-closed.
