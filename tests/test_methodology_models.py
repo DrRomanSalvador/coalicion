@@ -23,7 +23,7 @@ def test_quantile_forest_and_gp_fit():
     X,y=data()
     q=QuantileRegressionForest(n_trees=8,max_depth=4).fit(X,y)
     out=q.predict_interval(X[:3])
-    assert set(out)=={0.025,0.5,0.975}
+    assert np.allclose(sorted(out), [0.025,0.5,0.975])
     gp=GaussianProcessElectoral().fit(X,y)
     mean,std=gp.predict(X[:3])
     assert mean.shape==std.shape==(3,)
