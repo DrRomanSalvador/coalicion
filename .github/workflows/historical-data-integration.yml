@@ -63,7 +63,7 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p "$R_LIBS_USER"
-          Rscript -e 'options(repos=c(CRAN="https://cloud.r-project.org"), timeout=300); install.packages(c("opencis","readxl","dplyr","readr","tibble","haven","purrr"), lib=Sys.getenv("R_LIBS_USER"), dependencies=TRUE, quiet=FALSE)'
+          Rscript -e 'options(repos=c(CRAN="https://cloud.r-project.org"), timeout=300); install.packages(c("opencis","readxl","dplyr","readr","tibble","haven","purrr"), lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), quiet=FALSE)'
           Rscript -e 'pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr"); stopifnot(all(vapply(pkgs, requireNamespace, logical(1), quietly=TRUE)))'
 
       - name: Ingest official Interior results
