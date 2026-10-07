@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    paths-ignore:
+      - "artifacts/**"
   schedule:
     - cron: "2-59/5 * * * *"
 
@@ -16,7 +18,6 @@ concurrency:
 
 jobs:
   poll_monitor:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -57,8 +58,11 @@ jobs:
               exit 0
             fi
             echo "Push rechazado por avance remoto; sincronizando main (intento $attempt)."
+            # El monitor puede dejar cambios de trabajo antes de sincronizar.
+            # El reset es seguro aquí porque todo lo persistible ya está en el commit local.
+            git reset --hard HEAD
             git fetch origin main
-            git rebase origin/main
+            git rebase --autostash origin/main
           done
           echo "ERROR: no se pudo publicar el estado después de 3 intentos."
           exit 1
