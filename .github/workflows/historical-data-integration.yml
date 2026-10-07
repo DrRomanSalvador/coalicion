@@ -35,7 +35,7 @@ jobs:
   integrate:
     runs-on: ubuntu-latest
     env:
-      R_LIBS_USER: /tmp/coalicion-r-lib
+      R_LIBS_USER: ${{ runner.temp }}/coalicion-r-lib
       R_COMPILE_AND_INSTALL_PACKAGES: never
     timeout-minutes: 180
 
