@@ -45,10 +45,8 @@ def main():
                 data=r.read()
         except Exception:
             root_urls=[
-                "https://www.cert.fnmt.es/certs/ACRAIZAPE.crt",
-                "https://www.cert.fnmt.es/certs/ACRAIZFNMTRCM.crt",
+                "https://www.cert.fnmt.es/certs/ACRAIZSERVIDORESSEGUROS.crt",
             ]
-            root_tmps=[]
             bundle_tmp=Path(tempfile.mkstemp(suffix=".pem")[1])
             try:
                 for root_url in root_urls:
