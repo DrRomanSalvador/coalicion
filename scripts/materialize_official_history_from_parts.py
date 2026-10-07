@@ -21,9 +21,14 @@ def main():
         with p.open(encoding="utf-8",newline="") as fh:
             r=list(csv.reader(fh))
         if not r: raise RuntimeError(f"empty part: {p}")
-        if header is None: header=r[0]
-        elif r[0]!=header: raise RuntimeError(f"header mismatch: {p}")
-        rows.extend(r[1:])
+        if header is None:
+            header=r[0]
+            rows.extend(r[1:])
+        elif r[0]==header:
+            rows.extend(r[1:])
+        else:
+            # Parts after the first may be headerless; their first row is data.
+            rows.extend(r)
     required=["election","fecha_eleccion","circunscripcion","partido","votos","escaños","fuente","nivel_fuente"]
     if header!=required: raise RuntimeError("official CSV schema mismatch")
     if len(rows)!=50700: raise RuntimeError(f"expected 50700 rows, got {len(rows)}")
