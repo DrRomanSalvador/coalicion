@@ -2,9 +2,22 @@ name: Autonomous repository self-healer
 
 on:
   workflow_run:
-    workflows: ["*"]
+    workflows:
+      - "Acquire and certify 2023 coalition matrix"
+      - "Activar Colmena"
+      - "Auditoria 2023 y suite SEEC"
+      - "Colmena reproducible"
+      - "Exhaustive fail-closed validation"
+      - "Force workflow dispatcher"
+      - "Global repository orchestrator"
+      - "Historical data — canonical integration"
+      - "Inspect official Interior download transport"
+      - "Neutral coalition tests"
+      - "Autonomous poll monitor"
+      - "Product Layer Tests"
+      - "Product pipeline 2026"
+      - "Reproducibility and Product Verification"
     types: [completed]
-  workflow_dispatch:
 
 
 permissions:
@@ -17,7 +30,7 @@ concurrency:
 
 jobs:
   heal:
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.name != 'Autonomous repository self-healer') }}
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
