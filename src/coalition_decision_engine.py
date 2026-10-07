@@ -36,8 +36,11 @@ class CoalitionDecisionEngine:
         self.seats = dict(seats_by_constituency)
         self.blank = dict(blank_votes_by_constituency or {})
         self.special = dict(special_by_constituency or {})
-        if not self.seats or sum(self.seats.values()) != 350:
-            raise ValueError("La magnitud electoral debe sumar 350")
+        if not self.seats or any(
+            isinstance(n, bool) or not isinstance(n, int) or n < 1
+            for n in self.seats.values()
+        ):
+            raise ValueError("Magnitud electoral inválida")
 
     @staticmethod
     def generate_all_coalitions(parties: Sequence[str], min_size=2,
