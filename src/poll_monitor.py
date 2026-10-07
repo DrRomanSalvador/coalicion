@@ -20,7 +20,6 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
-from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -336,7 +335,12 @@ class PollMonitor:
     def alert(self, payload: dict[str, Any]) -> bool:
         events = payload["new_polls"] + payload["changed_polls"]
         failures = payload["failures"]
-        if not events and not failures:
+        unsent_failures = []
+        for failure in failures:
+            key = hashlib.sha256(json.dumps(failure, sort_keys=True).encode()).hexdigest()
+            if self.state.get("failure_hashes", {}).get(failure["source_id"]) != key:
+                unsent_failures.append((failure, key))
+        if not events and not unsent_failures:
             return False
         lines = ["🔔 Vigilancia electoral — actualización"]
         for e in events[:10]:
@@ -345,10 +349,7 @@ class PollMonitor:
                       f"Fuente: {p['source_id']}", f"Encuestadora: {p['pollster']}",
                       f"Publicación: {p['publication_date']}",
                       "Estimaciones: " + ", ".join(f"{k} {v:g}%" for k,v in sorted(p["parties"].items()))]
-        for f in failures[:10]:
-            key = hashlib.sha256(json.dumps(f,sort_keys=True).encode()).hexdigest()
-            if self.state.get("failure_hashes", {}).get(f["source_id"]) == key:
-                continue
+        for f, key in unsent_failures[:10]:
             self.state.setdefault("failure_hashes", {})[f["source_id"]] = key
             lines += ["", f"⚠️ FUENTE BLOQUEADA: {f['source_id']}", f"Error: {f['error']}"]
         text = "\n".join(lines)[:4090]
@@ -387,6 +388,11 @@ class PollMonitor:
         print(f"{len(new)+len(changed)} encuestas nuevas/cambiadas")
         print(f"Guardado en {path}")
         self.alert(payload)
+        # alert() may update failure deduplication state.
+        self.state_path.write_text(
+            json.dumps(self.state, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
         return payload
 
 if __name__ == "__main__":
