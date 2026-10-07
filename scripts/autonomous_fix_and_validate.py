@@ -117,6 +117,28 @@ def main() -> int:
     # Phase 3: run only existing backtest scripts. Do not fabricate a data path.
     backtests = [p for p in inv["scripts"] if Path(p).name.startswith("backtest_") and p.endswith(".py")]
     for rel in backtests:
+        if rel.endswith("backtest_2023_baseline.py"):
+            staged = ROOT / ".audit_historico" / "historical_province_secondary.csv"
+            if not staged.exists():
+                stage = ROOT / "scripts" / "stage_historico_secondary.py"
+                validate = ROOT / "scripts" / "validate_historical_secondary.py"
+                if stage.exists() and validate.exists():
+                    results.append(run("backtest_prerequisite:secondary_staging", [sys.executable, str(stage)], timeout=1800))
+                    results.append(run("backtest_prerequisite:secondary_validation", [sys.executable, str(validate)], timeout=900))
+                else:
+                    results.append(Result(
+                        "backtest_prerequisite",
+                        "MISSING",
+                        detail="No existe el staging secundario requerido por el backtest",
+                    ))
+            if not staged.exists():
+                results.append(Result(
+                    f"backtest:{rel}",
+                    "PENDING",
+                    command=[sys.executable, rel],
+                    detail="No se puede ejecutar el backtest sin historical_province_secondary.csv",
+                ))
+                continue
         results.append(run(f"backtest:{rel}", [sys.executable, rel], timeout=1800))
 
     # Phase 4: existing deterministic verification scripts.
