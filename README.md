@@ -39,6 +39,10 @@ La cadena obligatoria es:
 
 No se inventa territorialidad para candidaturas sin base comparable. Toda imputación se etiqueta y propaga como incertidumbre. Las CCAA sirven para agregación/control; D'Hondt se ejecuta por circunscripción.
 
+## Neutralidad y auditoría de coaliciones
+
+El núcleo neutral está implementado en `src/neutral_coalition.py` y su auditoría estructural en `src/neutral_audit.py`. La matriz canónica 2023 no se fabrica: si `artifacts/data/election_2023_canonical.json` no existe o no cumple la estructura exigida, el sistema permanece **BLOCKED**. El esquema esperado está versionado en `artifacts/data/election_2023_canonical.schema.json`.
+
 ## Estado actual
 - Contrato maestro: incorporado.
 - Magnitudes oficiales 2026: incorporadas.
