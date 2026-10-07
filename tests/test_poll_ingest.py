@@ -22,3 +22,14 @@ def test_datoelectoral_html_parser_reads_complete_poll():
     assert polls[0].parties["SUMAR"]==5.7
     assert "NO-RESPUESTA" not in polls[0].parties
     assert polls[0].sample_size is None
+
+
+def test_rss_entries_are_metadata_only():
+    from src.poll_ingest import parse_rss
+    rss = b"""<?xml version="1.0"?><rss><channel>
+    <item><title>Electopanel 4 octubre</title><link>https://example.test/p1</link>
+    <pubDate>Sun, 04 Oct 2026 08:00:00 +0000</pubDate><guid>p1</guid></item>
+    </channel></rss>"""
+    polls=parse_rss(rss,{"id":"electomania","url":"https://example.test/feed","pollster_default":"Electomania"})
+    assert len(polls)==1
+    assert polls[0].parties=={}
