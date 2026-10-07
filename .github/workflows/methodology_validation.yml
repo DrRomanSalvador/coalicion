@@ -6,6 +6,7 @@ on:
     paths:
       - "src/models/**"
       - "src/methodology_registry.py"
+      - "src/methodology_bridge.py"
       - "src/prediction.py"
       - "src/rapid_decision_center.py"
       - "src/electoral_radar_adapter.py"
