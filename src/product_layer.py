@@ -202,7 +202,7 @@ def coalition_alert(
                 "losses": decision["harmful_constituencies"],
                 "net_seat_delta": decision["seat_delta"],
             },
-            "assumptions": decision["assumptions"],
+            "assumptions": result["product"]["assumptions"],
         },
         "technical": result["technical"],
     }
