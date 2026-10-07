@@ -21,6 +21,7 @@ def main():
     ca_candidates=[p for p in ("/etc/ssl/certs/ca-certificates.crt", certifi.where()) if os.path.exists(p)]
     if not ca_candidates:
         raise RuntimeError("FAIL-CLOSED: no trusted CA bundle available")
+    ca=ca_candidates[0]
     with tempfile.NamedTemporaryFile(suffix=".xlsx",delete=False) as tmp:
         tmp_path=Path(tmp.name)
     try:
