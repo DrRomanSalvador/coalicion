@@ -13,7 +13,7 @@ import certifi
 from bs4 import BeautifulSoup
 
 URL = "https://www.pollingforecast.com/es/accuracy?lang=es&tab=parties"
-OUT = Path("data/encuestas_historicas_2004_2023.csv")
+OUT = Path("data/secondary/encuestas_historicas_last_poll_replica_2004_2023.csv")
 META = Path("ci_evidence/encuestas_historicas_manifest.json")
 ELECTIONS = {
     "2004": "2004", "2008": "2008", "2011": "2011", "2015": "2015",
