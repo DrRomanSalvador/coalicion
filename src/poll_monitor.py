@@ -534,11 +534,7 @@ class PollMonitor:
         # the discovery layer observed a page change.
         unresolved = [
             d.get("discovery_id") for d in discoveries
-            if d.get("validation") in {"UNVERIFIED", "PENDING"}
-        ]
-        discovery_only = [
-            d.get("discovery_id") for d in discoveries
-            if d.get("validation") == "DISCOVERY_ONLY"
+            if d.get("validation") in {"UNVERIFIED", "PENDING", "DISCOVERY_ONLY"}
         ]
         if self.config.get("coverage_contract", {}).get("require_zero_unresolved_discoveries", True) and unresolved:
             blockers.append(f"UNRESOLVED_DISCOVERIES:{len(unresolved)}")
