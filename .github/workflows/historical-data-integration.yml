@@ -59,14 +59,14 @@ jobs:
       - name: Install system libraries
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl libcurl4-openssl-dev libssl-dev libxml2-dev libharfbuzz-dev libfribidi-dev libfontconfig1-dev
+          sudo apt-get install -y curl libcurl4-openssl-dev libssl-dev libxml2-dev libharfbuzz-dev libfribidi-dev libfontconfig1-dev r-cran-readxl r-cran-dplyr r-cran-readr r-cran-tibble r-cran-haven r-cran-purrr r-cran-httr r-cran-jsonlite r-cran-xml2 r-cran-rvest r-cran-stringr r-cran-lubridate r-cran-tidyr r-cran-cli r-cran-rlang r-cran-vctrs r-cran-glue r-cran-lifecycle r-cran-magrittr
 
       - name: Install R dependencies
         timeout-minutes: 15
         run: |
           set -euxo pipefail
           mkdir -p "$R_LIBS_USER"
-          Rscript -e 'options(repos=c(CRAN="https://cloud.r-project.org"), timeout=180); install.packages(c("opencis","readxl","dplyr","readr","tibble","haven","purrr"), lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), Ncpus=2, quiet=FALSE)'
+          Rscript -e 'options(repos=c(CRAN="https://cloud.r-project.org"), timeout=180); install.packages("opencis", lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), Ncpus=2, quiet=FALSE)'
           Rscript -e 'pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr"); stopifnot(all(vapply(pkgs, requireNamespace, logical(1), quietly=TRUE)))'
 
       - name: Ingest official Interior results
