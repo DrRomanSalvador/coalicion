@@ -1,8 +1,6 @@
 name: Global repository orchestrator
 
 on:
-  schedule:
-    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -18,24 +16,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Release stuck canonical run
+      - name: Release only genuinely stuck canonical runs
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
-          api() { gh api "$@"; }
           now="$(date -u +%s)"
-          api --paginate "repos/$REPOSITORY/actions/runs?per_page=100&branch=main" \
-            --jq '.workflow_runs[] |
+          gh api --paginate "repos/$REPOSITORY/actions/runs?per_page=100&branch=main"             --jq '.workflow_runs[] |
               select(.name == "Historical data — canonical integration" and .status == "in_progress") |
               [.id,.created_at] | @tsv' > /tmp/canonical.tsv
+
           while IFS=$'\t' read -r run_id created_at; do
             [ -n "$run_id" ] || continue
             started="$(date -d "$created_at" +%s)"
-            if [ $((now-started)) -ge 300 ]; then
-              api --method POST "repos/$REPOSITORY/actions/runs/$run_id/cancel" || \
-              api --method POST "repos/$REPOSITORY/actions/runs/$run_id/force-cancel"
+            if [ $((now-started)) -ge 10800 ]; then
+              echo "Cancelling genuinely stuck canonical run $run_id (>=3h)."
+              gh api --method POST "repos/$REPOSITORY/actions/runs/$run_id/cancel" || true
             fi
           done < /tmp/canonical.tsv
