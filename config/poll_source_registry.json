@@ -1,0 +1,46 @@
+{
+  "schema": "SPAIN_POLL_SOURCE_REGISTRY_V1",
+  "scope": "national_general_election_polls_spain",
+  "purpose": "discovery_and_coverage_control_only",
+  "rule": "A registry entry is not evidence of a published poll. Values are accepted only from the source page/document after validation.",
+  "reference_sources": [
+    "https://www.datoelectoral.es/encuestas",
+    "https://www.pollingforecast.com/es/polls?lang=es&tab=raw"
+  ],
+  "known_pollsters": [
+    "CIS",
+    "40dB.",
+    "Celeste-Tel",
+    "DYM",
+    "GAD3",
+    "Sigma Dos",
+    "NC Report",
+    "Instituto Invymark",
+    "Target Point",
+    "SocioMétrica",
+    "Hamalgama Métrica",
+    "More in Common España",
+    "EM-Analytics",
+    "Data10",
+    "Cluster17",
+    "ODEC",
+    "Ateneo del Dato",
+    "GESOP",
+    "Ipsos España",
+    "IMOP Insights",
+    "Metroscopia",
+    "Sondaxe",
+    "Opina 360",
+    "Simple Lógica",
+    "Sondea",
+    "ElectoPanel",
+    "Political Stats"
+  ],
+  "coverage_rule": {
+    "known_pollster_must_be": ["primary", "discovery", "or_explicitly_unavailable"],
+    "unavailable_must_have_reason": true,
+    "discovery_does_not_equal_validated_poll": true,
+    "aggregator_does_not_replace_primary_source": true,
+    "national_to_territorial_inference_forbidden": true
+  }
+}
