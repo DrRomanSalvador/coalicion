@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-10-07T12:22:16.184410+00:00",
+  "election": "2023",
+  "policy": {
+    "interior_is_canonical_primary": true,
+    "boe_is_primary_alternative_evidence": true,
+    "eleccionesdb_is_secondary_only": true,
+    "invented_values": false,
+    "automatic_secondary_promotion": false
+  },
+  "sources": {
+    "Interior_XLSX": {
+      "status": "FAILED",
+      "attempt": 5,
+      "error": "URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)>"
+    },
+    "BOE_2023": {
+      "status": "SUCCESS",
+      "attempt": 1,
+      "bytes": 283696,
+      "sha256": "7c2ff9eac201fa23ce6e9621e97d62bbf574884b52aac7c618f92586fc73f537",
+      "content_type": "text/html; charset=UTF-8",
+      "path": "artifacts/data/raw_boe_2023.html",
+      "parse": {
+        "status": "PARSE_FAILED",
+        "error": "ImportError: `Import lxml` failed.  Use pip or conda to install the lxml package."
+      }
+    },
+    "EleccionesDB": [
+      {
+        "status": "FAILED",
+        "attempt": 3,
+        "error": "HTTPError: HTTP Error 403: Forbidden",
+        "url": "https://data.spainelectoralproject.com/eleccionesdb-etl/descargas/eleccionesdb_csv.zip"
+      },
+      {
+        "status": "FAILED",
+        "attempt": 3,
+        "error": "HTTPError: HTTP Error 403: Forbidden",
+        "url": "https://data.spainelectoralproject.com/eleccionesdb-etl/descargas/eleccionesdb_sqlite.zip"
+      },
+      {
+        "status": "FAILED",
+        "attempt": 3,
+        "error": "HTTPError: HTTP Error 403: Forbidden",
+        "url": "https://data.spainelectoralproject.com/eleccionesdb-etl/descargas/eleccionesdb_parquet.zip"
+      }
+    ]
+  },
+  "status": "PRIMARY_EVIDENCE_UNAVAILABLE",
+  "corroboration": {
+    "boe_available": false,
+    "eleccionesdb_available": false,
+    "status": "PENDING_CELL_LEVEL_RECONCILIATION",
+    "reason": "Different source formats/hashes cannot be compared by raw hash. Cell-level reconciliation is required before any canonical promotion."
+  }
+}
