@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "COALICION_PRODUCT_V1",
+  "title": "Political Product Decision Result",
+  "type": "object",
+  "required": ["product", "technical"],
+  "properties": {
+    "product": {
+      "type": "object",
+      "required": ["version", "function", "status"],
+      "properties": {
+        "version": {"type": "string"},
+        "function": {
+          "type": "string",
+          "enum": ["decide", "ranking", "alert", "shock", "report", "scenarios", "value", "audit"]
+        },
+        "status": {"enum": ["OK", "BLOCKED"]},
+        "inputs": {"type": "object"},
+        "decision": {},
+        "assumptions": {"type": "array", "items": {"type": "string"}},
+        "generated_at": {"type": "string"}
+      }
+    },
+    "technical": {
+      "type": "object",
+      "required": ["output_hash"],
+      "properties": {
+        "engine_result": {},
+        "input_hash": {"type": ["string", "null"]},
+        "output_hash": {"type": "string"}
+      }
+    }
+  }
+}
