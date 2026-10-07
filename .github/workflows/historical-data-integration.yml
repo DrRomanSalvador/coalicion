@@ -26,13 +26,13 @@ permissions:
 
 concurrency:
   group: historical-data-canonical-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   integrate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 125
+    timeout-minutes: 150
 
     steps:
       - name: Checkout
