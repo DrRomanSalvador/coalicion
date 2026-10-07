@@ -71,16 +71,11 @@ jobs:
           }
 
           if [ "$FAILED_SHA" != "$current_sha" ]; then
-            echo "AUTO-HEAL: ejecución antigua $FAILED_SHA; main actual=$current_sha."
-            workflow_content="$(gh api "repos/$REPOSITORY/contents/$workflow_file?ref=main" --jq '.content' | tr -d '\n' | base64 --decode)"
-            if printf '%s\n' "$workflow_content" | grep -Eq '^[[:space:]]*workflow_dispatch[[:space:]]*:'; then
-              echo "AUTO-HEAL: el workflow admite workflow_dispatch; ejecutándolo sobre main."
-              gh api --method POST                 -H "Accept: application/vnd.github+json"     "repos/$REPOSITORY/actions/workflows/$workflow_file/dispatches"                 -f ref=main
-            else
-              echo "AUTO-HEAL: el workflow no admite workflow_dispatch; usando rerun seguro de la ejecución existente."
-              rerun_full
-            fi
-            exit 0
+            echo "AUTO-HEAL: ejecución antigua; relanzando la ejecución fallida existente."
+            rerun_full
+          fi
+
+          exit 0
           fi
 
           if [ "$jobs_count" -eq 0 ]; then
@@ -90,5 +85,5 @@ jobs:
           fi
 
           echo "AUTO-HEAL: reintentando solo jobs fallidos ($jobs_count jobs detectados)."
-          gh api --method POST             -H "Accept: application/vnd.github+json" "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/rerun-failed-jobs"
+          gh run rerun "$FAILED_RUN_ID" --failed --repo "$REPOSITORY"
           echo "AUTO-HEAL: jobs fallidos reintentados."
