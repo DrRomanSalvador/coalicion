@@ -35,7 +35,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: historical-data-canonical-main-v15
+  group: historical-data-canonical-main-v16
   cancel-in-progress: false
 
 jobs:
@@ -68,6 +68,13 @@ jobs:
         with:
           r-version: "release"
           use-public-rspm: true
+
+      - name: Install R system dependencies
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libcurl4-openssl-dev pkg-config
 
       - name: Install R dependencies
         timeout-minutes: 20
