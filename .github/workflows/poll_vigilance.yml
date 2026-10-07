@@ -10,12 +10,15 @@ permissions:
   contents: write
 
 concurrency:
-  group: daily-neutral-survey-watch
+  group: poll-vigilance
   cancel-in-progress: false
 
 jobs:
-  watch:
+  ingest_polls:
     runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.result.outputs.status }}
+      should_notify: ${{ steps.result.outputs.should_notify }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -23,9 +26,27 @@ jobs:
         with:
           python-version: "3.12"
       - name: Ejecutar vigilancia y detección de cambios
-        id: watch
+        id: ingest
         continue-on-error: true
-        run: python scripts/survey_watch.py
+        run: python scripts/ingest_polls.py
+      - name: Publicar resultado
+        id: result
+        if: always()
+        run: |
+          if test -f artifacts/poll_vigilance_report.json; then
+            python - <<'PY'
+          import json
+          p=json.load(open("artifacts/poll_vigilance_report.json",encoding="utf-8"))
+          with open("/tmp/result.env","w") as f:
+              f.write("status="+p["status"]+"\n")
+              f.write("should_notify="+str(any(e.get("status") in {"NEW_POLL","CHANGED_POLL"} for e in p.get("events",[]))).lower()+"\n")
+          PY
+            cat /tmp/result.env >> "$GITHUB_OUTPUT"
+          else
+            echo "status=BLOCKED" >> "$GITHUB_OUTPUT"
+            echo "should_notify=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Mostrar informe operacional
         if: always()
         run: |
@@ -57,6 +78,6 @@ jobs:
             git push
           fi
       - name: Fallar cerrado ante fuente inaccesible
-        if: steps.watch.outcome == 'failure'
+        if: steps.ingest.outcome == 'failure'
         run: exit 1
 
