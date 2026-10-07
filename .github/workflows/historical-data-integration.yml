@@ -122,8 +122,28 @@ jobs:
       - name: Validate OOS
         run: python scripts/run_full_oos.py --input data/encuestas_historicas_2004_2023.csv --output artifacts/oos_historical_2004_2023.json
 
-      - name: Materialize SEEC posterior evidence
+      - name: Execute SEEC production
+        timeout-minutes: 120
+        run: python scripts/run_seec_production.py
+
+      - name: Materialize territorial uncertainty evidence
         run: python scripts/materialize_seec_posterior.py
+
+      - name: Complete historical OOS calibration
+        run: python scripts/complete_historical_calibration.py --input data/encuestas_historicas_2004_2023.csv --output ci_evidence/oos_calibration.json
+
+      - name: Verify SEEC execution evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s ci_evidence/seec_production.json
+          python - <<'PY'
+          import json
+          x=json.load(open("ci_evidence/seec_production.json",encoding="utf-8"))
+          assert x["status"]=="PASS"
+          assert x["total_posterior_draws"] >= 10000
+          assert x["constituencies"] == 52
+          PY
 
       - name: Materialize certification evidence
         shell: bash
@@ -141,7 +161,8 @@ jobs:
           dst.write_text(json.dumps(x,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
           PY
           printf 'PRIMARY_INTERIOR\n' > ci_evidence/historico_source_tier.txt
-          cp artifacts/oos_historical_2004_2023.json ci_evidence/oos_calibration.json
+          cp ci_evidence/oos_calibration.json ci_evidence/oos_calibration_complete.json
+          cp ci_evidence/seec_production.json ci_evidence/seec_posterior.json
           test -s ci_evidence/seec_posterior.json
           python - <<'PY'
           import json
@@ -173,7 +194,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json data/manifests/HISTORICAL_DATA_LIMITATIONS.json data/manifests/INTERIOR_ACQUISITION.json artifacts/oos_historical_2004_2023.json ci_evidence/historico_manifest.json ci_evidence/historico_source_tier.txt ci_evidence/reconciliation.json ci_evidence/oos_calibration.json ci_evidence/seec_posterior.json
+          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json data/manifests/HISTORICAL_DATA_LIMITATIONS.json data/manifests/INTERIOR_ACQUISITION.json artifacts/oos_historical_2004_2023.json ci_evidence/historico_manifest.json ci_evidence/historico_source_tier.txt ci_evidence/reconciliation.json ci_evidence/oos_calibration.json ci_evidence/oos_calibration_complete.json ci_evidence/seec_posterior.json ci_evidence/seec_production.json
           if git diff --cached --quiet; then
             echo "No validated materialization changes."
             exit 0
