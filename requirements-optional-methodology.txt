@@ -1,0 +1,6 @@
+# Optional methodology adapters; core CI does not require these heavy packages.
+statsmodels>=0.14,<1
+tensorflow-cpu>=2.13,<3
+libpysal>=4.9,<5
+spreg>=1.4,<2
+esda>=2.5,<3
