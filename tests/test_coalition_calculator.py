@@ -16,7 +16,7 @@ def test_separate_result_uses_all_candidates():
     engine = CoalitionDecisionEngine({"A": 350}, {"A": 0})
     result = engine.analyze_coalition(
         ("P1", "P2"),
-        [CoalitionScenario("central", {"A": {"P1": 500, "P2": 301, "P3": 199}})],
+        [CoalitionScenario("central", {"A": {"P1": 600, "P2": 20, "P3": 380}})],
     )
     assert result["separate_seats"] < 350
     assert result["coalition_seats"] >= result["separate_seats"]
