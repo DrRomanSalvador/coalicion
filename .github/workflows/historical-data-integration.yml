@@ -187,6 +187,9 @@ jobs:
           },ensure_ascii=False,indent=2)+"\n")
           PY
 
+      - name: Run master certification gates
+        run: python scripts/master_certification.py
+
       - name: Commit validated materialization
         if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]' }}
         shell: bash
