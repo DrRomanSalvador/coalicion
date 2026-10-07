@@ -5,6 +5,10 @@
 # CIS scenario-based published "estimación de voto".
 
 options(stringsAsFactors=FALSE)
+# CIS is rate-limited and may expose anti-bot challenges. Keep the acquisition
+# deterministic and fail-closed: bounded retry policy, explicit pacing, no fallback
+# to secondary pollsters, and no synthetic vote estimates.
+options(opencis.request_interval = 1, opencis.max_retries = 8)
 required <- c("opencis","dplyr","readr","tibble","haven","purrr")
 missing <- required[!vapply(required, requireNamespace, logical(1), quietly=TRUE)]
 if (length(missing)) stop("Missing R packages: ", paste(missing, collapse=", "))
