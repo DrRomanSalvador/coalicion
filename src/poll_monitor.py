@@ -225,13 +225,21 @@ class SourceMonitor:
     def fetch(self) -> bytes:
         headers = {"User-Agent": "coalicion-poll-monitor/2.0 (+https://github.com/DrRomanSalvador/coalicion)"}
         method = self.source.get("method", "GET").upper()
-        if method == "POST":
-            r = self.session.post(self.source["url"], data=self.source.get("data", {}),
-                                  headers=headers, timeout=30)
-        else:
-            r = self.session.get(self.source["url"], headers=headers, timeout=30)
-        r.raise_for_status()
-        return r.content
+        last_error = None
+        for attempt in range(2):
+            try:
+                if method == "POST":
+                    r = self.session.post(self.source["url"], data=self.source.get("data", {}),
+                                          headers=headers, timeout=30)
+                else:
+                    r = self.session.get(self.source["url"], headers=headers, timeout=30)
+                r.raise_for_status()
+                return r.content
+            except requests.RequestException as exc:
+                last_error = exc
+                if attempt == 0:
+                    time.sleep(1)
+        raise last_error
 
     def parse(self, body: bytes) -> tuple[list[Poll], list[dict[str, Any]]]:
         kind = self.source.get("format", "page")
