@@ -9,7 +9,8 @@ on:
       - ".github/workflows/acquire_matrix_2023.yml"
   workflow_dispatch:
 
-# Reproducible acquisition: materialize only after structural validation.\n# Secondary replica is accepted only after all 52/350/vote invariants pass.
+# Reproducible acquisition: materialize only after structural validation.
+# Secondary replica is accepted only after all 52/350/vote invariants pass.
 
 permissions:
   contents: write
