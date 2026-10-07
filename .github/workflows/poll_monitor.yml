@@ -33,7 +33,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4 lxml feedparser pytest
           python -m json.tool config/poll_monitor.json >/dev/null
-          python -m pytest tests/test_poll_monitor.py -q
+          python -m pytest tests/test_poll_monitor.py tests/test_cis_monitor.py tests/test_electomania_monitor.py tests/test_dato_electoral_monitor.py tests/test_twitter_monitor.py tests/test_poll_validator.py tests/test_poll_hasher.py tests/test_poll_normalizer.py -q
 
       - name: Monitorizar fuentes
         env:
