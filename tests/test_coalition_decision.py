@@ -7,9 +7,10 @@ def test_coalition_is_recomputed_by_constituency():
         {"A":0},
         ("P2","P3"),
     )
-    assert r["total_separate"]==1
-    assert r["total_coalition"]==1
-    assert r["delta"]==0
+    assert r["separate_seats"] == 1
+    assert r["coalition_seats"] == 1
+    assert r["benefit"] == 0
+    assert r["all_constituencies"] == [{"constituency":"A","separate":1,"coalition":1,"delta":0}]
 
 def test_affected_constituencies_are_exposed():
     r=coalition_decision(
@@ -18,5 +19,5 @@ def test_affected_constituencies_are_exposed():
         {"A":0},
         ("P2","P3"),
     )
-    assert "affected_constituencies" in r
+    assert r["decisive_constituencies"]
     assert r["coalition"]=="P2+P3"
