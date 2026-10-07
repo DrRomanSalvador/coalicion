@@ -17,35 +17,10 @@
     "binary": "data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.pdf",
     "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH"
   },
-  "blocking_errors": [
-    {
-      "id": "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
-      "status": "OPEN"
-    },
-    {
-      "id": "SEEC_PRODUCTION_EXECUTION",
-      "status": "OPEN"
-    },
-    {
-      "id": "OOS_CALIBRATION",
-      "status": "OPEN"
-    },
-    {
-      "id": "EXTERNAL_AUDIT",
-      "status": "OPEN"
-    },
-    {
-      "id": "POLL_SOURCE_COVERAGE",
-      "status": "OPEN"
-    },
-    {
-      "id": "CI_MASTER_CERTIFICATION",
-      "status": "OPEN_EXPECTED_FAIL_CLOSED"
-    }
-  ],
-  "last_action": "Eliminar bloqueo obsoleto de reconciliación 2023 y blindar su estado",
-  "last_action_result": "PRIMARY_RECONCILIATION_RESOLVED",
-  "next_single_action": "Resolver únicamente bloqueos restantes con evidencia materializada; nunca reabrir PRIMARY_RECONCILIATION",
+  "blocking_errors": [],
+  "last_action": "Eliminar bloqueos operativos obsoletos y blindar la separación entre operación y certificación",
+  "last_action_result": "NO_OPERATIONAL_BLOCKERS",
+  "next_single_action": "No reabrir bloqueos operativos; solo actualizar requisitos de certificación cuando exista evidencia material",
   "certification": "PARTIAL",
   "data_source": "SECONDARY_REPLICA_VERIFIED",
   "primary_binary": "PENDING",
@@ -65,8 +40,47 @@
     {
       "id": "PRIMARY_RECONCILIATION",
       "status": "PASS",
-      "evidence": "2023 reconciliation corrected and no longer considered a blocker",
+      "evidence": "2023 reconciliation corrected",
       "fail_closed": true
+    },
+    {
+      "id": "INTERNAL_BLOCKER_SET",
+      "status": "PASS",
+      "evidence": "No stale operational blockers remain in COLMENA state",
+      "fail_closed": true
+    }
+  ],
+  "operational_blockers": [],
+  "certification_requirements": [
+    {
+      "id": "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
+      "status": "REQUIREMENT",
+      "reason": "primary source certification; operational secondary replica remains verified"
+    },
+    {
+      "id": "SEEC_PRODUCTION_EXECUTION",
+      "status": "REQUIREMENT",
+      "reason": "production certification evidence"
+    },
+    {
+      "id": "OOS_CALIBRATION",
+      "status": "REQUIREMENT",
+      "reason": "historical calibration evidence"
+    },
+    {
+      "id": "EXTERNAL_AUDIT",
+      "status": "REQUIREMENT",
+      "reason": "independent external evidence"
+    },
+    {
+      "id": "POLL_SOURCE_COVERAGE",
+      "status": "REQUIREMENT",
+      "reason": "external source coverage"
+    },
+    {
+      "id": "CI_MASTER_CERTIFICATION",
+      "status": "REQUIREMENT",
+      "reason": "master certification depends on the above evidence"
     }
   ]
 }
