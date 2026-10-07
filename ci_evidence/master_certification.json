@@ -1,0 +1,18 @@
+{
+  "schema": "MASTER_CERTIFICATION_V1",
+  "status": "BLOCKED",
+  "certification": "BLOCKED",
+  "reason": "Primary Interior data, SEEC posterior and OOS calibration are not yet execution-materialized. External independent audit is also required for CERTIFIED.",
+  "required_gates": [
+    "source_manifest",
+    "primary_interior",
+    "reconciliation",
+    "seec_posterior",
+    "mc_10000",
+    "oos_calibration",
+    "oos_walk_forward",
+    "poll_source_coverage",
+    "external_audit"
+  ],
+  "fail_closed": true
+}
