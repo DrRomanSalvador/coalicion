@@ -390,9 +390,15 @@ class PollMonitor:
         for source in self.config["sources"]:
             if source.get("disabled"):
                 continue
-            if source.get("optional") and (
+            if source.get("optional") and source.get("format") == "twitter" and (
                 not os.environ.get("X_BEARER_TOKEN") or not source.get("user_id")
             ):
+                self.state.setdefault("source_status", {})[source["id"]] = {
+                    "status": "SKIPPED_OPTIONAL",
+                    "format": source.get("format", "page"),
+                    "coverage_role": source.get("coverage_role", "optional"),
+                    "checked_at": datetime.now(timezone.utc).isoformat(),
+                }
                 continue
             try:
                 monitor = TwitterMonitor(source, self.session) if source.get("format") == "twitter" else SourceMonitor(source, self.session)
