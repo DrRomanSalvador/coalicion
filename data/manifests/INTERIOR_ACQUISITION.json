@@ -1,0 +1,8 @@
+{
+  "schema": "INTERIOR_OFFICIAL_ACQUISITION_V3",
+  "status": "PENDING",
+  "source_tier": "PRIMARY_INTERIOR",
+  "source_url": "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+  "verification": "sha256 + XLSX structure + 8 elections + 52 constituencies + 350 seats",
+  "fail_closed": true
+}
