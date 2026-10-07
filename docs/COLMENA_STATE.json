@@ -1,7 +1,7 @@
 {
   "schema": "COLMENA_STATE_V1",
   "project": "REINA-SEEC",
-  "checkpoint_date": "2026-10-07",
+  "checkpoint_date": "2026-10-08",
   "methodology": "SEEC",
   "methodology_version": "4.0",
   "status": "OPERATIONAL_BETA",
@@ -18,20 +18,19 @@
     "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH"
   },
   "blocking_errors": [],
-  "last_action": "Implementar suite de proyección, incertidumbre y backtesting y exponerla en la capa de producto",
-  "last_action_result": "PROJECTION_BACKTEST_SUITE_IMPLEMENTED",
+  "last_action": "Consolidar arquitectura canónica y validar fuente primaria Interior suministrada",
+  "last_action_result": "CANONICAL_ARCHITECTURE_AND_PRIMARY_SOURCE_VALIDATED",
   "next_single_action": "Ejecutar CI completo y materializar evidencia OOS sin elevar certificación externa",
   "certification": "PARTIAL",
-  "data_source": "SECONDARY_REPLICA_VERIFIED",
-  "primary_binary": "PENDING",
+  "data_source": "PRIMARY_INTERIOR_SUPPLIED_VALIDATED",
+  "primary_binary": "SUPPLIED_NOT_PINNED",
   "use_allowed": true,
   "warnings": [
-    "Matriz 2023 completa disponible como SECONDARY_REPLICA_VERIFIED: 52 circunscripciones, 350 escaños y 24.487.414 votos a candidaturas.",
-    "El fallback territorial normaliza variantes de nombres sin alterar ningún dato electoral ni cálculo matemático.",
-    "Encuestas históricas: 140 últimas encuestas en ocho elecciones (2004-2023), réplica secundaria; fichas/microdatos técnicos no inferidos.",
-    "Útil para análisis de coaliciones, no para certificación oficial.",
-    "No es un predictor electoral validado.",
-    "Auditoría y certificación permanecen codificadas pero inactivas en el flujo operativo."
+    "Fuente primaria Interior suministrada y validada: 50.700 registros, 8 elecciones, 52 circunscripciones y 350 escaños por elección.",
+    "El binario XLSX original aún no está almacenado como blob binario del repositorio; se conserva su SHA-256 en la evidencia.",
+    "La materialización derivada completa y las ejecuciones SEEC/OOS siguen dependiendo de ejecución real del runner.",
+    "El sistema no certifica precisión predictiva ni auditoría externa sin evidencia independiente.",
+    "Las coaliciones son contrafactuales matemáticos: nunca suman escaños publicados."
   ],
   "product_mode": "PREDICTION_FIRST",
   "audit_mode": "INACTIVE",
@@ -58,35 +57,12 @@
   ],
   "operational_blockers": [],
   "certification_requirements": [
-    {
-      "id": "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
-      "status": "REQUIREMENT",
-      "reason": "primary source certification; operational secondary replica remains verified"
-    },
-    {
-      "id": "SEEC_PRODUCTION_EXECUTION",
-      "status": "REQUIREMENT",
-      "reason": "production certification evidence"
-    },
-    {
-      "id": "OOS_CALIBRATION",
-      "status": "REQUIREMENT",
-      "reason": "historical calibration evidence"
-    },
-    {
-      "id": "EXTERNAL_AUDIT",
-      "status": "REQUIREMENT",
-      "reason": "independent external evidence"
-    },
-    {
-      "id": "POLL_SOURCE_COVERAGE",
-      "status": "REQUIREMENT",
-      "reason": "external source coverage"
-    },
-    {
-      "id": "CI_MASTER_CERTIFICATION",
-      "status": "REQUIREMENT",
-      "reason": "master certification depends on the above evidence"
-    }
+    "PRIMARY_BINARY_PINNED_OR_VERIFIABLE",
+    "HISTORICAL_CSV_MATERIALIZATION",
+    "SEEC_PRODUCTION_EXECUTION",
+    "OOS_CALIBRATION",
+    "EXTERNAL_AUDIT",
+    "POLL_SOURCE_COVERAGE",
+    "CI_MASTER_CERTIFICATION"
   ]
 }
