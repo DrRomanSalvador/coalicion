@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Materialize official Interior Congress historical results without R."""
 from __future__ import annotations
-import csv, hashlib, json, ssl, urllib.request
+import csv, hashlib, json, ssl, urllib.request, subprocess, tempfile
 import certifi
 from pathlib import Path
 from openpyxl import load_workbook
@@ -17,10 +17,28 @@ DATES={"2004":"2004-03-14","2008":"2008-03-09","2011":"2011-11-20","2015":"2015-
 def main():
     XLSX.parent.mkdir(parents=True,exist_ok=True)
     MAN.parent.mkdir(parents=True,exist_ok=True)
-    ctx=ssl.create_default_context(cafile=certifi.where())
-    req=urllib.request.Request(URL,headers={"User-Agent":"coalicion-primary-materializer/1.0","Referer":PAGE})
-    with urllib.request.urlopen(req,context=ctx,timeout=900) as r:
-        data=r.read()
+    data=None
+    ca=certifi.where()
+    with tempfile.NamedTemporaryFile(suffix=".xlsx",delete=False) as tmp:
+        tmp_path=Path(tmp.name)
+    try:
+        cmd=["curl","-fL","--retry","4","--retry-all-errors","--retry-delay","3",
+             "--connect-timeout","30","--max-time","900","--compressed",
+             "--location-trusted","-A","coalicion-primary-materializer/1.0",
+             "--cacert",ca,"-o",str(tmp_path),URL]
+        cp=subprocess.run(cmd,check=False,capture_output=True,text=True)
+        if cp.returncode==0 and tmp_path.exists() and tmp_path.stat().st_size>10000:
+            data=tmp_path.read_bytes()
+    finally:
+        tmp_path.unlink(missing_ok=True)
+    if data is None:
+        ctx=ssl.create_default_context(cafile=ca)
+        req=urllib.request.Request(URL,headers={"User-Agent":"coalicion-primary-materializer/1.0","Referer":PAGE})
+        try:
+            with urllib.request.urlopen(req,context=ctx,timeout=900) as r:
+                data=r.read()
+        except Exception as exc:
+            raise RuntimeError("FAIL-CLOSED: verified HTTPS acquisition from official Interior failed via curl and urllib") from exc
     if len(data)<=10000 or data[:4]!=b"PK\x03\x04":
         raise RuntimeError("FAIL-CLOSED: official Interior response is not a valid XLSX")
     XLSX.write_bytes(data)
