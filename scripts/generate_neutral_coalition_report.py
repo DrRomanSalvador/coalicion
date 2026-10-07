@@ -48,11 +48,27 @@ def resolve_universe(anchor_labels, rows):
     return resolved
 
 def build_votes(rows, resolved):
+    """Build a complete vote row while canonicalizing only the anchored parties.
+
+    The electoral engine validates that candidate votes plus blank votes equal
+    the constituency's declared valid votes.  Therefore parties outside the
+    coalition-analysis universe must remain in the row instead of being dropped.
+    """
     votes={}
     for row in rows:
+        source={str(k): int(v) for k,v in row.get("parties",{}).items()}
         out={}
+        consumed=set()
+
         for canonical, labels in resolved.items():
-            out[canonical]=sum(int(row.get("parties",{}).get(label,0)) for label in labels)
+            matched=set(labels) & set(source)
+            out[canonical]=sum(source[label] for label in matched)
+            consumed.update(matched)
+
+        for label, value in source.items():
+            if label not in consumed:
+                out[label]=value
+
         votes[row["name"]]=out
     return votes
 
