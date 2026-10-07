@@ -363,3 +363,21 @@ def test_oos_reports_full_expanding_window_walk_forward():
     assert result["walk_forward_holdouts"] == 1
     assert result["walk_forward"][0]["election"] == "2011"
     assert result["walk_forward"][0]["training_elections"] == ["2004", "2008"]
+
+
+def test_context_correction_learns_government_from_training_rows():
+    from src.context_corrections import predict
+    from src.poll_error import PollObservation
+
+    train = [
+        PollObservation("2004", "2004-03-14", "PSOE", 30.0, 35.0, "Congreso", "2004-03-01", "CIS",
+                        "a", governing_party="PP"),
+        PollObservation("2008", "2008-03-09", "PP", 30.0, 35.0, "Congreso", "2008-03-01", "CIS",
+                        "b", governing_party="PP"),
+        PollObservation("2011", "2011-11-20", "PSOE", 30.0, 25.0, "Congreso", "2011-11-01", "CIS",
+                        "c", governing_party="PSOE"),
+    ]
+    target = PollObservation("2015", "2015-12-20", "PSOE", 30.0, 30.0, "Congreso",
+                             "2015-12-01", "CIS", "d", governing_party="PP")
+    # PP-government rows have +5/+5 training bias; PSOE-government has -5.
+    assert predict("GOVERNMENT", train, target) > 30.0
