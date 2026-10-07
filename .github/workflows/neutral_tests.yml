@@ -5,6 +5,15 @@ on:
   push:
     paths:
       - "src/neutral_coalition.py"
+      - "src/data.py"
+      - "src/coalition.py"
+      - "src/decision.py"
+      - "src/prediction.py"
+      - "src/uncertainty.py"
+      - "tests/test_canonical_architecture.py"
+      - "tests/test_coalition.py"
+      - "tests/test_decision.py"
+      - "tests/test_prediction.py"
       - "src/electoral.py"
       - "tests/test_neutral_coalition.py"
       - "src/neutral_audit.py"
@@ -32,4 +41,4 @@ jobs:
       - name: Comprobar scripts
         run: python -m py_compile scripts/neutral_coalition_cli.py scripts/survey_watch.py scripts/build_poll_report.py scripts/notify_webhook.py
       - name: Ejecutar tests
-        run: python -m pytest -q tests/test_neutral_coalition.py tests/test_neutral_audit.py tests/test_electoral.py tests/test_decision_engine.py tests/test_survey_watch.py tests/test_poll_ingest.py tests/test_telegram_notifier.py
+        run: python -m pytest -q tests/test_canonical_architecture.py tests/test_coalition.py tests/test_decision.py tests/test_prediction.py tests/test_neutral_coalition.py tests/test_neutral_audit.py tests/test_electoral.py tests/test_survey_watch.py tests/test_poll_ingest.py tests/test_telegram_notifier.py
