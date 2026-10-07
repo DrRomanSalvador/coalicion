@@ -43,12 +43,13 @@ jobs:
         run: |
           git config user.name "coalicion-real-estimation[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add artifacts/estimation
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m "chore: materialize real estimation state"
+          rm -rf /tmp/estimation-state
+          mkdir -p /tmp/estimation-state
+          cp -a artifacts/estimation/. /tmp/estimation-state/
           git fetch origin main
           git reset --hard origin/main
-          git checkout -- artifacts/estimation || true
+          mkdir -p artifacts/estimation
+          cp -a /tmp/estimation-state/. artifacts/estimation/
           git add artifacts/estimation
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "chore: materialize real estimation state"
