@@ -1,6 +1,7 @@
 name: Auditoria 2023 y suite SEEC
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - ".github/workflows/auditoria_2023.yml"
@@ -36,6 +37,19 @@ jobs:
         id: tests
         continue-on-error: true
         run: python -m pytest -q
+      - name: Capturar evidencia de tests
+        if: always()
+        run: |
+          mkdir -p ci_evidence
+          python -m pytest -q > ci_evidence/pytest.log 2>&1 || true
+          python -m src.reproducibility_contract > ci_evidence/reproducibility_contract.json 2>&1 || true
+          printf 'contract=%s\ntests=%s\n' "\${CONTRACT}" "\${TESTS}" > ci_evidence/test_outcomes.txt
+      - name: Publicar artifacts de tests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-ci-evidence
+          path: ci_evidence/
       - name: Resultado del gate de tests
         if: always()
         env:
