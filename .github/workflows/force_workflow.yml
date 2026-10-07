@@ -1,0 +1,106 @@
+name: Force workflow dispatcher
+
+on:
+  workflow_dispatch:
+    inputs:
+      workflow:
+        description: "Workflow to dispatch"
+        required: true
+        type: choice
+        options:
+          - acquire_matrix_2023.yml
+          - activate_colmena.yml
+          - auditoria_2023.yml
+          - colmena_reproducible.yml
+          - exhaustive_validation.yml
+          - historical-data-integration.yml
+          - inspect-interior-source.yml
+          - integrate-cis-history.yml
+          - integrate-official-history.yml
+          - materializar_fuentes_oficiales.yml
+          - neutral_tests.yml
+          - poll_monitor.yml
+          - product-layer.yml
+          - product_pipeline.yml
+          - reproducibility-product-verification.yml
+      ref:
+        description: "Branch or tag to execute"
+        required: true
+        default: "main"
+        type: string
+      inputs_json:
+        description: "Optional workflow_dispatch inputs as a JSON object"
+        required: false
+        default: "{}"
+        type: string
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: force-workflow-dispatcher
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate and dispatch target workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          TARGET: ${{ inputs.workflow }}
+          REF: ${{ inputs.ref }}
+          INPUTS_JSON: ${{ inputs.inputs_json }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+
+          target = os.environ["TARGET"]
+          ref = os.environ["REF"].strip()
+          raw = os.environ["INPUTS_JSON"].strip() or "{}"
+
+          allowed = {
+              "acquire_matrix_2023.yml",
+              "activate_colmena.yml",
+              "auditoria_2023.yml",
+              "colmena_reproducible.yml",
+              "exhaustive_validation.yml",
+              "historical-data-integration.yml",
+              "inspect-interior-source.yml",
+              "integrate-cis-history.yml",
+              "integrate-official-history.yml",
+              "materializar_fuentes_oficiales.yml",
+              "neutral_tests.yml",
+              "poll_monitor.yml",
+              "product-layer.yml",
+              "product_pipeline.yml",
+              "reproducibility-product-verification.yml",
+          }
+          if target not in allowed:
+              raise SystemExit(f"WORKFLOW_NOT_ALLOWED:{target}")
+          if not ref or any(x in ref for x in ("\n", "\r")):
+              raise SystemExit("INVALID_REF")
+          try:
+              inputs = json.loads(raw)
+          except json.JSONDecodeError as exc:
+              raise SystemExit(f"INVALID_INPUTS_JSON:{exc}") from exc
+          if not isinstance(inputs, dict):
+              raise SystemExit("INVALID_INPUTS_JSON:expected_object")
+          if len(inputs) > 25:
+              raise SystemExit("INVALID_INPUTS_JSON:too_many_inputs")
+
+          payload = json.dumps({"ref": ref, "inputs": inputs}, ensure_ascii=False)
+          endpoint = f"repos/{os.environ['REPOSITORY']}/actions/workflows/{target}/dispatches"
+          subprocess.run(
+              ["gh", "api", "--method", "POST", endpoint, "--input", "-"],
+              input=payload,
+              text=True,
+              check=True,
+          )
+          print(f"DISPATCHED:{target}@{ref}")
+          PY
