@@ -44,23 +44,30 @@ def main():
             with urllib.request.urlopen(req,context=ctx,timeout=900) as r:
                 data=r.read()
         except Exception:
-            ape_url="https://www.cert.fnmt.es/certs/ACRAIZAPE.crt"
-            ape_tmp=Path(tempfile.mkstemp(suffix=".crt")[1])
+            root_urls=[
+                "https://www.cert.fnmt.es/certs/ACRAIZAPE.crt",
+                "https://www.cert.fnmt.es/certs/ACRAIZFNMTRCM.crt",
+            ]
+            root_tmps=[]
             bundle_tmp=Path(tempfile.mkstemp(suffix=".pem")[1])
             try:
-                ape_req=urllib.request.Request(ape_url,headers={"User-Agent":"coalicion-primary-materializer/1.0"})
-                with urllib.request.urlopen(ape_req,context=ssl.create_default_context(),timeout=120) as r:
-                    ape_tmp.write_bytes(r.read())
-                if ape_tmp.stat().st_size < 1000:
-                    raise RuntimeError("FAIL-CLOSED: invalid official APE root certificate")
-                bundle_tmp.write_bytes(Path(ca).read_bytes()+b"\n"+ape_tmp.read_bytes())
+                for root_url in root_urls:
+                    root_tmp=Path(tempfile.mkstemp(suffix=".crt")[1])
+                    root_tmps.append(root_tmp)
+                    root_req=urllib.request.Request(root_url,headers={"User-Agent":"coalicion-primary-materializer/1.0"})
+                    with urllib.request.urlopen(root_req,context=ssl.create_default_context(),timeout=120) as r:
+                        root_tmp.write_bytes(r.read())
+                    if root_tmp.stat().st_size < 1000:
+                        raise RuntimeError("FAIL-CLOSED: invalid official FNMT root certificate")
+                bundle_tmp.write_bytes(Path(ca).read_bytes()+b"\n"+b"\n".join(p.read_bytes() for p in root_tmps))
                 ctx=ssl.create_default_context(cafile=bundle_tmp.as_posix())
                 with urllib.request.urlopen(req,context=ctx,timeout=900) as r:
                     data=r.read()
             except Exception as exc:
                 raise RuntimeError("FAIL-CLOSED: verified HTTPS acquisition from official Interior failed") from exc
             finally:
-                ape_tmp.unlink(missing_ok=True)
+                for root_tmp in root_tmps:
+                    root_tmp.unlink(missing_ok=True)
                 bundle_tmp.unlink(missing_ok=True)
     if len(data)<=10000 or data[:4]!=b"PK\x03\x04":
         raise RuntimeError("FAIL-CLOSED: official Interior response is not a valid XLSX")
