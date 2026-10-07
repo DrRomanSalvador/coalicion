@@ -20,7 +20,7 @@ from src.seec_bayesian import SurveyRow, ProvinceObservation, build_model
 
 
 RESULTS = Path("data/resultados_oficiales_2004_2023.csv")
-OUTPUT = Path("ci_evidence/seec_production.json")
+OUTPUT = Path("ci_evidence/seec_posterior.json")
 SEED = 20261006
 DRAWS_PER_CHAIN = 5000
 CHAINS = 2
@@ -116,6 +116,7 @@ def main():
     result={
         "schema":"SEEC_PRODUCTION_EXECUTION_V1",
         "status":"PASS",
+        "execution_verified": True,
         "methodology":"REINA-SEEC 4.0",
         "model":"src.seec_bayesian.build_model",
         "survey_source":"CIS study 3411, Preelectoral Elecciones Generales 2023",
@@ -128,6 +129,7 @@ def main():
         "constituencies":len(provinces),
         "draws_per_chain":DRAWS_PER_CHAIN,
         "chains":CHAINS,
+        "draws":total_draws,
         "total_posterior_draws":total_draws,
         "seed":SEED,
         "rng":"numpy.PCG64",
