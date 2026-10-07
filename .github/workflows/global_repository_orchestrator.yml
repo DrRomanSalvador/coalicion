@@ -16,93 +16,26 @@ concurrency:
 jobs:
   orchestrate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
-      - name: Sweep and recover repository workflows
+      - name: Release stuck canonical run
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-          CURRENT_SHA: ${{ github.sha }}
-          SELF_WORKFLOW: ${{ github.workflow }}
         shell: bash
         run: |
           set -euo pipefail
-
-          api() {
-            gh api "$@"
-          }
-
-          echo "GLOBAL ORCHESTRATOR: sweep started on $CURRENT_SHA"
-
-          api --paginate "repos/$REPOSITORY/actions/workflows?per_page=100"             --jq '.workflows[] | select(.state == "active") | [.id,.path,.name] | @tsv'             > /tmp/workflows.tsv
-
-          # Release a canonical run that is genuinely stuck long enough to block
-          # the repository. GitHub supports cancel/force-cancel with Actions write.
+          api() { gh api "$@"; }
           now="$(date -u +%s)"
-          api --paginate "repos/$REPOSITORY/actions/runs?per_page=100&branch=main"             --jq '.workflow_runs[] |
+          api --paginate "repos/$REPOSITORY/actions/runs?per_page=100&branch=main" \
+            --jq '.workflow_runs[] |
               select(.name == "Historical data — canonical integration" and .status == "in_progress") |
-              [.id,.created_at] | @tsv' > /tmp/canonical-active.tsv
-
+              [.id,.created_at] | @tsv' > /tmp/canonical.tsv
           while IFS=$'\t' read -r run_id created_at; do
             [ -n "$run_id" ] || continue
             started="$(date -d "$created_at" +%s)"
-            age=$((now-started))
-            if [ "$age" -ge 300 ]; then
-              echo "RECOVERY: cancelling stuck canonical run $run_id (age=$age seconds)"
-              api --method POST                 -H "Accept: application/vnd.github+json"                 -H "X-GitHub-Api-Version: 2026-03-10"                 "repos/$REPOSITORY/actions/runs/$run_id/cancel" ||               api --method POST                 -H "Accept: application/vnd.github+json"                 -H "X-GitHub-Api-Version: 2026-03-10"                 "repos/$REPOSITORY/actions/runs/$run_id/force-cancel"
+            if [ $((now-started)) -ge 300 ]; then
+              api --method POST "repos/$REPOSITORY/actions/runs/$run_id/cancel" || \
+              api --method POST "repos/$REPOSITORY/actions/runs/$run_id/force-cancel"
             fi
-          done < /tmp/canonical-active.tsv
-
-          # Recover only recent failed runs. Never recurse into this orchestrator.
-          cutoff=$((now-1800))
-          api --paginate "repos/$REPOSITORY/actions/runs?per_page=100&branch=main"             --jq '.workflow_runs[] | select(.conclusion == "failure") |
-              [.id,.workflow_id,.name,.head_sha,.run_attempt,.created_at] | @tsv' > /tmp/failed.tsv
-
-          while IFS=
-            [ -n "$run_id" ] || continue
-            [ "$workflow_name" = "$SELF_WORKFLOW" ] && continue
-            [ "$run_attempt" -lt 3 ] || continue
-            created_epoch="$(date -d "$created_at" +%s)"
-            [ "$created_epoch" -ge "$cutoff" ] || continue
-
-            jobs_count="$(api "repos/$REPOSITORY/actions/runs/$run_id/jobs?per_page=100" --jq '.jobs | length')"
-            workflow_path="$(api "repos/$REPOSITORY/actions/workflows/$workflow_id" --jq '.path')"
-
-            if [ "$head_sha" != "$CURRENT_SHA" ]; then
-              content="$(api "repos/$REPOSITORY/contents/$workflow_path?ref=main" --jq '.content' | tr -d '\n' | base64 --decode)"
-              if printf '%s\n' "$content" | grep -Eq '^[[:space:]]*workflow_dispatch[[:space:]]*:'; then
-                api --method POST -H "Accept: application/vnd.github+json"                   -H "X-GitHub-Api-Version: 2026-03-10"                   "repos/$REPOSITORY/actions/workflows/$workflow_id/dispatches" -f ref=main
-              else
-                api --method POST -H "Accept: application/vnd.github+json"                   -H "X-GitHub-Api-Version: 2026-03-10"                   "repos/$REPOSITORY/actions/runs/$run_id/rerun"
-              fi
-            elif [ "$jobs_count" -eq 0 ]; then
-              api --method POST -H "Accept: application/vnd.github+json"                 -H "X-GitHub-Api-Version: 2026-03-10"                 "repos/$REPOSITORY/actions/runs/$run_id/rerun"
-            else
-              api --method POST -H "Accept: application/vnd.github+json"                 -H "X-GitHub-Api-Version: 2026-03-10"                 "repos/$REPOSITORY/actions/runs/$run_id/rerun-failed-jobs"
-            fi
-          done < /tmp/failed.tsv
-
-          echo "GLOBAL ORCHESTRATOR: sweep completed"
-\t' read -r run_id workflow_id workflow_name head_sha run_attempt created_at; do
-            [ -n "$run_id" ] || continue
-            [ "$workflow_name" = "$SELF_WORKFLOW" ] && continue
-            [ "$run_attempt" -lt 3 ] || continue
-
-            jobs_count="$(api "repos/$REPOSITORY/actions/runs/$run_id/jobs?per_page=100" --jq '.jobs | length')"
-            workflow_path="$(api "repos/$REPOSITORY/actions/workflows/$workflow_id" --jq '.path')"
-
-            if [ "$head_sha" != "$CURRENT_SHA" ]; then
-              content="$(api "repos/$REPOSITORY/contents/$workflow_path?ref=main" --jq '.content' | tr -d '\n' | base64 --decode)"
-              if printf '%s\n' "$content" | grep -Eq '^[[:space:]]*workflow_dispatch[[:space:]]*:'; then
-                api --method POST -H "Accept: application/vnd.github+json"                   -H "X-GitHub-Api-Version: 2026-03-10"                   "repos/$REPOSITORY/actions/workflows/$workflow_id/dispatches" -f ref=main
-              else
-                api --method POST -H "Accept: application/vnd.github+json"                   -H "X-GitHub-Api-Version: 2026-03-10"                   "repos/$REPOSITORY/actions/runs/$run_id/rerun"
-              fi
-            elif [ "$jobs_count" -eq 0 ]; then
-              api --method POST -H "Accept: application/vnd.github+json"                 -H "X-GitHub-Api-Version: 2026-03-10"                 "repos/$REPOSITORY/actions/runs/$run_id/rerun"
-            else
-              api --method POST -H "Accept: application/vnd.github+json"                 -H "X-GitHub-Api-Version: 2026-03-10"                 "repos/$REPOSITORY/actions/runs/$run_id/rerun-failed-jobs"
-            fi
-          done < /tmp/failed.tsv
-
-          echo "GLOBAL ORCHESTRATOR: sweep completed"
+          done < /tmp/canonical.tsv
