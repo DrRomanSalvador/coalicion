@@ -52,17 +52,21 @@ jobs:
             exit 0
           fi
           git commit -m "chore: persist poll monitor state"
-          for attempt in 1 2 3; do
-            if git push origin HEAD:main; then
-              echo "Persistencia publicada en main (intento $attempt)."
-              exit 0
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            if git merge-base --is-ancestor origin/main HEAD; then
+              if git push origin HEAD:main; then
+                echo "Persistencia publicada en main (intento $attempt)."
+                exit 0
+              fi
+            else
+              echo "main avanzó; rebasando el commit de persistencia (intento $attempt)."
+              git rebase --autostash origin/main
+              continue
             fi
-            echo "Push rechazado por avance remoto; sincronizando main (intento $attempt)."
-            # El monitor puede dejar cambios de trabajo antes de sincronizar.
-            # El reset es seguro aquí porque todo lo persistible ya está en el commit local.
-            git reset --hard HEAD
+            echo "Push rechazado por avance remoto; reintentando sincronización (intento $attempt)."
             git fetch origin main
             git rebase --autostash origin/main
           done
-          echo "ERROR: no se pudo publicar el estado después de 3 intentos."
+          echo "ERROR: no se pudo publicar el estado después de 5 intentos."
           exit 1
