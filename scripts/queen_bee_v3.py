@@ -117,12 +117,14 @@ def main() -> int:
         report["sources"].append({**source, **result})
         print(f"[{result['status']}] {source['id']}")
 
-    # Existing exhaustive acquisition records all configured sources and hashes;
-    # this is evidence collection, not permission to fabricate a canonical matrix.
-    report["tasks"].append(run_cmd(
-        "exhaustive_sources",
-        [sys.executable, "scripts/exhaustive_data_acquisition.py", "--search", "--resolve"],
-    ))
+    # The activation workflow already performs BOE/EleccionesDB acquisition.
+    # Repeating the exhaustive multi-source sweep here is optional and can make
+    # the critical canonical verification unnecessarily slow.
+    if os.environ.get("COLMENA_SKIP_EXHAUSTIVE", "0") != "1":
+        report["tasks"].append(run_cmd(
+            "exhaustive_sources",
+            [sys.executable, "scripts/exhaustive_data_acquisition.py", "--search", "--resolve"],
+        ))
 
     # Canonical engine remains authoritative for parsing and schema validation.
     report["tasks"].append(run_cmd(
