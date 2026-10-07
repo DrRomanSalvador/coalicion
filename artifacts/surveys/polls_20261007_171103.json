@@ -1,0 +1,37 @@
+{
+  "schema": "POLL_MONITOR_V3",
+  "checked_at": "2026-10-07T17:10:46.459553+00:00",
+  "coverage": {
+    "claim": "COBERTURA_TOTAL_NO_VERIFICADA",
+    "scope": "configured_national_poll_universe",
+    "total": false,
+    "sources_checked": 14,
+    "primary_sources": 7,
+    "discovery_sources": 7,
+    "blockers": [
+      "SOURCE_NOT_HEALTHY:elpais_40db",
+      "SOURCE_NOT_HEALTHY:invymark"
+    ]
+  },
+  "status": "BLOCKED",
+  "found_polls": 3,
+  "new_polls": [],
+  "changed_polls": [],
+  "discoveries": [],
+  "failures": [
+    {
+      "source_id": "elpais_40db",
+      "error": "HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/encuestas-electorales/?outputType=amp"
+    },
+    {
+      "source_id": "invymark",
+      "error": "SSLError:HTTPSConnectionPool(host='invymark.es', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1010)')))"
+    },
+    {
+      "source_id": "political_stats_spain",
+      "error": "ConnectionError:HTTPSConnectionPool(host='politicalstats.eu', port=443): Max retries exceeded with url: /spain (Caused by NameResolutionError(\"HTTPSConnection(host='politicalstats.eu', port=443): Failed to resolve 'politicalstats.eu' ([Errno -2] Name or service not known)\"))"
+    }
+  ],
+  "descriptive_only": true,
+  "seat_projection": "BLOCKED_NO_TERRITORIAL_INPUT"
+}
