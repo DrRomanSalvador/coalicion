@@ -93,11 +93,11 @@ extract_study <- function(study_id, study_date, title) {
       nivel_fuente="PRIMARY_OFFICIAL_MICRODATA",
       metodo="weighted_microdata_vote_intention",
       variable=var,
-      sample_size=sum(ok),\n      source_url=paste0("https://www.cis.es/es/estudios/", study_id)
+      sample_size=sum(ok)
     ) |>
     dplyr::select(fecha_encuesta, partido, estimacion_voto, tipo_encuesta,
                   encuesta, fuente, nivel_fuente, metodo, codigo_estudio,
-                  variable, sample_size, source_url)
+                  variable, sample_size)
 
   if (!nrow(rows)) NULL else rows
 }
