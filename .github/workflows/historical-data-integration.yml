@@ -32,7 +32,7 @@ permissions:
 
 concurrency:
   group: historical-data-canonical-main-v6
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   integrate:
