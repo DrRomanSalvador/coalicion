@@ -28,6 +28,31 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Download official Interior workbook once
+        shell: bash
+        run: |
+          mkdir -p data/raw
+          curl -fL --retry 3 --retry-delay 2 --connect-timeout 30 --max-time 600 --insecure \
+            -A "REINA-SEEC/1.0" \
+            -o data/raw/Elecciones-Congreso.xlsx \
+            "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
+          test -s data/raw/Elecciones-Congreso.xlsx
+
+      - name: Inspect official workbook structure
+        shell: bash
+        run: |
+          python -m pip install --quiet openpyxl
+          python - <<'PY'
+          from openpyxl import load_workbook
+          p="data/raw/Elecciones-Congreso.xlsx"
+          wb=load_workbook(p, read_only=True, data_only=True)
+          print("SHEETS:", wb.sheetnames)
+          for ws in wb.worksheets:
+              print("SHEET:", ws.title)
+              for row in ws.iter_rows(min_row=1, max_row=12, values_only=True):
+                  print(repr(tuple(row[:20])))
+          PY
+
       - name: Setup R
         uses: r-lib/actions/setup-r@v2
         with:
