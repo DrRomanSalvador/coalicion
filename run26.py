@@ -11,7 +11,8 @@ from pathlib import Path
 STAGES = [
     ("matrix_2023", ["scripts/acquire_2023_matrix.py"]),
     ("calculator_2023_integration", ["scripts/integrate_2023_calculator.py"]),
-    ("calculator_2023_tests", ["-m", "pytest", "tests/test_2023_calculator_integration.py", "-q"]),
+    ("calculator_2023_tests", ["-m", "pytest", "tests/test_2023_calculator_integration.py", "tests/test_coalition_reports.py", "-q"]),
+    ("coalition_reports_2023", ["scripts/agent2_coalition_reports.py"]),
     ("historical_polls", ["scripts/acquire_historical_polls.py"]),
     ("historical_secondary", ["scripts/stage_historico_secondary.py"]),
     ("historical_validation", ["scripts/validate_historical_secondary.py"]),
@@ -48,7 +49,7 @@ def main():
         seec_status["reason"]="Survey archive exists, but technical fichas/microdata must be materialized before production inference."
 
     subprocess.run([sys.executable,"scripts/build_sha256_manifest.py"],check=False)
-    required = {"matrix_2023", "calculator_2023_integration", "calculator_2023_tests"}
+    required = {"matrix_2023", "calculator_2023_integration", "calculator_2023_tests", "coalition_reports_2023"}
     required_failures = [r for r in results if r["stage"] in required and r["returncode"] != 0]
     payload={
         "schema":"RUN26_EXECUTION_V1",
