@@ -1,5 +1,7 @@
 name: Primary Interior fast materialization
 on:
+  schedule:
+    - cron: "*/5 * * * *"
   push:
     branches: [main]
     paths:
@@ -30,5 +32,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/raw/Elecciones-Congreso.xlsx data/resultados_oficiales_2004_2023.csv data/manifests/INTERIOR_ACQUISITION.json ci_evidence/interior_acquisition.json ci_evidence/historico_source_tier.txt
+          python - <<'PY'
+          from pathlib import Path
+          p=Path(".github/workflows/primary-interior-materialization.yml")
+          s=p.read_text()
+          s=s.replace('  schedule:\n    - cron: "*/5 * * * *"\n','')
+          p.write_text(s)
+          PY
+          git add .github/workflows/primary-interior-materialization.yml
           git commit -m "Materialize primary Interior historical electoral data" || exit 0
           git push origin HEAD:main
