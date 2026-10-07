@@ -189,6 +189,36 @@ def _predict_bias(name: str, train: list[Observation], obs: Observation) -> floa
     raise ValueError(f"unknown bias correction: {name}")
 
 
+def _score_holdout(training: list[PollObservation], holdout: list[PollObservation]) -> dict:
+    """Score one strictly future election against an expanding historical window."""
+    train_bias = _bias_observations(training)
+    selected_bias = select_best(train_bias)
+    selected_context = select(training)
+
+    bias_predictions = [
+        _predict_bias(selected_bias.name, train_bias, Observation(
+            r.election, r.party, r.poll, r.actual, r.house, r.field_end
+        ))
+        for r in holdout
+    ]
+    context_predictions = [
+        predict_context(selected_context, training, r) for r in holdout
+    ]
+    actuals = [r.actual for r in holdout]
+    polls = [r.poll for r in holdout]
+    return {
+        "election": holdout[0].election,
+        "election_date": holdout[0].election_date,
+        "training_elections": _election_order(training),
+        "holdout_rows": len(holdout),
+        "selected_bias_correction": selected_bias.name,
+        "selected_context_correction": selected_context,
+        "mae_base": _mae(polls, actuals),
+        "mae_selected_bias": _mae(bias_predictions, actuals),
+        "mae_selected_context": _mae(context_predictions, actuals),
+    }
+
+
 def run_oos(rows: list[PollObservation]) -> dict:
     if len({r.election for r in rows}) < 2:
         raise ValueError("OOS requiere al menos dos elecciones")
@@ -209,21 +239,19 @@ def run_oos(rows: list[PollObservation]) -> dict:
     if len({r.election for r in training}) < 2:
         raise ValueError("OOS requires at least two historical training elections before holdout")
 
-    train_bias = _bias_observations(training)
-    selected_bias = select_best(train_bias)
-    selected_context = select(training)
+    # Full walk-forward certification: every test election has only earlier
+    # elections in its training window. The latest election remains the final
+    # holdout exposed by the legacy result contract.
+    walk_forward = []
+    for index in range(2, len(elections)):
+        train_elections = set(elections[:index])
+        train = [r for r in rows if r.election in train_elections]
+        test = [r for r in rows if r.election == elections[index]]
+        if not train or not test:
+            raise ValueError(f"empty walk-forward split at {elections[index]}")
+        walk_forward.append(_score_holdout(train, test))
 
-    bias_predictions = [
-        _predict_bias(selected_bias.name, train_bias, Observation(
-            r.election, r.party, r.poll, r.actual, r.house, r.field_end
-        ))
-        for r in holdout
-    ]
-    context_predictions = [
-        predict_context(selected_context, training, r) for r in holdout
-    ]
-    holdout_actuals = [r.actual for r in holdout]
-    holdout_polls = [r.poll for r in holdout]
+    latest_score = _score_holdout(training, holdout)
 
     return {
         "status": "PASS",
@@ -232,10 +260,13 @@ def run_oos(rows: list[PollObservation]) -> dict:
         "n_elections": len(elections),
         "training_elections": elections[:-1],
         "holdout_election": latest,
-        "selected_bias_correction": selected_bias.name,
-        "selected_context_correction": selected_context,
-        "holdout_mae_base": _mae(holdout_polls, holdout_actuals),
-        "holdout_mae_selected_bias": _mae(bias_predictions, holdout_actuals),
-        "holdout_mae_selected_context": _mae(context_predictions, holdout_actuals),
+        "selected_bias_correction": latest_score["selected_bias_correction"],
+        "selected_context_correction": latest_score["selected_context_correction"],
+        "holdout_mae_base": latest_score["mae_base"],
+        "holdout_mae_selected_bias": latest_score["mae_selected_bias"],
+        "holdout_mae_selected_context": latest_score["mae_selected_context"],
         "holdout_rows": len(holdout),
+        "walk_forward": walk_forward,
+        "walk_forward_holdouts": len(walk_forward),
+        "walk_forward_contract": "ALL_TEST_ELECTIONS_USE_ONLY_PRIOR_ELECTIONS",
     }
