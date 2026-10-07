@@ -1,0 +1,51 @@
+name: Historical CI orchestrator
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Decide and dispatch exactly one historical run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          workflow="Historical data — canonical integration"
+          workflow_file="historical-data-integration.yml"
+          current_sha="$(gh api "repos/$REPO/commits/main" --jq '.sha')"
+
+          runs="$(gh run list --repo "$REPO" --workflow "$workflow_file" --limit 20             --json databaseId,status,conclusion,headSha,createdAt)"
+
+          if python - "$runs" "$current_sha" <<'PY'
+          import json, sys
+          runs=json.loads(sys.argv[1])
+          sha=sys.argv[2]
+          active={"queued","in_progress","waiting","requested","pending"}
+          for r in runs:
+              if r.get("status") in active:
+                  print(f"HISTORICAL_ACTIVE:{r['databaseId']}:{r['status']}")
+                  raise SystemExit(0)
+          for r in runs:
+              if r.get("headSha")==sha and r.get("conclusion")=="success":
+                  print(f"HISTORICAL_GREEN:{sha}")
+                  raise SystemExit(0)
+          raise SystemExit(1)
+          PY
+          then
+            exit 0
+          fi
+
+          echo "No active/green historical run for $current_sha; dispatching exactly one."
+          gh workflow run "$workflow_file" --repo "$REPO" --ref main
