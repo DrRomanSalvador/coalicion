@@ -1,0 +1,12 @@
+{
+  "schema": "INTERIOR_ACQUISITION_V3",
+  "status": "PENDING",
+  "source_tier": "PRIMARY_INTERIOR",
+  "source_url": "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+  "required_for": [
+    "data/raw/Elecciones-Congreso.xlsx",
+    "data/resultados_oficiales_2004_2023.csv"
+  ],
+  "reason": "El runner debe descargar y validar el XLSX oficial antes de declarar materialización primaria.",
+  "fail_closed": true
+}
