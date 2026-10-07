@@ -1,0 +1,23 @@
+{
+  "schema": "HISTORICAL_DATA_LIMITATIONS_V2",
+  "status": "EXPLICIT_NON_CANONICAL_BOUNDARIES",
+  "critical": "This materialization is not a substitute for the primary Interior XLSX.",
+  "results": {
+    "scope": "national only; not 52 constituencies",
+    "source_tier": "SECONDARY_REPRODUCTION_PRIMARY",
+    "why": "direct XLSX acquisition unavailable in execution environment"
+  },
+  "polls": {
+    "source": "CIS official published estimation PDFs",
+    "not_microdata": true,
+    "coverage": "one official preelectoral estimate per election; not every CIS barometer"
+  },
+  "protected_2023_artifacts": "untouched",
+  "prohibitions": [
+    "synthetic_values",
+    "seat_to_vote_backcalculation",
+    "national_to_territorial_conversion",
+    "future_leakage",
+    "secondary_overwrite_of_primary"
+  ]
+}
