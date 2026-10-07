@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Materialize official Interior Congress historical results without R."""
 from __future__ import annotations
-import csv, hashlib, json, ssl, urllib.request
+import csv, hashlib, json, ssl, urllib.request\nimport certifi
 from pathlib import Path
 from openpyxl import load_workbook
 
@@ -16,7 +16,7 @@ DATES={"2004":"2004-03-14","2008":"2008-03-09","2011":"2011-11-20","2015":"2015-
 def main():
     XLSX.parent.mkdir(parents=True,exist_ok=True)
     MAN.parent.mkdir(parents=True,exist_ok=True)
-    ctx=ssl.create_default_context()
+    ctx=ssl.create_default_context(cafile=certifi.where())
     req=urllib.request.Request(URL,headers={"User-Agent":"coalicion-primary-materializer/1.0","Referer":PAGE})
     with urllib.request.urlopen(req,context=ctx,timeout=900) as r:
         data=r.read()
