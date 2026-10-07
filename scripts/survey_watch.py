@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
-"""Daily fail-closed watcher for explicitly configured polling sources.
-
-The watcher detects new source records and prepares neutral scenario inputs.
-It never invents polling figures, party mappings, or recommendations.
-"""
+"""Fail-closed survey watcher with deterministic change detection and alerts."""
 from __future__ import annotations
-import hashlib, json, sys, urllib.request
+import hashlib, json, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -22,6 +18,11 @@ def sha256(b: bytes) -> str:
 def load(p, default):
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else default
 
+def fetch(url: str) -> bytes:
+    req=urllib.request.Request(url,headers={"User-Agent":"coalicion-neutral-survey-watch/2.0"})
+    with urllib.request.urlopen(req,timeout=30) as resp:
+        return resp.read()
+
 def main():
     cfg=load(CONFIG,{})
     tz=ZoneInfo(cfg.get("timezone","Europe/Madrid"))
@@ -30,42 +31,55 @@ def main():
         print(json.dumps({"status":"SKIPPED","reason":"OUTSIDE_DAILY_LOCAL_WINDOW","local_time":now.isoformat()}))
         return 0
 
-    state=load(STATE,{"seen":{}})
+    state=load(STATE,{"seen":{},"history":[]})
     events=[]
     for src in cfg.get("sources",[]):
+        key=src.get("id") or src.get("url")
         url=src.get("url")
-        if not url:
+        if not key or not url:
+            events.append({"severity":"CRITICAL","status":"INVALID_SOURCE_CONFIG","source_id":key})
             continue
         try:
-            req=urllib.request.Request(url,headers={"User-Agent":"coalicion-neutral-survey-watch/1.0"})
-            with urllib.request.urlopen(req,timeout=30) as resp:
-                body=resp.read()
+            body=fetch(url)
             digest=sha256(body)
-            key=src.get("id",url)
-            if state["seen"].get(key)==digest:
+            previous=state["seen"].get(key)
+            if previous == digest:
+                events.append({"severity":"INFO","status":"UNCHANGED","source_id":key,"sha256":digest})
                 continue
             INBOX.mkdir(parents=True,exist_ok=True)
             target=INBOX/(digest+".source")
             target.write_bytes(body)
+            status="NEW_SOURCE_RECORD" if previous is None else "CHANGED_SOURCE_RECORD"
+            severity="INFO" if previous is None else "ALERT"
+            event={"severity":severity,"status":status,"source_id":key,"sha256":digest,
+                   "previous_sha256":previous,"path":str(target.relative_to(ROOT)),
+                   "detected_at":now.isoformat()}
+            events.append(event)
             state["seen"][key]=digest
-            events.append({"source_id":key,"status":"NEW_SOURCE_RECORD","sha256":digest,"path":str(target.relative_to(ROOT))})
+            state["history"].append(event)
         except Exception as exc:
-            events.append({"source_id":src.get("id",url),"status":"BLOCKED_SOURCE_FETCH","error":str(exc)})
+            events.append({"severity":"CRITICAL","status":"BLOCKED_SOURCE_FETCH",
+                           "source_id":key,"error":str(exc),"detected_at":now.isoformat()})
 
+    blocked=any(e["severity"]=="CRITICAL" for e in events)
+    changed=[e for e in events if e["status"]=="CHANGED_SOURCE_RECORD"]
     payload={
-      "schema":"SURVEY_WATCH_REPORT_V1",
-      "status":"READY" if not any(e["status"].startswith("BLOCKED") for e in events) else "BLOCKED",
+      "schema":"SURVEY_WATCH_REPORT_V2",
+      "status":"BLOCKED" if blocked else ("ALERT" if changed else "READY"),
       "checked_at":now.isoformat(),
-      "new_sources":events,
+      "alerts":events,
+      "alert_count":sum(e["severity"] in {"ALERT","CRITICAL"} for e in events),
+      "new_or_changed_sources":len([e for e in events if e["status"] in {"NEW_SOURCE_RECORD","CHANGED_SOURCE_RECORD"}]),
       "scenario_sets":cfg.get("scenario_sets",[]),
-      "policy":cfg.get("comparison_policy",{})
+      "policy":cfg.get("comparison_policy",{}),
+      "report_policy":cfg.get("report_policy",{})
     }
     REPORT.parent.mkdir(parents=True,exist_ok=True)
     REPORT.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     STATE.parent.mkdir(parents=True,exist_ok=True)
     STATE.write_text(json.dumps(state,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(payload,ensure_ascii=False))
-    return 0 if payload["status"]=="READY" else 1
+    return 1 if blocked else 0
 
 if __name__=="__main__":
     raise SystemExit(main())
