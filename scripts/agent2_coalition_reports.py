@@ -32,7 +32,7 @@ def main() -> None:
     if len(selected) < 2:
         raise SystemExit("MATRIX_FAIL_CLOSED: menos de dos candidaturas separables")
 
-    results, unsupported = pairwise_report(matrix, selected)
+    results, _ = pairwise_report(matrix, selected)
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
     (out / "all_coalitions_2023.md").write_text(
