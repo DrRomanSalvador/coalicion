@@ -38,36 +38,45 @@ jobs:
           FAILED_SHA: ${{ github.event.workflow_run.head_sha }}
           RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
           WORKFLOW_ID: ${{ github.event.workflow_run.workflow_id }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
         shell: bash
         run: |
           set -euo pipefail
 
           max_attempts=3
           if [ "$RUN_ATTEMPT" -ge "$max_attempts" ]; then
-            echo "ERROR: el monitor sigue fallando tras $RUN_ATTEMPT intentos."
-            exit 1
+            echo "AUTO-HEAL: límite de $max_attempts intentos alcanzado; no se crea un bucle."
+            exit 0
           fi
 
           current_sha="$(gh api "repos/$REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
           workflow_file="$(gh api "repos/$REPOSITORY/actions/workflows/$WORKFLOW_ID" --jq '.path')"
+          jobs_count="$(gh api "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/jobs?per_page=100" --jq '.jobs | length')"
+
+          rerun_full() {
+            echo "AUTO-HEAL: relanzando la ejecución completa $FAILED_RUN_ID."
+            gh api --method POST               -H "Accept: application/vnd.github+json"               -H "X-GitHub-Api-Version: 2026-03-10"               "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/rerun"
+          }
 
           if [ "$FAILED_SHA" != "$current_sha" ]; then
-            echo "AUTO-HEAL: ejecución antigua; relanzando $workflow_file sobre main=$current_sha."
-            gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "repos/$REPOSITORY/actions/workflows/$workflow_file/dispatches" -f ref=main
-            echo "AUTO-HEAL: nueva ejecución lanzada sobre main."
+            echo "AUTO-HEAL: ejecución antigua $FAILED_SHA; main actual=$current_sha."
+            workflow_content="$(gh api "repos/$REPOSITORY/contents/$workflow_file?ref=main" --jq '.content' | tr -d '\n' | base64 --decode)"
+            if printf '%s\n' "$workflow_content" | grep -Eq '^[[:space:]]*workflow_dispatch[[:space:]]*:'; then
+              echo "AUTO-HEAL: el workflow admite workflow_dispatch; ejecutándolo sobre main."
+              gh api --method POST                 -H "Accept: application/vnd.github+json"                 -H "X-GitHub-Api-Version: 2026-03-10"                 "repos/$REPOSITORY/actions/workflows/$workflow_file/dispatches"                 -f ref=main
+            else
+              echo "AUTO-HEAL: el workflow no admite workflow_dispatch; usando rerun seguro de la ejecución existente."
+              rerun_full
+            fi
             exit 0
           fi
 
-          if [ "$RUN_ATTEMPT" -ge "$max_attempts" ]; then
-            echo "AUTO-HEAL: ejecución cancelada/fallida sobre el SHA actual y límite alcanzado; no se duplica el monitor."
+          if [ "$jobs_count" -eq 0 ]; then
+            echo "AUTO-HEAL: fallo a nivel de workflow sin jobs; rerun completo."
+            rerun_full
             exit 0
           fi
 
-          if [ "${{ github.event.workflow_run.conclusion }}" = "cancelled" ]; then
-            echo "AUTO-HEAL: ejecución cancelada sobre el SHA actual; no se duplica el monitor."
-            exit 0
-          fi
-
-          echo "AUTO-HEAL: el fallo pertenece al SHA actual; reintentando solo los jobs fallidos."
-          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/rerun-failed-jobs"
+          echo "AUTO-HEAL: reintentando solo jobs fallidos ($jobs_count jobs detectados)."
+          gh api --method POST             -H "Accept: application/vnd.github+json"             -H "X-GitHub-Api-Version: 2026-03-10"             "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/rerun-failed-jobs"
           echo "AUTO-HEAL: jobs fallidos reintentados."
