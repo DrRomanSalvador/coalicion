@@ -1,0 +1,983 @@
+{
+  "schema": "ELECTION_2023_CONSTITUENCY_MATRIX_V1",
+  "election": 2023,
+  "type": "general",
+  "source_tier": "SECONDARY_REPLICA_VERIFIED",
+  "data": {
+    "constituencies": {
+      "A Coruña": {
+        "seats": 8,
+        "parties": {
+          "PP PARTIDO POPULAR": 292272,
+          "PSdeG-PSOE PARTIDO DOS SOCIALISTAS DE GALICIA-PSOE": 190897,
+          "SUMAR SUMAR GALICIA": 82618,
+          "B.N.G. BLOQUE NACIONALISTA GALEGO": 67653,
+          "VOX VOX": 34410,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 3096,
+          "FO FRENTE OBRERO": 1011,
+          "RECORTES CERO RECORTES CERO": 548
+        },
+        "blank_votes": 5197,
+        "valid_votes": 677702,
+        "source_url": "https://datoelectoral.es/circunscripciones/a-coruna"
+      },
+      "Albacete": {
+        "seats": 4,
+        "parties": {
+          "PP PARTIDO POPULAR": 88299,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 76322,
+          "VOX VOX": 36750,
+          "SUMAR SUMAR": 15834,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 1261,
+          "FO FRENTE OBRERO": 381,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 325,
+          "RECORTES CERO RECORTES CERO": 185
+        },
+        "blank_votes": 1834,
+        "valid_votes": 221191,
+        "source_url": "https://datoelectoral.es/circunscripciones/albacete"
+      },
+      "Alicante/Alacant": {
+        "seats": 12,
+        "parties": {
+          "PP PARTIDO POPULAR": 330293,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 287737,
+          "VOX VOX": 146133,
+          "COMPROMÍS COMPROMÍS - SUMAR: SUMEM PER GUANYAR - SUMAR": 115787,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 7335,
+          "FO FRENTE OBRERO": 1724,
+          "PARTIDO AUTÓNOMOS PARTIDO AUTÓNOMOS": 1446,
+          "RECORTES CERO RECORTES CERO": 1135,
+          "CJ CAMINANDO JUNTOS": 1027
+        },
+        "blank_votes": 6575,
+        "valid_votes": 899192,
+        "source_url": "https://datoelectoral.es/circunscripciones/alicante-alacant"
+      },
+      "Almería": {
+        "seats": 6,
+        "parties": {
+          "PP PARTIDO POPULAR": 131524,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 93282,
+          "VOX VOX": 68364,
+          "SUMAR SUMAR ANDALUCÍA": 21485,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 1962,
+          "ALM ALMERIENSES - REGIONALISTAS PRO ALMERÍA": 874,
+          "FO FRENTE OBRERO": 500,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 371,
+          "LB LIBRES": 210,
+          "RECORTES CERO RECORTES CERO": 206
+        },
+        "blank_votes": 2464,
+        "valid_votes": 321242,
+        "source_url": "https://datoelectoral.es/circunscripciones/almeria"
+      },
+      "Araba/Álava": {
+        "seats": 4,
+        "parties": {
+          "PSE-EE (PSOE) PARTIDO SOCIALISTA DE EUSKADI-EUSKADIKO EZKERRA (PSOE)": 46775,
+          "EH Bildu EUSKAL HERRIA BILDU": 32987,
+          "PP PARTIDO POPULAR": 30212,
+          "EAJ-PNV EUZKO ALDERDI JELTZALEA-PARTIDO NACIONALISTA VASCO": 28075,
+          "SUMAR SUMAR": 21561,
+          "VOX VOX": 6573,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 773,
+          "ESCAÑOS EN BLANCO ESCAÑOS EN BLANCO PARA DEJAR ESCAÑOS VACÍOS": 619,
+          "FO FRENTE OBRERO": 354,
+          "RECORTES CERO RECORTES CERO": 185,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 165,
+          "PUM+J BIDEZKO MUNDURANTZ": 106
+        },
+        "blank_votes": 722,
+        "valid_votes": 169107,
+        "source_url": "https://datoelectoral.es/circunscripciones/araba-alava"
+      },
+      "Asturias": {
+        "seats": 7,
+        "parties": {
+          "PP PARTIDO POPULAR": 212816,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 205049,
+          "SUMAR SUMAR": 88630,
+          "VOX VOX": 74571,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 3167,
+          "ASTURIAS EXISTE EV ASTURIAS EXISTE-ESPAÑA VACIADA": 2314,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 1598,
+          "FO FRENTE OBRERO": 1176,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 773,
+          "RECORTES CERO RECORTES CERO": 590,
+          "PUEDE PARTIDO UNIONISTA ESTADO DE ESPAÑA": 269
+        },
+        "blank_votes": 6079,
+        "valid_votes": 597032,
+        "source_url": "https://datoelectoral.es/circunscripciones/asturias"
+      },
+      "Badajoz": {
+        "seats": 5,
+        "parties": {
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 153473,
+          "PP PARTIDO POPULAR": 148068,
+          "VOX VOX": 53492,
+          "SUMAR SUMAR": 26778,
+          "BQEX BLOQUE EXTREMEÑO": 3885,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 1395,
+          "FO FRENTE OBRERO": 477,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 464,
+          "RECORTES CERO RECORTES CERO": 204
+        },
+        "blank_votes": 3225,
+        "valid_votes": 391461,
+        "source_url": "https://datoelectoral.es/circunscripciones/badajoz"
+      },
+      "Balears, Illes": {
+        "seats": 8,
+        "parties": {
+          "PP PARTIDO POPULAR": 179303,
+          "PSIB-PSOE PARTIDO SOCIALISTA DE ISLAS BALEARES-PSOE": 151786,
+          "MÉS PER MALLORCA-MÉS PER MENORCA-SUMAR SUMAR MÉS": 83487,
+          "VOX VOX": 76547,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 4969,
+          "FO FRENTE OBRERO": 1039,
+          "RECORTES CERO RECORTES CERO": 726,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 719
+        },
+        "blank_votes": 4704,
+        "valid_votes": 503280,
+        "source_url": "https://datoelectoral.es/circunscripciones/balears-illes"
+      },
+      "Barcelona": {
+        "seats": 32,
+        "parties": {
+          "PSC PARTIT DELS SOCIALISTES DE CATALUNYA (PSC-PSOE)": 952347,
+          "ECP SUMAR - EN COMÚ PODEM - SUMAR": 405993,
+          "PP PARTIDO POPULAR / PARTIT POPULAR": 367519,
+          "ERC ESQUERRA REPUBLICANA DE CATALUNYA": 328697,
+          "JUNTS JUNTS PER CATALUNYA - JUNTS - JxCAT": 258159,
+          "VOX VOX": 201775,
+          "CUP-PR CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA": 67266,
+          "PACMA PARTIT ANIMALISTA AMB EL MEDI AMBIENT": 28201,
+          "PDeCAT-E-CiU PARTIT DEMÒCRATA EUROPEU CATALÀ-ESPAI CIU": 24452,
+          "FO FRENTE OBRERO": 6048,
+          "RECORTES CERO RECORTES CERO": 3104,
+          "PCTC PARTIT COMUNISTA DELS TREBALLADORS DE CATALUNYA": 2858
+        },
+        "blank_votes": 21059,
+        "valid_votes": 2667478,
+        "source_url": "https://datoelectoral.es/circunscripciones/barcelona"
+      },
+      "Bizkaia": {
+        "seats": 8,
+        "parties": {
+          "EAJ-PNV EUZKO ALDERDI JELTZALEA-PARTIDO NACIONALISTA VASCO": 164188,
+          "PSE-EE (PSOE) PARTIDO SOCIALISTA DE EUSKADI-EUSKADIKO EZKERRA (PSOE)": 157448,
+          "EH Bildu EUSKAL HERRIA BILDU": 125867,
+          "PP PARTIDO POPULAR": 70533,
+          "SUMAR SUMAR": 66592,
+          "VOX VOX": 16069,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 2729,
+          "FO FRENTE OBRERO": 929,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 804,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 618,
+          "RECORTES CERO RECORTES CERO": 525
+        },
+        "blank_votes": 3391,
+        "valid_votes": 609693,
+        "source_url": "https://datoelectoral.es/circunscripciones/bizkaia"
+      },
+      "Burgos": {
+        "seats": 4,
+        "parties": {
+          "PP PARTIDO POPULAR": 82329,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 69775,
+          "VOX VOX": 25858,
+          "SUMAR SUMAR": 17508,
+          "VB VÍA BURGALESA": 1774,
+          "EV-PCAS-TC ESPAÑA VACIADA-PARTIDO CASTELLANO-TIERRA COMUNERA": 1184,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 943,
+          "FO FRENTE OBRERO": 490,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 354,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 349,
+          "RECORTES CERO RECORTES CERO": 154
+        },
+        "blank_votes": 1851,
+        "valid_votes": 202569,
+        "source_url": "https://datoelectoral.es/circunscripciones/burgos"
+      },
+      "Cantabria": {
+        "seats": 5,
+        "parties": {
+          "PP PARTIDO POPULAR": 147326,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 116596,
+          "VOX VOX": 49243,
+          "SUMAR SUMAR": 29713,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 2089,
+          "FO FRENTE OBRERO": 790,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 598,
+          "RECORTES CERO RECORTES CERO": 533
+        },
+        "blank_votes": 3262,
+        "valid_votes": 350150,
+        "source_url": "https://datoelectoral.es/circunscripciones/cantabria"
+      },
+      "Castellón/Castelló": {
+        "seats": 5,
+        "parties": {
+          "PP PARTIDO POPULAR": 108302,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 100530,
+          "VOX VOX": 48913,
+          "COMPROMÍS COMPROMÍS - SUMAR: SUMEM PER GUANYAR - SUMAR": 44187,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 1968,
+          "FO FRENTE OBRERO": 721,
+          "RECORTES CERO RECORTES CERO": 493,
+          "FE de las JONS FALANGE ESPAÑOLA DE LAS J.O.N.S.": 161
+        },
+        "blank_votes": 2655,
+        "valid_votes": 307930,
+        "source_url": "https://datoelectoral.es/circunscripciones/castellon-castello"
+      },
+      "Ceuta": {
+        "seats": 1,
+        "parties": {
+          "PP PARTIDO POPULAR": 12918,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 11332,
+          "VOX VOX": 7752,
+          "SUMAR SUMAR": 821,
+          "FO FRENTE OBRERO": 53,
+          "LB LIBRES": 53,
+          "RECORTES CERO RECORTES CERO": 33,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 31
+        },
+        "blank_votes": 328,
+        "valid_votes": 33321,
+        "source_url": "https://datoelectoral.es/circunscripciones/ceuta"
+      },
+      "Ciudad Real": {
+        "seats": 5,
+        "parties": {
+          "PP PARTIDO POPULAR": 114709,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 100102,
+          "VOX VOX": 46046,
+          "SUMAR SUMAR": 17405,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 1319,
+          "FO FRENTE OBRERO": 447,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 365,
+          "RECORTES CERO RECORTES CERO": 233
+        },
+        "blank_votes": 2353,
+        "valid_votes": 282979,
+        "source_url": "https://datoelectoral.es/circunscripciones/ciudad-real"
+      },
+      "Cuenca": {
+        "seats": 3,
+        "parties": {
+          "PP PARTIDO POPULAR": 45255,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 42528,
+          "VOX VOX": 17700,
+          "SUMAR SUMAR": 6325,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 387,
+          "FO FRENTE OBRERO": 207,
+          "ESCAÑOS EN BLANCO ESCAÑOS EN BLANCO PARA DEJAR ESCAÑOS VACÍOS": 168,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 111,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 100,
+          "RECORTES CERO RECORTES CERO": 58
+        },
+        "blank_votes": 969,
+        "valid_votes": 113808,
+        "source_url": "https://datoelectoral.es/circunscripciones/cuenca"
+      },
+      "Cáceres": {
+        "seats": 4,
+        "parties": {
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 91692,
+          "PP PARTIDO POPULAR": 89633,
+          "VOX VOX": 32076,
+          "SUMAR SUMAR": 16354,
+          "BQEX BLOQUE EXTREMEÑO": 1922,
+          "Somos Cc SOMOS CÁCERES": 963,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 814,
+          "FO FRENTE OBRERO": 316,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 249,
+          "RECORTES CERO RECORTES CERO": 111
+        },
+        "blank_votes": 1721,
+        "valid_votes": 235851,
+        "source_url": "https://datoelectoral.es/circunscripciones/caceres"
+      },
+      "Cádiz": {
+        "seats": 9,
+        "parties": {
+          "PP PARTIDO POPULAR": 221703,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 211200,
+          "VOX VOX": 96720,
+          "SUMAR SUMAR ANDALUCÍA": 82115,
+          "ADELANTE ANDALUCÍA ADELANTE ANDALUCÍA": 9191,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 5937,
+          "FO FRENTE OBRERO": 1225,
+          "CJ CAMINANDO JUNTOS": 745,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 673,
+          "RECORTES CERO RECORTES CERO": 486
+        },
+        "blank_votes": 7103,
+        "valid_votes": 637098,
+        "source_url": "https://datoelectoral.es/circunscripciones/cadiz"
+      },
+      "Córdoba": {
+        "seats": 6,
+        "parties": {
+          "PP PARTIDO POPULAR": 169976,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 144080,
+          "VOX VOX": 62526,
+          "SUMAR SUMAR ANDALUCÍA": 61594,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 2699,
+          "ESCAÑOS EN BLANCO ESCAÑOS EN BLANCO PARA DEJAR ESCAÑOS VACÍOS": 942,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 746,
+          "FO FRENTE OBRERO": 701,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 598,
+          "RECORTES CERO RECORTES CERO": 392
+        },
+        "blank_votes": 4348,
+        "valid_votes": 448602,
+        "source_url": "https://datoelectoral.es/circunscripciones/cordoba"
+      },
+      "Gipuzkoa": {
+        "seats": 6,
+        "parties": {
+          "EH Bildu EUSKAL HERRIA BILDU": 117321,
+          "PSE-EE (PSOE) PARTIDO SOCIALISTA DE EUSKADI-EUSKADIKO EZKERRA (PSOE)": 87709,
+          "EAJ-PNV EUZKO ALDERDI JELTZALEA-PARTIDO NACIONALISTA VASCO": 85026,
+          "SUMAR SUMAR": 40081,
+          "PP PARTIDO POPULAR": 32721,
+          "VOX VOX": 7877,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 1568,
+          "ESCAÑOS EN BLANCO ESCAÑOS EN BLANCO PARA DEJAR ESCAÑOS VACÍOS": 933,
+          "FO FRENTE OBRERO": 530,
+          "RECORTES CERO RECORTES CERO": 442,
+          "PCTE/ELAK PARTIDO COMUNISTA DE LOS TRABAJADORES DE EUSKADI/EUSKADIKO LANGILEEN ALDERDI KOMUNISTA": 259,
+          "PUM+J BIDEZKO MUNDURANTZ": 149
+        },
+        "blank_votes": 2005,
+        "valid_votes": 376621,
+        "source_url": "https://datoelectoral.es/circunscripciones/gipuzkoa"
+      },
+      "Girona": {
+        "seats": 6,
+        "parties": {
+          "PSC PARTIT DELS SOCIALISTES DE CATALUNYA (PSC-PSOE)": 93448,
+          "JUNTS JUNTS PER CATALUNYA - JUNTS - JxCAT": 63251,
+          "ERC ESQUERRA REPUBLICANA DE CATALUNYA": 47531,
+          "ECP SUMAR - EN COMÚ PODEM - SUMAR": 35344,
+          "PP PARTIT POPULAR / PARTIDO POPULAR": 31341,
+          "VOX VOX": 22706,
+          "CUP-PR CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA": 18229,
+          "PACMA PARTIT ANIMALISTA AMB EL MEDI AMBIENT": 3531,
+          "PDeCAT-E-CiU PARTIT DEMÒCRATA EUROPEU CATALÀ-ESPAI CIU": 3388,
+          "FO FRENTE OBRERO": 570,
+          "PCTC PARTIT COMUNISTA DELS TREBALLADORS DE CATALUNYA": 420,
+          "RECORTES CERO RECORTES CERO": 248
+        },
+        "blank_votes": 2981,
+        "valid_votes": 322988,
+        "source_url": "https://datoelectoral.es/circunscripciones/girona"
+      },
+      "Granada": {
+        "seats": 7,
+        "parties": {
+          "PP PARTIDO POPULAR": 185996,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 165862,
+          "VOX VOX": 81080,
+          "SUMAR SUMAR": 58567,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 3143,
+          "JxG JUNTOS POR GRANADA": 1218,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 765,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 695,
+          "FO FRENTE OBRERO": 658,
+          "CJ CAMINANDO JUNTOS": 461,
+          "RECORTES CERO RECORTES CERO": 343
+        },
+        "blank_votes": 4057,
+        "valid_votes": 502845,
+        "source_url": "https://datoelectoral.es/circunscripciones/granada"
+      },
+      "Guadalajara": {
+        "seats": 3,
+        "parties": {
+          "PP PARTIDO POPULAR": 51195,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 46479,
+          "VOX VOX": 27126,
+          "SUMAR SUMAR": 12907,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 1039,
+          "FO FRENTE OBRERO": 304,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 249,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 191,
+          "RECORTES CERO RECORTES CERO": 162,
+          "FE de las JONS FALANGE ESPAÑOLA DE LAS J.O.N.S.": 118
+        },
+        "blank_votes": 1143,
+        "valid_votes": 140913,
+        "source_url": "https://datoelectoral.es/circunscripciones/guadalajara"
+      },
+      "Huelva": {
+        "seats": 5,
+        "parties": {
+          "PP PARTIDO POPULAR": 93565,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 92326,
+          "VOX VOX": 37572,
+          "SUMAR SUMAR ANDALUCÍA": 26752,
+          "XH POR HUELVA": 1931,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 1663,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 368,
+          "RECORTES CERO RECORTES CERO": 217
+        },
+        "blank_votes": 2410,
+        "valid_votes": 256804,
+        "source_url": "https://datoelectoral.es/circunscripciones/huelva"
+      },
+      "Huesca": {
+        "seats": 3,
+        "parties": {
+          "PP PARTIDO POPULAR": 45783,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 40307,
+          "VOX VOX": 15155,
+          "SUMAR ARAGÓN SUMAR ARAGÓN": 13774,
+          "EXISTE ARAGÓN EXISTE - COALICIÓN EXISTE": 1312,
+          "PAR PARTIDO ARAGONÉS": 717,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 498,
+          "ESCAÑOS EN BLANCO ESCAÑOS EN BLANCO PARA DEJAR ESCAÑOS VACÍOS": 475,
+          "FO FRENTE OBRERO": 258,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 137,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 114,
+          "F.I.A. FEDERACIÓN DE LOS INDEPENDIENTES DE ARAGÓN": 84,
+          "RECORTES CERO RECORTES CERO": 64
+        },
+        "blank_votes": 1217,
+        "valid_votes": 119895,
+        "source_url": "https://datoelectoral.es/circunscripciones/huesca"
+      },
+      "Jaén": {
+        "seats": 5,
+        "parties": {
+          "PP PARTIDO POPULAR": 137617,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 133819,
+          "VOX VOX": 54400,
+          "SUMAR SUMAR ANDALUCÍA": 29461,
+          "JM+ JAÉN MERECE MÁS": 8293,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 1671,
+          "FO FRENTE OBRERO": 410,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 360,
+          "RECORTES CERO RECORTES CERO": 203
+        },
+        "blank_votes": 2497,
+        "valid_votes": 368731,
+        "source_url": "https://datoelectoral.es/circunscripciones/jaen"
+      },
+      "La Rioja": {
+        "seats": 4,
+        "parties": {
+          "PP PARTIDO POPULAR": 79715,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 62322,
+          "VOX VOX": 17056,
+          "SUMAR SUMAR": 11470,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 723,
+          "ESCAÑOS EN BLANCO ESCAÑOS EN BLANCO PARA DEJAR ESCAÑOS VACÍOS": 608,
+          "FO FRENTE OBRERO": 295,
+          "3e TERCERA EDAD EN ACCIÓN": 286,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 232,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 224,
+          "RECORTES CERO RECORTES CERO": 124
+        },
+        "blank_votes": 1608,
+        "valid_votes": 174663,
+        "source_url": "https://datoelectoral.es/circunscripciones/la-rioja"
+      },
+      "Las Palmas": {
+        "seats": 8,
+        "parties": {
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 175671,
+          "PP PARTIDO POPULAR": 136857,
+          "VOX VOX": 77343,
+          "SUMAR SUMAR CANARIAS": 54369,
+          "NC-bc NUEVA CANARIAS - BLOQUE CANARISTA": 42430,
+          "CCa COALICIÓN CANARIA": 33558,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 3570,
+          "AHORA CANARIAS-PCPC AHORA CANARIAS-PARTIDO COMUNISTA DEL PUEBLO CANARIO": 883,
+          "FO FRENTE OBRERO": 635,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 563,
+          "RECORTES CERO RECORTES CERO": 396
+        },
+        "blank_votes": 3062,
+        "valid_votes": 529337,
+        "source_url": "https://datoelectoral.es/circunscripciones/las-palmas"
+      },
+      "León": {
+        "seats": 4,
+        "parties": {
+          "PP PARTIDO POPULAR": 101605,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 92578,
+          "VOX VOX": 35451,
+          "U.P.L. UNIÓN DEL PUEBLO LEONÉS": 22675,
+          "SUMAR SUMAR": 18577,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 895,
+          "FO FRENTE OBRERO": 541,
+          "ESPAÑA VACIADA ESPAÑA VACIADA": 486,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 319,
+          "PREPAL PARTIDO REGIONALISTA DEL PAÍS LEONÉS": 309,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 155,
+          "RECORTES CERO RECORTES CERO": 72
+        },
+        "blank_votes": 1577,
+        "valid_votes": 275240,
+        "source_url": "https://datoelectoral.es/circunscripciones/leon"
+      },
+      "Lleida": {
+        "seats": 4,
+        "parties": {
+          "PSC PARTIT DELS SOCIALISTES DE CATALUNYA (PSC-PSOE)": 54414,
+          "ERC ESQUERRA REPUBLICANA DE CATALUNYA": 34331,
+          "JUNTS JUNTS PER CATALUNYA - JUNTS - JxCAT": 33228,
+          "PP PARTIDO POPULAR / PARTIT POPULAR": 23699,
+          "ECP SUMAR - EN COMÚ PODEM - SUMAR": 14561,
+          "VOX VOX": 12560,
+          "CUP-PR CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA": 5449,
+          "PDeCAT-E-CiU PARTIT DEMÒCRATA EUROPEU CATALÀ-ESPAI CIU": 1865,
+          "PACMA PARTIT ANIMALISTA AMB EL MEDI AMBIENT": 1352,
+          "ESCONS EN BLANC ESCONS EN BLANC": 462,
+          "FO FRENTE OBRERO": 247,
+          "PCTC PARTIT COMUNISTA DELS TREBALLADORS DE CATALUNYA": 192,
+          "RECORTES CERO RECORTES CERO": 120
+        },
+        "blank_votes": 2059,
+        "valid_votes": 184539,
+        "source_url": "https://datoelectoral.es/circunscripciones/lleida"
+      },
+      "Lugo": {
+        "seats": 4,
+        "parties": {
+          "PP PARTIDO POPULAR": 99769,
+          "PSdeG-PSOE PARTIDO DOS SOCIALISTAS DE GALICIA-PSOE": 60163,
+          "B.N.G. BLOQUE NACIONALISTA GALEGO": 17197,
+          "SUMAR SUMAR GALICIA": 10287,
+          "VOX VOX": 8643,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 645,
+          "FO FRENTE OBRERO": 233,
+          "PUM+J POR UN MUNDO MAIS XUSTO": 149,
+          "PCTG PARTIDO COMUNISTA DOS TRABALLADORES DE GALIZA": 116,
+          "RECORTES CERO RECORTES CERO": 113
+        },
+        "blank_votes": 1251,
+        "valid_votes": 198566,
+        "source_url": "https://datoelectoral.es/circunscripciones/lugo"
+      },
+      "Madrid": {
+        "seats": 37,
+        "parties": {
+          "PP PARTIDO POPULAR": 1463183,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 1004599,
+          "SUMAR SUMAR": 557780,
+          "VOX VOX": 506164,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 21742,
+          "FO FRENTE OBRERO": 7652,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 6749,
+          "RECORTES CERO RECORTES CERO": 3784,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 3407,
+          "PH PARTIDO HUMANISTA": 2902,
+          "FE de las JONS FALANGE ESPAÑOLA DE LAS J.O.N.S.": 1751
+        },
+        "blank_votes": 28960,
+        "valid_votes": 3608673,
+        "source_url": "https://datoelectoral.es/circunscripciones/madrid"
+      },
+      "Melilla": {
+        "seats": 1,
+        "parties": {
+          "PP PARTIDO POPULAR": 13446,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 6943,
+          "VOX VOX": 4359,
+          "CpM COALICIÓN POR MELILLA": 1298,
+          "SUMAR SUMAR": 827,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 160,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 40,
+          "RECORTES CERO RECORTES CERO": 23
+        },
+        "blank_votes": 253,
+        "valid_votes": 27349,
+        "source_url": "https://datoelectoral.es/circunscripciones/melilla"
+      },
+      "Murcia": {
+        "seats": 10,
+        "parties": {
+          "PP PARTIDO POPULAR": 307972,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 189210,
+          "VOX VOX": 163124,
+          "SUMAR SUMAR": 71578,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 5063,
+          "POR MI REGIÓN POR MI REGIÓN": 1698,
+          "ESCAÑOS EN BLANCO ESCAÑOS EN BLANCO PARA DEJAR ESCAÑOS VACÍOS": 1377,
+          "FO FRENTE OBRERO": 1201,
+          "RECORTES CERO RECORTES CERO": 546,
+          "CJ CAMINANDO JUNTOS": 453,
+          "FE de las JONS FALANGE ESPAÑOLA DE LAS J.O.N.S.": 376,
+          "+RDS+ REFERÉNDUM SISTEMA DINERO": 165
+        },
+        "blank_votes": 5034,
+        "valid_votes": 747797,
+        "source_url": "https://datoelectoral.es/circunscripciones/murcia"
+      },
+      "Málaga": {
+        "seats": 11,
+        "parties": {
+          "PP PARTIDO POPULAR": 302000,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 239172,
+          "VOX VOX": 129758,
+          "SUMAR SUMAR ANDALUCÍA": 96652,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 8487,
+          "FO FRENTE OBRERO": 1662,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 1519,
+          "RECORTES CERO RECORTES CERO": 888,
+          "CJ CAMINANDO JUNTOS": 691
+        },
+        "blank_votes": 7509,
+        "valid_votes": 788338,
+        "source_url": "https://datoelectoral.es/circunscripciones/malaga"
+      },
+      "Navarra": {
+        "seats": 5,
+        "parties": {
+          "PSN-PSOE PARTIDO SOCIALISTA DE NAVARRA-PSOE": 93553,
+          "EH Bildu EUSKAL HERRIA BILDU": 58954,
+          "PP PARTIDO POPULAR": 57134,
+          "U.P.N. UNION DEL PUEBLO NAVARRO": 52188,
+          "SUMAR SUMAR": 43922,
+          "VOX VOX": 19491,
+          "GBAI GEROA BAI": 9938,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 1530,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 1002,
+          "FO FRENTE OBRERO": 679,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 311,
+          "RECORTES CERO RECORTES CERO": 252
+        },
+        "blank_votes": 2890,
+        "valid_votes": 341844,
+        "source_url": "https://datoelectoral.es/circunscripciones/navarra"
+      },
+      "Ourense": {
+        "seats": 4,
+        "parties": {
+          "PP PARTIDO POPULAR": 93182,
+          "PSdeG-PSOE PARTIDO DOS SOCIALISTAS DE GALICIA-PSOE": 56035,
+          "B.N.G. BLOQUE NACIONALISTA GALEGO": 15317,
+          "SUMAR SUMAR GALICIA": 10171,
+          "VOX VOX": 9080,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 700,
+          "FO FRENTE OBRERO": 182,
+          "CCD COALICIÓN DE CENTRO DEMOCRÁTICO": 153,
+          "PUM+J POR UN MUNDO MAIS XUSTO": 144,
+          "PCTG PARTIDO COMUNISTA DOS TRABALLADORES DE GALIZA": 101,
+          "RECORTES CERO RECORTES CERO": 97
+        },
+        "blank_votes": 1109,
+        "valid_votes": 186271,
+        "source_url": "https://datoelectoral.es/circunscripciones/ourense"
+      },
+      "Palencia": {
+        "seats": 3,
+        "parties": {
+          "PP PARTIDO POPULAR": 40709,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 33613,
+          "VOX VOX": 12504,
+          "SUMAR SUMAR": 5877,
+          "VP VAMOS PALENCIA": 1917,
+          "ESPAÑA VACIADA ESPAÑA VACIADA": 384,
+          "GITV GRUPO INDEPENDIENTE PALENCIA TIERRA VIVA": 366,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 295,
+          "FO FRENTE OBRERO": 139,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 99,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 80,
+          "FE de las JONS FALANGE ESPAÑOLA DE LAS J.O.N.S.": 71,
+          "RECORTES CERO RECORTES CERO": 42,
+          "CJ CAMINANDO JUNTOS": 33
+        },
+        "blank_votes": 833,
+        "valid_votes": 96962,
+        "source_url": "https://datoelectoral.es/circunscripciones/palencia"
+      },
+      "Pontevedra": {
+        "seats": 7,
+        "parties": {
+          "PP PARTIDO POPULAR": 227658,
+          "PSdeG-PSOE PARTIDO DOS SOCIALISTAS DE GALICIA-PSOE": 179737,
+          "SUMAR SUMAR GALICIA": 75615,
+          "B.N.G. BLOQUE NACIONALISTA GALEGO": 53828,
+          "VOX VOX": 27539,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 3003,
+          "FO FRENTE OBRERO": 884,
+          "RECORTES CERO RECORTES CERO": 510,
+          "PCTG PARTIDO COMUNISTA DOS TRABALLADORES DE GALIZA": 485
+        },
+        "blank_votes": 3865,
+        "valid_votes": 573124,
+        "source_url": "https://datoelectoral.es/circunscripciones/pontevedra"
+      },
+      "Salamanca": {
+        "seats": 4,
+        "parties": {
+          "PP PARTIDO POPULAR": 93318,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 60718,
+          "VOX VOX": 29203,
+          "SUMAR SUMAR": 11012,
+          "ESPAÑA VACIADA ESPAÑA VACIADA": 1062,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 631,
+          "PREPAL PARTIDO REGIONALISTA DEL PAÍS LEONÉS": 489,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 325,
+          "FO FRENTE OBRERO": 278,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 205,
+          "CJ CAMINANDO JUNTOS": 140,
+          "RECORTES CERO RECORTES CERO": 80
+        },
+        "blank_votes": 1649,
+        "valid_votes": 199110,
+        "source_url": "https://datoelectoral.es/circunscripciones/salamanca"
+      },
+      "Santa Cruz de Tenerife": {
+        "seats": 7,
+        "parties": {
+          "PP PARTIDO POPULAR": 174770,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 165590,
+          "CCa COALICIÓN CANARIA": 82805,
+          "SUMAR SUMAR CANARIAS": 53632,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 6147,
+          "NC-bc NUEVA CANARIAS - BLOQUE CANARISTA": 3165,
+          "FO FRENTE OBRERO": 1619,
+          "AHORA CANARIAS-PCPC AHORA CANARIAS-PARTIDO COMUNISTA DEL PUEBLO CANARIO": 791,
+          "RECORTES CERO RECORTES CERO": 766
+        },
+        "blank_votes": 5088,
+        "valid_votes": 494373,
+        "source_url": "https://datoelectoral.es/circunscripciones/santa-cruz-de-tenerife"
+      },
+      "Segovia": {
+        "seats": 3,
+        "parties": {
+          "PP PARTIDO POPULAR": 39894,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 27113,
+          "VOX VOX": 12510,
+          "SUMAR SUMAR": 7137,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 307,
+          "3e TERCERA EDAD EN ACCIÓN": 198,
+          "FO FRENTE OBRERO": 183,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 136,
+          "CJ CAMINANDO JUNTOS": 102,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 94,
+          "RECORTES CERO RECORTES CERO": 64
+        },
+        "blank_votes": 875,
+        "valid_votes": 88613,
+        "source_url": "https://datoelectoral.es/circunscripciones/segovia"
+      },
+      "Sevilla": {
+        "seats": 12,
+        "parties": {
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 387760,
+          "PP PARTIDO POPULAR": 353663,
+          "SUMAR SUMAR ANDALUCÍA": 148745,
+          "VOX VOX": 141087,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 9288,
+          "FO FRENTE OBRERO": 1950,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 1765,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 1522,
+          "RECORTES CERO RECORTES CERO": 1034,
+          "CJ CAMINANDO JUNTOS": 912,
+          "FE de las JONS FALANGE ESPAÑOLA DE LAS J.O.N.S.": 681
+        },
+        "blank_votes": 10951,
+        "valid_votes": 1059358,
+        "source_url": "https://datoelectoral.es/circunscripciones/sevilla"
+      },
+      "Soria": {
+        "seats": 2,
+        "parties": {
+          "PP PARTIDO POPULAR": 18895,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 14966,
+          "SY SORIA ¡YA!": 9697,
+          "VOX VOX": 4978,
+          "SUMAR SUMAR": 1711,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 94,
+          "FO FRENTE OBRERO": 68,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 43,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 23,
+          "RECORTES CERO RECORTES CERO": 9
+        },
+        "blank_votes": 285,
+        "valid_votes": 50769,
+        "source_url": "https://datoelectoral.es/circunscripciones/soria"
+      },
+      "Tarragona": {
+        "seats": 6,
+        "parties": {
+          "PSC PARTIT DELS SOCIALISTES DE CATALUNYA (PSC-PSOE)": 121126,
+          "ERC ESQUERRA REPUBLICANA DE CATALUNYA": 55461,
+          "PP PARTIT POPULAR / PARTIDO POPULAR": 51061,
+          "ECP SUMAR - EN COMÚ PODEM - SUMAR": 41719,
+          "JUNTS JUNTS PER CATALUNYA - JUNTS - JxCAT": 40791,
+          "VOX VOX": 38039,
+          "CUP-PR CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA": 8700,
+          "PACMA PARTIT ANIMALISTA AMB EL MEDI AMBIENT": 3797,
+          "PDeCAT-E-CiU PARTIT DEMÒCRATA EUROPEU CATALÀ-ESPAI CIU": 2311,
+          "FO FRENTE OBRERO": 661,
+          "PCTC PARTIT COMUNISTA DELS TREBALLADORS DE CATALUNYA": 405,
+          "RECORTES CERO RECORTES CERO": 267,
+          "EVC ENTRE VEÏNS CATALUNYA": 265,
+          "UNIDOS SI UNIDOS POR LA SOLIDARIDAD INTERNACIONAL": 253
+        },
+        "blank_votes": 3168,
+        "valid_votes": 368024,
+        "source_url": "https://datoelectoral.es/circunscripciones/tarragona"
+      },
+      "Teruel": {
+        "seats": 3,
+        "parties": {
+          "PP PARTIDO POPULAR": 26586,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 22226,
+          "EXISTE TERUEL EXISTE - COALICIÓN EXISTE": 11348,
+          "VOX VOX": 9932,
+          "SUMAR SUMAR": 4126,
+          "PAR PARTIDO ARAGONÉS": 711,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 172,
+          "ESCAÑOS EN BLANCO ESCAÑOS EN BLANCO PARA DEJAR ESCAÑOS VACÍOS": 135,
+          "FO FRENTE OBRERO": 94,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 60,
+          "RECORTES CERO RECORTES CERO": 49,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 36,
+          "F.I.A. FEDERACIÓN DE LOS INDEPENDIENTES DE ARAGÓN": 28
+        },
+        "blank_votes": 410,
+        "valid_votes": 75913,
+        "source_url": "https://datoelectoral.es/circunscripciones/teruel"
+      },
+      "Toledo": {
+        "seats": 6,
+        "parties": {
+          "PP PARTIDO POPULAR": 146533,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 126072,
+          "VOX VOX": 76044,
+          "SUMAR SUMAR": 31876,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 2024,
+          "FO FRENTE OBRERO": 985,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 499,
+          "FE de las JONS FALANGE ESPAÑOLA DE LAS J.O.N.S.": 281,
+          "RECORTES CERO RECORTES CERO": 275
+        },
+        "blank_votes": 2611,
+        "valid_votes": 387200,
+        "source_url": "https://datoelectoral.es/circunscripciones/toledo"
+      },
+      "Valencia/València": {
+        "seats": 16,
+        "parties": {
+          "PP PARTIDO POPULAR": 483469,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 461353,
+          "COMPROMÍS COMPROMÍS - SUMAR: SUMEM PER GUANYAR - SUMAR": 242839,
+          "VOX VOX": 218657,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 10334,
+          "FO FRENTE OBRERO": 2919,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 1778,
+          "RECORTES CERO RECORTES CERO": 1773,
+          "EVB ESTAT VALENCIÀ DEL BENESTAR": 1442,
+          "CJ CAMINANDO JUNTOS": 1056,
+          "FE de las JONS FALANGE ESPAÑOLA DE LAS J.O.N.S.": 731
+        },
+        "blank_votes": 10810,
+        "valid_votes": 1437161,
+        "source_url": "https://datoelectoral.es/circunscripciones/valencia-valencia"
+      },
+      "Valladolid": {
+        "seats": 5,
+        "parties": {
+          "PP PARTIDO POPULAR": 129170,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 103596,
+          "VOX VOX": 47948,
+          "SUMAR SUMAR": 28049,
+          "ESPAÑA VACIADA ESPAÑA VACIADA": 1226,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 1105,
+          "FO FRENTE OBRERO": 601,
+          "ESCAÑOS EN BLANCO ESCAÑOS EN BLANCO PARA DEJAR ESCAÑOS VACÍOS": 583,
+          "Ud.Ca UNIDAD CASTELLANA": 463,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 376,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 335,
+          "FE de las JONS FALANGE ESPAÑOLA DE LAS J.O.N.S.": 164,
+          "RECORTES CERO RECORTES CERO": 159,
+          "FUERZA CÍVICA FUERZA CÍVICA": 115
+        },
+        "blank_votes": 2419,
+        "valid_votes": 316309,
+        "source_url": "https://datoelectoral.es/circunscripciones/valladolid"
+      },
+      "Zamora": {
+        "seats": 3,
+        "parties": {
+          "PP PARTIDO POPULAR": 46196,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 33601,
+          "VOX VOX": 13652,
+          "SUMAR SUMAR": 5839,
+          "Zsi ZAMORA SÍ": 1843,
+          "U.P.L. UNIÓN DEL PUEBLO LEONÉS": 526,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 313,
+          "PREPAL PARTIDO REGIONALISTA DEL PAÍS LEONÉS": 166,
+          "FO FRENTE OBRERO": 121,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 100,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 81,
+          "RECORTES CERO RECORTES CERO": 50
+        },
+        "blank_votes": 922,
+        "valid_votes": 103410,
+        "source_url": "https://datoelectoral.es/circunscripciones/zamora"
+      },
+      "Zaragoza": {
+        "seats": 7,
+        "parties": {
+          "PP PARTIDO POPULAR": 186776,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 159858,
+          "VOX VOX": 79376,
+          "SUMAR ARAGÓN SUMAR ARAGÓN": 69925,
+          "EXISTE ARAGÓN EXISTE - COALICIÓN EXISTE": 7780,
+          "PAR PARTIDO ARAGONÉS": 2745,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 2428,
+          "ESCAÑOS EN BLANCO ESCAÑOS EN BLANCO PARA DEJAR ESCAÑOS VACÍOS": 2146,
+          "FO FRENTE OBRERO": 1026,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 561,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 419,
+          "F.I.A. FEDERACIÓN DE LOS INDEPENDIENTES DE ARAGÓN": 394,
+          "RECORTES CERO RECORTES CERO": 306,
+          "FE de las JONS FALANGE ESPAÑOLA DE LAS J.O.N.S.": 272
+        },
+        "blank_votes": 4693,
+        "valid_votes": 518705,
+        "source_url": "https://datoelectoral.es/circunscripciones/zaragoza"
+      },
+      "Ávila": {
+        "seats": 3,
+        "parties": {
+          "PP PARTIDO POPULAR": 42369,
+          "PSOE PARTIDO SOCIALISTA OBRERO ESPAÑOL": 26828,
+          "VOX VOX": 15068,
+          "XAV POR ÁVILA": 7362,
+          "SUMAR SUMAR": 5027,
+          "PACMA PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE": 275,
+          "FO FRENTE OBRERO": 100,
+          "PUM+J POR UN MUNDO MÁS JUSTO": 91,
+          "PCTE PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA": 85,
+          "FE de las JONS FALANGE ESPAÑOLA DE LAS J.O.N.S.": 77,
+          "RECORTES CERO RECORTES CERO": 42
+        },
+        "blank_votes": 632,
+        "valid_votes": 97956,
+        "source_url": "https://datoelectoral.es/circunscripciones/avila"
+      }
+    }
+  },
+  "validation": {
+    "valid": true,
+    "errors": [],
+    "circunscripciones": 52,
+    "escaños": 350,
+    "candidate_votes_total": 24487414
+  }
+}

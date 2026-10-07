@@ -1,0 +1,23 @@
+{
+  "status": "READY",
+  "events": [
+    {
+      "source": "MINISTERIO_DEL_INTERIOR",
+      "status": "FAILED",
+      "error": "download failed: https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)>"
+    },
+    {
+      "source": "DATO_ELECTORAL",
+      "status": "DOWNLOADED_AND_PARSED",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "circunscripciones": 52,
+        "escaños": 350,
+        "candidate_votes_total": 24487414
+      }
+    }
+  ],
+  "source_tier": "SECONDARY_REPLICA_VERIFIED",
+  "sha256": null
+}
