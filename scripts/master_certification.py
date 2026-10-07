@@ -104,5 +104,7 @@ def certify(root="."):
 
 if __name__=="__main__":
     out=certify()
+    Path("ci_evidence").mkdir(parents=True, exist_ok=True)
+    Path("ci_evidence/master_certification.json").write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(out,ensure_ascii=False,indent=2))
     raise SystemExit(0 if out["status"] in {"CERTIFIED","READY_FOR_EXTERNAL_AUDIT"} else 1)
