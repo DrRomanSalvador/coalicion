@@ -283,3 +283,39 @@ def test_historical_validator_uses_certified_official_row_floor():
     source = Path("scripts/validate_historical_data.py").read_text(encoding="utf-8")
     assert 'len(erows) >= 50000' in source
     assert 'seats.is_integer()' in source
+
+
+
+def test_named_adapters_import_and_validate():
+    from src.monitors import CISMonitor, ElectomaniaMonitor, DatoElectoralMonitor, TwitterMonitor
+    from src.poll_validator import validate_poll as public_validate
+    from src.poll_hasher import poll_hash as public_hash, poll_identity as public_identity
+    from src.poll_normalizer import normalize_party_name as public_normalize
+    poll = valid_poll()
+    assert public_validate(poll)[0] is True
+    assert public_hash(poll) == poll_hash(poll)
+    assert public_identity(poll) == poll_identity(poll)
+    assert public_normalize("Partido Popular") == "PP"
+    assert all(cls is not None for cls in (CISMonitor, ElectomaniaMonitor, DatoElectoralMonitor, TwitterMonitor))
+
+
+def test_telegram_notifier_fails_closed_without_token(monkeypatch):
+    monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+    from src.telegram_notifier import resolve_private_chat, send_message
+    assert resolve_private_chat() is None
+    assert send_message("test") is False
+
+
+def test_electomania_public_html_adapter_extracts_explicit_table():
+    html = b"""<html><head><title>Encuesta Demo</title></head><body>
+    <h1>Sondeo para elecciones generales</h1>
+    <p>01/10/2026</p><p>Partido | Voto (%) | Escanos</p>
+    <p>PP 33,8% PSOE 25,9% VOX 18,8% Sumar 5,9% Podemos 3,8% ERC 2,0%</p>
+    </body></html>"""
+    from src.monitors.electomania_monitor import ElectomaniaMonitor
+    import requests
+    polls, discoveries = ElectomaniaMonitor({"id":"electomania","url":"https://example.test","pollster":"Demo"}, requests.Session()).parse(html)
+    assert len(polls) == 1
+    assert polls[0].publication_date == "2026-10-01"
+    assert polls[0].parties["PP"] == 33.8
+    assert discoveries == []
