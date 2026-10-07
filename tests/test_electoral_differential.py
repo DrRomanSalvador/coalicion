@@ -33,12 +33,17 @@ def test_reference_matches_production_for_reproducible_random_cases():
     for seed in range(2000):
         votes,seats,valid,blank=_case(seed)
         a=dhondt(votes,seats,valid,blank)
-        b=allocate_reference(votes,seats,valid,blank)
-        if a.status=="OK":
-            assert a.seats==b
+        try:
+            b=allocate_reference(votes,seats,valid,blank)
+        except RuntimeError as exc:
+            if a.status == "OK":
+                pytest.fail(
+                    f"oracle mismatch seed={seed}: production accepted but reference blocked: "
+                    f"{votes=}, {seats=}, {valid=}, {blank=}, error={exc}"
+                )
         else:
-            with pytest.raises(RuntimeError, match="EMPATE_ABSOLUTO_PENDIENTE"):
-                allocate_reference(votes,seats,valid,blank)
+            assert a.status == "OK"
+            assert a.seats==b
 
 
 def test_reference_also_blocks_absolute_tie():
