@@ -22,6 +22,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: colmena-neutral-activation
+  cancel-in-progress: true
+
 jobs:
   queen:
     runs-on: ubuntu-latest
