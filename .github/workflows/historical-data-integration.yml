@@ -5,8 +5,7 @@ name: Historical data — canonical integration
 # v13: explicit certification execution on main after primary-source validation.
 
 on:
-  schedule:
-    - cron: "17 3 1 * *"
+  workflow_dispatch:
   pull_request:
     branches: [main]
     paths:
