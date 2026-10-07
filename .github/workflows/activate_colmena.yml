@@ -1,5 +1,7 @@
 name: Activar Colmena
 
+# Triggered by the Queen's mission activation; execution remains fail-closed.
+
 on:
   workflow_dispatch:
   push:
