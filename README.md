@@ -168,6 +168,21 @@ El repositorio incluye ahora `coalicion.py` como interfaz mínima:
 
 El MVP no inventa una matriz candidatura×circunscripción. La matriz 2023 completa ya está materializada como `SECONDARY_REPLICA_VERIFIED` y permite análisis reales en `OPERATIONAL_BETA`; la certificación primaria permanece bloqueada hasta reconciliarla con Interior. Esto es intencionado.
 
+## CALCULADORA ACCESIBLE DE COALICIONES — 2023
+
+La interfaz pública permite comparar directamente candidaturas observables en la matriz 2023, sin preparar un JSON manual:
+
+    python cli.py coalition --parties PSOE SUMAR
+    python cli.py coalition --parties PP VOX
+
+El resultado muestra escaños separados, escaños coaligados, delta y circunscripciones decisivas. Si una candidatura no es separable en la matriz 2023, la CLI falla cerrado.
+
+El informe reproducible completo se genera con:
+
+    python scripts/agent2_coalition_reports.py
+
+Produce reports/all_coalitions_2023.md, reports/executive_summary_2023.md y reports/coalition_reports_2023.json. Por defecto compara todas las coaliciones bilaterales entre identidades observables relevantes. Las candidaturas conjuntas no se descomponen artificialmente.
+
 ## DECISION ENGINE DE COALICIONES — V1
 
 Implementado en `src/coalition_decision_engine.py` y `scripts/coalition_decision_engine.py`.
