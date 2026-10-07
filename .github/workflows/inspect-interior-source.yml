@@ -28,4 +28,7 @@ jobs:
               r.raise_for_status()
               ids=sorted(set(re.findall(r"BOE-A-\\d+-\\d+",r.text)))
               print(d, ids[:10])
+              if not ids:
+                  links=re.findall(r'href="([^"]*(?:doc.php|diario_boe)[^"]*)"',r.text)
+                  print("LINKS", links[:20])
           PY
