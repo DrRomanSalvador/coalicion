@@ -10,8 +10,8 @@ def test_equal_model_not_accepted():
 def test_calibration_exposes_distribution_metrics():
     from src.calibration import expanding_oos
     s = expanding_oos([("e1", 10), ("e2", 12), ("e3", 9)], lambda train: train[-1][1] + 1)
-    assert s.mae == 2.0
-    assert s.rmse == (5.0) ** 0.5
-    assert s.median_abs_error == 2.0
-    assert s.max_abs_error == 3.0
-    assert s.bias == 2.0
+    assert s.mae == 2.5
+    assert s.rmse == (8.5) ** 0.5
+    assert s.median_abs_error == 2.5
+    assert s.max_abs_error == 4.0
+    assert s.bias == 1.5
