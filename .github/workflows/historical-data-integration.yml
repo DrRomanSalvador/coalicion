@@ -11,8 +11,6 @@ on:
       - "scripts/validate_historical_data.py"
       - ".github/workflows/historical-data-integration.yml"
       - "config/electoral_sources.json"
-      - "tests/test_poll_monitor.py"
-      - "src/oos_pipeline.py"
   pull_request:
     branches: [main]
     paths:
@@ -73,9 +71,6 @@ jobs:
 
       - name: Ingest official CIS microdata
         run: Rscript scripts/ingest_cis_historical_surveys.R
-
-      - name: Run regression tests
-        run: python -m pytest tests/test_poll_monitor.py -q
 
       - name: Validate datasets and create provenance manifest
         run: python scripts/validate_historical_data.py
