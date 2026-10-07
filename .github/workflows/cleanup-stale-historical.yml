@@ -1,6 +1,10 @@
 name: Cleanup stale historical runners\n# force-clean and redispatch canonical integration
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/cleanup-stale-historical.yml"
   workflow_dispatch:
 
 permissions:
