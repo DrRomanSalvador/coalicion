@@ -76,13 +76,39 @@ jobs:
 
       - name: Ingest official Interior results
         timeout-minutes: 30
+        shell: bash
         run: |
+          set -euo pipefail
           export CURL_CA_BUNDLE="$(python -c 'import certifi; print(certifi.where())')"
-          Rscript scripts/ingest_official_electoral_history.R
+          for attempt in 1 2 3 4 5; do
+            echo "Interior acquisition attempt $attempt/5"
+            if Rscript scripts/ingest_official_electoral_history.R; then
+              test -s data/raw/Elecciones-Congreso.xlsx
+              test -s data/manifests/INTERIOR_ACQUISITION.json
+              exit 0
+            fi
+            echo "Transient acquisition failure; waiting before retry."
+            sleep $((attempt * 10))
+          done
+          echo "FAIL-CLOSED: Interior acquisition did not converge after deterministic retries."
+          exit 1
 
       - name: Ingest official CIS microdata
         timeout-minutes: 90
-        run: Rscript scripts/ingest_cis_historical_surveys.R
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5; do
+            echo "CIS acquisition attempt $attempt/5"
+            if Rscript scripts/ingest_cis_historical_surveys.R; then
+              test -s data/encuestas_historicas_2004_2023.csv
+              exit 0
+            fi
+            echo "Transient CIS acquisition failure; waiting before retry."
+            sleep $((attempt * 15))
+          done
+          echo "FAIL-CLOSED: CIS acquisition did not converge after deterministic retries."
+          exit 1
 
       - name: Compile Python
         run: python -m compileall -q src scripts
