@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from datetime import date
 from email.utils import parsedate_to_datetime
 from xml.etree import ElementTree as ET
+from bs4 import BeautifulSoup
 
 ALIASES={
  "PP":"PP","PARTIDO POPULAR":"PP","PSOE":"PSOE","PARTIDO SOCIALISTA OBRERO ESPAÑOL":"PSOE",
@@ -79,11 +80,55 @@ def parse_rss(body,source):
             out.append(Poll(guid,_date(pub),source.get("pollster_default","Fuente RSS"),source["id"],link,{}))
     return out
 
+
+def parse_datoelectoral_html(body, source):
+    soup = BeautifulSoup(body.decode("utf-8"), "html.parser")
+    text = "\n".join(x.strip() for x in soup.get_text("\n").splitlines() if x.strip())
+    chunks = text.split("##")
+    out = []
+    months = {"enero":1,"febrero":2,"marzo":3,"abril":4,"mayo":5,"junio":6,
+              "julio":7,"agosto":8,"septiembre":9,"octubre":10,"noviembre":11,"diciembre":12}
+    for chunk in chunks:
+        if "Estimación de voto publicada por el sondeo" not in chunk:
+            continue
+        lines = [x.strip(" *") for x in chunk.splitlines() if x.strip()]
+        title = next((x for x in lines if x.startswith(("Barómetro","Sondeo","Encuesta"))), None)
+        pub = next((x for x in lines if "publicado el " in x), "")
+        if not title or not pub:
+            continue
+        m = re.search(r"publicado el (\d{1,2}) de ([a-záéíóú]+) de (\d{4})", pub, re.I)
+        if not m or m.group(2).lower() not in months:
+            continue
+        publication = f"{m.group(3)}-{months[m.group(2).lower()]:02d}-{int(m.group(1)):02d}"
+        parties = {}
+        start = lines.index("Estimación de voto publicada por el sondeo") + 1
+        for line in lines[start:]:
+            if line.startswith("Cuestionario íntegro"):
+                break
+            pm = re.match(r"^(.+?)\s+([0-9]+(?:[.,][0-9]+)?)\s*%$", line)
+            if pm:
+                name = _party(pm.group(1))
+                if name not in {"OTROS PARTIDOS", "OTROS"}:
+                    parties[name] = float(pm.group(2).replace(",", "."))
+        pollster = pub.split(" · publicado el ")[0].strip()
+        sample = None
+        for i, line in enumerate(lines):
+            if line.startswith("Tamaño de la muestra") and i + 1 < len(lines):
+                sm = re.search(r"\d+", lines[i+1].replace(".", ""))
+                if sm:
+                    sample = int(sm.group())
+        if parties:
+            out.append(_poll({"id": source["id"]+"::"+publication+"::"+title,
+                              "publication_date": publication, "pollster": pollster,
+                              "sample_size": sample, "parties": parties}, source))
+    return out
+
 def parse_source(body,source):
     kind=source.get("format","json")
     if kind=="json": return parse_json(body,source)
     if kind=="csv": return parse_csv(body,source)
     if kind=="rss": return parse_rss(body,source)
+    if kind=="datoelectoral_html": return parse_datoelectoral_html(body,source)
     raise ValueError(f"unsupported source format: {kind}")
 
 def canonical_poll(p):
