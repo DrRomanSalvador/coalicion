@@ -1,4 +1,5 @@
 name: Historical CI orchestrator
+# Sole automatic gate for historical execution; never overlaps active historical runs.
 
 on:
   workflow_dispatch:
