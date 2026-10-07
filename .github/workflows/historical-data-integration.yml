@@ -32,7 +32,7 @@ jobs:
   integrate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 125
 
     steps:
       - name: Checkout
