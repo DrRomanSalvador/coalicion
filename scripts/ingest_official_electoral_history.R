@@ -12,7 +12,7 @@ dir.create("data", showWarnings=FALSE, recursive=TRUE)
 official_url <- "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
 local_xlsx <- "data/raw/Elecciones-Congreso.xlsx"
 
-if (!file.exists(local_xlsx) || file.info(local_xlsx)$size < 1000) {
+if (!nzchar(Sys.which("curl"))) stop("curl executable is required for official Interior ingestion.")\n\nif (!file.exists(local_xlsx) || file.info(local_xlsx)$size < 1000) {
   last <- NULL
   for (attempt in 1:5) {
     message("Downloading official Interior workbook, attempt ", attempt, "/5")
@@ -30,7 +30,7 @@ if (!file.exists(local_xlsx) || file.info(local_xlsx)$size < 1000) {
     if (file.exists(local_xlsx) && file.info(local_xlsx)$size < 1000) unlink(local_xlsx)
     if (attempt < 5) Sys.sleep(min(2^attempt, 30))
   }
-  if (!is.null(last)) stop("Official Interior workbook download failed: ", last)
+  if (!is.null(last)) stop("Official Interior workbook download failed after 5 attempts: ", last)
 }
 
 norm <- function(x) gsub("[^a-z0-9]", "", tolower(iconv(as.character(x), to="ASCII//TRANSLIT")))
