@@ -18,7 +18,8 @@ from src.poll_aggregator import HistoricalError, PollEstimate, aggregate_party
 
 INPUT = Path("data/encuestas_historicas_2004_2023.csv")
 OUT = Path("artifacts/data/poll_aggregator_oos.json")
-REQUIRED = {"election","election_date","party","poll","actual","house","field_end","poll_id","sample_size"}
+CORE_REQUIRED = {"election","party","poll","estimate_pct","poll_id"}
+TECHNICAL_REQUIRED = {"election_date","actual","house","field_end","sample_size"}
 
 def main():
     OUT.parent.mkdir(parents=True, exist_ok=True)
@@ -29,9 +30,13 @@ def main():
     if df.empty:
         result={"schema":"POLL_AGGREGATOR_OOS_V1","status":"BLOCKED","reason":"archivo histórico versionado sin observaciones; no se inventan datos"}
         OUT.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8"); print(json.dumps(result,ensure_ascii=False)); return 0
-    missing=REQUIRED-set(df.columns)
+    missing=CORE_REQUIRED-set(df.columns)
     if missing:
-        raise SystemExit("Faltan columnas obligatorias: "+",".join(sorted(missing)))
+        raise SystemExit("Faltan columnas básicas: "+",".join(sorted(missing)))
+    technical_missing=TECHNICAL_REQUIRED-set(df.columns)
+    if technical_missing:
+        result={"schema":"POLL_AGGREGATOR_OOS_V1","status":"BLOCKED","reason":"la fuente histórica actual no materializa campos técnicos/resultado necesarios para OOS; no se infieren","missing_technical_fields":sorted(technical_missing)}
+        OUT.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8"); print(json.dumps(result,ensure_ascii=False)); return 0
     technical = df[["sample_size","field_end"]].replace("", pd.NA).dropna()
     if technical.empty:
         result={"schema":"POLL_AGGREGATOR_OOS_V1","status":"BLOCKED","reason":"las encuestas históricas disponibles no contienen tamaños muestrales ni fechas de campo materializadas; no se infieren"}
