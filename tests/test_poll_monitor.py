@@ -343,3 +343,23 @@ def test_poll_monitor_versions_corrections(tmp_path):
     new, changed, _ = monitor.detect_new([poll2], [])
     assert changed[0]["event_type"] == "CORRECTION_OR_REPUBLICATION"
     assert len(monitor.state["poll_versions"]["p1"]) == 2
+
+
+def test_oos_reports_full_expanding_window_walk_forward():
+    from src import oos_pipeline
+    from src.poll_error import PollObservation
+
+    rows = []
+    elections = [
+        ("2004", "2004-03-14", "2004-03-01"),
+        ("2008", "2008-03-09", "2008-03-01"),
+        ("2011", "2011-11-20", "2011-11-01"),
+    ]
+    for election, election_date, field_end in elections:
+        rows.append(PollObservation(election, election_date, "PSOE", 40.0, 42.0,
+                                    "Congreso", field_end, "CIS", election))
+    result = oos_pipeline.run_oos(rows)
+    assert result["walk_forward_contract"] == "ALL_TEST_ELECTIONS_USE_ONLY_PRIOR_ELECTIONS"
+    assert result["walk_forward_holdouts"] == 1
+    assert result["walk_forward"][0]["election"] == "2011"
+    assert result["walk_forward"][0]["training_elections"] == ["2004", "2008"]
