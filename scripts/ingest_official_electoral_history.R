@@ -1,4 +1,5 @@
 #!/usr/bin/env Rscript
+# Canonical historical integration trigger: keep acquisition logic in this script.
 
 options(stringsAsFactors=FALSE)
 
