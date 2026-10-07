@@ -20,7 +20,11 @@ studies <- dplyr::bind_rows(
                           sort="publishDate+", catalogo="estudio")
 ) |>
   dplyr::distinct(study, .keep_all=TRUE) |>
-  dplyr::filter(date >= as.Date("2004-01-01"), date <= as.Date("2023-12-31"))
+  dplyr::filter(date >= as.Date("2004-01-01"), date <= as.Date("2023-12-31")) |>
+  dplyr::mutate(year=format(as.Date(date), "%Y")) |>
+  dplyr::group_by(year) |>
+  dplyr::slice_head(n=8) |>
+  dplyr::ungroup()
 
 if (!nrow(studies)) stop("CIS catalog returned no historical studies.")
 
