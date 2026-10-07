@@ -22,13 +22,16 @@ def main():
     with tempfile.NamedTemporaryFile(suffix=".xlsx",delete=False) as tmp:
         tmp_path=Path(tmp.name)
     try:
-        cmd=["curl","-fL","--retry","4","--retry-all-errors","--retry-delay","3",
-             "--connect-timeout","30","--max-time","900","--compressed",
-             "--location-trusted","-A","coalicion-primary-materializer/1.0",
-             "--cacert",ca,"-o",str(tmp_path),URL]
-        cp=subprocess.run(cmd,check=False,capture_output=True,text=True)
-        if cp.returncode==0 and tmp_path.exists() and tmp_path.stat().st_size>10000:
-            data=tmp_path.read_bytes()
+        curl_base=["curl","-fL","--retry","4","--retry-all-errors","--retry-delay","3",
+                    "--connect-timeout","30","--max-time","900","--compressed",
+                    "-A","coalicion-primary-materializer/1.0"]
+        for cmd in (curl_base+["-o",str(tmp_path),URL],
+                    curl_base+["--cacert",ca,"-o",str(tmp_path),URL]):
+            cp=subprocess.run(cmd,check=False,capture_output=True,text=True)
+            if cp.returncode==0 and tmp_path.exists() and tmp_path.stat().st_size>10000:
+                data=tmp_path.read_bytes()
+                break
+            tmp_path.unlink(missing_ok=True)
     finally:
         tmp_path.unlink(missing_ok=True)
     if data is None:
