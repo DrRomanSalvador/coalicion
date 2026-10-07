@@ -9,6 +9,14 @@ on:
       - "schemas/COALICION_PRODUCT_V1.schema.json"
       - "src/**"
       - "tests/**"
+  pull_request:
+    paths:
+      - "src/product_layer.py"
+      - "political_product.py"
+      - "tests/test_product_layer.py"
+      - "schemas/COALICION_PRODUCT_V1.schema.json"
+      - "src/**"
+      - "tests/**"
 
 jobs:
   test:
