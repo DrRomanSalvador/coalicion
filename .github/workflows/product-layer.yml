@@ -21,5 +21,7 @@ jobs:
           python-version: "3.12"
       - name: Compile
         run: python -m py_compile src/product_layer.py political_product.py
+      - name: Install runtime dependencies
+        run: python -m pip install -r requirements.txt
       - name: Product tests
         run: python -m unittest tests/test_product_layer.py
