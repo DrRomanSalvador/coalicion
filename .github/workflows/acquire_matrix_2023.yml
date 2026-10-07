@@ -9,7 +9,7 @@ on:
       - ".github/workflows/acquire_matrix_2023.yml"
   workflow_dispatch:
 
-# Reproducible acquisition: materialize only after structural validation.
+# Reproducible acquisition: materialize only after structural validation.\n# Secondary replica is accepted only after all 52/350/vote invariants pass.
 
 permissions:
   contents: write
@@ -40,7 +40,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add artifacts/data/election_2023_canonical.json artifacts/data/election_2023_matrix_acquisition.json artifacts/data/election_2023_audit.json artifacts/data/election_2023_canonical.json.sha256 artifacts/data/raw_2023_interior.xlsx
+          git add artifacts/data/election_2023_canonical.json artifacts/data/election_2023_matrix_acquisition.json artifacts/data/election_2023_audit.json artifacts/data/election_2023_canonical.json.sha256
           if git diff --cached --quiet; then
             echo "NO_CHANGES"
           else
