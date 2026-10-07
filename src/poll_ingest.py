@@ -108,12 +108,18 @@ def parse_datoelectoral_html(body, source):
             continue
         publication=f"{m.group(3)}-{months[m.group(2).lower()]:02d}-{int(m.group(1)):02d}"
         parties={}
+        # Only accept explicitly known political-party labels. The source
+        # page also contains questionnaire answers ending in percentages;
+        # those must never become fake "parties".
+        allowed_parties=set(ALIASES.values())
         for line in section:
             pm=re.match(r"^(.+?)\s+([0-9]+(?:[.,][0-9]+)?)\s*%$",line)
-            if pm:
-                name=_party(pm.group(1))
-                if name not in {"OTROS PARTIDOS","OTROS"}:
-                    parties[name]=float(pm.group(2).replace(",","."))
+            if not pm:
+                continue
+            raw_name=pm.group(1).strip()
+            normalized=_party(raw_name)
+            if normalized in allowed_parties:
+                parties[normalized]=float(pm.group(2).replace(",","."))
         if not parties:
             continue
         pollster=parent.split(" · publicado el ")[0].strip() or "Fuente publicada"
