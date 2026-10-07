@@ -140,8 +140,14 @@ def main():
         result.append([e,d,p,party,v["votos"],v["escaños"],"Ministerio del Interior / portal oficial de datos abiertos","PRIMARY_OFFICIAL"])
     elections=set(r[0] for r in result)
     if elections!=set(DATES): raise RuntimeError(f"Missing elections: {sorted(set(DATES)-elections)}")
-    if any(sum(r[5] for r in result if r[0]==e)!=350 for e in DATES): raise RuntimeError("Historical seat totals are not 350")
-    if any(len({r[2] for r in result if r[0]==e})!=52 for e in DATES): raise RuntimeError("Historical constituency totals are not 52")
+    seat_totals={e:sum(r[5] for r in result if r[0]==e) for e in DATES}
+    constituency_totals={e:len({r[2] for r in result if r[0]==e}) for e in DATES}
+    bad_seats={e:n for e,n in seat_totals.items() if n!=350}
+    bad_const={e:n for e,n in constituency_totals.items() if n!=52}
+    if bad_seats:
+        raise RuntimeError(f"Historical seat totals are not 350: {bad_seats}")
+    if bad_const:
+        raise RuntimeError(f"Historical constituency totals are not 52: {bad_const}")
     with OUT.open("w",encoding="utf-8",newline="") as f:
         w=csv.writer(f); w.writerow(["election","fecha_eleccion","circunscripcion","partido","votos","escaños","fuente","nivel_fuente"]); w.writerows(result)
     manifest={"schema":"INTERIOR_OFFICIAL_ACQUISITION_V4","status":"PASS","source_url":URL,"download_page":PAGE,"sha256":sha,"file_bytes":len(data),"elections":DATES,"n_rows":len(result),"n_constituencies_per_election":52,"seats_per_election":350,"source_tier":"PRIMARY_INTERIOR","source_kind":"OFFICIAL_INTERIOR_XLSX","official_results":{"rows":len(result),"elections":list(DATES.values()),"constituencies_per_election":52,"seats_per_election":350,"derived_csv_sha256":hashlib.sha256(OUT.read_bytes()).hexdigest()}}
