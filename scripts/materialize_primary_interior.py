@@ -96,7 +96,7 @@ def main():
     if any(len({r[2] for r in result if r[0]==e})!=52 for e in DATES): raise RuntimeError("Historical constituency totals are not 52")
     with OUT.open("w",encoding="utf-8",newline="") as f:
         w=csv.writer(f); w.writerow(["election","fecha_eleccion","circunscripcion","partido","votos","escaños","fuente","nivel_fuente"]); w.writerows(result)
-    manifest={"schema":"INTERIOR_OFFICIAL_ACQUISITION_V3","status":"PASS","source_url":URL,"download_page":PAGE,"sha256":sha,"file_bytes":len(data),"elections":DATES,"n_rows":len(result),"n_constituencies_per_election":52,"source_tier":"PRIMARY_INTERIOR"}
+    manifest={"schema":"INTERIOR_OFFICIAL_ACQUISITION_V4","status":"PASS","source_url":URL,"download_page":PAGE,"sha256":sha,"file_bytes":len(data),"elections":DATES,"n_rows":len(result),"n_constituencies_per_election":52,"seats_per_election":350,"source_tier":"PRIMARY_INTERIOR","source_kind":"OFFICIAL_INTERIOR_XLSX","official_results":{"rows":len(result),"elections":list(DATES.values()),"constituencies_per_election":52,"seats_per_election":350,"derived_csv_sha256":hashlib.sha256(OUT.read_bytes()).hexdigest()}}
     MAN.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(manifest,ensure_ascii=False,indent=2))
 
