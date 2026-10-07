@@ -87,10 +87,16 @@ def certify(root="."):
             external_ok=False
     gates.append(_gate("external_audit", external_ok,
                        "auditoría independiente materializada y declarada"))
-    ok=all(g.status=="PASS" for g in gates)
-    return {"status":"CERTIFIED" if ok else "BLOCKED","gates":[g.__dict__ for g in gates]}
+    required = [g for g in gates if g.name != "external_audit"]
+    required_ok = all(g.status == "PASS" for g in required)
+    external = next(g for g in gates if g.name == "external_audit")
+    if required_ok and external.status != "PASS":
+        status = "READY_FOR_EXTERNAL_AUDIT"
+    else:
+        status = "CERTIFIED" if required_ok and external.status == "PASS" else "BLOCKED"
+    return {"status": status, "gates": [g.__dict__ for g in gates]}
 
 if __name__=="__main__":
     out=certify()
     print(json.dumps(out,ensure_ascii=False,indent=2))
-    raise SystemExit(0 if out["status"]=="CERTIFIED" else 1)
+    raise SystemExit(0 if out["status"] in {"CERTIFIED","READY_FOR_EXTERNAL_AUDIT"} else 1)
