@@ -67,7 +67,7 @@ jobs:
 
           rerun_full() {
             echo "AUTO-HEAL: relanzando la ejecución completa $FAILED_RUN_ID."
-            gh api --method POST               -H "Accept: application/vnd.github+json"               -H "X-GitHub-Api-Version: 2026-03-10"               "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/rerun"
+            gh api --method POST               -H "Accept: application/vnd.github+json" "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/rerun"
           }
 
           if [ "$FAILED_SHA" != "$current_sha" ]; then
@@ -75,7 +75,7 @@ jobs:
             workflow_content="$(gh api "repos/$REPOSITORY/contents/$workflow_file?ref=main" --jq '.content' | tr -d '\n' | base64 --decode)"
             if printf '%s\n' "$workflow_content" | grep -Eq '^[[:space:]]*workflow_dispatch[[:space:]]*:'; then
               echo "AUTO-HEAL: el workflow admite workflow_dispatch; ejecutándolo sobre main."
-              gh api --method POST                 -H "Accept: application/vnd.github+json"                 -H "X-GitHub-Api-Version: 2026-03-10"                 "repos/$REPOSITORY/actions/workflows/$workflow_file/dispatches"                 -f ref=main
+              gh api --method POST                 -H "Accept: application/vnd.github+json"     "repos/$REPOSITORY/actions/workflows/$workflow_file/dispatches"                 -f ref=main
             else
               echo "AUTO-HEAL: el workflow no admite workflow_dispatch; usando rerun seguro de la ejecución existente."
               rerun_full
@@ -90,5 +90,5 @@ jobs:
           fi
 
           echo "AUTO-HEAL: reintentando solo jobs fallidos ($jobs_count jobs detectados)."
-          gh api --method POST             -H "Accept: application/vnd.github+json"             -H "X-GitHub-Api-Version: 2026-03-10"             "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/rerun-failed-jobs"
+          gh api --method POST             -H "Accept: application/vnd.github+json" "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/rerun-failed-jobs"
           echo "AUTO-HEAL: jobs fallidos reintentados."
