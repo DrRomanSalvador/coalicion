@@ -17,81 +17,52 @@
     "binary": "data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.pdf",
     "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH"
   },
-  "completed": [
-    "reproducibility contract",
-    "actual-byte hash gate",
-    "source anchor manifest",
-    "master certification gate",
-    "electoral-law corrections: blank votes, Ceuta/Melilla, 2019A/2019N",
-    "zero-context invocation protocol",
-    "canonical error registry",
-    "token-economy protocol"
-  ],
   "blocking_errors": [
     {
       "id": "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
-      "status": "DEFERRED",
-      "detail": "Fuera del alcance operativo actual: no ejecutar auditoría/certificación hasta nueva instrucción."
+      "status": "DEFERRED"
     },
     {
       "id": "PRIMARY_RECONCILIATION",
-      "status": "DEFERRED",
-      "detail": "Fuera del alcance operativo actual: no ejecutar auditoría/certificación hasta nueva instrucción."
+      "status": "DEFERRED"
     },
     {
       "id": "SEEC_PRODUCTION_EXECUTION",
-      "status": "DEFERRED",
-      "detail": "Fuera del alcance operativo actual: no ejecutar auditoría/certificación hasta nueva instrucción."
+      "status": "DEFERRED"
     },
     {
       "id": "OOS_CALIBRATION",
-      "status": "DEFERRED",
-      "detail": "Fuera del alcance operativo actual: no ejecutar auditoría/certificación hasta nueva instrucción."
+      "status": "DEFERRED"
     },
     {
       "id": "EXTERNAL_AUDIT",
-      "status": "DEFERRED",
-      "detail": "Fuera del alcance operativo actual: no ejecutar auditoría/certificación hasta nueva instrucción."
+      "status": "DEFERRED"
     },
     {
       "id": "CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT",
-      "status": "DEFERRED",
-      "detail": "Fuera del alcance operativo actual: no ejecutar auditoría/certificación hasta nueva instrucción."
+      "status": "DEFERRED"
     },
     {
-      "id": "CONSTITUENCY_MATRIX_2023_MISSING",
-      "status": "IN_PROGRESS",
-      "detail": "La fuente pública del Interior está localizada; falta materializarla en el formato canónico del repositorio."
+      "id": "PRIMARY_2023_MATRIX_MATERIALIZATION",
+      "status": "SECONDARY_READY_PRIMARY_BLOCKED",
+      "detail": "Matriz 2023 completa materializada desde Dato Electoral como réplica secundaria verificada: 52 circunscripciones, 350 escaños y 24.487.414 votos a candidaturas. La descarga primaria del Interior sigue bloqueada por verificación TLS; no se degrada a primaria."
     }
   ],
-  "last_verified_commit": "40dffa6ea5b4398e4cdf9436f922d2cbd1e3eaeb",
-  "last_action": "Pipeline de producto prediction-first implementado; capacidades de auditoría conservadas e inactivas.",
-  "last_action_result": "PRODUCT_PIPELINE_ACTIVE_AUDIT_INACTIVE",
-  "next_single_action": "Integrar automáticamente la matriz 2023 provincial desde el dataset del Interior y generar el formato canónico de entrada para coalition/marginal/prediction.",
-  "continuation_rule": "A new chat MUST read README.md, CONTRATO_MAESTRO_IA.md, docs/INVOCACION_COLMENA.md and this state file, execute python -m src.colmena_resume, and continue only from next_single_action. Never reconstruct context from chat.",
-  "token_economy": {
-    "repository_first": true,
-    "do_not_research_anchored_sources": true,
-    "do_not_repeat_completed_work": true,
-    "do_not_narrate_tool_calls": true,
-    "do_not_recompute_without_failed_verification": true,
-    "persist_every_atomic_checkpoint": true,
-    "unfinished_chat_messages_are_not_state": true,
-    "single_next_action": true,
-    "checkpoint_before_token_exhaustion": true,
-    "resume_from_repository_not_chat": true
-  },
+  "last_action": "Ejecutado run26.py tras endurecer los fallbacks territoriales y los parsers HTML.",
+  "last_action_result": "RUN26_PRODUCT_PIPELINE_SECONDARY_DATA_READY",
+  "next_single_action": "Resolver la materialización primaria 2023 del Ministerio del Interior sin desactivar TLS; mantener la matriz secundaria como OPERATIONAL_BETA hasta entonces.",
   "certification": "PARTIAL",
   "data_source": "SECONDARY_REPLICA_VERIFIED",
   "primary_binary": "PENDING",
   "use_allowed": true,
   "warnings": [
-    "Datos 2023: réplica secundaria; no fuente primaria",
-    "Útil para análisis de coaliciones, no para certificación oficial",
-    "No es un predictor electoral validado",
+    "Matriz 2023 completa disponible como SECONDARY_REPLICA_VERIFIED: 52 circunscripciones, 350 escaños y 24.487.414 votos a candidaturas.",
+    "El fallback territorial normaliza variantes de nombres sin alterar ningún dato electoral ni cálculo matemático.",
+    "Encuestas históricas: 140 últimas encuestas en ocho elecciones (2004-2023), réplica secundaria; fichas/microdatos técnicos no inferidos.",
+    "Útil para análisis de coaliciones, no para certificación oficial.",
+    "No es un predictor electoral validado.",
     "Auditoría y certificación permanecen codificadas pero inactivas en el flujo operativo."
   ],
-  "next_action": "Integrar automáticamente la matriz 2023 provincial desde el dataset del Interior y generar el formato canónico de entrada para coalition/marginal/prediction.",
   "product_mode": "PREDICTION_FIRST",
   "audit_mode": "INACTIVE",
   "audit_capability": "RETAINED"
