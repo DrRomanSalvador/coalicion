@@ -101,8 +101,8 @@ target_dates <- c(
 )
 
 wb <- readxl::excel_sheets(local_xlsx)
-if (length(wb) != 1L || wb[[1]] != "Congreso")
-  stop("Unexpected official Interior workbook sheets: ", paste(wb, collapse=", "))
+if (!"Congreso" %in% wb)
+  stop("Official Interior workbook does not contain the Congreso sheet: ", paste(wb, collapse=", "))
 
 raw <- readxl::read_excel(local_xlsx, sheet="Congreso", skip=3, col_names=TRUE, .name_repair="minimal")
 if (!nrow(raw)) stop("Official Interior workbook is empty after header row.")
