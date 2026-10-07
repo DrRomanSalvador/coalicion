@@ -270,7 +270,7 @@ class PollMonitor:
         if not self.state_path.exists():
             return {"schema":"POLL_MONITOR_STATE_V2","poll_hashes":{},
                     "discovery_hashes":{},"source_hashes":{},"failure_hashes":{},
-                    "runs":0,"total_validated":0}
+                    "runs":0,"total_validated":0,"baseline_completed":False}
         return json.loads(self.state_path.read_text(encoding="utf-8"))
 
     def _save_raw(self, source_id: str, body: bytes) -> str:
@@ -396,8 +396,12 @@ class PollMonitor:
 
     def run(self) -> dict[str, Any]:
         checked = datetime.now(timezone.utc).isoformat()
+        baseline = not self.state.get("baseline_completed", False)
         polls, discoveries, failures = self.fetch_all()
         new, changed, new_discoveries = self.detect_new(polls, discoveries)
+        if baseline:
+            new, changed, new_discoveries = [], [], []
+            self.state["baseline_completed"] = True
         payload = {
             "schema":"POLL_MONITOR_V2","checked_at":checked,
             "status":"BLOCKED" if failures and not polls and not discoveries else
@@ -407,7 +411,7 @@ class PollMonitor:
             "descriptive_only":True,
             "seat_projection":"BLOCKED_NO_TERRITORIAL_INPUT",
         }
-        meaningful = bool(new or changed or new_discoveries or failures)
+        meaningful = baseline or bool(new or changed or new_discoveries or failures)
         path = self.save(payload, meaningful=meaningful)
         print(f"Encontradas {len(polls)} encuestas validadas")
         print(f"{len(new)+len(changed)} encuestas nuevas/cambiadas")
