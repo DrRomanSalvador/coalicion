@@ -21,7 +21,7 @@ download_candidate <- function(url, destination) {
   status <- system2("curl", c(
     "-fL", "--retry", "2", "--retry-delay", "2",
     "--connect-timeout", "30", "--max-time", "600",
-    "-A", "Mozilla/5.0 (compatible; coalicion-historical-ingest/1.0)",
+    "-A", "Mozilla/5.0-coalicion-historical-ingest/1.0",
     "-o", destination, url
   ))
   identical(status, 0L) && file.exists(destination) && file.info(destination)$size > 1000
@@ -33,7 +33,7 @@ discover_xlsx_urls <- function(page_url) {
   status <- system2("curl", c(
     "-fL", "--retry", "2", "--retry-delay", "2",
     "--connect-timeout", "30", "--max-time", "120",
-    "-A", "Mozilla/5.0 (compatible; coalicion-historical-ingest/1.0)",
+    "-A", "Mozilla/5.0-coalicion-historical-ingest/1.0",
     "-o", tmp, page_url
   ))
   if (!identical(status, 0L) || !file.exists(tmp)) return(character())
