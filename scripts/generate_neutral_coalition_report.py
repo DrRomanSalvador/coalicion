@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Generate a descriptive 2023 coalition report; never recommends a coalition."""
 from __future__ import annotations
-import argparse, hashlib, json, re, unicodedata
+import argparse, hashlib, json, re, sys, unicodedata
 from pathlib import Path
-from src.neutral_coalition import enumerate_all_coalition_results
 
 ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from src.neutral_coalition import enumerate_all_coalition_results
 MATRIX=ROOT/"artifacts/data/election_2023_canonical.json"
 ANCHOR=ROOT/"data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.json"
 OUT_JSON=ROOT/"artifacts/neutral_coalition_2023.json"
