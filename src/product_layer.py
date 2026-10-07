@@ -21,6 +21,7 @@ from .decision_engine import (
 )
 from .electoral import allocate
 from .reproducibility_contract import verify_contract
+from .projection_suite import project as project_projection, compare_projections, uncertainty_summary, backtest_rows
 
 
 PRODUCT_VERSION = "1.0"
@@ -33,6 +34,9 @@ SUPPORTED_FUNCTIONS = (
     "scenarios",
     "value",
     "audit",
+    "projection",
+    "uncertainty",
+    "backtest",
 )
 
 
@@ -409,3 +413,4 @@ def audit_decision() -> dict:
         },
         "technical": contract,
     }
+\n\ndef project(votes_by_constituency, seats_by_constituency, blank_votes_by_constituency,\n            share_changes=None, turnout_factors=None, special_by_constituency=None):\n    return project_projection(votes_by_constituency, seats_by_constituency, blank_votes_by_constituency,\n                              share_changes, turnout_factors, special_by_constituency)\n\n\ndef compare_projection_results(reference, candidate):\n    return compare_projections(reference, candidate)\n\n\ndef uncertainty(draw_results):\n    return uncertainty_summary(draw_results)\n\n\ndef backtest(predictions, actuals):\n    return backtest_rows(predictions, actuals)\n
