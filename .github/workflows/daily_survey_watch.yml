@@ -31,6 +31,19 @@ jobs:
         run: |
           test ! -f artifacts/survey_watch_report.json || cat artifacts/survey_watch_report.json
           test ! -f artifacts/neutral_poll_report.json || cat artifacts/neutral_poll_report.json
+      - name: Notificar por Telegram
+        if: always()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if test -f artifacts/survey_watch_report.json && \
+             grep -Eq '"status": "(ALERT|BLOCKED)"' artifacts/survey_watch_report.json; then
+            python scripts/notify_webhook.py artifacts/survey_watch_report.json
+          else
+            echo "NO_TELEGRAM_ALERT"
+          fi
+
       - name: Persistir informe, alertas y estado
         if: always()
         run: |
