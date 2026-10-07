@@ -18,4 +18,7 @@ def test_datoelectoral_html_parser_reads_complete_poll():
     from src.poll_ingest import parse_datoelectoral_html
     polls=parse_datoelectoral_html(html.encode(),{"id":"dato","url":"https://example.test"})
     assert polls[0].parties["PSOE"]==31.0
+    assert polls[0].parties["PP"]==25.5
+    assert polls[0].parties["SUMAR"]==5.7
+    assert "NO-RESPUESTA" not in polls[0].parties
     assert polls[0].sample_size is None
