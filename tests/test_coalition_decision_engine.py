@@ -4,7 +4,7 @@ def scenario(votes, name="central", weight=1):
     return CoalitionScenario(name, votes, weight)
 
 def engine():
-    return CoalitionDecisionEngine({"A": 350}, {"A": 0})
+    return CoalitionDecisionEngine({"A": 3, "B": 347}, {"A": 0, "B": 0})
 
 def test_exhaustive_generation_is_fail_closed():
     assert len(CoalitionDecisionEngine.generate_all_coalitions(["P1","P2","P3","P4"])) == 11
@@ -18,7 +18,7 @@ def test_exhaustive_generation_is_fail_closed():
 
 def test_recomputes_dhondt_instead_of_adding_seats():
     r = engine().analyze_coalition(("P2","P3"), [scenario({
-        "A":{"P1":500,"P2":260,"P3":240}})])
+        "A":{"P1":500,"P2":260,"P3":100},"B":{"P1":1000,"P2":1,"P3":1}})])
     assert r["separate_seats"] < r["coalition_seats"]
     assert r["benefit"] == r["coalition_seats"] - r["separate_seats"]
 
