@@ -21,19 +21,33 @@ if (!nzchar(curl_bin)) curl_bin <- "/usr/bin/curl"
 if (!file.exists(curl_bin)) stop("FAIL-CLOSED: curl executable is required for official Interior ingestion.")
 
 download_candidate <- function(url, destination) {
+  tmp <- paste0(destination, ".part")
+  if (file.exists(tmp)) unlink(tmp)
   status <- system2(curl_bin, c(
-    "-fL", "--retry", "2", "--retry-delay", "2",
-    "--connect-timeout", "30", "--max-time", "600",
-    "-A", "Mozilla/5.0-coalicion-historical-ingest/1.0",
-    "-o", destination, url
+    "-fL", "--retry", "4", "--retry-all-errors", "--retry-delay", "3",
+    "--connect-timeout", "30", "--max-time", "900",
+    "--compressed", "--location-trusted",
+    "-A", "Mozilla/5.0-coalicion-historical-ingest/2.0",
+    "-o", tmp, url
   ))
-  identical(status, 0L) && file.exists(destination) && file.info(destination)$size > 1000
+  ok <- identical(status, 0L) && file.exists(tmp) && file.info(tmp)$size > 10000
+  if (ok) {
+    con <- file(tmp, "rb"); on.exit(close(con), add=TRUE)
+    magic <- readBin(con, "raw", n=4)
+    ok <- identical(as.integer(magic), c(80L,75L,3L,4L))
+  }
+  if (ok) {
+    file.rename(tmp, destination)
+    return(TRUE)
+  }
+  if (file.exists(tmp)) unlink(tmp)
+  FALSE
 }
 
 discover_xlsx_urls <- function(page_url) {
   tmp <- tempfile(fileext=".html")
   on.exit(unlink(tmp), add=TRUE)
-  status <- system2("curl", c(
+  status <- system2(curl_bin, c(
     "-fL", "--retry", "2", "--retry-delay", "2",
     "--connect-timeout", "30", "--max-time", "120",
     "-A", "Mozilla/5.0-coalicion-historical-ingest/1.0",
@@ -119,6 +133,12 @@ if (is.na(datecol) || is.na(desccol) || is.na(typecol))
 
 province_cols <- seq.int(5L, length.out=52L)
 province_names <- trimws(headers[province_cols])
+# Interior's workbook is authoritative for the constituency columns. Guard against
+# accidental schema drift before parsing any values.
+if (anyDuplicated(province_names))
+  stop("Official workbook has duplicate constituency column names.")
+if (any(grepl("^NA$|^N/?A$|^$", province_names, ignore.case=TRUE)))
+  stop("Official workbook has blank/invalid constituency names in the 52-column block.")
 if (length(province_names) != 52L || any(!nzchar(province_names)))
   stop("Official workbook does not expose the expected 52 constituency columns.")
 
@@ -177,4 +197,17 @@ if (nrow(bad))
        paste(paste0(bad$election, "(seats=",bad$total_escaños,",circ=",bad$n_circunscripciones,")"), collapse=", "))
 
 readr::write_csv(result, "data/resultados_oficiales_2004_2023.csv")
+# Provenance sidecar: the materialization must always record the exact acquisition
+# route used for the primary workbook.
+prov <- list(
+  schema = "INTERIOR_OFFICIAL_ACQUISITION_V2",
+  source_url = source_url,
+  download_page = official_download_page,
+  sha256 = unname(tools::md5sum(local_xlsx)), # legacy checksum retained for compatibility
+  file_bytes = file.info(local_xlsx)$size,
+  elections = target_dates,
+  n_rows = nrow(result),
+  n_constituencies_per_election = integrity$n_circunscripciones
+)
+jsonlite::write_json(prov, "data/manifests/INTERIOR_ACQUISITION.json", auto_unbox=TRUE, pretty=TRUE)
 message("Wrote ", nrow(result), " official constituency-party rows from ", source_url)
