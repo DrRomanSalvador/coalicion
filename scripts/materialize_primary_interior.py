@@ -48,6 +48,7 @@ def main():
                 "https://www.cert.fnmt.es/certs/ACRAIZSERVIDORESSEGUROS.crt",
             ]
             bundle_tmp=Path(tempfile.mkstemp(suffix=".pem")[1])
+            root_tmps=[]
             try:
                 for root_url in root_urls:
                     root_tmp=Path(tempfile.mkstemp(suffix=".crt")[1])
