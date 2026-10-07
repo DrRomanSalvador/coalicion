@@ -199,3 +199,96 @@ La documentación completa está en `docs/POLL_MONITORING.md`.
 
 **Importante:** GitHub documenta que 5 minutos es el intervalo mínimo de los schedules, pero también que las ejecuciones programadas pueden retrasarse o incluso perderse bajo carga; por ello la latencia es *near-real-time*, no una garantía dura de cinco minutos.
 
+
+## MEMORIA MAESTRA ULTRACOMPRIMIDA — COALICIÓN
+
+> **Fuente de verdad:** este repositorio y su evidencia materializada. Esta sección es un índice operativo comprimido; no sustituye los archivos fuente.
+
+### 0. Identidad y objetivo
+- Proyecto único: `DrRomanSalvador/coalicion`, rama `main`.
+- Infraestructura neutral, reusable y reproducible para auditoría electoral española, análisis territorial, simulación, predicción, incertidumbre y evaluación de coaliciones/pactos.
+- No es herramienta de propaganda, persuasión, microtargeting ni optimización partidista.
+- Prioridad: **evidencia > inferencia > memoria > suposición**. Evidencia crítica ausente ⇒ **FAIL_CLOSED**.
+
+### 1. Principios
+Neutralidad; reproducibilidad; trazabilidad; fuentes primarias primero; provenance/hash/manifest; no datos inventados; no imputación oculta; no información futura; no sustitución silenciosa; no overrides manuales; no optimización partidista; no convertir encuestas nacionales en escaños territoriales sin input territorial; no reconstruir votos desde escaños; no sumar escaños de partidos para coaliciones; contradicción ⇒ bloqueo; repositorio = estado persistente.
+
+### 2. Método y pipeline
+`REINA-SEEC 4.0`.
+`FUENTES→DATOS→VALIDACIÓN→SESGOS→TERRITORIO→ESCENARIO→COALICIÓN→LEY_ELECTORAL→MARGINALIDAD→INCERTIDUMBRE→RESULTADO→AUDITORÍA`.
+Separar observación, modelización, simulación y decisión.
+
+### 3. Arquitectura
+Boundary de datos; `electoral.py` como lógica electoral canónica/frozen; `prediction.py` estadística consolidada; coalition decision como lógica de coaliciones; `uncertainty.py` probabilística; decision como orquestación mínima; auditoría/evidencia/reproducibilidad transversales. Evitar implementaciones paralelas de `electoral_reference`, `coalition_value`, `scenarios`, `decision_engine` y motores duplicados. Una implementación canónica por concepto matemático crítico.
+
+### 4. Ley electoral e invariantes
+Congreso = **350 escaños / 52 circunscripciones**. Umbral provincial = **3% votos válidos**. D’Hondt con aritmética exacta cuando corresponda. Ceuta/Melilla = candidatura más votada. Empate absoluto ⇒ **BLOCK**, nunca desempate lexicográfico. `sum(escaños circunscripción)=magnitud`; `sum(escaños nacionales)=350`; votos/asignaciones no negativos. Coalición = **agregar votos por circunscripción → aplicar umbral → recalcular D’Hondt**, jamás sumar escaños.
+
+### 5. Datos y evidencia
+Prioridad: Ministerio del Interior → JEC → BOE → INE → otras oficiales → CIS para encuestas oficiales → privadas con procedencia. Agregadores sirven para discovery, no sustituyen fuentes primarias. Anchor/hash mismatch ⇒ hard failure. Provenance: fuente, fecha, field date si existe, publicación, hash, versión/código, seed, transformación y evidencia materializada. Distinguir Git blob SHA, SHA-256 de contenido y hash declarado por manifest.
+
+### 6. 2023 canónico
+`artifacts/data/election_2023_canonical.json` + `.sha256`. Anchor: `INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO`. SHA declarado del anchor: `b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7`.
+
+### 7. Histórico
+Elecciones de referencia: **2004, 2008, 2011, 2015, 2016, 2019A, 2019N, 2023**. Uso: backtest, validación temporal, OOS, calibración, drift y estabilidad. Prohibido usar información futura para explicar/predicir pasado.
+
+### 8. Predicción/calibración
+OOS = expanding window. Métricas: MAE, RMSE, mediana abs, máximo abs, bias y cobertura probabilística. Un candidato debe no empeorar dentro de tolerancias y mejorar estrictamente una métrica relevante OOS. Separar **observación→predicción→calibración→evaluación**; nunca calibrar con el resultado evaluado.
+
+### 9. Incertidumbre/SEEC
+RNG = NumPy PCG64; seed = **20261006**; mínimo Monte Carlo **10.000**, preferido **50.000**. Reproducibilidad = seed + versión de código + datos/hash. SEEC composicional cuando proceda; no binomios independientes para componentes dependientes; field_date; drift; house effects; conteos deterministas cuando corresponda; PyMC/PyTensor fail-closed si entorno inválido.
+
+### 10. Sesgos/correcciones
+Candidatos BASE/COMMON/PARTY/HOUSE/GOVERNMENT y combinaciones justificadas. Ninguna corrección por intuición: mejora OOS + no empeoramiento relevante. Agregación histórica sin permitir que una elección con más encuestas domine artificialmente.
+
+### 11. Temporalidad
+Distinguir publication date, field date/field_end y election date. Temporal decay explícito/reproducible. Detectar drift, envejecimiento, cambios de casa y cambios metodológicos.
+
+### 12. Poll monitor
+Estado V3: hashes, identidades, discovery hashes, source hashes, failures, failure streaks, versiones y raw bodies. Detecta `NEW` y `CORRECTION_OR_REPUBLICATION`. Raw materializado = evidencia reproducible. Diferenciar fallo de fuente/parser, ausencia de publicación y cambio estructural. No inventar valores, usar snippets como datos, nacional→territorial ni escaños sin territorialidad válida. Telegram: destino dinámico del chat privado iniciador; no hardcodear chat.
+
+### 13. Survey watch
+`config/poll_monitor.json` = universo/health/cobertura/fail-closed. `config/survey_watch.json` = frecuencia, alertas, fuentes, publicación, pollster, escenarios y Telegram. Escenarios SUMAR/PODEMOS/PSOE pueden ser descriptivos, nunca recomendaciones/rankings ni transferencias inventadas; escaños solo con territorialidad válida.
+
+### 14. Certificación
+No certificar con blocker, evidencia primaria ausente, hash mismatch, contradicción, leakage, reproducibilidad fallida, OOS/calibración pendiente cuando sea requisito, auditoría externa pendiente, ejecución productiva no demostrada o materialización no comprobada. **Certificación ≠ código aparentemente correcto**; requiere evidencia materializada y verificable.
+
+### 15. Bloqueadores canónicos
+`COLMENA_STATE_MISSING`, `COLMENA_STATE_INVALID`, `INVOCATION_MISSING`, `CONTRACT_MISSING`, `METHOD_MISMATCH`, `SEED_MISMATCH`, `SOURCE_ANCHOR_MISSING`, `SOURCE_HASH_DECLARATION_MISMATCH`, `PRIMARY_BINARY_NOT_REPOSITORY_PINNED`, `PRIMARY_HASH_MISMATCH`, `EVIDENCE_MISSING`, `EVIDENCE_STALE`, `FUTURE_INFORMATION`, `DATA_CONTRADICTION`, `REPRODUCIBILITY_FAILURE`, `PARAMETER_DRIFT`, `METHODOLOGY_DRIFT`, `UNSUPPORTED_INFERENCE`, `HIDDEN_IMPUTATION`, `COALITION_SEAT_SUMMATION`, `PARTISAN_OPTIMIZATION`, `EXTERNAL_AUDIT_UNAVAILABLE`, `UNPERSISTED_CHECKPOINT`, `MULTIPLE_NEXT_ACTIONS`, `CHAT_CONTEXT_DEPENDENCY`, `CERTIFICATION_WITH_OPEN_BLOCKER`, `PRIMARY_RECONCILIATION`, `SEEC_PRODUCTION_EXECUTION`, `OOS_CALIBRATION`, `EXTERNAL_AUDIT`, `ABSOLUTE_TIE`, `INVALID_VALID_VOTES`, `SEAT_CONSERVATION`, `UNVERSIONED_DATA`, `INVENTED_TERRITORIALITY`, `MANUAL_RESULT_OVERRIDE`, `NONDETERMINISTIC_EXECUTION`, `CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT`, `PRIMARY_2023_MATRIX_MATERIALIZATION`.
+
+### 16. Reproducibilidad
+Contrato = **seed + code version + data hash + config + environment**. No outputs manuales/no persistidos/no trazables ni diferencias inexplicadas. Mismos inputs+versión+seed ⇒ mismo resultado; mismas condiciones probabilísticas ⇒ misma simulación.
+
+### 17. CI/automatización
+Workflows/scripts/artifacts cubren auditoría, backtest, OOS, calibración, histórico, poll monitoring, vigilance, Telegram, materialización y certificación. CI creado ≠ PASS; test existente ≠ PASS; solo ejecución verificable puede sostener una afirmación.
+
+### 18. Componentes conocidos
+Top-level: README, contratos/guías, DATA_PIPELINE, LIMITATIONS, OPERATIONAL_BETA, QUICKSTART, REPRODUCIBILITY, `cli.py`, `coalicion.py`, `political_product.py`, `run26.py`, requirements. Docs: arquitectura, auditoría maestra, bibliografía, estado Colmena, contrato producto, errores, política exhaustiva, histórico, invocación, poll monitoring, prompts, sesgos, SEEC, sources/status, Telegram, test plan. SRC: auditoría, bias, calibration, coalition, data, electoral, evidence, OOS, polls, prediction, probabilistic calibration, reconciliation, reproducibility, SEEC, temporalidad, uncertainty y monitores CIS/dato/electomanía/Twitter. Scripts: adquisición, auditoría, backtest, OOS, calibración, materialización, validación, certificación, ingestión, Telegram y queen/worker.
+
+### 19. Política de fuentes
+`config/electoral_sources.json`: Interior/JEC/BOE/INE según dato; CIS para encuestas oficiales; privados con procedencia; Electomanía principalmente discovery. Fecha correcta de elecciones generales 2023 = **2023-07-23**. No synthetic, no territorial inference, no seat→vote inversion.
+
+### 20. Operational Beta
+`config/operational_beta.json`: `OPERATIONAL_BETA`; strict certification unchanged; réplica secundaria solo con manifest+consistencia+warning; uso parcial permitido; `prediction_certified=false` mientras falte evidencia.
+
+### 21. Colmena
+`queen=coordinator`; workers especializados reportan hallazgos; no modificaciones arbitrarias cuando el contrato exige coordinación. Repositorio = estado persistente. Conversación incompleta ≠ checkpoint. Múltiples siguientes acciones ambiguas ⇒ bloqueo.
+
+### 22. Lectura exhaustiva
+Protocolo: **refresh tree → inventory → path+SHA → leer legibles → no releer path+SHA estable → releer SHA cambiado → añadir nuevos → refresh antes de declarar fin → repetir hasta cero pendientes legibles**. Último estado conocido durante esta continuidad: **728 blobs; 272 text/code/config cubiertos; 16 extras cubiertos; 357 raw actuales; 45 raw cubiertos en último contador; 77 pyc binarios identificados/no fuente-readable; lectura entonces no terminada**. Identificado ≠ leído; fetch ≠ comprensión exhaustiva; workflow ≠ ejecución; test ≠ PASS; hash declarado ≠ verificado; código correcto ≠ certificado.
+
+### 23. Estados de evidencia
+Distinguir siempre: **IMPLEMENTADO / TESTEADO / EJECUTADO / VALIDADO / OOS / CALIBRADO / MATERIALIZADO / AUDITADO / CERTIFICADO**. Nunca colapsarlos en “hecho”.
+
+### 24. Intervenciones futuras
+“Termina” ⇒ continuar desde estado real, refresh, resolver bloqueos, ejecutar, persistir evidencia, verificar, no sobreafirmar. “Lee todo” ⇒ refresh→inventory→diff→read→update→refresh. “Corrige todo” ⇒ diagnose→patch→test→integration→evidence→refresh→verify. Incertidumbre ⇒ STOP/preguntar salvo contrato inequívoco.
+
+### 25. Compresión de memoria
+**MEMORIA = MAPA; REPOSITORIO = CONTENIDO COMPLETO.** Memorizar arquitectura, invariantes, contratos, decisiones, fuentes, hashes críticos, metodología, blockers, estado, frontera de lectura y reglas de continuidad; no logs/código/raw completos. La memoria debe permitir saber qué es el sistema, cómo funciona, qué está prohibido, qué está demostrado, qué falta, dónde continuar y cómo evitar repetición/contradicción.
+
+### 26. Regla maestra
+**REFRESH → DIFF(path+SHA) → READ(new/changed) → EXTRACT(invariants/evidence/state) → UPDATE(compact-memory) → VERIFY → REFRESH → REPEAT**.
+Solo STOP cuando **árbol estable + cero pendientes legibles + ningún blocker abierto que impida la afirmación realizada**.
+
+> **Principio final:** nunca decir “terminado” porque el modelo lo recuerde; decir “terminado” solo porque la evidencia del repositorio lo demuestre.
