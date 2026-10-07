@@ -142,6 +142,22 @@ class CoalitionDecisionEngine:
                 out.append({"constituency": c, "separate": separate, "coalition": together, "delta": together - separate})
         return sorted(out, key=lambda x: (-abs(x["delta"]), x["constituency"]))
 
+    def _impacts_all(self, scenario, parties):
+        name = "+".join(parties)
+        out = []
+        for c, row in scenario.votes.items():
+            base = self._allocate(row, c)
+            merged = dict(row)
+            merged[name] = sum(row[p] for p in parties)
+            for p in parties:
+                del merged[p]
+            joined = self._allocate(merged, c)
+            separate = sum(base.seats.get(p, 0) for p in parties)
+            together = joined.seats.get(name, 0)
+            out.append({"constituency": c, "separate": separate, "coalition": together,
+                        "delta": together - separate})
+        return out
+
     def analyze_coalition(self, parties, scenarios):
         parties = tuple(dict.fromkeys(parties))
         if len(parties) < 2 or not scenarios:
@@ -189,6 +205,7 @@ class CoalitionDecisionEngine:
                 "weight_interpretation": "Los pesos son relativos; no son probabilidades calibradas.",
             },
             "decisive_constituencies": self._impacts(central, parties),
+            "all_constituencies": self._impacts_all(central, parties),
         }
 
     def analyze_all_coalitions(self, parties, scenarios, min_size=2,
