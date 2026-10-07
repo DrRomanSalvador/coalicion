@@ -1,4 +1,4 @@
-name: Cleanup stale historical runners
+name: Cleanup stale historical runners\n# force-clean and redispatch canonical integration
 
 on:
   workflow_dispatch:
