@@ -23,17 +23,90 @@ concurrency:
 jobs:
   orchestrate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - name: Sweep active workflows
+      - name: Sweep, recover and synchronize repository workflows
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
+          CURRENT_SHA: ${{ github.sha }}
+          SELF_WORKFLOW: ${{ github.workflow }}
+        shell: bash
         run: |
           set -euo pipefail
-          echo "GLOBAL ORCHESTRATOR: repository sweep started"
-          gh api --paginate "repos/$REPOSITORY/actions/workflows?per_page=100" --jq '.workflows[] | select(.state == "active") | [.id,.path,.name] | @tsv' > /tmp/workflows.tsv
+          echo "GLOBAL ORCHESTRATOR: sweep started on $CURRENT_SHA"
+
+          api() {
+            gh api "$@"
+          }
+
+          api --paginate "repos/$REPOSITORY/actions/workflows?per_page=100"             --jq '.workflows[] | select(.state == "active") | [.id,.path,.name] | @tsv'             > /tmp/workflows.tsv
+
+          echo "GLOBAL ORCHESTRATOR: active workflows:"
+          cat /tmp/workflows.tsv
+
+          # 1) Re-run recent failed executions without jobs by using a full rerun.
+          #    If jobs exist, retry only failed jobs. Old-SHA failures are never
+          #    silently accepted: dispatch current main when workflow_dispatch exists.
+          api --paginate "repos/$REPOSITORY/actions/runs?per_page=100&branch=main"             --jq '.workflow_runs[] | select(.conclusion == "failure") |
+              [.id,.workflow_id,.workflow_name,.head_sha,.run_attempt] | @tsv'             > /tmp/failed.tsv
+
+          while IFS=$'\t' read -r run_id workflow_id workflow_name head_sha run_attempt; do
+            [ -n "$run_id" ] || continue
+            [ "$workflow_name" = "$SELF_WORKFLOW" ] && continue
+            if [ "$run_attempt" -ge 3 ]; then
+              echo "RECOVERY: skip $run_id; attempt limit=$run_attempt"
+              continue
+            fi
+
+            jobs_count="$(api "repos/$REPOSITORY/actions/runs/$run_id/jobs?per_page=100" --jq '.jobs | length')"
+            workflow_path="$(api "repos/$REPOSITORY/actions/workflows/$workflow_id" --jq '.path')"
+
+            if [ "$head_sha" != "$CURRENT_SHA" ]; then
+              content="$(api "repos/$REPOSITORY/contents/$workflow_path?ref=main" --jq '.content' | tr -d '\n' | base64 --decode)"
+              if printf '%s\n' "$content" | grep -Eq '^[[:space:]]*workflow_dispatch[[:space:]]*:'; then
+                echo "RECOVERY: old-SHA failure $run_id -> dispatch $workflow_path on main"
+                api --method POST                   -H "Accept: application/vnd.github+json"                   -H "X-GitHub-Api-Version: 2026-03-10"                   "repos/$REPOSITORY/actions/workflows/$workflow_path/dispatches"                   -f ref=main
+              else
+                echo "RECOVERY: old-SHA failure $run_id -> full rerun"
+                api --method POST                   -H "Accept: application/vnd.github+json"                   -H "X-GitHub-Api-Version: 2026-03-10"                   "repos/$REPOSITORY/actions/runs/$run_id/rerun"
+              fi
+            elif [ "$jobs_count" -eq 0 ]; then
+              echo "RECOVERY: workflow-level failure $run_id -> full rerun"
+              api --method POST                 -H "Accept: application/vnd.github+json"                 -H "X-GitHub-Api-Version: 2026-03-10"                 "repos/$REPOSITORY/actions/runs/$run_id/rerun"
+            else
+              echo "RECOVERY: failed jobs in $run_id -> failed-jobs rerun"
+              api --method POST                 -H "Accept: application/vnd.github+json"                 -H "X-GitHub-Api-Version: 2026-03-10"                 "repos/$REPOSITORY/actions/runs/$run_id/rerun-failed-jobs"
+            fi
+          done < /tmp/failed.tsv
+
+          # 2) On the current main SHA, activate workflows that expose
+          #    workflow_dispatch but have not yet run for this SHA. Workflows
+          #    with required manual inputs are deliberately skipped.
           while IFS=$'\t' read -r workflow_id workflow_path workflow_name; do
-            echo "ACTIVE: $workflow_path | $workflow_name | $workflow_id"
+            case "$workflow_path" in
+              .github/workflows/global_repository_orchestrator.yml|.github/workflows/autonomous_self_healer.yml|.github/workflows/force_workflow.yml)
+                continue
+                ;;
+            esac
+
+            content="$(api "repos/$REPOSITORY/contents/$workflow_path?ref=main" --jq '.content' | tr -d '\n' | base64 --decode)"
+            printf '%s\n' "$content" | grep -Eq '^[[:space:]]*workflow_dispatch[[:space:]]*:' || continue
+
+            if printf '%s\n' "$content" | grep -A40 -E '^[[:space:]]*inputs[[:space:]]*:' | grep -Eq '^[[:space:]]+[A-Za-z0-9_-]+:[[:space:]]*$|^[[:space:]]+required:[[:space:]]*true[[:space:]]*$'; then
+              if printf '%s\n' "$content" | grep -A40 -E '^[[:space:]]*inputs[[:space:]]*:' | grep -Eq '^[[:space:]]+required:[[:space:]]*true[[:space:]]*$'; then
+                echo "DISPATCH: skip $workflow_path because required inputs exist"
+                continue
+              fi
+            fi
+
+            existing="$(api "repos/$REPOSITORY/actions/workflows/$workflow_id/runs?head_sha=$CURRENT_SHA&per_page=1" --jq '.total_count')"
+            if [ "$existing" = "0" ]; then
+              echo "DISPATCH: $workflow_path on $CURRENT_SHA"
+              api --method POST                 -H "Accept: application/vnd.github+json"                 -H "X-GitHub-Api-Version: 2026-03-10"                 "repos/$REPOSITORY/actions/workflows/$workflow_path/dispatches"                 -f ref=main
+            else
+              echo "DISPATCH: $workflow_path already has a run on $CURRENT_SHA"
+            fi
           done < /tmp/workflows.tsv
-          echo "GLOBAL ORCHESTRATOR: repository sweep completed"
+
+          echo "GLOBAL ORCHESTRATOR: sweep completed"
