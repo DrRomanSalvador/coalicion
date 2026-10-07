@@ -1,6 +1,6 @@
 name: Autonomous repository self-healer
 
-on:
+"on":
   workflow_run:
     types: [completed]
 
