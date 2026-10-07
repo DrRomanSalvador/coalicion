@@ -1,0 +1,12 @@
+{
+  "schema": "HISTORICAL_RECONCILIATION_V1",
+  "status": "PENDING",
+  "reason": "Requires primary Interior materialization and deterministic reconciliation across the eight elections.",
+  "expected": {
+    "elections": 8,
+    "constituencies": 52,
+    "seats": 350,
+    "max_abs_diff": 0
+  },
+  "fail_closed": true
+}
