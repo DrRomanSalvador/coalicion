@@ -176,4 +176,4 @@ if (nrow(bad))
        paste(paste0(bad$election, "(seats=",bad$total_escaños,",circ=",bad$n_circunscripciones,")"), collapse=", "))
 
 readr::write_csv(result, "data/resultados_oficiales_2004_2023.csv")
-message("Wrote ", nrow(result), " official constituency-party rows from ", official_url)
+message("Wrote ", nrow(result), " official constituency-party rows from ", source_url)
