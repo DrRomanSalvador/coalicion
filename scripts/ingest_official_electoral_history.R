@@ -74,7 +74,10 @@ if (file.exists(local_xlsx)) unlink(local_xlsx)
 if (file.exists(paste0(local_xlsx, ".part"))) unlink(paste0(local_xlsx, ".part"))
 {
 
-  candidates <- unique(c(official_urls, discover_xlsx_urls(official_download_page)))
+  # Canonical provenance is strict: acquire only from the explicit official
+  # Interior XLSX endpoint. The download page is retained as human-readable
+  # provenance, but alternate discovered links are not allowed to change source_url.
+  candidates <- official_urls
   last <- NULL
   for (url in candidates) {
     message("Trying official Interior workbook: ", url)
