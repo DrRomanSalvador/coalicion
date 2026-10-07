@@ -389,12 +389,12 @@ class PollMonitor:
         if not self.state_path.exists():
             return {"schema":"POLL_MONITOR_STATE_V3","poll_hashes":{},
                     "poll_identities":{},"discovery_hashes":{},"source_hashes":{},"failure_hashes":{},
-                    "failure_streaks": {}, "failure_reported": {}, "recovered_sources": [],
+                    "failure_streaks": {}, "failure_reported": {}, "recovered_sources": [], "poll_versions": {},
                     "runs":0,"total_validated":0,"baseline_completed":False}
         state = json.loads(self.state_path.read_text(encoding="utf-8"))
         # Migrate persisted state from V2 without discarding accumulated hashes.
         state["schema"] = "POLL_MONITOR_STATE_V3"
-        for key, default in {"poll_hashes": {}, "poll_identities": {}, "discovery_hashes": {}, "source_hashes": {}, "failure_hashes": {}, "runs": 0, "total_validated": 0, "baseline_completed": False}.items():
+        for key, default in {"poll_hashes": {}, "poll_identities": {}, "discovery_hashes": {}, "source_hashes": {}, "failure_hashes": {}, "runs": 0, "total_validated": 0, "baseline_completed": False, "poll_versions": {}}.items():
             state.setdefault(key, default)
         return state
 
@@ -482,6 +482,12 @@ class PollMonitor:
                 self.state["poll_hashes"][poll.poll_id] = h
                 identities[identity] = poll.poll_id
                 if old != h:
+                    event["event_type"] = "CORRECTION_OR_REPUBLICATION"
+                    self.state.setdefault("poll_versions", {}).setdefault(poll.poll_id, []).append({
+                        "poll_hash": h,
+                        "previous_poll_hash": old,
+                        "captured_at": datetime.now(timezone.utc).isoformat(),
+                    })
                     changed.append(event)
                 continue
             replica_of = identities.get(identity)
@@ -491,6 +497,12 @@ class PollMonitor:
                 continue
             self.state["poll_hashes"][poll.poll_id] = h
             identities[identity] = poll.poll_id
+            event["event_type"] = "NEW"
+            self.state.setdefault("poll_versions", {}).setdefault(poll.poll_id, []).append({
+                "poll_hash": h,
+                "previous_poll_hash": None,
+                "captured_at": datetime.now(timezone.utc).isoformat(),
+            })
             new.append(event)
         return new, changed, new_discoveries
 
