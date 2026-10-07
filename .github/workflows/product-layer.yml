@@ -1,6 +1,7 @@
 name: Product Layer Tests
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - "src/product_layer.py"
