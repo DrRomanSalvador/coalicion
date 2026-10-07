@@ -50,6 +50,13 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Setup acquisition CA bundle
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m pip install --disable-pip-version-check --no-input certifi
+          python -c 'import certifi; print(certifi.where())'
+
       - name: Setup R
         timeout-minutes: 15
         shell: bash
