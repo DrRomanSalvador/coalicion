@@ -24,7 +24,7 @@ class Poll:
     sample_size:int|None=None
     methodology:str|None=None
 
-def _party(x): return ALIASES.get(re.sub(r"\\s+"," ",str(x).strip().upper()),str(x).strip().upper())
+def _party(x): return ALIASES.get(re.sub(r"\s+"," ",str(x).strip().upper()),str(x).strip().upper())
 def _date(x):
     s=str(x).strip()
     try:
