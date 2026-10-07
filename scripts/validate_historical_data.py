@@ -184,3 +184,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+# Canonical historical integration validation entrypoint.
