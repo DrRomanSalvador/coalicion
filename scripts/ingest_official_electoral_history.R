@@ -78,11 +78,10 @@ typecol <- find_col(headers, c("Tipo Elección","Tipo Eleccion"))
 if (is.na(datecol) || is.na(desccol) || is.na(typecol))
   stop("Official workbook schema missing Fecha/Tipo Elección/Descripción.")
 
-province_cols <- setdiff(seq_along(headers), c(1:4))
+province_cols <- seq.int(5L, length.out=52L)
 province_names <- trimws(headers[province_cols])
-province_names <- province_names[nzchar(province_names)]
-if (length(province_names) != 52L)
-  stop("Official workbook must expose exactly 52 constituency columns; got ", length(province_names))
+if (length(province_names) != 52L || any(!nzchar(province_names)))
+  stop("Official workbook does not expose the expected 52 constituency columns.")
 
 pieces <- list()
 for (i in seq_len(nrow(raw))) {
