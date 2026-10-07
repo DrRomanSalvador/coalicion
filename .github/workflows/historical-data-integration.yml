@@ -122,9 +122,26 @@ jobs:
       - name: Validate OOS
         run: python scripts/run_full_oos.py --input data/encuestas_historicas_2004_2023.csv --output artifacts/oos_historical_2004_2023.json
 
+      - name: Install Bayesian runtime
+        timeout-minutes: 20
+        run: |
+          python -m pip install --disable-pip-version-check --no-input "pymc>=5,<6" "numpy>=1.26,<3" "pytensor>=2.20,<3"
+
       - name: Execute SEEC production
         timeout-minutes: 120
-        run: python scripts/run_seec_production.py
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            echo "SEEC execution attempt $attempt/3"
+            if python scripts/run_seec_production.py; then
+              test -s ci_evidence/seec_posterior.json
+              exit 0
+            fi
+            sleep $((attempt * 20))
+          done
+          echo "FAIL-CLOSED: production SEEC did not converge."
+          exit 1
 
       - name: Materialize territorial uncertainty evidence
         run: python scripts/materialize_seec_posterior.py
@@ -136,10 +153,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s ci_evidence/seec_production.json
+          test -s ci_evidence/seec_posterior.json
           python - <<'PY'
           import json
-          x=json.load(open("ci_evidence/seec_production.json",encoding="utf-8"))
+          x=json.load(open("ci_evidence/seec_posterior.json",encoding="utf-8"))
           assert x["status"]=="PASS"
           assert x["total_posterior_draws"] >= 10000
           assert x["constituencies"] == 52
@@ -162,7 +179,6 @@ jobs:
           PY
           printf 'PRIMARY_INTERIOR\n' > ci_evidence/historico_source_tier.txt
           cp ci_evidence/oos_calibration.json ci_evidence/oos_calibration_complete.json
-          cp ci_evidence/seec_production.json ci_evidence/seec_posterior.json
           test -s ci_evidence/seec_posterior.json
           python - <<'PY'
           import json
