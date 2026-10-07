@@ -1,0 +1,52 @@
+name: Autonomous workflow self-healer
+
+on:
+  workflow_run:
+    workflows: ["Autonomous poll monitor"]
+    types: [completed]
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: autonomous-workflow-self-healer
+  cancel-in-progress: false
+
+jobs:
+  heal:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Recuperar ejecución fallida
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          FAILED_RUN_ID: ${{ github.event.workflow_run.id }}
+          FAILED_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          WORKFLOW_FILE: poll_monitor.yml
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          max_attempts=3
+          if [ "$RUN_ATTEMPT" -ge "$max_attempts" ]; then
+            echo "ERROR: el monitor sigue fallando tras $RUN_ATTEMPT intentos."
+            exit 1
+          fi
+
+          current_sha="$(gh api "repos/$REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+
+          if [ "$FAILED_SHA" != "$current_sha" ]; then
+            echo "AUTO-HEAL: la ejecución falló sobre SHA antiguo $FAILED_SHA."
+            echo "AUTO-HEAL: main ya está en $current_sha; lanzando el monitor con el código actual."
+            gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "repos/$REPOSITORY/actions/workflows/$WORKFLOW_FILE/dispatches" -f ref=main
+            echo "AUTO-HEAL: nueva ejecución lanzada sobre main."
+            exit 0
+          fi
+
+          echo "AUTO-HEAL: el fallo pertenece al SHA actual; reintentando solo los jobs fallidos."
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/rerun-failed-jobs"
+          echo "AUTO-HEAL: jobs fallidos reintentados."
