@@ -9,7 +9,10 @@ if (length(missing)) stop("Missing R packages: ", paste(missing, collapse=", "))
 dir.create("data/raw", showWarnings=FALSE, recursive=TRUE)
 dir.create("data", showWarnings=FALSE, recursive=TRUE)
 
-official_url <- "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
+official_urls <- c(
+  "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+  "https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/index.html"
+)
 local_xlsx <- "data/raw/Elecciones-Congreso.xlsx"
 
 if (!nzchar(Sys.which("curl"))) stop("curl executable is required for official Interior ingestion.")
@@ -18,6 +21,7 @@ if (!file.exists(local_xlsx) || file.info(local_xlsx)$size < 1000) {
   last <- NULL
   for (attempt in 1:5) {
     message("Downloading official Interior workbook, attempt ", attempt, "/5")
+    official_url <- official_urls[[1]]
     status <- system2("curl", c(
       "-fL", "--retry", "2", "--retry-delay", "2",
       "--connect-timeout", "30", "--max-time", "600",
