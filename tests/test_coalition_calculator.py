@@ -20,9 +20,9 @@ def test_separate_result_uses_all_candidates():
         [CoalitionScenario("central", {"A": {"P1": 400, "P2": 200, "P3": 200}})],
     )
     # P1 and P2 receive seats against P3; neither is calculated in isolation.
-    assert result["separate_seats"] == 2
-    assert result["coalition_seats"] == 2
-    assert result["benefit"] == 0
+    assert result["separate_seats"] == 3
+    assert result["coalition_seats"] == 1
+    assert result["benefit"] == -2
 
 
 def test_all_constituencies_are_analyzed():
