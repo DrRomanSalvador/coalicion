@@ -113,7 +113,13 @@ def main():
             compute_convergence_checks=True,
         )
     total_draws=int(idata.posterior.sizes["chain"]*idata.posterior.sizes["draw"])
-    rhat = az.rhat(idata)\n    rhat_values = np.asarray(rhat.to_array().values, dtype=float)\n    rhat_max = float(np.nanmax(rhat_values))\n    if not np.isfinite(rhat_max):\n        raise RuntimeError("SEEC convergence evidence is non-finite")\n    if rhat_max > 1.01:\n        raise RuntimeError(f"SEEC convergence gate failed: max_rhat={rhat_max:.6f}")
+    rhat = az.rhat(idata)
+    rhat_values = np.asarray(rhat.to_array().values, dtype=float)
+    rhat_max = float(np.nanmax(rhat_values))
+    if not np.isfinite(rhat_max):
+        raise RuntimeError("SEEC convergence evidence is non-finite")
+    if rhat_max > 1.01:
+        raise RuntimeError(f"SEEC convergence gate failed: max_rhat={rhat_max:.6f}")
     result={
         "schema":"SEEC_PRODUCTION_EXECUTION_V1",
         "status":"PASS",
@@ -134,7 +140,8 @@ def main():
         "total_posterior_draws":total_draws,
         "seed":SEED,
         "rng":"numpy.PCG64",
-        "input_sha256":sha256(RESULTS),\n        "convergence": {"max_rhat": rhat_max, "threshold": 1.01, "status": "PASS"},
+        "input_sha256":sha256(RESULTS),
+        "convergence": {"max_rhat": rhat_max, "threshold": 1.01, "status": "PASS"},
         "external_audit":False,
         "note":"Execution evidence only; this does not certify predictive accuracy or external independence."
     }
