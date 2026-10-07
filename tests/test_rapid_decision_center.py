@@ -61,3 +61,10 @@ def test_decision_snapshot_rejects_wrong_seat_total():
         assert "350" in str(exc)
     else:
         raise AssertionError("strict territory must reject a non-350 seat total")
+
+
+def test_decision_snapshot_exposes_methodology_gate():
+    votes, seats, blank = _matrix()
+    out = decision_snapshot(votes, seats, blank)
+    assert out["methodology"]["status"] == "NOT_PROMOTED"
+    assert out["methodology"]["promotion_allowed"] is False
