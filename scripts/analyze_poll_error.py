@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import json
 from pathlib import Path
+from src.data import PollObservation
 from src.prediction import (
     summarize, by_election, by_party, by_house,
     by_government, by_government_status, by_direction,
