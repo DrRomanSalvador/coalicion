@@ -112,6 +112,23 @@ def run_cmd(task: str, argv: list[str], retries: int = 3, timeout: int = 900) ->
 def main() -> int:
     report = {"timestamp": now(), "version": "v3", "sources": [], "tasks": []}
 
+    neutral_mode = os.environ.get("COLMENA_NEUTRAL_MODE", "0") == "1"
+    if neutral_mode:
+        canonical = ROOT / "artifacts/data/election_2023_canonical.json"
+        result = run_cmd(
+            "neutral_canonical_audit",
+            [sys.executable, "src/neutral_audit.py", str(canonical)],
+            retries=1,
+            timeout=120,
+        )
+        report["tasks"].append(result)
+        report["status"] = "COMPLETE_NEUTRAL" if result.get("status") == "PASS" else "PARTIAL_FAIL_CLOSED"
+        report["fail_closed"] = True
+        report["canonical_present"] = canonical.is_file()
+        LOG.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(json.dumps({"status": report["status"], "canonical_present": report["canonical_present"]}, ensure_ascii=False, indent=2))
+        return 0 if report["status"] == "COMPLETE_NEUTRAL" else 1
+
     for source in SOURCES:
         result = fetch(source)
         report["sources"].append({**source, **result})
