@@ -2,44 +2,68 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Coalicion canonical Congress 2023 matrix",
   "type": "object",
-  "required": ["source", "election", "data"],
+  "required": [
+    "source",
+    "election",
+    "data"
+  ],
   "properties": {
-    "source": {"const": "INTERIOR_PRIMARY"},
-    "election": {"const": "2023"},
+    "source": {
+      "const": "INTERIOR_PRIMARY"
+    },
+    "election": {
+      "const": "2023"
+    },
     "data": {
       "type": "object",
-      "required": ["provinces", "valid_votes"],
+      "required": [
+        "constituencies"
+      ],
       "properties": {
-        "provinces": {
-          "type": "array",
-          "minItems": 52,
-          "maxItems": 52,
-          "items": {
+        "constituencies": {
+          "type": "object",
+          "minProperties": 52,
+          "maxProperties": 52,
+          "additionalProperties": {
             "type": "object",
-            "required": ["name", "seats", "parties"],
+            "required": [
+              "seats",
+              "parties",
+              "blank_votes",
+              "valid_votes"
+            ],
             "properties": {
-              "name": {"type": "string", "minLength": 1},
-              "seats": {"type": "integer", "minimum": 1},
+              "seats": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "blank_votes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "valid_votes": {
+                "type": "integer",
+                "minimum": 0
+              },
               "parties": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": ["name", "votes"],
-                  "properties": {
-                    "name": {"type": "string", "minLength": 1},
-                    "votes": {"type": "integer", "minimum": 0}
-                  },
-                  "additionalProperties": false
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0
                 }
               }
             },
             "additionalProperties": true
           }
-        },
-        "valid_votes": {"type": "object"},
-        "blank_votes": {"type": "object"},
-        "special": {"type": "object"}
-      }
+        }
+      },
+      "additionalProperties": false
+    },
+    "source_tier": {
+      "enum": [
+        "OFFICIAL_PRIMARY",
+        "SECONDARY_REPLICA_VERIFIED"
+      ]
     }
   }
 }
