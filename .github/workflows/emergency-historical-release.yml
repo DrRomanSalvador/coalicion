@@ -25,4 +25,4 @@ jobs:
           gh api --method POST "repos/$REPOSITORY/actions/runs/37669329362/force-cancel" >/dev/null || true
           sleep 3
           gh api --method POST "repos/$REPOSITORY/actions/workflows/377488491/dispatches" -f ref=main >/dev/null
-          echo "Final historical integration dispatched."
+          echo "Final historical integration dispatched from corrected system-R bootstrap."
