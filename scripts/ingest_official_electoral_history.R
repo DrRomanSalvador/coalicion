@@ -10,33 +10,74 @@ dir.create("data/raw", showWarnings=FALSE, recursive=TRUE)
 dir.create("data", showWarnings=FALSE, recursive=TRUE)
 
 official_urls <- c(
-  "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
-  "https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/index.html"
+  "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
 )
+official_download_page <- "https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/index.html"
 local_xlsx <- "data/raw/Elecciones-Congreso.xlsx"
 
 if (!nzchar(Sys.which("curl"))) stop("curl executable is required for official Interior ingestion.")
 
+download_candidate <- function(url, destination) {
+  status <- system2("curl", c(
+    "-fL", "--retry", "2", "--retry-delay", "2",
+    "--connect-timeout", "30", "--max-time", "600",
+    "-A", "Mozilla/5.0 (compatible; coalicion-historical-ingest/1.0)",
+    "-o", destination, url
+  ))
+  identical(status, 0L) && file.exists(destination) && file.info(destination)$size > 1000
+}
+
+discover_xlsx_urls <- function(page_url) {
+  tmp <- tempfile(fileext=".html")
+  on.exit(unlink(tmp), add=TRUE)
+  status <- system2("curl", c(
+    "-fL", "--retry", "2", "--retry-delay", "2",
+    "--connect-timeout", "30", "--max-time", "120",
+    "-A", "Mozilla/5.0 (compatible; coalicion-historical-ingest/1.0)",
+    "-o", tmp, page_url
+  ))
+  if (!identical(status, 0L) || !file.exists(tmp)) return(character())
+  html <- paste(readLines(tmp, warn=FALSE, encoding="UTF-8"), collapse="\\n")
+  hrefs <- regmatches(html, gregexpr("(?i)(?:href=[\\\"'])([^\\\"']+\\.(?:xlsx|xls)(?:\\?[^\\\"']*)?)", html, perl=TRUE))[[1]]
+  if (!length(hrefs)) return(character())
+  urls <- sub("(?i)^href=[\\\"']([^\\\"']+)[\\\"']$", "\\1", hrefs, perl=TRUE)
+  urls <- gsub("&amp;", "&", urls, fixed=TRUE)
+  urls <- vapply(urls, function(u) {
+    if (grepl("^https?://", u, ignore.case=TRUE)) return(u)
+    if (startsWith(u, "/")) return(paste0("https://infoelectoral.interior.gob.es", u))
+    paste0(sub("/[^/]*$", "/", page_url), u)
+  }, character(1))
+  unique(urls)
+}
+
+source_url <- NA_character_
 if (!file.exists(local_xlsx) || file.info(local_xlsx)$size < 1000) {
+  candidates <- unique(c(official_urls, discover_xlsx_urls(official_download_page)))
   last <- NULL
-  for (attempt in 1:5) {
-    message("Downloading official Interior workbook, attempt ", attempt, "/5")
-    official_url <- official_urls[[1]]
-    status <- system2("curl", c(
-      "-fL", "--retry", "2", "--retry-delay", "2",
-      "--connect-timeout", "30", "--max-time", "600",
-      "-A", "REINA-SEEC/1.0",
-      "-o", local_xlsx, official_url
-    ))
-    if (identical(status, 0L) && file.exists(local_xlsx) && file.info(local_xlsx)$size > 1000) {
-      last <- NULL
-      break
+  for (url in candidates) {
+    message("Trying official Interior workbook: ", url)
+    ok <- FALSE
+    for (attempt in 1:3) {
+      if (download_candidate(url, local_xlsx)) {
+        valid <- tryCatch({
+          sheets <- readxl::excel_sheets(local_xlsx)
+          length(sheets) >= 1L && any(sheets == "Congreso")
+        }, error=function(e) FALSE)
+        if (valid) {
+          source_url <- url
+          ok <- TRUE
+          break
+        }
+      }
+      last <- paste0(url, " attempt ", attempt)
+      if (file.exists(local_xlsx)) unlink(local_xlsx)
+      if (attempt < 3) Sys.sleep(min(2^attempt, 15))
     }
-    last <- paste0("curl_exit_", status)
-    if (file.exists(local_xlsx) && file.info(local_xlsx)$size < 1000) unlink(local_xlsx)
-    if (attempt < 5) Sys.sleep(min(2^attempt, 30))
+    if (ok) break
   }
-  if (!is.null(last)) stop("Official Interior workbook download failed after 5 attempts: ", last)
+  if (is.na(source_url)) stop("FAIL-CLOSED: could not acquire a valid official Interior Excel workbook from the official download page or direct candidates. Last attempt: ", ifelse(is.null(last), "none", last))
+} else {
+  source_url <- "repository-cache:data/raw/Elecciones-Congreso.xlsx"
 }
 
 norm <- function(x) gsub("[^a-z0-9]", "", tolower(iconv(as.character(x), to="ASCII//TRANSLIT")))
