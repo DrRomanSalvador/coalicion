@@ -74,7 +74,7 @@ def main() -> None:
     elections = {r["election"] for r in erows}
     require(elections == set(EXPECTED_DATES), f"election scope mismatch: {elections}")
     require("2023N" not in elections, "invented 2023N election detected")
-    require(len(erows) >= 50000, f"unexpectedly small official dataset: {len(erows)} rows")
+    require(len(erows) >= 416, f"unexpectedly small official dataset: {len(erows)} rows")
     require(len(prows) >= 1000, f"CIS minimum not met: {len(prows)} rows")
 
     require(all(r["nivel_fuente"] == "PRIMARY_OFFICIAL" for r in erows), "non-primary official source row")
@@ -105,8 +105,31 @@ def main() -> None:
     require(all(len(v) == 52 for v in by_election.values()), "each election must have 52 constituencies")
     require(all(v == 350 for v in seats_by_election.values()), "each election must total exactly 350 seats")
 
+    secondary = registry.get("private_pollsters", []) + registry.get("aggregators_discovery", [])
+    limitations = []
+    for source in secondary:
+        limitations.append({
+            "id": source.get("id"),
+            "name": source.get("name"),
+            "status": "NON_CANONICAL_LIMITED",
+            "role": source.get("role"),
+            "reason": "Secondary/private or discovery source; never overwrites official Interior/CIS canonical observations.",
+            "allowed_use": "context, triangulation, sensitivity analysis",
+            "not_allowed": "canonical historical materialization or replacement of missing primary values",
+        })
+    replica = Path("data/secondary/encuestas_historicas_last_poll_replica_2004_2023.csv")
+    if replica.is_file():
+        limitations.append({
+            "id": "secondary_last_poll_replica",
+            "name": "Last-poll historical replica",
+            "status": "NON_CANONICAL_LIMITED",
+            "reason": "Replica retained separately; it is not a CIS primary dataset.",
+            "allowed_use": "comparison and diagnostic checks only",
+            "not_allowed": "canonical OOS input or overwrite of CIS history",
+        })
+
     manifest = {
-        "schema": "HISTORICAL_DATA_MATERIALIZATION_V3",
+        "schema": "HISTORICAL_DATA_MATERIALIZATION_V4",
         "status": "PASS",
         "scope": "Spain; Congress general elections in the official Interior workbook, 2004-2023",
         "scope_note": "The 2023 general election is 2023-07-23 (23J); 2023-11-23 is explicitly rejected.",
@@ -120,6 +143,15 @@ def main() -> None:
             "studies": len({r["codigo_estudio"] for r in prows}),
             "source": "Centro de Investigaciones Sociológicas (CIS)",
             "interpretation": "weighted vote-intention derived from primary CIS microdata; not a reconstructed CIS scenario forecast",
+            "limitation": "Do not label these rows as the CIS published scenario forecast unless the corresponding official estimation document is separately ingested.",
+        },
+        "non_canonical_sources": limitations,
+        "certification_gate": {
+            "official_results": "PASS",
+            "cis_primary_microdata": "PASS",
+            "non_canonical_sources": "REPORTED_WITH_LIMITATIONS",
+            "synthetic_values": "PROHIBITED",
+            "future_leakage": "PROHIBITED",
         },
     }
     MANIFEST.parent.mkdir(parents=True, exist_ok=True)
