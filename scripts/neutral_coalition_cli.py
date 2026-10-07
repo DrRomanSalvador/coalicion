@@ -17,7 +17,7 @@ DEFAULT_MATRIX = ROOT / "artifacts/data/election_2023_canonical.json"
 def load_matrix(path: Path):
     audit = audit_canonical(path)
     if audit["status"] != "PASS":
-        raise SystemExit(f"BLOCKED: {audit['reason']}")
+        raise SystemExit(f"BLOCKED: {audit["reason"]}")
     data = json.loads(path.read_text(encoding="utf-8"))
     rows = data["data"]["constituencies"]
     votes = {name: dict(row["parties"]) for name, row in rows.items()}
