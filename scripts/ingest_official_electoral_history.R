@@ -78,7 +78,7 @@ if (!file.exists(local_xlsx) || file.info(local_xlsx)$size < 1000) {
     }
     if (ok) break
   }
-  if (is.na(source_url)) stop("FAIL-CLOSED: could not acquire a valid official Interior Excel workbook from the official download page or direct candidates. Last attempt: ", ifelse(is.null(last), "none", last))
+  if (is.na(paste(official_urls, collapse=", "))) stop("FAIL-CLOSED: could not acquire a valid official Interior Excel workbook from the official download page or direct candidates. Last attempt: ", ifelse(is.null(last), "none", last))
 } else {
   source_url <- "repository-cache:data/raw/Elecciones-Congreso.xlsx"
 }
