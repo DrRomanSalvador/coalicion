@@ -108,3 +108,13 @@ def test_coverage_contract_can_reach_total_for_structured_healthy_sources():
     result = monitor.audit_coverage([], [])
     assert result["total"] is True
     assert result["claim"] == "COBERTURA_TOTAL_VERIFICADA"
+
+
+def test_coverage_manifest_is_structurally_valid():
+    cfg = json.loads(Path("config/poll_monitor.json").read_text())
+    active = [s for s in cfg["sources"] if not s.get("disabled")]
+    assert cfg["coverage_contract"]["claim"] == "COBERTURA_TOTAL_VERIFICADA"
+    assert all(s.get("coverage_role") in {"primary","discovery","optional"} for s in active)
+    assert all("id" in s and "url" in s and "format" in s for s in active)
+    assert len({s["id"] for s in active}) == len(active)
+    assert cfg["sources"][-1]["url"].endswith("/tweets")
