@@ -11,6 +11,7 @@ on:
       - "scripts/ingest_cis_historical_surveys.R"
       - "scripts/validate_historical_data.py"
       - "config/electoral_sources.json"
+      - "tests/test_poll_monitor.py"
       - ".github/workflows/historical-data-materialization.yml"
 
 permissions:
@@ -55,7 +56,10 @@ jobs:
           python-version: "3.12"
 
       - name: Install validation dependencies
-        run: python -m pip install --upgrade pip
+        run: python -m pip install --upgrade pip pytest requests beautifulsoup4 lxml
+
+      - name: Run regression tests
+        run: python -m pytest tests/test_poll_monitor.py -q
 
       - name: Validate canonical historical datasets
         run: python scripts/validate_historical_data.py
