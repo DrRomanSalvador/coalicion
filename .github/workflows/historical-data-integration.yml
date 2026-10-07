@@ -168,7 +168,7 @@ jobs:
           import json
           x=json.load(open("ci_evidence/seec_posterior.json", encoding="utf-8"))
           assert x["status"] == "PASS"
-          assert x["draws"] >= 10000
+          assert x.get("total_posterior_draws", x.get("draws", 0)) >= 10000
           assert x["constituencies"] == 52
           PY
           python - <<'PY'
