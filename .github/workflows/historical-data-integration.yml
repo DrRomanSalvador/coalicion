@@ -81,7 +81,7 @@ jobs:
       - name: Ingest official Interior results
         timeout-minutes: 30
         run: |
-          export CURL_CA_BUNDLE="$(python -c \"import certifi; print(certifi.where())\")"
+          export CURL_CA_BUNDLE="$(python -c 'import certifi; print(certifi.where())')"
           Rscript scripts/ingest_official_electoral_history.R
 
       - name: Ingest official CIS microdata
