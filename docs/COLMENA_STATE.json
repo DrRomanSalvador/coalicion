@@ -18,9 +18,9 @@
     "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH"
   },
   "blocking_errors": [],
-  "last_action": "Eliminar bloqueos operativos obsoletos y blindar la separación entre operación y certificación",
-  "last_action_result": "NO_OPERATIONAL_BLOCKERS",
-  "next_single_action": "No reabrir bloqueos operativos; solo actualizar requisitos de certificación cuando exista evidencia material",
+  "last_action": "Implementar suite de proyección, incertidumbre y backtesting y exponerla en la capa de producto",
+  "last_action_result": "PROJECTION_BACKTEST_SUITE_IMPLEMENTED",
+  "next_single_action": "Ejecutar CI completo y materializar evidencia OOS sin elevar certificación externa",
   "certification": "PARTIAL",
   "data_source": "SECONDARY_REPLICA_VERIFIED",
   "primary_binary": "PENDING",
@@ -47,6 +47,12 @@
       "id": "INTERNAL_BLOCKER_SET",
       "status": "PASS",
       "evidence": "No stale operational blockers remain in COLMENA state",
+      "fail_closed": true
+    },
+    {
+      "id": "PROJECTION_BACKTEST_SUITE",
+      "status": "PASS",
+      "evidence": "src/projection_suite.py + tests/test_projection_suite.py + src/product_layer.py",
       "fail_closed": true
     }
   ],
