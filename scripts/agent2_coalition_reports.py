@@ -50,10 +50,10 @@ def main() -> None:
     exec_path = out / "executive_summary_2023.md"
     json_path = out / "coalition_reports_2023.json"
     all_path.write_text(
-        markdown_all(results, unsupported, selected, source_sha256), encoding="utf-8"
+        markdown_all(results, unsupported, selected), encoding="utf-8"
     )
     exec_path.write_text(
-        markdown_executive(results, unsupported, source_sha256), encoding="utf-8"
+        markdown_executive(results, unsupported), encoding="utf-8"
     )
 
     _, _, _, _, observed = build_scenario(matrix)
