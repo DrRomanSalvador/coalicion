@@ -528,9 +528,17 @@ class PollMonitor:
                 blockers.append(f"PRIMARY_WITHOUT_STRUCTURED_EXTRACTOR:{sid}")
             if source.get("coverage_role") == "primary" and source.get("optional"):
                 blockers.append(f"PRIMARY_CANNOT_BE_OPTIONAL:{sid}")
+        # Discovery sensors are expected to produce non-canonical findings.
+        # They are coverage evidence, not validated polls, so an unresolved
+        # discovery must never be promoted to a data blocker merely because
+        # the discovery layer observed a page change.
         unresolved = [
             d.get("discovery_id") for d in discoveries
-            if d.get("validation") in {"DISCOVERY_ONLY", "UNVERIFIED", "PENDING"}
+            if d.get("validation") in {"UNVERIFIED", "PENDING"}
+        ]
+        discovery_only = [
+            d.get("discovery_id") for d in discoveries
+            if d.get("validation") == "DISCOVERY_ONLY"
         ]
         if self.config.get("coverage_contract", {}).get("require_zero_unresolved_discoveries", True) and unresolved:
             blockers.append(f"UNRESOLVED_DISCOVERIES:{len(unresolved)}")
