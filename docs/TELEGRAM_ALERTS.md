@@ -21,7 +21,7 @@ No deben aparecer en ningún archivo del repositorio.
 
 ## 4. Qué ejecuta GitHub Actions
 
-El workflow `.github/workflows/daily_survey_watch.yml`:
+El workflow `.github/workflows/poll_monitor.yml`:
 
 - ejecuta la vigilancia dos veces en UTC para cubrir el cambio horario europeo;
 - el programa solo continúa cuando son las 08:00 en `Europe/Madrid`;
