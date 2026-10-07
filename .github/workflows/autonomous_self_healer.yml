@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   heal:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' || (github.event.workflow_run.conclusion == 'cancelled' && github.event.workflow_run.head_sha != github.event.workflow_run.head_branch) }}
+    if: ${{ github.event.workflow_run.conclusion == 'failure' || github.event.workflow_run.conclusion == 'cancelled' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -44,6 +44,16 @@ jobs:
             echo "AUTO-HEAL: main ya está en $current_sha; lanzando el monitor con el código actual."
             gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2026-03-10" "repos/$REPOSITORY/actions/workflows/$WORKFLOW_FILE/dispatches" -f ref=main
             echo "AUTO-HEAL: nueva ejecución lanzada sobre main."
+            exit 0
+          fi
+
+          if [ "$RUN_ATTEMPT" -ge "$max_attempts" ]; then
+            echo "AUTO-HEAL: ejecución cancelada/fallida sobre el SHA actual y límite alcanzado; no se duplica el monitor."
+            exit 0
+          fi
+
+          if [ "${{ github.event.workflow_run.conclusion }}" = "cancelled" ]; then
+            echo "AUTO-HEAL: ejecución cancelada sobre el SHA actual; no se duplica el monitor."
             exit 0
           fi
 
