@@ -7,7 +7,7 @@ on:
     - cron: "0 7 * * *"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: poll-vigilance
@@ -25,6 +25,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Comprobar ventana 08:00 Europe/Madrid
         id: gate
         run: |
@@ -40,6 +41,7 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         continue-on-error: true
         run: python scripts/ingest_polls.py
+
       - name: Publicar resultado
         id: result
         if: always()
@@ -48,7 +50,7 @@ jobs:
             python - <<'PY'
           import json
           p=json.load(open("artifacts/poll_vigilance_report.json",encoding="utf-8"))
-          with open("/tmp/result.env","w") as f:
+          with open("/tmp/result.env","w",encoding="utf-8") as f:
               f.write("status="+p["status"]+"\n")
               f.write("should_notify="+str(any(e.get("status") in {"NEW_POLL","CHANGED_POLL"} for e in p.get("events",[]))).lower()+"\n")
           PY
@@ -62,18 +64,16 @@ jobs:
         if: always()
         run: |
           test ! -f artifacts/poll_vigilance_report.json || cat artifacts/poll_vigilance_report.json
-      - name: Persistir informe, alertas y estado
-        if: always()
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add artifacts/poll_vigilance_report.json artifacts/poll_vigilance_state.json artifacts/surveys
-          if git diff --cached --quiet; then
-            echo "NO_CHANGES"
-          else
-            git commit -m "ci: persist daily survey alerts"
-            git push
-          fi
+
+      - name: Compartir informe con el job de Telegram
+        if: hashFiles('artifacts/poll_vigilance_report.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: poll-vigilance-report
+          path: artifacts/poll_vigilance_report.json
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Fallar cerrado ante fuente inaccesible
         if: steps.ingest.outcome == 'failure'
         run: exit 1
@@ -84,8 +84,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Recuperar informe generado
-        run: git pull --ff-only
+
+      - name: Descargar informe generado
+        uses: actions/download-artifact@v4
+        with:
+          name: poll-vigilance-report
+          path: artifacts
+
       - name: Enviar alerta Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
