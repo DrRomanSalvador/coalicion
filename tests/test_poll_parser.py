@@ -1,3 +1,4 @@
+from bs4 import BeautifulSoup
 from scripts.acquire_historical_polls import parse_polls_from_html
 
 
@@ -14,12 +15,8 @@ def test_parser_uses_election_heading_not_column_name():
       </table>
     </body></html>
     """
-    # The production parser requires all eight election tables, so this
-    # focused contract exercises the same table-shape logic separately.
-    from bs4 import BeautifulSoup
-    import pandas as pd
     soup = BeautifulSoup(html, "html.parser")
     table = soup.find("table")
-    df = pd.read_html(str(table))[0]
-    assert "Empresa" in [str(c).strip() for c in df.columns]
-    assert "Error medio" in [str(c).strip() for c in df.columns]
+    headers = [cell.get_text(" ", strip=True) for cell in table.find_all("th")]
+    assert "Empresa" in headers
+    assert "Error medio" in headers
