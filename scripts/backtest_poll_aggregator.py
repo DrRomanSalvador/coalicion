@@ -7,7 +7,6 @@ por muestra/recencia/historial y guarda métricas por elección.
 """
 from __future__ import annotations
 import json
-from pathlib import Path
 import pandas as pd
 
 from src.poll_aggregator import HistoricalError, PollEstimate, aggregate_party
