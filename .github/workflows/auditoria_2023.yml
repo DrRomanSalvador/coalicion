@@ -49,9 +49,13 @@ jobs:
       - name: Ejecutar tests
         run: python -m pytest -q
 
+      - name: Preparar CA verificada
+        run: python -m pip install --upgrade certifi
+
       - name: Descargar fuente oficial Interior
         run: |
           set -euo pipefail
+          export CURL_CA_BUNDLE="$(python -c \"import certifi; print(certifi.where())\")"
           mkdir -p .audit_2023
           curl --fail --location --retry 5 --retry-all-errors --connect-timeout 20 --max-time 180 \
             "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx" \
