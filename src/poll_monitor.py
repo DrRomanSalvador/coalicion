@@ -172,19 +172,19 @@ def parse_dato_electoral(html: bytes, source: dict[str, Any]) -> list[Poll]:
 def _extract_percentages(text: str) -> dict[str, float]:
     parties: dict[str, float] = {}
     party_patterns = {
-        "PP": r"(?i)\\b(?:PP|Partido Popular)\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
-        "PSOE": r"(?i)\\bPSOE\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
-        "VOX": r"(?i)\\bVOX\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
-        "SUMAR": r"(?i)\\bSUMAR\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
-        "PODEMOS": r"(?i)\\bPODEMOS\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
-        "ERC": r"(?i)\\b(?:ERC|Esquerra(?: Republicana)?)\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
-        "JUNTS": r"(?i)\\bJUNTS\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
-        "PNV": r"(?i)\\b(?:PNV|EAJ-PNV)\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
-        "EH BILDU": r"(?i)\\b(?:EH BILDU|BILDU)\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
-        "BNG": r"(?i)\\bBNG\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
-        "CC": r"(?i)\\b(?:CC|CCA)\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
-        "UPN": r"(?i)\\bUPN\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
-        "SE ACABÓ LA FIESTA": r"(?i)\\b(?:SALF|SE ACABÓ LA FIESTA)\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
+        "PP": r"(?i)\b(?:PP|Partido Popular)\b\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*%",
+        "PSOE": r"(?i)\bPSOE\b\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*%",
+        "VOX": r"(?i)\bVOX\b\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*%",
+        "SUMAR": r"(?i)\bSUMAR\b\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*%",
+        "PODEMOS": r"(?i)\bPODEMOS\b\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*%",
+        "ERC": r"(?i)\b(?:ERC|Esquerra(?: Republicana)?)\b\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*%",
+        "JUNTS": r"(?i)\bJUNTS\b\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*%",
+        "PNV": r"(?i)\b(?:PNV|EAJ-PNV)\b\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*%",
+        "EH BILDU": r"(?i)\b(?:EH BILDU|BILDU)\b\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*%",
+        "BNG": r"(?i)\bBNG\b\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*%",
+        "CC": r"(?i)\b(?:CC|CCA)\b\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*%",
+        "UPN": r"(?i)\bUPN\b\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*%",
+        "SE ACABÓ LA FIESTA": r"(?i)\b(?:SALF|SE ACABÓ LA FIESTA)\b\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*%",
     }
     for party, pattern in party_patterns.items():
         m = re.search(pattern, text)
@@ -221,8 +221,8 @@ def parse_national_html(body: bytes, source: dict[str, Any]) -> list[Poll]:
     parties, evidence = best
     pub = None
     date_patterns = [
-        r"(?i)\\b(\\d{1,2})\\s*(?:de\\s*)?(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\\s*(?:de\\s*)?(2026)\\b",
-        r"\\b(\\d{1,2})[./-](\\d{1,2})[./-](2026)\\b",
+        r"(?i)\b(\d{1,2})\s*(?:de\s*)?(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s*(?:de\s*)?(2026)\b",
+        r"\b(\d{1,2})[./-](\d{1,2})[./-](2026)\b",
     ]
     months = {"enero":1,"febrero":2,"marzo":3,"abril":4,"mayo":5,"junio":6,"julio":7,"agosto":8,"septiembre":9,"octubre":10,"noviembre":11,"diciembre":12}
     for pat in date_patterns:
@@ -236,7 +236,7 @@ def parse_national_html(body: bytes, source: dict[str, Any]) -> list[Poll]:
     if not pub:
         return []
     sample = None
-    sm = re.search(r"(?i)(?:muestra|entrevistas|encuestas|personas)\\s*(?:de|:)?\\s*([0-9][0-9.,]*)", evidence)
+    sm = re.search(r"(?i)(?:muestra|entrevistas|encuestas|personas)\s*(?:de|:)?\s*([0-9][0-9.,]*)", evidence)
     if sm:
         sample = int(float(sm.group(1).replace(".", "").replace(",", ".")))
     pollster = source.get("pollster") or source.get("name") or source["id"]
