@@ -319,3 +319,13 @@ def test_electomania_public_html_adapter_extracts_explicit_table():
     assert polls[0].publication_date == "2026-10-01"
     assert polls[0].parties["PP"] == 33.8
     assert discoveries == []
+
+def test_poll_monitor_migrates_v2_state_schema(tmp_path):
+    from src.poll_monitor import PollMonitor
+    state = tmp_path / "state.json"
+    state.write_text(json.dumps({"schema":"POLL_MONITOR_STATE_V2","poll_hashes":{"x":"h"}}), encoding="utf-8")
+    monitor = PollMonitor.__new__(PollMonitor)
+    monitor.state_path = state
+    loaded = monitor._load_state()
+    assert loaded["schema"] == "POLL_MONITOR_STATE_V3"
+    assert loaded["poll_hashes"] == {"x":"h"}
