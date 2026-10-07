@@ -80,7 +80,7 @@ def main() -> None:
     elections = {r["election"] for r in erows}
     require(elections == set(EXPECTED_DATES), f"election scope mismatch: {elections}")
     require("2023N" not in elections, "invented 2023N election detected")
-    require(len(erows) >= 416, f"unexpectedly small official dataset: {len(erows)} rows")
+    require(len(erows) >= 50000, f"official dataset below certified minimum: {len(erows)} rows")
     require(len(prows) >= 1000, f"CIS minimum not met: {len(prows)} rows")
 
     require(all(r["nivel_fuente"] == "PRIMARY_OFFICIAL" for r in erows), "non-primary official source row")
@@ -91,8 +91,13 @@ def main() -> None:
         require(r["fecha_eleccion"] == EXPECTED_DATES[r["election"]], "wrong election date")
         for k in ("election", "fecha_eleccion", "circunscripcion", "partido", "fuente"):
             require(bool(r[k].strip()), f"blank official field: {k}")
-        require(float(r["votos"]) >= 0 and float(r["escaños"]) >= 0, "negative official value")
-        key = (r["election"], r["circunscripcion"], r["partido"])
+        votes = float(r["votos"])
+        seats = float(r["escaños"])
+        require(votes >= 0 and seats >= 0, "negative official value")
+        require(seats.is_integer(), f"non-integer official seats: {r}")
+        require(bool(r["circunscripcion_codigo"].strip()), "blank constituency code")
+        require(bool(r["partido_codigo"].strip()), "blank party code")
+        key = (r["election"], r["circunscripcion_codigo"], r["partido_codigo"])
         require(key not in result_keys, f"duplicate official key: {key}")
         result_keys.add(key)
 
@@ -108,8 +113,12 @@ def main() -> None:
     for r in erows:
         by_election.setdefault(r["election"], set()).add(r["circunscripcion"])
         seats_by_election[r["election"]] = seats_by_election.get(r["election"], 0) + float(r["escaños"])
+    require(set(by_election) == set(EXPECTED_DATES), "constituency coverage missing an election")
     require(all(len(v) == 52 for v in by_election.values()), "each election must have 52 constituencies")
     require(all(v == 350 for v in seats_by_election.values()), "each election must total exactly 350 seats")
+    for election in EXPECTED_DATES:
+        votes = sum(float(r["votos"]) for r in erows if r["election"] == election)
+        require(votes > 0, f"zero national votes for {election}")
 
     secondary = registry.get("private_pollsters", []) + registry.get("aggregators_discovery", [])
     limitations = []
