@@ -187,9 +187,11 @@ jobs:
           x=json.loads(src.read_text(encoding="utf-8"))
           x["source_tier"]="PRIMARY_INTERIOR"
           x["evidence_materialized_from"]=str(src)
-          dst.write_text(json.dumps(x,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          dst.write_text(json.dumps(x,ensure_ascii=False,indent=2)+"
+",encoding="utf-8")
           PY
-          printf 'PRIMARY_INTERIOR\n' > ci_evidence/historico_source_tier.txt
+          printf 'PRIMARY_INTERIOR
+' > ci_evidence/historico_source_tier.txt
           cp ci_evidence/oos_calibration.json ci_evidence/oos_calibration_complete.json
           test -s ci_evidence/seec_posterior.json
           python - <<'PY'
@@ -212,7 +214,8 @@ jobs:
               "scope":"8 elecciones generales, 52 circunscripciones, 350 escaños",
               "max_abs_diff":0,
               "checks":{"elections":8,"constituencies_per_election":52,"seats_per_election":350}
-          },ensure_ascii=False,indent=2)+"\n")
+          },ensure_ascii=False,indent=2)+"
+")
           PY
 
       - name: Full reproducibility backtest
