@@ -40,7 +40,7 @@
     },
     {
       "id": "CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT",
-      "status": "DEFERRED"
+      "status": "PENDING"
     },
     {
       "id": "PRIMARY_2023_MATRIX_MATERIALIZATION",
@@ -48,9 +48,9 @@
       "detail": "Matriz 2023 completa materializada desde Dato Electoral como réplica secundaria verificada: 52 circunscripciones, 350 escaños y 24.487.414 votos a candidaturas. La descarga primaria del Interior sigue bloqueada por verificación TLS; no se degrada a primaria."
     }
   ],
-  "last_action": "Separados explícitamente solicitud y aprobación de certificación; no se declara certificación.",
+  "last_action": "Endurecida la reproducibilidad de los informes y separadas estrictamente solicitud y aprobación de certificación.",
   "last_action_result": "CERTIFICATION_PENDING_APPROVAL",
-  "next_single_action": "Regenerar reports/ mediante run26.py cuando el pipeline de producto vuelva a emitir un check-run; no declarar certificación primaria.",
+  "next_single_action": "Verificar el pipeline del PR y regenerar los informes 2023; después mantener la certificación pendiente hasta una aprobación humana válida enlazada al digest de gates.",
   "certification": {
     "status": "PENDING_APPROVAL",
     "request": "PENDING",
