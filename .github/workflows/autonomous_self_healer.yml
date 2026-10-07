@@ -2,6 +2,11 @@ name: Autonomous repository self-healer
 
 on:
   workflow_dispatch:
+    inputs:
+      failed_run_id:
+        description: "GitHub Actions run ID to retry failed jobs for"
+        required: true
+        type: string
 
 permissions:
   actions: write
@@ -16,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Self-heal an explicitly selected failed run
+      - name: Self-heal explicitly selected failed run
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
@@ -24,9 +29,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${FAILED_RUN_ID:-}" ]; then
-            echo "No failed_run_id supplied; refusing to guess or create retry churn."
+          [[ "$FAILED_RUN_ID" =~ ^[0-9]+$ ]] || {
+            echo "Invalid failed_run_id: $FAILED_RUN_ID"
             exit 1
-          fi
-          echo "Explicit self-heal target: $FAILED_RUN_ID"
+          }
           gh api --method POST "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/rerun-failed-jobs"
+          echo "Failed jobs requeued for run $FAILED_RUN_ID."
