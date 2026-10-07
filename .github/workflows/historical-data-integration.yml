@@ -91,18 +91,7 @@ jobs:
               echo "Materialization parts incomplete/incompatible; falling back to primary Interior acquisition."
             fi
           fi
-          if [ -s data/resultados_oficiales_2004_2023.csv ] && [ -s data/manifests/INTERIOR_ACQUISITION.json ] && python - <<'PY'
-import json
-from pathlib import Path
-m=json.loads(Path("data/manifests/INTERIOR_ACQUISITION.json").read_text(encoding="utf-8"))
-assert m["status"] == "PASS"
-assert m["source_tier"] == "PRIMARY_INTERIOR"
-assert m["official_results"]["rows"] == 50700
-assert len(m["official_results"]["elections"]) == 8
-assert m["official_results"]["constituencies_per_election"] == 52
-assert m["official_results"]["seats_per_election"] == 350
-PY
-          then
+          if [ -s data/resultados_oficiales_2004_2023.csv ] && [ -s data/manifests/INTERIOR_ACQUISITION.json ] && python -c 'import json; m=json.load(open("data/manifests/INTERIOR_ACQUISITION.json", encoding="utf-8")); assert m["status"]=="PASS" and m["source_tier"]=="PRIMARY_INTERIOR" and m["official_results"]["rows"]==50700 and len(m["official_results"]["elections"])==8 and m["official_results"]["constituencies_per_election"]==52 and m["official_results"]["seats_per_election"]==350'; then
             echo "Using already validated primary Interior materialization."
           else
             export CURL_CA_BUNDLE="$(python -c 'import certifi; print(certifi.where())')"
