@@ -11,11 +11,12 @@ permissions:
   contents: write
 
 concurrency:
-  group: autonomous-poll-monitor
+  group: autonomous-poll-monitor-main
   cancel-in-progress: false
 
 jobs:
   poll_monitor:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -39,14 +40,25 @@ jobs:
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
         run: python -m src.poll_monitor
 
-      - name: Commit histórico y estado
+      - name: Commit histórico y estado (resistente a carreras)
         run: |
+          set -euo pipefail
           git config user.name "coalicion-poll-monitor[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add artifacts/poll_monitor_state.json artifacts/surveys artifacts/survey_history.jsonl
           if git diff --cached --quiet; then
             echo "Sin cambios persistibles."
-          else
-            git commit -m "chore: persist poll monitor state"
-            git push
+            exit 0
           fi
+          git commit -m "chore: persist poll monitor state"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "Persistencia publicada en main (intento $attempt)."
+              exit 0
+            fi
+            echo "Push rechazado por avance remoto; sincronizando main (intento $attempt)."
+            git fetch origin main
+            git rebase origin/main
+          done
+          echo "ERROR: no se pudo publicar el estado después de 3 intentos."
+          exit 1
