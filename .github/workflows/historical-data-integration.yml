@@ -203,6 +203,9 @@ jobs:
           },ensure_ascii=False,indent=2)+"\n")
           PY
 
+      - name: Full reproducibility backtest
+        run: python scripts/run_full_backtest.py --oos-input data/encuestas_historicas_2004_2023.csv --output artifacts/verification/full_backtest.json
+
       - name: Run master certification gates
         run: python scripts/master_certification.py
 
@@ -213,7 +216,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json data/manifests/HISTORICAL_DATA_LIMITATIONS.json data/manifests/INTERIOR_ACQUISITION.json artifacts/oos_historical_2004_2023.json ci_evidence/historico_manifest.json ci_evidence/historico_source_tier.txt ci_evidence/reconciliation.json ci_evidence/oos_calibration.json ci_evidence/oos_calibration_complete.json ci_evidence/seec_posterior.json ci_evidence/seec_production.json
+          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json data/manifests/HISTORICAL_DATA_LIMITATIONS.json data/manifests/INTERIOR_ACQUISITION.json artifacts/oos_historical_2004_2023.json ci_evidence/historico_manifest.json ci_evidence/historico_source_tier.txt ci_evidence/reconciliation.json ci_evidence/oos_calibration.json ci_evidence/oos_calibration_complete.json ci_evidence/seec_posterior.json ci_evidence/master_certification.json artifacts/verification/full_backtest.json
           if git diff --cached --quiet; then
             echo "No validated materialization changes."
             exit 0
