@@ -202,7 +202,7 @@ class CoalitionDecisionEngine:
                 "level": ("LOW" if p_nonpositive == 0 and min(deltas) > 0 else
                           "MEDIUM" if p_nonpositive <= 1/3 else "HIGH"),
                 "weighted_non_improvement": p_nonpositive,
-                "weight_interpretation": "Los pesos son relativos; no son probabilidades calibradas.",
+                "weight_interpretation": "Los pesos son relativos; no son una probabilidad calibrada.",
             },
             "decisive_constituencies": self._impacts(central, parties),
             "all_constituencies": self._impacts_all(central, parties),
