@@ -2,12 +2,30 @@ name: Historical CI orchestrator
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/ingest_official_electoral_history.R"
+      - "scripts/ingest_cis_historical_surveys.R"
+      - "scripts/validate_historical_data.py"
+      - "scripts/run_full_oos.py"
+      - "src/oos_pipeline.py"
+      - "scripts/run_seec_production.py"
+      - "scripts/master_certification.py"
+      - "scripts/complete_historical_calibration.py"
+      - "scripts/materialize_official_history_from_parts.py"
+      - ".github/workflows/historical-data-integration.yml"
+      - ".github/workflows/historical-ci-orchestrator.yml"
   schedule:
     - cron: "*/5 * * * *"
 
 permissions:
   actions: write
   contents: read
+
+concurrency:
+  group: historical-ci-orchestrator
+  cancel-in-progress: true
 
 jobs:
   dispatch:
