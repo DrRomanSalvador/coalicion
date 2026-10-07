@@ -151,6 +151,7 @@ def main():
     constituency_totals={e:len({r[2] for r in result if r[0]==e}) for e in DATES}
     bad_seats={e:n for e,n in seat_totals.items() if n!=350}
     bad_const={e:n for e,n in constituency_totals.items() if n!=52}
+    print(json.dumps({"seat_totals":seat_totals,"constituency_totals":constituency_totals},ensure_ascii=False))
     if bad_seats:
         raise RuntimeError(f"Historical seat totals are not 350: {bad_seats}")
     if bad_const:
