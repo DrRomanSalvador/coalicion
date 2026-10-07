@@ -212,24 +212,13 @@ class CoalitionDecisionEngine:
                                max_size=None, max_combinations=100000):
         coalitions = self.generate_all_coalitions(parties, min_size, max_size, max_combinations)
         results = [self.analyze_coalition(c, scenarios) for c in coalitions]
-        results.sort(key=lambda r: (
-            r["robustness"]["weighted_mean_delta"],
-            r["robustness"]["weighted_improvement"],
-            r["robustness"]["worst_case_delta"],
-            r["benefit"],
-        ), reverse=True)
         return {
             "coalition_count": len(results),
             "all_coalitions": results,
-            "ranking": [
-                {
-                    "coalition": r["coalition"],
-                    "separate": r["separate_seats"],
-                    "coalition_seats": r["coalition_seats"],
-                    "difference": r["benefit"],
-                    "risk": r["risk"]["level"],
-                    "weighted_mean_difference": r["robustness"]["weighted_mean_delta"],
-                    "worst_case_difference": r["robustness"]["worst_case_delta"],
-                } for r in results
-            ],
+            "ranking": False,
+            "policy": {
+                "exhaustive_counterfactuals": True,
+                "ranking_as_best_option": False,
+                "recommendations": False,
+            },
         }
