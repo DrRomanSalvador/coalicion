@@ -49,7 +49,7 @@ jobs:
           python-version: "3.12"
 
       - name: Setup R
-        timeout-minutes: 8
+        timeout-minutes: 9
         run: |
           set -euxo pipefail
           if ! command -v Rscript >/dev/null 2>&1; then
