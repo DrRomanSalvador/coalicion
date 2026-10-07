@@ -206,11 +206,15 @@ def test_workflow_has_json_preflight():
     assert "python -m json.tool config/poll_monitor.json" in workflow
 
 
-def test_workflow_does_not_self_trigger_and_retries_non_fast_forward():
+def test_workflow_does_not_self_trigger_and_persists_with_self_healing():
     workflow = Path(".github/workflows/poll_monitor.yml").read_text()
     assert "paths-ignore:" in workflow
     assert '"artifacts/**"' in workflow
     assert "git fetch origin main" in workflow
     assert "git reset --hard origin/main" in workflow
     assert "python -m src.poll_monitor" in workflow
+    assert "/tmp/poll-monitor-snapshot" in workflow
+    assert "cp /tmp/poll-monitor-snapshot/poll_monitor_state.json" in workflow
+    assert "cp /tmp/poll-monitor-snapshot/survey_history.jsonl" in workflow
     assert "for attempt in 1 2 3 4 5" in workflow
+    assert "git rebase" not in workflow
