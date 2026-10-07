@@ -1,75 +1,35 @@
-# Problemas pendientes
+# Deficiencias restantes
 
-**Agente:** Auditor 3  
-**Rama:** `refactor/minimal-domain-architecture`  
-**Estado:** pendientes de validación posterior
+## Alta prioridad
 
-## Prioridad alta
+1. Ejecutar la suite completa en CI sobre el commit actual.
+2. Ejecutar el pipeline histórico OOS con dataset trazable.
+3. Comparar resultados antes/después con inputs idénticos.
 
-### 1. Ejecutar la suite completa en CI
+## Media prioridad
 
-La simplificación todavía necesita una ejecución CI limpia del commit final.
+4. Auditar específicamente la política de redondeo de votos escalados: `round(voto * factor)`. No se ha demostrado que sea un bug.
+5. Ampliar el inventario de APIs protegidas contra duplicación.
+6. Verificar trazabilidad de datos históricos.
 
-**Criterio de cierre:** tests contractuales, unitarios y arquitectónicos en verde.
+## Ya corregido y cubierto por regresión
 
-### 2. Ejecutar el pipeline histórico OOS
+- contexto de gobierno en entrenamiento;
+- cálculo de cambio encuesta→encuesta;
+- descomposición de movimiento;
+- conteo de elecciones únicas en `min_train_elections`;
+- prevención de uso de futuro en OOS;
+- invariantes arquitectónicas y matemáticas.
 
-La arquitectura contiene herramientas OOS, pero su existencia no demuestra que el pipeline completo haya sido ejecutado con datos históricos auditables.
+## Restricciones
 
-**Criterio de cierre:** dataset identificado, fechas de entrenamiento/prueba documentadas y métricas reproducibles.
+No reintroducir implementaciones paralelas de D'Hondt, coaliciones o predicción.
+No modificar SEEC ni `electoral.py` en esta fase.
 
-### 3. Verificar equivalencia funcional
+## Cierre realista
 
-Comparar resultados de la versión anterior y la consolidada con idénticos inputs.
-
-**Criterio de cierre:** cualquier diferencia quede explicada y documentada.
-
-## Prioridad media
-
-### 4. Validar la política de redondeo
-
-La conversión de votos escalados utiliza `round()`.
-
-No se recomienda cambiarla sin una decisión explícita porque puede modificar resultados de asignación.
-
-### 5. Completar pruebas de unicidad
-
-Los tests actuales buscan nombres de funciones conocidos. Debe ampliarse el inventario si aparecen nuevas APIs de coalición o predicción.
-
-**Criterio de cierre:** catálogo explícito de funciones canónicas y test que detecte cualquier segunda definición.
-
-### 6. Validar datos históricos
-
-Los análisis de error dependen de observaciones documentadas: elección, fecha, partido, encuesta, resultado, casa y metadatos de contexto.
-
-**Criterio de cierre:** trazabilidad de cada observación hasta su fuente primaria.
-
-## Prioridad de integración
-
-### 7. Integrar ramas de otros agentes solo después de validar contratos
-
-El Agente 3 no debe absorber cambios de:
-- Agente 1 / SEEC;
-- Agente 2 / calculadora de coaliciones.
-
-La integración debe hacerse respetando las fronteras de propiedad.
-
-### 8. Certificación externa
-
-La certificación de resultados electorales requiere evidencia primaria independiente. Este informe no sustituye esa certificación.
-
-## No hacer
-
-- No reintroducir `electoral_reference.py`.
-- No crear otro motor de predicción paralelo.
-- No crear otra calculadora de coaliciones.
-- No modificar `electoral.py` dentro de esta fase.
-- No modificar SEEC dentro de esta fase.
-
-## Estado final
-
-**Arquitectura:** simplificada.  
-**Duplicidades declaradas:** eliminadas.  
-**CI final:** pendiente.  
-**Backtest/OOS completo:** pendiente.  
-**Certificación de datos/resultados:** pendiente.
+**Bugs identificados y reproducibles:** corregidos y cubiertos por regresiones.  
+**CI completo:** pendiente.  
+**Backtest/OOS histórico:** pendiente.  
+**Política de redondeo:** pendiente de auditoría, no clasificada como bug.  
+**Certificación electoral externa:** pendiente.
