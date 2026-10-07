@@ -1,4 +1,4 @@
-from src.coalition_decision import coalition_decision
+from src.coalition import coalition_decision
 
 def test_coalition_is_recomputed_by_constituency():
     r=coalition_decision(
