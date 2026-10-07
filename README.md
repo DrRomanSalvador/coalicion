@@ -167,3 +167,13 @@ El repositorio incluye ahora `coalicion.py` como interfaz mínima:
 - `python coalicion.py verify certificate.json` — inspecciona el estado del certificado.
 
 El MVP **no inventa una matriz candidatura×circunscripción**. Mientras esa matriz oficial no esté materializada y reconciliada, los análisis reales de coalición quedan bloqueados. Esto es intencionado.
+
+## DECISION ENGINE DE COALICIONES — V1
+
+Implementado en `src/coalition_decision_engine.py` y `scripts/coalition_decision_engine.py`.
+
+Calcula resultado separado, resultado coaligado con D'Hondt recalculado por circunscripción, ganancia/pérdida real, contribución de voto, votos bajo el 3%, escenarios explícitos y ponderados, probabilidad de no mejora, peor/mejor caso, ganancia esperada, dispersión y circunscripciones decisivas. La recomendación distingue máxima ganancia esperada de robustez.
+
+Ejemplo: `python scripts/coalition_decision_engine.py --input decision_scenarios.json --parties PARTIDO_A PARTIDO_B PARTIDO_C --max-size 2 --output reports/coalition_decision.json`
+
+El motor no inventa escenarios ni considera certificada una predicción. Si el espacio combinatorio es demasiado grande, falla cerrado en vez de muestrear coaliciones silenciosamente.
