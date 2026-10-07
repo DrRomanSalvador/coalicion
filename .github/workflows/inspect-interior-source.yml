@@ -23,11 +23,11 @@ jobs:
           import requests, re
           dates=["14 de marzo de 2004","9 de marzo de 2008","20 de noviembre de 2011","20 de diciembre de 2015","26 de junio de 2016","28 de abril de 2019","10 de noviembre de 2019","23 de julio de 2023"]
           for d in dates:
-              u="https://www.boe.es/buscar/?q="+requests.utils.quote("ELECCIONES GENERALES DE "+d)
+              u="https://www.boe.es/buscar/?q="+requests.utils.quote("ELECCIONES GENERALES DE "+d)+"&campo%5B0%5D=DOC"
               r=requests.get(u,timeout=30)
               r.raise_for_status()
               ids=sorted(set(re.findall(r"BOE-A-\\d+-\\d+",r.text)))
-              print(d, ids[:10])
+              print(d, "status", r.status_code, "len", len(r.text), ids[:10])
               if not ids:
                   links=re.findall(r'href="([^"]*(?:doc.php|diario_boe)[^"]*)"',r.text)
                   print("LINKS", links[:20])
