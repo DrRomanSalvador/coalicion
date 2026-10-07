@@ -23,7 +23,7 @@ studies <- dplyr::bind_rows(
   dplyr::filter(date >= as.Date("2004-01-01"), date <= as.Date("2023-12-31")) |>
   dplyr::mutate(year=format(as.Date(date), "%Y")) |>
   dplyr::group_by(year) |>
-  dplyr::slice_head(n=3) |>
+  dplyr::slice_head(n=4) |>
   dplyr::ungroup()
 
 if (!nrow(studies)) stop("CIS catalog returned no historical studies.")
@@ -71,7 +71,7 @@ extract_study <- function(study_id, study_date, title) {
   rows <- tibble::tibble(
     codigo_estudio=as.character(study_id),
     fecha_encuesta=as.character(study_date),
-    partido=unname(names(vl))[match(vl, vl)],
+    partido=unname(names(vl)),
     value_code=as.numeric(vl),
     estimacion_voto=NA_real_
   )
@@ -93,11 +93,11 @@ extract_study <- function(study_id, study_date, title) {
       nivel_fuente="PRIMARY_OFFICIAL_MICRODATA",
       metodo="weighted_microdata_vote_intention",
       variable=var,
-      sample_size=sum(ok)
+      sample_size=sum(ok),\n      source_url=paste0("https://www.cis.es/es/estudios/", study_id)
     ) |>
     dplyr::select(fecha_encuesta, partido, estimacion_voto, tipo_encuesta,
                   encuesta, fuente, nivel_fuente, metodo, codigo_estudio,
-                  variable, sample_size)
+                  variable, sample_size, source_url)
 
   if (!nrow(rows)) NULL else rows
 }
