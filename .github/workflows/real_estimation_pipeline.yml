@@ -1,0 +1,55 @@
+name: Real estimation pipeline
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Autonomous poll monitor"]
+    types: [completed]
+  push:
+    branches: [main]
+    paths:
+      - "src/real_estimation_pipeline.py"
+      - "scripts/materialize_estimation_inputs.py"
+      - "scripts/run_real_estimation.py"
+      - "config/territorial_observation_contract.json"
+      - "artifacts/surveys/**"
+permissions:
+  contents: write
+concurrency:
+  group: real-estimation-main
+  cancel-in-progress: false
+jobs:
+  estimate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install core dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy requests beautifulsoup4 lxml feedparser pytest
+      - name: Validate and materialize observations
+        run: |
+          python -m py_compile src/real_estimation_pipeline.py scripts/materialize_estimation_inputs.py scripts/run_real_estimation.py
+          python scripts/materialize_estimation_inputs.py
+          python -m pytest -q tests/test_real_estimation_pipeline.py
+      - name: Execute real estimation
+        run: python scripts/run_real_estimation.py
+      - name: Persist estimation state
+        run: |
+          git config user.name "coalicion-real-estimation[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add artifacts/estimation
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "chore: materialize real estimation state"
+          git fetch origin main
+          git reset --hard origin/main
+          git checkout -- artifacts/estimation || true
+          git add artifacts/estimation
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "chore: materialize real estimation state"
+          git push origin HEAD:main
