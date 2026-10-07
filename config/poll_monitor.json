@@ -25,9 +25,9 @@
       "id": "electomania_ajax",
       "name": "Electomanía — catálogo público",
       "url": "https://electomania.es/encuestas/",
-      "format": "page",
-      "coverage_role": "discovery",
-      "reason": "El endpoint AJAX legacy devuelve HTTP 400; se monitoriza el catálogo público como capa de descubrimiento."
+      "format": "electomania_html",
+      "coverage_role": "primary",
+      "reason": "El catálogo público contiene tablas de sondeos y JSON-LD reproducible; se usa el HTML como extractor estructurado y se conserva el endpoint AJAX fuera del flujo."
     },
     {
       "id": "cis_catalog",
