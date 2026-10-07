@@ -18,7 +18,7 @@
     {"id":"elpais_40db","name":"EL PAÍS / 40dB","url":"https://elpais.com/noticias/barometro-el-pais/","format":"national_html","method":"GET","pollster":"40dB","coverage_role":"primary"},
     {"id":"datoelectoral","name":"Dato Electoral","url":"https://www.datoelectoral.es/encuestas","format":"datoelectoral_html","method":"GET","coverage_role":"discovery"},
     {"id":"europe_elects_spain","name":"Europe Elects","url":"https://europeelects.eu/spain/","format":"page","method":"GET","coverage_role":"discovery"},
-    {"id":"myfdata","name":"MyF Data","url":"https://www.myfdata.com/elecciones-generales/","format":"national_html","method":"GET","optional":true,"coverage_role":"primary"},
+    {"id":"myfdata","name":"MyF Data","url":"https://www.myfdata.com/elecciones-generales/","format":"national_html","method":"GET","coverage_role":"primary"},
     {"id":"sigma_dos","name":"Sigma Dos","url":"https://www.elmundo.es/sigmasdos/","format":"national_html","method":"GET","optional":true,"coverage_role":"primary"},
     {"id":"gad3","name":"GAD3","url":"https://www.gad3.com/informes/","format":"national_html","method":"GET","pollster":"GAD3","coverage_role":"primary"},
     {"id":"nc_report","name":"NC Report","url":"https://ncreport.es/","format":"national_html","method":"GET","pollster":"NC Report","coverage_role":"primary"},
