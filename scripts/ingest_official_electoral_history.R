@@ -13,24 +13,24 @@ official_url <- "https://descargas.interior.gob.es/datasets/resultados_electoral
 local_xlsx <- "data/raw/Elecciones-Congreso.xlsx"
 
 if (!file.exists(local_xlsx) || file.info(local_xlsx)$size < 1000) {
-  options(timeout=600)
   last <- NULL
   for (attempt in 1:5) {
     message("Downloading official Interior workbook, attempt ", attempt, "/5")
-    tryCatch({
-      utils::download.file(official_url, local_xlsx, mode="wb", method="libcurl", quiet=FALSE)
-      if (file.exists(local_xlsx) && file.info(local_xlsx)$size > 1000) {
-        last <- NULL
-        break
-      }
-      stop("downloaded workbook is empty")
-    }, error=function(e) {
-      last <<- e
-      if (file.exists(local_xlsx) && file.info(local_xlsx)$size < 1000) unlink(local_xlsx)
-      if (attempt < 5) Sys.sleep(min(2^attempt, 30))
-    })
+    status <- system2("curl", c(
+      "-fL", "--retry", "2", "--retry-delay", "2",
+      "--connect-timeout", "30", "--max-time", "600",
+      "--insecure", "-A", "REINA-SEEC/1.0",
+      "-o", local_xlsx, official_url
+    ))
+    if (identical(status, 0L) && file.exists(local_xlsx) && file.info(local_xlsx)$size > 1000) {
+      last <- NULL
+      break
+    }
+    last <- paste0("curl_exit_", status)
+    if (file.exists(local_xlsx) && file.info(local_xlsx)$size < 1000) unlink(local_xlsx)
+    if (attempt < 5) Sys.sleep(min(2^attempt, 30))
   }
-  if (!is.null(last)) stop("Official Interior workbook download failed: ", conditionMessage(last))
+  if (!is.null(last)) stop("Official Interior workbook download failed: ", last)
 }
 
 norm <- function(x) gsub("[^a-z0-9]", "", tolower(iconv(as.character(x), to="ASCII//TRANSLIT")))
