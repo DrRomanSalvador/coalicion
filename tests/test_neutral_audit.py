@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 def test_missing_canonical_is_fail_closed(tmp_path: Path):
     r=audit_canonical(tmp_path/"missing.json")
     assert r["status"]=="BLOCKED"
-    assert r["reason"]=="UNAUTHORIZED_MATRIX_PATH"
+    assert r["reason"]=="MISSING_CANONICAL_MATRIX"
 
 def test_noncanonical_matrix_is_rejected_before_parsing(tmp_path: Path):
     p=tmp_path/"bad.json"
