@@ -47,9 +47,10 @@ ALIASES = {
 def canonical_constituency(name: str, known: set[str]) -> str:
     key = normalize_label(name)
     target = ALIASES.get(key, name)
-    if target in known:
-        return target
     normalized = {normalize_label(k): k for k in known}
+    target_key = normalize_label(target)
+    if target_key in normalized:
+        return normalized[target_key]
     if key in normalized:
         return normalized[key]
     raise ValueError(f"CONSTITUENCY_UNKNOWN:{name}")
