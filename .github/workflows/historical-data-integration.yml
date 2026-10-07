@@ -36,8 +36,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: historical-data-canonical-main-v10
-  cancel-in-progress: true
+  group: historical-data-canonical-main-v11
+  cancel-in-progress: false
 
 jobs:
   integrate:
@@ -65,10 +65,12 @@ jobs:
           python -c 'import certifi; print(certifi.where())'
 
       - name: Setup R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: "4.4.3"
-          use-public-rspm: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends r-base r-base-dev
+          command -v Rscript
+          Rscript --version
 
       - name: Install R dependencies
         timeout-minutes: 20
