@@ -1,75 +1,79 @@
-name: Historical data integration
+name: Historical data — canonical integration
 
 on:
   push:
     branches: [main]
     paths:
-      - "scripts/integrate_historical_sources.R"
+      - "scripts/ingest_official_electoral_history.R"
+      - "scripts/ingest_cis_historical_surveys.R"
+      - "scripts/validate_historical_data.py"
       - ".github/workflows/historical-data-integration.yml"
   pull_request:
     branches: [main]
     paths:
-      - "scripts/integrate_historical_sources.R"
+      - "scripts/ingest_official_electoral_history.R"
+      - "scripts/ingest_cis_historical_surveys.R"
+      - "scripts/validate_historical_data.py"
       - ".github/workflows/historical-data-integration.yml"
   workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: historical-data-canonical-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   integrate:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref || github.ref_name }}
-      - uses: r-lib/actions/setup-r@v2
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
         with:
           r-version: "4.4"
-      - name: Install R dependencies
-        uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          packages: |
-            any::dplyr
-            any::tidyr
-            any::stringr
-            any::purrr
-            any::readr
-            any::haven
-            any::jsonlite
-            any::tibble
-            any::infoelectoral
-            any::opencis
-      - name: Integrate official results and CIS data
-        run: Rscript scripts/integrate_historical_sources.R
-      - name: Validate generated datasets
-        shell: bash
+
+      - name: Install system libraries
         run: |
-          python - <<'PY'
-          import csv, json, pathlib
-          for p in ["data/resultados_oficiales_2004_2023.csv","data/encuestas_historicas_2004_2023.csv"]:
-              f=pathlib.Path(p)
-              if not f.exists() or f.stat().st_size < 100:
-                  raise SystemExit(f"FAIL: {p} missing/empty")
-              with f.open(encoding="utf-8") as h:
-                  rows=sum(1 for _ in csv.reader(h))-1
-              if rows < 1:
-                  raise SystemExit(f"FAIL: {p} has no observations")
-              print(p, rows)
-          m=json.loads(pathlib.Path("ci_evidence/historical_data_manifest.json").read_text())
-          if "2023-11-23" in str(m):
-              raise SystemExit("FAIL: invented 2023-11 general election")
-          PY
-      - name: Commit integrated data
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libharfbuzz-dev libfribidi-dev libfontconfig1-dev
+
+      - name: Install R dependencies
+        run: |
+          Rscript -e 'install.packages(c("opencis","readxl","dplyr","readr","tibble","haven","purrr"), repos="https://cloud.r-project.org")'
+
+      - name: Ingest official Interior results
+        run: Rscript scripts/ingest_official_electoral_history.R
+
+      - name: Ingest official CIS microdata
+        run: Rscript scripts/ingest_cis_historical_surveys.R
+
+      - name: Validate datasets and create provenance manifest
+        run: python scripts/validate_historical_data.py
+
+      - name: Commit only validated materialization
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv ci_evidence/historical_data_manifest.json ci_evidence/infoelectoral_schema_*.txt
+          git add data/resultados_oficiales_2004_2023.csv                   data/encuestas_historicas_2004_2023.csv                   data/manifests/HISTORICAL_DATA_MATERIALIZATION.json
           if git diff --cached --quiet; then
-            echo "No data changes to commit."
-          else
-            git commit -m "Integrate official election results and CIS historical data"
-            git push origin main
+            echo "No validated data changes."
+            exit 0
           fi
+          git commit -m "Add validated official Spain historical electoral data"
+          git push origin HEAD:main
