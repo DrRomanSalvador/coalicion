@@ -284,7 +284,7 @@ class PollMonitor:
     def _load_state(self) -> dict[str, Any]:
         if not self.state_path.exists():
             return {"schema":"POLL_MONITOR_STATE_V2","poll_hashes":{},
-                    "discovery_hashes":{},"source_hashes":{},"failure_hashes":{},
+                    "discovery_hashes":{},"source_hashes":{},"failure_hashes":{}, "failure_streaks": {}, "failure_reported": {},
                     "runs":0,"total_validated":0,"baseline_completed":False}
         state = json.loads(self.state_path.read_text(encoding="utf-8"))
         for key, default in {"poll_hashes": {}, "discovery_hashes": {}, "source_hashes": {}, "failure_hashes": {}, "runs": 0, "total_validated": 0, "baseline_completed": False}.items():
@@ -304,6 +304,8 @@ class PollMonitor:
         discoveries: list[dict[str, Any]] = []
         failures: list[dict[str, Any]] = []
         for source in self.config["sources"]:
+            if source.get("disabled"):
+                continue
             if source.get("optional") and (
                 not os.environ.get("X_BEARER_TOKEN") or not source.get("user_id")
             ):
@@ -314,6 +316,8 @@ class PollMonitor:
                 digest = self._save_raw(source["id"], body)
                 self.state["source_hashes"][source["id"]] = digest
                 self.state.setdefault("failure_hashes", {}).pop(source["id"], None)
+                self.state.setdefault("failure_streaks", {})[source["id"]] = 0
+                self.state.setdefault("failure_reported", {}).pop(source["id"], None)
                 p, d = monitor.parse(body)
                 polls.extend(p)
                 for x in d:
@@ -368,11 +372,18 @@ class PollMonitor:
         events = payload["new_polls"] + payload["changed_polls"]
         discoveries = payload.get("discoveries", [])
         failures = payload["failures"]
+        # Source failures are health telemetry, not electoral events.
+        # Escalate only after 3 consecutive failures (15 min at current cadence).
         unsent_failures = []
+        streaks = self.state.setdefault("failure_streaks", {})
+        reported = self.state.setdefault("failure_reported", {})
         for failure in failures:
+            sid = failure["source_id"]
             key = hashlib.sha256(json.dumps(failure, sort_keys=True).encode()).hexdigest()
-            if self.state.get("failure_hashes", {}).get(failure["source_id"]) != key:
-                unsent_failures.append((failure, key))
+            streaks[sid] = int(streaks.get(sid, 0)) + 1
+            self.state.setdefault("failure_hashes", {})[sid] = key
+            if streaks[sid] >= 3 and reported.get(sid) != key:
+                unsent_failures.append((failure, key, streaks[sid]))
         if not events and not discoveries and not unsent_failures:
             return False
         lines = ["🔔 Vigilancia electoral — actualización"]
@@ -386,9 +397,11 @@ class PollMonitor:
                       f"Fuente: {p['source_id']}", f"Encuestadora: {p['pollster']}",
                       f"Publicación: {p['publication_date']}",
                       "Estimaciones: " + ", ".join(f"{k} {v:g}%" for k,v in sorted(p["parties"].items()))]
-        for f, key in unsent_failures[:10]:
-            self.state.setdefault("failure_hashes", {})[f["source_id"]] = key
-            lines += ["", f"⚠️ FUENTE BLOQUEADA: {f['source_id']}", f"Error: {f['error']}"]
+        for f, key, streak in unsent_failures[:10]:
+            self.state.setdefault("failure_reported", {})[f["source_id"]] = key
+            lines += ["", f"⚠️ SALUD DE FUENTE: {f['source_id']}",
+                      f"Caída durante {streak} ejecuciones consecutivas.",
+                      f"Error: {f['error']}"]
         text = "\n".join(lines)[:4090]
         token = os.environ.get("TELEGRAM_BOT_TOKEN")
         if not token:
@@ -481,7 +494,14 @@ class PollMonitor:
             "descriptive_only":True,
             "seat_projection":"BLOCKED_NO_TERRITORIAL_INPUT",
         }
-        meaningful = baseline or bool(new or changed or new_discoveries or failures)
+        failure_notifications = []
+        for failure in failures:
+            sid = failure["source_id"]
+            streak = int(self.state.get("failure_streaks", {}).get(sid, 0))
+            key = hashlib.sha256(json.dumps(failure, sort_keys=True).encode()).hexdigest()
+            if streak >= 3 and self.state.get("failure_reported", {}).get(sid) != key:
+                failure_notifications.append(failure)
+        meaningful = baseline or bool(new or changed or new_discoveries or failure_notifications)
         path = self.save(payload, meaningful=meaningful)
         self.state["runs"] = int(self.state.get("runs", 0)) + 1
         self.state["last_run"] = checked
