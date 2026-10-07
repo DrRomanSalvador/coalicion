@@ -4,7 +4,7 @@ import argparse, json, hashlib
 from pathlib import Path
 from src.decision import coalition_result, apply_absolute_shift, Scenario, validate_scenario, sha256_json
 from src.coalition import coalition_decision
-from src.prediction_engine import predict
+from src.prediction import predict
 from src.electoral import allocate
 
 def load(path): return json.loads(Path(path).read_text(encoding="utf-8"))
