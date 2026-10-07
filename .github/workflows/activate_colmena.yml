@@ -46,6 +46,17 @@ jobs:
           exit "$rc"
       - name: Adquisición BOE + EleccionesDB
         run: python scripts/acquire_with_boe_fallback.py
+      - name: Reutilizar snapshot primario adquirido
+        run: |
+          if [ -s artifacts/data/raw_interior_2023.xlsx ]; then
+            mkdir -p data/raw/official
+            cp artifacts/data/raw_interior_2023.xlsx data/raw/official/Elecciones-Congreso.xlsx
+            sha256sum data/raw/official/Elecciones-Congreso.xlsx
+          else
+            echo "FAIL_CLOSED: no existe snapshot primario de Interior"
+            exit 1
+          fi
+
       - name: Abeja Reina v3
         env:
           COLMENA_MAX_RETRIES: "3"
