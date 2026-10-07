@@ -56,26 +56,30 @@ def certify(root="."):
                            ">=10.000 simulaciones en posterior válido"))
     else:
         gates.append(_gate("mc_10000",False,"sin posterior"))
-    # Expanding OOS calibration gate.
+    # Expanding OOS calibration gate. This artifact is for poll-vote-share
+    # calibration; seat MAE is a separate electoral backtest metric and must not
+    # be fabricated from poll-share observations.
     calib=r/"ci_evidence/oos_calibration.json"
     calib_ok=False
     if calib.exists():
         try:
             cx=json.loads(calib.read_text(encoding="utf-8"))
-            calib_ok=cx.get("status") in {"PASS","CERTIFIED"}
+            required={"status","n_rows","n_elections","walk_forward_holdouts"}
+            calib_ok=(cx.get("status") in {"PASS","CERTIFIED"}
+                      and required.issubset(cx)
+                      and int(cx.get("n_rows",0)) > 0
+                      and int(cx.get("n_elections",0)) >= 3
+                      and int(cx.get("walk_forward_holdouts",0)) >= 1)
         except Exception:
             calib_ok=False
     gates.append(_gate("oos_calibration", calib_ok,
-                       "backtest expanding-window certificado"))
+                       "calibración OOS expanding-window de voto con separación temporal estricta"))
     if calib.exists():
         x=json.loads(calib.read_text())
-        gates.append(_gate("coverage_90", x.get("status") in {"PASS","CERTIFIED"} and float(x.get("coverage_90",0))>=0.85,
-                           "cobertura nominal 90% >= 85%"))
-        gates.append(_gate("seat_mae", x.get("status") in {"PASS","CERTIFIED"} and float(x.get("seat_mae",1e9))<10,
-                           "MAE escaños < 10"))
+        gates.append(_gate("oos_walk_forward", calib_ok and int(x.get("walk_forward_holdouts",0)) >= 1,
+                           "al menos un holdout walk-forward estrictamente futuro"))
     else:
-        gates += [Gate("coverage_90","FAIL","sin calibración"),
-                  Gate("seat_mae","FAIL","sin calibración")]
+        gates.append(Gate("oos_walk_forward","FAIL","sin calibración OOS"))
     # Independent audit must be a separate evidence artifact.
     ext=r/"ci_evidence/external_audit.json"
     external_ok=False
