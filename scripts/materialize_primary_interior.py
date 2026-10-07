@@ -45,7 +45,7 @@ def main():
                 data=r.read()
         except Exception:
             root_urls=[
-                "https://www.cert.fnmt.es/certs/ACRAIZSERVIDORESSEGUROS.crt",
+                "http://www.cert.fnmt.es/certs/ACRAIZSERVIDORESSEGUROS.crt",
             ]
             bundle_tmp=Path(tempfile.mkstemp(suffix=".pem")[1])
             root_tmps=[]
@@ -58,6 +58,10 @@ def main():
                         root_tmp.write_bytes(r.read())
                     if root_tmp.stat().st_size < 1000:
                         raise RuntimeError("FAIL-CLOSED: invalid official FNMT root certificate")
+                    expected_sha="554153B13D2CF9DDB753BFBE1A4E0AE08D0AA4187058FE60A2B862B2E4B87BCB"
+                    actual_sha=hashlib.sha256(root_tmp.read_bytes()).hexdigest().upper()
+                    if actual_sha != expected_sha:
+                        raise RuntimeError("FAIL-CLOSED: official FNMT root fingerprint mismatch")
                 bundle_tmp.write_bytes(Path(ca).read_bytes()+b"\n"+b"\n".join(p.read_bytes() for p in root_tmps))
                 ctx=ssl.create_default_context(cafile=bundle_tmp.as_posix())
                 with urllib.request.urlopen(req,context=ctx,timeout=900) as r:
