@@ -172,36 +172,19 @@ class CoalitionDecisionEngine:
                                     r["robustness"]["weighted_improvement"],
                                     r["robustness"]["worst_case_delta"],
                                     r["benefit"]), reverse=True)
-        return {"coalition_count": len(results), "all_coalitions": results,
-                "recommendation": self.generate_recommendation(results),
-                "matrix": [{"coalition": "+".join(r["coalition"]),
-                            "separate": r["separate_seats"],
-                            "coalition_seats": r["coalition_seats"],
-                            "difference": r["benefit"],
-                            "risk": r["risk"]["level"],
-                            "expected_difference": r["robustness"]["weighted_mean_delta"],
-                            "worst_case_difference": r["robustness"]["worst_case_delta"]}
-                           for r in results]}
-
-    @staticmethod
-    def generate_recommendation(results):
-        robust = [r for r in results if r["robustness"]["weighted_mean_delta"] > 0
-                  and r["robustness"]["worst_case_delta"] > 0]
-        if robust:
-            r = robust[0]
-            return {"recommendation": "COALITION_" + "+".join(r["coalition"]),
-                    "reason": "Mejor ganancia esperada entre las coaliciones que mejoran en todos los escenarios.",
-                    "coalition": r["coalition"], "benefit": r["benefit"],
-                    "expected_benefit": r["robustness"]["weighted_mean_delta"],
-                    "robustness": r["robustness"], "risk": r["risk"],
-                    "decisive_constituencies": r["decisive_constituencies"]}
-        positive = [r for r in results if r["robustness"]["weighted_mean_delta"] > 0]
-        if positive:
-            r = positive[0]
-            return {"recommendation": "COALITION_WITH_CONDITIONAL_RISK",
-                    "reason": "Hay ganancia esperada, pero ninguna coalición mejora en todos los escenarios.",
-                    "coalition": r["coalition"], "benefit": r["benefit"],
-                    "expected_benefit": r["robustness"]["weighted_mean_delta"],
-                    "robustness": r["robustness"], "risk": r["risk"]}
-        return {"recommendation": "NO_COALITION_RECOMMENDED",
-                "reason": "Ninguna coalición tiene ganancia esperada positiva bajo los escenarios suministrados."}
+        return {
+            "coalition_count": len(results),
+            "all_coalitions": results,
+            "ranking": [
+                {
+                    "coalition": r["coalition"],
+                    "separate": r["separate_seats"],
+                    "coalition_seats": r["coalition_seats"],
+                    "difference": r["benefit"],
+                    "risk": r["risk"]["level"],
+                    "weighted_mean_difference": r["robustness"]["weighted_mean_delta"],
+                    "worst_case_difference": r["robustness"]["worst_case_delta"],
+                }
+                for r in results
+            ],
+        }
