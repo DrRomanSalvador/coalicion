@@ -70,7 +70,10 @@ def main() -> None:
     require(ACQUISITION.is_file() and ACQUISITION.stat().st_size > 100, "Interior acquisition provenance missing")
     acquisition = json.loads(ACQUISITION.read_text(encoding="utf-8"))
     require(acquisition.get("schema") == "INTERIOR_OFFICIAL_ACQUISITION_V2", "invalid Interior acquisition manifest")
-    require(acquisition.get("source_url") and acquisition.get("sha256"), "incomplete Interior provenance")
+    require(acquisition.get("source_url") == "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+            "Interior provenance must retain the explicit official XLSX URL")
+    require(acquisition.get("sha256") and int(acquisition.get("file_bytes", 0)) > 10000,
+            "incomplete Interior provenance")
 
     erows, prows = rows(RESULTS), rows(POLLS)
     require(erows and prows, "historical datasets contain no rows")
@@ -95,9 +98,10 @@ def main() -> None:
         seats = float(r["escaños"])
         require(votes >= 0 and seats >= 0, "negative official value")
         require(seats.is_integer(), f"non-integer official seats: {r}")
-        require(bool(r["circunscripcion_codigo"].strip()), "blank constituency code")
-        require(bool(r["partido_codigo"].strip()), "blank party code")
-        key = (r["election"], r["circunscripcion_codigo"], r["partido_codigo"])
+        # The Interior workbook used by the canonical parser does not expose
+        # official constituency/party codes in this sheet. Do not synthesize
+        # identifiers: uniqueness is checked on the source labels instead.
+        key = (r["election"], r["circunscripcion"], r["partido"])
         require(key not in result_keys, f"duplicate official key: {key}")
         result_keys.add(key)
 
