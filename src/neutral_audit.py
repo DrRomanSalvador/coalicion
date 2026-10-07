@@ -9,7 +9,8 @@ from typing import Any
 
 EXPECTED_PROVINCES = 52
 EXPECTED_SEATS = 350
-EXPECTED_SOURCE = "INTERIOR_PRIMARY"
+EXPECTED_SCHEMA = "ELECTION_2023_CONSTITUENCY_MATRIX_V1"
+EXPECTED_SOURCE_TIERS = {"OFFICIAL_PRIMARY", "SECONDARY_REPLICA_VERIFIED"}
 
 def sha256_file(path: Path) -> str:
     h = hashlib.sha256()
@@ -26,33 +27,37 @@ def audit_canonical(path: str | Path) -> dict[str, Any]:
         data=json.loads(p.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as e:
         return {"status":"BLOCKED","reason":"INVALID_CANONICAL_JSON","detail":str(e),"path":str(p)}
-    provinces=data.get("data",{}).get("provinces",[])
+    constituencies=data.get("data",{}).get("constituencies",{})
+    provinces=list(constituencies.values())
+    names=list(constituencies.keys())
     seats=sum(int(x.get("seats",0)) for x in provinces)
-    names=[x.get("name") for x in provinces]
-    unique=len(names)==len(set(names)) and all(isinstance(x,str) and x for x in names)
-    valid=data.get("data",{}).get("valid_votes",{})
-    blank=data.get("data",{}).get("blank_votes",{})
+    unique=len(names)==len(set(names)) and len(names)==52 and all(isinstance(x,str) and x for x in names)
+    valid={k:v.get("valid_votes") for k,v in constituencies.items()}
+    blank={k:v.get("blank_votes",0) for k,v in constituencies.items()}
     structural = (
-        data.get("source")==EXPECTED_SOURCE
-        and data.get("election")=="2023"
+        data.get("schema")==EXPECTED_SCHEMA
+        and data.get("election")==2023
+        and data.get("source_tier") in EXPECTED_SOURCE_TIERS
         and len(provinces)==EXPECTED_PROVINCES
         and seats==EXPECTED_SEATS
         and unique
-        and isinstance(valid,dict)
-        and set(valid)==set(names)
-        and isinstance(blank,dict)
-        and set(blank).issubset(set(names))
+        and all(isinstance(v,int) and v>=0 for v in valid.values())
+        and all(isinstance(v,int) and v>=0 for v in blank.values())
+        and all(v == sum(c.get("parties",{}).values()) + blank[k] for k,v in valid.items())
+        and sum(sum(c.get("parties",{}).values()) for c in provinces)==24487414
     )
     return {
         "status":"PASS" if structural else "BLOCKED",
         "reason":"STRUCTURAL_VALIDATION" if structural else "CANONICAL_STRUCTURE_INVALID",
         "path":str(p),
         "sha256":sha256_file(p),
-        "source":data.get("source"),
+        "schema":data.get("schema"),
+        "source_tier":data.get("source_tier"),
         "election":data.get("election"),
         "province_count":len(provinces),
         "seat_total":seats,
-        "valid_vote_keys":len(valid) if isinstance(valid,dict) else None,
+        "candidate_votes_total":sum(sum(c.get("parties",{}).values()) for c in provinces),
+        "valid_vote_keys":len(valid),
     }
 
 if __name__ == "__main__":
