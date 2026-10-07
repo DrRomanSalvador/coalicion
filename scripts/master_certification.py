@@ -40,19 +40,21 @@ def certify(root="."):
     else:
         gates.append(_gate("reconciliation",False,"falta evidencia de reconciliación"))
     # Full SEEC posterior and MC evidence.
-    posterior=r/"ci_evidence/seec_posterior.json"
+    posterior=r/"ci_evidence/seec_production.json"
+    if not posterior.exists():
+        posterior=r/"ci_evidence/seec_posterior.json"
     posterior_ok=False
     if posterior.exists():
         try:
             px=json.loads(posterior.read_text(encoding="utf-8"))
-            posterior_ok=px.get("status") in {"PASS","CERTIFIED"} and int(px.get("draws",0))>=10000
+            posterior_ok=px.get("status") in {"PASS","CERTIFIED"} and int(px.get("total_posterior_draws", px.get("draws",0)))>=10000
         except Exception:
             posterior_ok=False
     gates.append(_gate("seec_posterior", posterior_ok,
                        "posterior jerárquico ejecutado y certificado"))
     if posterior.exists():
         x=json.loads(posterior.read_text())
-        gates.append(_gate("mc_10000", x.get("status") in {"PASS","CERTIFIED"} and int(x.get("draws",0))>=10000,
+        gates.append(_gate("mc_10000", x.get("status") in {"PASS","CERTIFIED"} and int(x.get("total_posterior_draws", x.get("draws",0)))>=10000,
                            ">=10.000 simulaciones en posterior válido"))
     else:
         gates.append(_gate("mc_10000",False,"sin posterior"))
