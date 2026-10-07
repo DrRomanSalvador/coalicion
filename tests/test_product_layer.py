@@ -1,5 +1,7 @@
 import unittest
 
+# Product contract tests: deterministic, neutral, fail-closed.
+
 from src.coalition_decision_engine import CoalitionScenario
 from src.product_layer import (
     decide_coalition, rank_coalitions, coalition_alert,
