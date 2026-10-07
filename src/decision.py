@@ -63,12 +63,13 @@ def coalition_result(
         )),
         "coalition": "+".join(coalition),
         "separate_seats_by_constituency": {
-            c: sum(
-                next(
-                    item["separate"] for item in result["decisive_constituencies"]
-                    if item["constituency"] == c
-                )
-            ) if False else None for c in []
+            item["constituency"]: item["separate"] for item in result["all_constituencies"]
+        },
+        "coalition_seats_by_constituency": {
+            item["constituency"]: item["coalition"] for item in result["all_constituencies"]
+        },
+        "delta_by_constituency": {
+            item["constituency"]: item["delta"] for item in result["all_constituencies"]
         },
         "total_separate": result["separate_seats"],
         "total_coalition": result["coalition_seats"],
