@@ -305,8 +305,14 @@ class PollMonitor:
         new, changed, new_discoveries = [], [], []
         for discovery in discoveries:
             key = f"{discovery['source_id']}::{discovery['discovery_id']}"
-            if self.state["discovery_hashes"].get(key) != discovery.get("source_hash"):
-                self.state["discovery_hashes"][key] = discovery.get("source_hash")
+            fingerprint = hashlib.sha256(
+                json.dumps(
+                    {k: v for k, v in discovery.items() if k != "source_hash"},
+                    ensure_ascii=False, sort_keys=True, separators=(",", ":")
+                ).encode()
+            ).hexdigest()
+            if self.state["discovery_hashes"].get(key) != fingerprint:
+                self.state["discovery_hashes"][key] = fingerprint
                 new_discoveries.append(discovery)
         for poll in polls:
             h = poll_hash(poll)
