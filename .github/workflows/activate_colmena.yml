@@ -22,10 +22,6 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: colmena-neutral-2023-v2
-  cancel-in-progress: true
-
 jobs:
   queen:
     runs-on: ubuntu-latest
