@@ -9,6 +9,7 @@ on:
       - "schemas/COALICION_PRODUCT_V1.schema.json"
       - "src/**"
       - "tests/**"
+      - ".github/workflows/product-layer.yml"
   pull_request:
     paths:
       - "src/product_layer.py"
