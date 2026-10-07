@@ -154,10 +154,10 @@ class CoalitionDecisionEngine:
                 "level": robustness, "worst_case_delta": min(deltas),
                 "best_case_delta": max(deltas), "weighted_mean_delta": mean,
                 "weighted_probability_improvement": p_positive,
-                "weighted_probability_non_improvement": p_nonpositive,
+                "weighted_weighted_non_improvement": p_nonpositive,
                 "weighted_std_delta": sqrt(variance),
             },
-            "risk": {"level": risk, "probability_non_improvement": p_nonpositive},
+            "risk": {"level": risk, "weighted_non_improvement": p_nonpositive, "weight_interpretation": "Los pesos son pesos relativos de escenarios; no son una probabilidad calibrada."},
             "decisive_constituencies": self._impacts(central, parties),
         }
 
@@ -167,7 +167,7 @@ class CoalitionDecisionEngine:
                                                    max_combinations)
         results = [self.analyze_coalition(c, scenarios) for c in coalitions]
         results.sort(key=lambda r: (r["robustness"]["weighted_mean_delta"],
-                                    r["robustness"]["weighted_probability_improvement"],
+                                    r["robustness"]["weighted_improvement"],
                                     r["robustness"]["worst_case_delta"],
                                     r["benefit"]), reverse=True)
         return {"coalition_count": len(results), "all_coalitions": results,
