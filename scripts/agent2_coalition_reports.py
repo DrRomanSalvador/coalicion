@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Agente 2: genera informes neutrales de coaliciones con la matriz 2023 real."""
+"""Genera informes neutrales y deterministas de coaliciones con la matriz 2023 real."""
 from __future__ import annotations
 import argparse
+import hashlib
 import json
-from datetime import datetime, timezone
 from pathlib import Path
 import sys
 
@@ -17,6 +17,13 @@ from src.coalition_reports import (
     markdown_all, markdown_executive, pairwise_report, supported_parties,
 )
 
+def sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Informes neutrales de coaliciones 2023")
     parser.add_argument("--canonical", default="artifacts/data/election_2023_canonical.json")
@@ -24,10 +31,13 @@ def main() -> None:
     parser.add_argument("--parties", nargs="+", default=None)
     args = parser.parse_args()
 
-    matrix = load_matrix(Path(args.canonical))
+    canonical = Path(args.canonical)
+    matrix = load_matrix(canonical)
     data = matrix["data"]["constituencies"]
     if len(data) != 52 or sum(c["seats"] for c in data.values()) != 350:
         raise SystemExit("MATRIX_FAIL_CLOSED: 52 circunscripciones y 350 escaños son obligatorios")
+    source_sha256 = sha256_file(canonical)
+
     selected, unsupported = supported_parties(matrix, args.parties or DEFAULT_REPORT_IDENTITIES)
     if len(selected) < 2:
         raise SystemExit("MATRIX_FAIL_CLOSED: menos de dos candidaturas separables")
@@ -35,17 +45,22 @@ def main() -> None:
     results, _ = pairwise_report(matrix, selected)
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
-    (out / "all_coalitions_2023.md").write_text(
-        markdown_all(results, unsupported, selected), encoding="utf-8"
+
+    all_path = out / "all_coalitions_2023.md"
+    exec_path = out / "executive_summary_2023.md"
+    json_path = out / "coalition_reports_2023.json"
+    all_path.write_text(
+        markdown_all(results, unsupported, selected, source_sha256), encoding="utf-8"
     )
-    (out / "executive_summary_2023.md").write_text(
-        markdown_executive(results, unsupported), encoding="utf-8"
+    exec_path.write_text(
+        markdown_executive(results, unsupported, source_sha256), encoding="utf-8"
     )
+
     _, _, _, _, observed = build_scenario(matrix)
     payload = {
-        "schema": "COALITION_REPORTS_2023_V1",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "schema": "COALITION_REPORTS_2023_V2",
         "source_tier": matrix["source_tier"],
+        "source_sha256": source_sha256,
         "validation": {
             "constituencies": len(data),
             "seats": sum(c["seats"] for c in data.values()),
@@ -58,10 +73,9 @@ def main() -> None:
         "baseline_seats": baseline_seats(matrix),
         "bilateral_count": len(results),
         "invented_votes": False,
-        "reports": [str(out / "all_coalitions_2023.md"),
-                    str(out / "executive_summary_2023.md")],
+        "reports": [str(all_path), str(exec_path)],
     }
-    (out / "coalition_reports_2023.json").write_text(
+    json_path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
