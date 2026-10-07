@@ -6,10 +6,22 @@ on:
   push:
     branches: [main]
     paths:
+      - "scripts/ingest_official_electoral_history.R"
+      - "scripts/ingest_cis_historical_surveys.R"
+      - "scripts/validate_historical_data.py"
+      - "scripts/run_full_oos.py"
+      - "src/oos_pipeline.py"
+      - "config/electoral_sources.json"
       - ".github/workflows/historical-data-integration.yml"
   pull_request:
     branches: [main]
     paths:
+      - "scripts/ingest_official_electoral_history.R"
+      - "scripts/ingest_cis_historical_surveys.R"
+      - "scripts/validate_historical_data.py"
+      - "scripts/run_full_oos.py"
+      - "src/oos_pipeline.py"
+      - "config/electoral_sources.json"
       - ".github/workflows/historical-data-integration.yml"
   workflow_dispatch:
 
@@ -17,7 +29,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: historical-data-canonical-${{ github.ref }}-v4
+  group: historical-data-canonical-${{ github.ref }}-v5
   cancel-in-progress: false
 
 jobs:
@@ -25,16 +37,69 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     env:
-      R_LIBS_USER: ${{ runner.temp }}/coalicion-r-lib
+      R_LIBS_USER: /tmp/coalicion-r-lib
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Runner smoke test
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Assert runner
+
+      - name: Setup R
+        timeout-minutes: 15
+        shell: bash
         run: |
           set -euxo pipefail
-          python --version
-          uname -a
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
+          sudo apt-get update -o Acquire::Retries=3
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends r-base r-base-dev libcurl4-openssl-dev libssl-dev libxml2-dev
+          R --version
+
+      - name: Install R dependencies
+        timeout-minutes: 20
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p "$R_LIBS_USER"
+          Rscript -e 'options(repos=c(CRAN="https://packagemanager.posit.co/cran/__linux__/noble/latest"), timeout=300); install.packages(c("opencis","readxl","dplyr","readr","tibble","haven","purrr"), lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), Ncpus=2, quiet=FALSE)'
+          Rscript -e 'pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr"); stopifnot(all(vapply(pkgs, requireNamespace, logical(1), quietly=TRUE)))'
+
+      - name: Ingest official Interior results
+        timeout-minutes: 30
+        run: Rscript scripts/ingest_official_electoral_history.R
+
+      - name: Ingest official CIS microdata
+        timeout-minutes: 90
+        run: Rscript scripts/ingest_cis_historical_surveys.R
+
+      - name: Compile Python
+        run: python -m compileall -q src scripts
+
+      - name: Regression tests
+        run: python -m pytest tests/test_poll_monitor.py -q
+
+      - name: Validate historical data
+        run: python scripts/validate_historical_data.py
+
+      - name: Validate OOS
+        run: python scripts/run_full_oos.py --input data/encuestas_historicas_2004_2023.csv --output artifacts/oos_historical_2004_2023.json
+
+      - name: Commit validated materialization
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json data/manifests/HISTORICAL_DATA_LIMITATIONS.json data/manifests/INTERIOR_ACQUISITION.json artifacts/oos_historical_2004_2023.json
+          if git diff --cached --quiet; then
+            echo "No validated materialization changes."
+            exit 0
+          fi
+          git commit -m "Materialize and certify official Spain historical electoral data"
+          git push origin HEAD:main
