@@ -11,8 +11,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Mapping, Sequence
 
-from .coalition_decision_engine import CoalitionDecisionEngine, CoalitionScenario
-from .decision_engine import (
+from .coalition import CoalitionDecisionEngine, CoalitionScenario
+from .decision import (
     Scenario,
     apply_absolute_shift,
     coalition_result,
