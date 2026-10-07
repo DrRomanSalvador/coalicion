@@ -50,6 +50,7 @@ jobs:
         env:
           COLMENA_MAX_RETRIES: "3"
           COLMENA_RETRY_DELAY: "10"
+          COLMENA_SKIP_EXHAUSTIVE: "1"
         run: python scripts/queen_bee_v3.py
       - name: Tests de neutralidad y corrección
         run: python -m pytest -q
