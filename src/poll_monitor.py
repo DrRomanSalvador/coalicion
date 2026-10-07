@@ -169,6 +169,85 @@ def parse_dato_electoral(html: bytes, source: dict[str, Any]) -> list[Poll]:
             out.append(poll)
     return out
 
+def _extract_percentages(text: str) -> dict[str, float]:
+    parties: dict[str, float] = {}
+    party_patterns = {
+        "PP": r"(?i)\\b(?:PP|Partido Popular)\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
+        "PSOE": r"(?i)\\bPSOE\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
+        "VOX": r"(?i)\\bVOX\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
+        "SUMAR": r"(?i)\\bSUMAR\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
+        "PODEMOS": r"(?i)\\bPODEMOS\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
+        "ERC": r"(?i)\\b(?:ERC|Esquerra(?: Republicana)?)\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
+        "JUNTS": r"(?i)\\bJUNTS\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
+        "PNV": r"(?i)\\b(?:PNV|EAJ-PNV)\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
+        "EH BILDU": r"(?i)\\b(?:EH BILDU|BILDU)\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
+        "BNG": r"(?i)\\bBNG\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
+        "CC": r"(?i)\\b(?:CC|CCA)\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
+        "UPN": r"(?i)\\bUPN\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
+        "SE ACABÓ LA FIESTA": r"(?i)\\b(?:SALF|SE ACABÓ LA FIESTA)\\b\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*%",
+    }
+    for party, pattern in party_patterns.items():
+        m = re.search(pattern, text)
+        if m:
+            parties[party] = float(m.group(1).replace(",", "."))
+    return parties
+
+
+def parse_national_html(body: bytes, source: dict[str, Any]) -> list[Poll]:
+    """Extract a national-election poll only when the page itself states enough values.
+
+    This deliberately rejects pages that merely discuss polls: at least five
+    party estimates must be present and their total must be coherent.
+    """
+    soup = BeautifulSoup(body, "html.parser")
+    text = soup.get_text(" ", strip=True)
+    title = soup.title.get_text(" ", strip=True) if soup.title else source.get("name", source["id"])
+    candidates = [text]
+    for article in soup.find_all(["article", "main", "section"]):
+        t = article.get_text(" ", strip=True)
+        if t and len(t) > 200:
+            candidates.append(t)
+    best: tuple[dict[str, float], str] | None = None
+    for candidate in candidates:
+        if not re.search(r"(?i)(elecciones generales|estimación de voto nacional|barómetro nacional)", candidate):
+            continue
+        parties = _extract_percentages(candidate)
+        if len(parties) >= 5:
+            total = sum(parties.values())
+            if 95 <= total <= 105 and (best is None or len(parties) > len(best[0])):
+                best = (parties, candidate)
+    if best is None:
+        return []
+    parties, evidence = best
+    pub = None
+    date_patterns = [
+        r"(?i)\\b(\\d{1,2})\\s*(?:de\\s*)?(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\\s*(?:de\\s*)?(2026)\\b",
+        r"\\b(\\d{1,2})[./-](\\d{1,2})[./-](2026)\\b",
+    ]
+    months = {"enero":1,"febrero":2,"marzo":3,"abril":4,"mayo":5,"junio":6,"julio":7,"agosto":8,"septiembre":9,"octubre":10,"noviembre":11,"diciembre":12}
+    for pat in date_patterns:
+        m = re.search(pat, evidence)
+        if m:
+            if m.group(2).isdigit():
+                pub = f"2026-{int(m.group(2)):02d}-{int(m.group(1)):02d}"
+            else:
+                pub = f"2026-{months[m.group(2).lower()]:02d}-{int(m.group(1)):02d}"
+            break
+    if not pub:
+        return []
+    sample = None
+    sm = re.search(r"(?i)(?:muestra|entrevistas|encuestas|personas)\\s*(?:de|:)?\\s*([0-9][0-9.,]*)", evidence)
+    if sm:
+        sample = int(float(sm.group(1).replace(".", "").replace(",", ".")))
+    pollster = source.get("pollster") or source.get("name") or source["id"]
+    poll = Poll(
+        poll_id=f"{source['id']}::{pub}::{title}",
+        publication_date=pub, pollster=pollster, source_id=source["id"],
+        source_url=source["url"], parties=parties, sample_size=sample,
+    )
+    return [poll] if validate_poll(poll)[0] else []
+
+
 def parse_rss_metadata(body: bytes, source: dict[str, Any]) -> list[dict[str, Any]]:
     """Return source discoveries; RSS is not treated as party-level evidence."""
     import xml.etree.ElementTree as ET
@@ -249,6 +328,8 @@ class SourceMonitor:
             return [], parse_rss_metadata(body, self.source)
         if kind == "electomania_json":
             return parse_electomania_json(body, self.source), []
+        if kind == "national_html":
+            return parse_national_html(body, self.source), []
         # Generic pages are monitored by cryptographic fingerprint only.
         return [], [{
             "discovery_id": hashlib.sha256(body).hexdigest(),
