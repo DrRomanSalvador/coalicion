@@ -4,6 +4,15 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    paths:
+      - "run26.py"
+      - "scripts/**"
+      - "src/**"
+      - "data/**"
+      - "config/**"
+      - "tests/**"
+      - "requirements.txt"
+      - ".github/workflows/product_pipeline.yml"
   pull_request:
     paths:
       - "run26.py"
@@ -14,6 +23,10 @@ on:
       - "tests/**"
       - "requirements.txt"
       - ".github/workflows/product_pipeline.yml"
+
+concurrency:
+  group: product-pipeline-main
+  cancel-in-progress: true
 
 jobs:
   product:
