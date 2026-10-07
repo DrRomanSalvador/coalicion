@@ -30,7 +30,7 @@ class Result:
     detail: str = ""
 
 
-def run(name: str, command: list[str], timeout: int = 900) -> Result:
+def run(name: str, command: list[str], timeout: int = 900, blocked_ok: bool = False) -> Result:
     p = subprocess.run(
         command,
         cwd=ROOT,
@@ -40,9 +40,10 @@ def run(name: str, command: list[str], timeout: int = 900) -> Result:
         timeout=timeout,
     )
     detail = p.stdout[-12000:]
+    blocked = blocked_ok and p.returncode != 0 and '"status": "BLOCKED"' in p.stdout
     return Result(
         name=name,
-        status="PASS" if p.returncode == 0 else "FAIL",
+        status="PENDING" if blocked else ("PASS" if p.returncode == 0 else "FAIL"),
         command=command,
         returncode=p.returncode,
         detail=detail,
@@ -168,14 +169,18 @@ def main() -> int:
         results.append(Result("probabilistic_calibration", "PENDING",
                               detail="falta artifacts/verification/oos_calibration_input.csv"))
 
-    results.append(run("full_backtest", [sys.executable, "scripts/run_full_backtest.py",
-                                         "--oos-input", str(oos_input)],
-                       timeout=1800))
+    if oos_input.exists() and oos_input.read_text(encoding="utf-8").strip().splitlines()[1:]:
+        results.append(run("full_backtest", [sys.executable, "scripts/run_full_backtest.py",
+                                             "--oos-input", str(oos_input)], timeout=1800))
+    else:
+        results.append(Result("full_backtest", "PENDING",
+                              detail="requiere observaciones OOS en data/encuestas_historicas_2004_2023.csv"))
 
     # Phase 5: existing deterministic verification scripts.
     for rel in ("scripts/verify_seec_v4.py", "scripts/master_certification.py"):
         if (ROOT / rel).exists():
-            results.append(run(f"verification:{rel}", [sys.executable, rel], timeout=900))
+            results.append(run(f"verification:{rel}", [sys.executable, rel], timeout=900,
+                               blocked_ok=rel.endswith("master_certification.py")))
 
     # Missing capabilities are explicit; no invented replacement is executed.
     missing = []
