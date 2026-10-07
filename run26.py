@@ -10,6 +10,7 @@ from pathlib import Path
 
 STAGES = [
     ("matrix_2023", ["scripts/acquire_2023_matrix.py"]),
+    ("calculator_2023_integration", ["scripts/integrate_2023_calculator.py"]),
     ("historical_polls", ["scripts/acquire_historical_polls.py"]),
     ("historical_secondary", ["scripts/stage_historico_secondary.py"]),
     ("historical_validation", ["scripts/validate_historical_secondary.py"]),
