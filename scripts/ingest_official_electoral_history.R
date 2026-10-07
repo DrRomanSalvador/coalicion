@@ -15,10 +15,12 @@ official_urls <- c(
 official_download_page <- "https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/index.html"
 local_xlsx <- "data/raw/Elecciones-Congreso.xlsx"
 
-if (!nzchar(Sys.which("curl"))) stop("curl executable is required for official Interior ingestion.")
+curl_bin <- Sys.which("curl")
+if (!nzchar(curl_bin)) curl_bin <- "/usr/bin/curl"
+if (!file.exists(curl_bin)) stop("FAIL-CLOSED: curl executable is required for official Interior ingestion.")
 
 download_candidate <- function(url, destination) {
-  status <- system2("curl", c(
+  status <- system2(curl_bin, c(
     "-fL", "--retry", "2", "--retry-delay", "2",
     "--connect-timeout", "30", "--max-time", "600",
     "-A", "Mozilla/5.0-coalicion-historical-ingest/1.0",
