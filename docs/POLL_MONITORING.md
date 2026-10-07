@@ -27,11 +27,11 @@ El workflow tiene `contents: write` para que el estado sobreviva a ejecuciones i
 
 ## Telegram
 
-Una encuesta validada nueva o modificada genera alerta inmediata. También se registra un fallo de fuente cuando aparece por primera vez o cambia. El bot usa `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID`. `X_BEARER_TOKEN` es opcional para X/Twitter.
+Una encuesta validada nueva o modificada genera alerta. Los feeds RSS generan descubrimientos alertables; las páginas sin parser estructurado solo dejan huella criptográfica y no generan falsas alertas de encuesta. También se registra un fallo de fuente cuando aparece por primera vez o cambia. El bot usa `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID`. `X_BEARER_TOKEN` es opcional para X/Twitter.
 
 ## Frecuencia
 
-GitHub permite un intervalo mínimo programado de cinco minutos, pero la ejecución programada puede sufrir retrasos por carga de la plataforma. Por ello el sistema es **near-real-time sobre GitHub Actions**, no una garantía de latencia de cinco minutos.
+GitHub permite un intervalo mínimo programado de cinco minutos. El workflow usa un desfase de 2 minutos (`2-59/5`) para evitar concentrar ejecuciones en el cambio de hora; aun así, GitHub puede retrasar o perder ejecuciones programadas bajo carga. Por ello el sistema es **near-real-time sobre GitHub Actions**, no una garantía de latencia de cinco minutos.
 
 ## Integración electoral
 
