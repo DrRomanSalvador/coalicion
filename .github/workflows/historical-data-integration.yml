@@ -52,8 +52,14 @@ jobs:
           sudo apt-get install -y curl libcurl4-openssl-dev libssl-dev libxml2-dev libharfbuzz-dev libfribidi-dev libfontconfig1-dev
 
       - name: Install R dependencies
+        timeout-minutes: 15
+        env:
+          R_LIBS_USER: ${{ runner.temp }}/r-lib
         run: |
-          Rscript -e 'install.packages(c("opencis","readxl","dplyr","readr","tibble","haven","purrr"), repos="https://cloud.r-project.org")'
+          set -euxo pipefail
+          mkdir -p "$R_LIBS_USER"
+          Rscript -e 'options(repos=c(CRAN="https://cloud.r-project.org"), timeout=300); install.packages(c("opencis","readxl","dplyr","readr","tibble","haven","purrr"), lib=Sys.getenv("R_LIBS_USER"), dependencies=TRUE, quiet=FALSE)'
+          Rscript -e 'pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr"); stopifnot(all(vapply(pkgs, requireNamespace, logical(1), quietly=TRUE)))'
 
       - name: Ingest official Interior results
         run: Rscript scripts/ingest_official_electoral_history.R
