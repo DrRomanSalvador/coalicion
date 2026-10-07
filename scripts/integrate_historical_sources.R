@@ -135,3 +135,5 @@ cat("Official rows:",nrow(results)," elections:",dplyr::n_distinct(results$elect
 cat("CIS rows:",nrow(cis)," studies:",nrow(studies),"\n")
 
 # CI trigger: source integration is deterministic and fail-closed.
+
+# test-run trigger
