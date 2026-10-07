@@ -101,6 +101,12 @@ if (file.exists(paste0(local_xlsx, ".part"))) unlink(paste0(local_xlsx, ".part")
 }
 
 norm <- function(x) gsub("[^a-z0-9]", "", tolower(iconv(as.character(x), to="ASCII//TRANSLIT")))
+canonical_id <- function(x) {
+  y <- toupper(iconv(trimws(as.character(x)), to="ASCII//TRANSLIT"))
+  y <- gsub("[^A-Z0-9]+", "_", y)
+  y <- gsub("^_+|_+$", "", y)
+  ifelse(nzchar(y), y, NA_character_)
+}
 find_col <- function(headers, patterns) {
   h <- norm(headers)
   for (p in patterns) {
@@ -178,7 +184,8 @@ result <- long |>
   dplyr::group_by(election, fecha_eleccion, circunscripcion, partido) |>
   dplyr::summarise(votos=sum(value[metric=="votos"], na.rm=TRUE),
                    escaños=sum(value[metric=="escanos"], na.rm=TRUE), .groups="drop") |>
-  dplyr::mutate(circunscripcion_codigo=NA_character_, partido_codigo=NA_character_,
+  dplyr::mutate(circunscripcion_codigo=canonical_id(circunscripcion),
+    partido_codigo=canonical_id(partido),
     fuente="Ministerio del Interior / portal oficial de datos abiertos",
     nivel_fuente="PRIMARY_OFFICIAL") |>
   dplyr::select(election, fecha_eleccion, circunscripcion_codigo, circunscripcion,
@@ -206,11 +213,12 @@ prov <- list(
   schema = "INTERIOR_OFFICIAL_ACQUISITION_V2",
   source_url = source_url,
   download_page = official_download_page,
-  sha256 = sub("  .*", "", system2("sha256sum", local_xlsx, stdout=TRUE)),
+  sha256 = sub("  .*", "", system2(ifelse(nzchar(Sys.which("sha256sum")), Sys.which("sha256sum"), "/usr/bin/sha256sum"), local_xlsx, stdout=TRUE)),
   file_bytes = file.info(local_xlsx)$size,
   elections = target_dates,
   n_rows = nrow(result),
-  n_constituencies_per_election = integrity$n_circunscripciones
+  n_constituencies_per_election = integrity$n_circunscripciones,
+  identifier_policy = "circunscripcion_codigo and partido_codigo are deterministic identifiers derived from official labels; they are not claimed as Ministry-issued codes."
 )
 jsonlite::write_json(prov, "data/manifests/INTERIOR_ACQUISITION.json", auto_unbox=TRUE, pretty=TRUE)
 message("Wrote ", nrow(result), " official constituency-party rows from ", source_url)
