@@ -64,7 +64,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json data/raw/Elecciones-Congreso.xlsx
+          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json
           if git diff --cached --quiet; then
             echo "No material changes."
           else
