@@ -41,7 +41,6 @@ jobs:
         run: python -m pip install --upgrade pip certifi openpyxl pandas pytest requests beautifulsoup4
       - name: Endurecimiento
         id: hardening
-        continue-on-error: true
         run: |
           mkdir -p artifacts/queue
           set +e
