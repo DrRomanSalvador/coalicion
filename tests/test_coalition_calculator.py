@@ -22,7 +22,7 @@ def test_separate_result_uses_all_candidates():
     # P1 and P2 receive seats against P3; neither is calculated in isolation.
     assert result["separate_seats"] == 2
     assert result["coalition_seats"] == 2
-    assert result["benefit"] == 1
+    assert result["benefit"] == 0
 
 
 def test_all_constituencies_are_analyzed():
