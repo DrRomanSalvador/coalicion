@@ -1,4 +1,4 @@
-"""CLI mínima de COALICIÓN Decision Engine."""
+"""CLI canónica de COALICIÓN: auditoría y simulación electoral reproducible."""
 from __future__ import annotations
 import argparse, json, hashlib
 from pathlib import Path
@@ -50,5 +50,5 @@ def main():
     cr=sub.add_parser("coalition-report"); cr.add_argument("parties",nargs="+"); cr.add_argument("--input",required=True); cr.set_defaults(fn=cmd_coalition_report)
     pr=sub.add_parser("predict"); pr.add_argument("--input",required=True); pr.set_defaults(fn=cmd_predict)
     s=sub.add_parser("scenario"); s.add_argument("--party",required=True); s.add_argument("--shift",type=float,required=True); s.add_argument("--distribution",choices=["uniform_by_province","unspecified"],default="unspecified"); s.add_argument("--input",required=True); s.set_defaults(fn=cmd_scenario)
-    sub.add_parser("version").set_defaults(fn=lambda a: print("COALICIÓN Decision Engine 0.1")); a=p.parse_args(); a.fn(a)
+    sub.add_parser("version").set_defaults(fn=lambda a: print("COALICIÓN 2026.10")); a=p.parse_args(); a.fn(a)
 if __name__=="__main__": main()
