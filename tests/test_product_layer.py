@@ -10,10 +10,10 @@ from src.product_layer import (
 
 class ProductLayerTests(unittest.TestCase):
     def setUp(self):
-        self.seats = {"A": 1, "B": 1}
+        self.seats = {"A": 2, "B": 2}
         self.votes = {
-            "A": {"P1": 40, "P2": 35, "P3": 25},
-            "B": {"P1": 30, "P2": 20, "P3": 50},
+            "A": {"P1": 40, "P2": 20, "P3": 40},
+            "B": {"P1": 40, "P2": 20, "P3": 40},
         }
         self.scenarios = [
             CoalitionScenario("central", self.votes, 1.0, ("test",)),
