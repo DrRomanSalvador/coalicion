@@ -31,7 +31,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: historical-data-canonical-main-v8
+  group: historical-data-canonical-main-v9
   cancel-in-progress: false
 
 jobs:
@@ -63,6 +63,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends r-base r-base-dev
           command -v Rscript
           Rscript --version
 
