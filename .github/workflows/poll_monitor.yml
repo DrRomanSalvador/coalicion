@@ -39,12 +39,16 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
-        run: python -m src.poll_monitor
+        run: |
+          set -euo pipefail
+          python -m src.poll_monitor
+          rm -rf /tmp/poll-monitor-snapshot
+          mkdir -p /tmp/poll-monitor-snapshot/surveys
+          cp artifacts/poll_monitor_state.json /tmp/poll-monitor-snapshot/
+          cp artifacts/survey_history.jsonl /tmp/poll-monitor-snapshot/
+          cp -a artifacts/surveys/. /tmp/poll-monitor-snapshot/surveys/
 
-      - name: Commit histórico y estado (reintento seguro sobre main)
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+      - name: Persistir estado con autocuración de carreras
         run: |
           set -euo pipefail
           git config user.name "coalicion-poll-monitor[bot]"
@@ -54,9 +58,12 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            # Generar el snapshot SIEMPRE sobre el main más reciente.
-            # Así no hacemos rebase de JSON/JSONL generados por otra ejecución.
-            python -m src.poll_monitor
+            # Reaplicar el snapshot ya validado. Nunca hacemos rebase de JSON/JSONL.
+            cp /tmp/poll-monitor-snapshot/poll_monitor_state.json artifacts/poll_monitor_state.json
+            cp /tmp/poll-monitor-snapshot/survey_history.jsonl artifacts/survey_history.jsonl
+            rm -rf artifacts/surveys
+            mkdir -p artifacts/surveys
+            cp -a /tmp/poll-monitor-snapshot/surveys/. artifacts/surveys/
 
             git add artifacts/poll_monitor_state.json artifacts/surveys artifacts/survey_history.jsonl
             if git diff --cached --quiet; then
@@ -71,8 +78,8 @@ jobs:
               exit 0
             fi
 
-            echo "main avanzó durante el snapshot; descartando commit local y regenerando sobre origin/main (intento $attempt)."
+            echo "Carrera detectada; regenerando commit sobre el main más reciente (intento $attempt)."
           done
 
-          echo "ERROR: no se pudo publicar el estado después de 5 regeneraciones."
+          echo "ERROR: no se pudo publicar el estado después de 5 intentos."
           exit 1
