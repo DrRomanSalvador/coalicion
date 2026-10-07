@@ -14,14 +14,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  ingest_polls:
+  poll_vigilance:
     runs-on: ubuntu-latest
-    outputs:
-      status: ${{ steps.result.outputs.status }}
-      should_notify: ${{ steps.result.outputs.should_notify }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -37,62 +35,32 @@ jobs:
           fi
 
       - name: Ejecutar vigilancia y detección de cambios
-        id: ingest
         if: steps.gate.outputs.run == 'true'
-        continue-on-error: true
         run: python scripts/ingest_polls.py
 
-      - name: Publicar resultado
-        id: result
-        if: always()
-        run: |
-          if test -f artifacts/poll_vigilance_report.json; then
-            python - <<'PY'
-          import json
-          p=json.load(open("artifacts/poll_vigilance_report.json",encoding="utf-8"))
-          with open("/tmp/result.env","w",encoding="utf-8") as f:
-              f.write("status="+p["status"]+"\n")
-              f.write("should_notify="+str(any(e.get("status") in {"NEW_POLL","CHANGED_POLL"} for e in p.get("events",[]))).lower()+"\n")
-          PY
-            cat /tmp/result.env >> "$GITHUB_OUTPUT"
-          else
-            echo "status=BLOCKED" >> "$GITHUB_OUTPUT"
-            echo "should_notify=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Mostrar informe operacional
-        if: always()
-        run: |
-          test ! -f artifacts/poll_vigilance_report.json || cat artifacts/poll_vigilance_report.json
-
-      - name: Compartir informe con el job de Telegram
-        if: hashFiles('artifacts/poll_vigilance_report.json') != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: poll-vigilance-report
-          path: artifacts/poll_vigilance_report.json
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Fallar cerrado ante fuente inaccesible
-        if: steps.ingest.outcome == 'failure'
-        run: exit 1
-
-  send_telegram_alert:
-    needs: ingest_polls
-    if: needs.ingest_polls.outputs.should_notify == 'true' && needs.ingest_polls.outputs.status == 'ALERT'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Descargar informe generado
-        uses: actions/download-artifact@v4
-        with:
-          name: poll-vigilance-report
-          path: artifacts
-
-      - name: Enviar alerta Telegram
+      - name: Enviar alerta Telegram si hay encuesta nueva
+        if: steps.gate.outputs.run == 'true'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python scripts/telegram_notifier.py artifacts/poll_vigilance_report.json
+        run: |
+          if python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = Path("artifacts/poll_vigilance_report.json")
+          if not report.exists():
+              raise SystemExit(1)
+
+          payload = json.loads(report.read_text(encoding="utf-8"))
+          has_new = any(
+              event.get("status") in {"NEW_POLL", "CHANGED_POLL"}
+              for event in payload.get("events", [])
+          )
+          raise SystemExit(0 if has_new else 1)
+          PY
+          then
+            python scripts/telegram_notifier.py artifacts/poll_vigilance_report.json
+          else
+            echo "Sin encuesta nueva ni revisión real: no se envía Telegram."
+          fi
