@@ -82,45 +82,41 @@ def parse_rss(body,source):
 
 
 def parse_datoelectoral_html(body, source):
-    soup = BeautifulSoup(body.decode("utf-8"), "html.parser")
-    text = "\n".join(x.strip() for x in soup.get_text("\n").splitlines() if x.strip())
-    chunks = text.split("##")
-    out = []
-    months = {"enero":1,"febrero":2,"marzo":3,"abril":4,"mayo":5,"junio":6,
-              "julio":7,"agosto":8,"septiembre":9,"octubre":10,"noviembre":11,"diciembre":12}
-    for chunk in chunks:
-        if "Estimación de voto publicada por el sondeo" not in chunk:
+    soup=BeautifulSoup(body.decode("utf-8"),"html.parser")
+    months={"enero":1,"febrero":2,"marzo":3,"abril":4,"mayo":5,"junio":6,
+            "julio":7,"agosto":8,"septiembre":9,"octubre":10,"noviembre":11,"diciembre":12}
+    out=[]
+    for heading in soup.find_all(["h2","h3","h4"]):
+        if "Estimación de voto publicada por el sondeo" not in heading.get_text(" ",strip=True):
             continue
-        lines = [x.strip(" *") for x in chunk.splitlines() if x.strip()]
-        title = next((x for x in lines if x.startswith(("Barómetro","Sondeo","Encuesta"))), None)
-        pub = next((x for x in lines if "publicado el " in x), "")
-        if not title or not pub:
-            continue
-        m = re.search(r"publicado el (\d{1,2}) de ([a-záéíóú]+) de (\d{4})", pub, re.I)
+        section=[]
+        for node in heading.find_all_next():
+            if node is not heading and node.name in {"h2","h3","h4"} and section:
+                break
+            txt=node.get_text(" ",strip=True)
+            if txt: section.append(txt)
+        parent=heading.parent.get_text(" ",strip=True) if heading.parent else ""
+        title=next((h.get_text(" ",strip=True) for h in heading.find_all_previous(["h2","h3"]) if h.get_text(" ",strip=True)), "Encuesta")
+        m=re.search(r"publicado el (\d{1,2}) de ([a-záéíóú]+) de (\d{4})",parent,re.I)
         if not m or m.group(2).lower() not in months:
             continue
-        publication = f"{m.group(3)}-{months[m.group(2).lower()]:02d}-{int(m.group(1)):02d}"
-        parties = {}
-        start = lines.index("Estimación de voto publicada por el sondeo") + 1
-        for line in lines[start:]:
-            if line.startswith("Cuestionario íntegro"):
-                break
-            pm = re.match(r"^(.+?)\s+([0-9]+(?:[.,][0-9]+)?)\s*%$", line)
+        publication=f"{m.group(3)}-{months[m.group(2).lower()]:02d}-{int(m.group(1)):02d}"
+        parties={}
+        for line in section:
+            pm=re.match(r"^(.+?)\s+([0-9]+(?:[.,][0-9]+)?)\s*%$",line)
             if pm:
-                name = _party(pm.group(1))
-                if name not in {"OTROS PARTIDOS", "OTROS"}:
-                    parties[name] = float(pm.group(2).replace(",", "."))
-        pollster = pub.split(" · publicado el ")[0].strip()
-        sample = None
-        for i, line in enumerate(lines):
-            if line.startswith("Tamaño de la muestra") and i + 1 < len(lines):
-                sm = re.search(r"\d+", lines[i+1].replace(".", ""))
-                if sm:
-                    sample = int(sm.group())
-        if parties:
-            out.append(_poll({"id": source["id"]+"::"+publication+"::"+title,
-                              "publication_date": publication, "pollster": pollster,
-                              "sample_size": sample, "parties": parties}, source))
+                name=_party(pm.group(1))
+                if name not in {"OTROS PARTIDOS","OTROS"}:
+                    parties[name]=float(pm.group(2).replace(",","."))
+        if not parties:
+            continue
+        pollster=parent.split(" · publicado el ")[0].strip() or "Fuente publicada"
+        sample=None
+        sm=re.search(r"Tamaño de la muestra\s*[:]?\s*(\d[\d.]*)",parent,re.I)
+        if sm: sample=int(sm.group(1).replace(".",""))
+        out.append(_poll({"id":source["id"]+"::"+publication+"::"+title,
+                          "publication_date":publication,"pollster":pollster,
+                          "sample_size":sample,"parties":parties},source))
     return out
 
 def parse_source(body,source):
