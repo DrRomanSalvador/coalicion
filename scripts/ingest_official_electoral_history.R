@@ -18,7 +18,13 @@ local_xlsx <- "data/raw/Elecciones-Congreso.xlsx"
 
 curl_bin <- Sys.which("curl")
 if (!nzchar(curl_bin)) curl_bin <- "/usr/bin/curl"
-ca_bundle <- tryCatch(system2("python", c("-c", "import certifi; print(certifi.where())"), stdout=TRUE, stderr=FALSE), error=function(e) character())
+python_bin <- Sys.which("python")
+if (!nzchar(python_bin)) python_bin <- Sys.which("python3")
+if (!nzchar(python_bin)) stop("FAIL-CLOSED: Python is required for verified HTTPS acquisition fallback.")
+certifi_script <- tempfile(fileext=".py")
+writeLines("import certifi; print(certifi.where())", certifi_script, useBytes=TRUE)
+ca_bundle <- tryCatch(system2(python_bin, certifi_script, stdout=TRUE, stderr=FALSE), error=function(e) character())
+unlink(certifi_script)
 if (length(ca_bundle) == 1L && file.exists(ca_bundle)) Sys.setenv(CURL_CA_BUNDLE=ca_bundle)
 if (!file.exists(curl_bin)) stop("FAIL-CLOSED: curl executable is required for official Interior ingestion.")
 
@@ -41,15 +47,18 @@ download_candidate <- function(url, destination) {
     if (file.exists(tmp)) unlink(tmp)
     py <- Sys.which("python")
     if (nzchar(py)) {
-      py_code <- paste(
-        "import sys,ssl,urllib.request,certifi;",
-        "u,p=sys.argv[1],sys.argv[2];",
-        "req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0-coalicion-historical-ingest/2.0','Referer':'https://infoelectoral.interior.gob.es/'});",
-        "ctx=ssl.create_default_context(cafile=certifi.where());",
-        "r=urllib.request.urlopen(req,context=ctx,timeout=900);",
-        "f=open(p,'wb'); f.write(r.read()); f.close(); r.close()"
-      )
-      py_status <- system2(py, c("-c", py_code, url, tmp))
+      py_script <- tempfile(fileext=".py")
+      writeLines(c(
+        "import sys, ssl, urllib.request, certifi",
+        "u, p = sys.argv[1], sys.argv[2]",
+        "req = urllib.request.Request(u, headers={'User-Agent':'Mozilla/5.0-coalicion-historical-ingest/2.0','Referer':'https://infoelectoral.interior.gob.es/'})",
+        "ctx = ssl.create_default_context(cafile=certifi.where())",
+        "with urllib.request.urlopen(req, context=ctx, timeout=900) as r:",
+        "    with open(p, 'wb') as f:",
+        "        f.write(r.read())"
+      ), py_script, useBytes=TRUE)
+      py_status <- system2(py, c(py_script, url, tmp))
+      unlink(py_script)
       ok <- identical(py_status, 0L) && file.exists(tmp) && file.info(tmp)$size > 10000
     }
   }
