@@ -53,11 +53,17 @@ def main():
            "## Escenarios","",
            "| Coalición | Separado | Coaligado | Delta |","|---|---:|---:|---:|"]
     for x in results: lines.append(f"| {' + '.join(x['coalition'])} | {x['separate_seats']} | {x['coalition_seats']} | {x['delta']} |")
-    lines += ["","## Desglose territorial",""]
+    lines += ["","## Desglose territorial","",
+               "El artefacto JSON contiene el desglose completo por circunscripción para cada escenario. Esta sección lista únicamente las circunscripciones cuyo delta no es cero, para mantener el informe legible.",""]
     for x in results:
-        lines += [f"### {' + '.join(x['coalition'])}","| Circunscripción | Separado | Coaligado | Delta |","|---|---:|---:|---:|"]
-        for c in sorted(x["delta_by_constituency"]):
-            lines.append(f"| {c} | {x['separate_by_constituency'][c]} | {x['coalition_by_constituency'][c]} | {x['delta_by_constituency'][c]} |")
+        changed=[c for c in sorted(x["delta_by_constituency"]) if x["delta_by_constituency"][c] != 0]
+        lines.append(f"### {' + '.join(x['coalition'])}")
+        if not changed:
+            lines.append("Sin variación territorial de escaños.")
+        else:
+            lines += ["| Circunscripción | Separado | Coaligado | Delta |","|---|---:|---:|---:|"]
+            for c in changed:
+                lines.append(f"| {c} | {x['separate_by_constituency'][c]} | {x['coalition_by_constituency'][c]} | {x['delta_by_constituency'][c]} |")
         lines.append("")
     OUT_MD.write_text("\n".join(lines)+"\n",encoding="utf-8")
     print(json.dumps({"status":payload["status"],"coalition_count":len(results),"json":str(OUT_JSON.relative_to(ROOT)),
