@@ -53,8 +53,7 @@ jobs:
               raise SystemExit("INVALID_WORKFLOW_FILENAME")
           if target == "force_workflow.yml":
               raise SystemExit("DISPATCHER_RECURSION_BLOCKED")
-          if not ref or any(c in ref for c in "\r
-"):
+          if not ref or any(c in ref for c in "\\r\\n"):
               raise SystemExit("INVALID_REF")
 
           try:
