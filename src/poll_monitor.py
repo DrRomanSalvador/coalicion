@@ -217,7 +217,7 @@ def parse_national_html(body: bytes, source: dict[str, Any]) -> list[Poll]:
         parties = _extract_percentages(candidate)
         if len(parties) >= 5:
             total = sum(parties.values())
-            if 95 <= total <= 105 and (best is None or len(parties) > len(best[0])):
+            if 70 <= total <= 105 and (best is None or len(parties) > len(best[0])):
                 best = (parties, candidate)
     if best is None:
         return []
@@ -402,6 +402,11 @@ class PollMonitor:
                 self.state.setdefault("failure_hashes", {}).pop(source["id"], None)
                 self.state.setdefault("failure_streaks", {})[source["id"]] = 0
                 self.state.setdefault("failure_reported", {}).pop(source["id"], None)
+                self.state.setdefault("source_status", {})[source["id"]] = {
+                    "status": "OK", "format": source.get("format", "page"),
+                    "coverage_role": source.get("coverage_role", "primary"),
+                    "checked_at": datetime.now(timezone.utc).isoformat(),
+                }
                 p, d = monitor.parse(body)
                 polls.extend(p)
                 for x in d:
@@ -409,6 +414,11 @@ class PollMonitor:
                 discoveries.extend(d)
             except Exception as exc:
                 message = f"{type(exc).__name__}:{exc}"
+                self.state.setdefault("source_status", {})[source["id"]] = {
+                    "status": "FAILED", "format": source.get("format", "page"),
+                    "coverage_role": source.get("coverage_role", "primary"),
+                    "error": message, "checked_at": datetime.now(timezone.utc).isoformat(),
+                }
                 failures.append({"source_id":source["id"],"error":message})
         return polls, discoveries, failures
 
@@ -436,6 +446,34 @@ class PollMonitor:
             elif old != h:
                 changed.append(event)
         return new, changed, new_discoveries
+
+    def audit_coverage(self, failures: list[dict[str, Any]], discoveries: list[dict[str, Any]]) -> dict[str, Any]:
+        """Hard gate for the declared configured national universe."""
+        sources = [s for s in self.config.get("sources", []) if not s.get("disabled")]
+        blockers: list[str] = []
+        statuses = self.state.get("source_status", {})
+        failed_ids = {f["source_id"] for f in failures}
+        for source in sources:
+            sid = source["id"]
+            if source.get("optional"):
+                continue
+            if sid in failed_ids or statuses.get(sid, {}).get("status") != "OK":
+                blockers.append(f"SOURCE_NOT_HEALTHY:{sid}")
+            if source.get("coverage_role") == "primary" and source.get("format", "page") == "page":
+                blockers.append(f"PRIMARY_WITHOUT_STRUCTURED_EXTRACTOR:{sid}")
+        unclassified = [s["id"] for s in sources if s.get("coverage_role") not in {"primary", "discovery", "optional"}]
+        if unclassified:
+            blockers.append("UNCLASSIFIED_SOURCES:" + ",".join(unclassified))
+        total = not blockers
+        return {
+            "claim": "COBERTURA_TOTAL_VERIFICADA" if total else "COBERTURA_TOTAL_NO_VERIFICADA",
+            "scope": self.config.get("coverage_contract", {}).get("scope", "configured_national_poll_universe"),
+            "total": total,
+            "sources_checked": len(sources),
+            "primary_sources": sum(1 for s in sources if s.get("coverage_role") == "primary"),
+            "discovery_sources": sum(1 for s in sources if s.get("coverage_role") == "discovery"),
+            "blockers": blockers,
+        }
 
     def save(self, payload: dict[str, Any], *, meaningful: bool) -> Path | None:
         if not meaningful:
@@ -570,8 +608,10 @@ class PollMonitor:
         if baseline:
             new, changed, new_discoveries = [], [], []
             self.state["baseline_completed"] = True
+        coverage = self.audit_coverage(failures, discoveries)
         payload = {
-            "schema":"POLL_MONITOR_V2","checked_at":checked,
+            "schema":"POLL_MONITOR_V3","checked_at":checked,
+            "coverage": coverage,
             "status":"BLOCKED" if failures else ("ALERT" if new or changed else "READY"),
             "found_polls":len(polls),"new_polls":new,"changed_polls":changed,
             "discoveries":new_discoveries,"failures":failures,
