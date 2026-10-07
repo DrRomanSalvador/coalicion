@@ -11,22 +11,147 @@
   },
   "timezone": "Europe/Madrid",
   "sources": [
-    {"id":"cis_rss","name":"CIS (RSS legacy)","url":"https://www.cis.es/cis/opencm/ES/1_encuestas/estudios/rss.xml","format":"rss","method":"GET","disabled":true,"reason":"legacy endpoint returns HTTP 410; use CIS catalog/news discovery","coverage_role":"discovery"},
-    {"id":"electomania_ajax","name":"Electomanía","url":"https://electomania.es/wp-admin/admin-ajax.php","format":"electomania_json","method":"POST","data":{"action":"get_encuestas"},"coverage_role":"discovery"},
-    {"id":"cis_catalog","name":"CIS catálogo","url":"https://www.cis.es/es/estudios/catalogo","format":"page","method":"GET","coverage_role":"discovery"},
-    {"id":"cis_news","name":"CIS noticias","url":"https://www.cis.es/es/sala-prensa/noticias","format":"page","method":"GET","coverage_role":"discovery"},
-    {"id":"elpais_40db","name":"EL PAÍS / 40dB","url":"https://elpais.com/noticias/barometro-el-pais/","format":"national_html","method":"GET","pollster":"40dB","coverage_role":"primary"},
-    {"id":"datoelectoral","name":"Dato Electoral","url":"https://www.datoelectoral.es/encuestas","format":"datoelectoral_html","method":"GET","coverage_role":"discovery"},
-    {"id":"europe_elects_spain","name":"Europe Elects","url":"https://europeelects.eu/spain/","format":"page","method":"GET","coverage_role":"discovery"},
-    {"id":"myfdata","name":"MyF Data","url":"https://www.myfdata.com/elecciones-generales/","format":"national_html","method":"GET","coverage_role":"primary"},
-    {"id":"sigma_dos","name":"Sigma Dos","url":"https://www.elmundo.es/sigmasdos/","format":"national_html","method":"GET","optional":true,"coverage_role":"primary"},
-    {"id":"gad3","name":"GAD3","url":"https://www.gad3.com/informes/","format":"national_html","method":"GET","pollster":"GAD3","coverage_role":"primary"},
-    {"id":"nc_report","name":"NC Report","url":"https://ncreport.es/","format":"national_html","method":"GET","pollster":"NC Report","coverage_role":"primary"},
-    {"id":"demoscopia","name":"Demoscopia","url":"https://www.demoscopia.es/encuestas/","format":"national_html","method":"GET","coverage_role":"primary"},
-    {"id":"celeste_tel","name":"Celeste-Tel","url":"https://www.celeste-tel.es/","format":"national_html","method":"GET","pollster":"Celeste-Tel","coverage_role":"primary"},
-    {"id":"invymark","name":"Invymark","url":"https://invymark.com/encuestas/","format":"national_html","method":"GET","coverage_role":"primary"},
-    {"id":"political_stats_spain","name":"Political Stats","url":"https://politicalstats.eu/spain","format":"page","method":"GET","coverage_role":"discovery"},
-    {"id":"europe_elects_twitter","name":"Europe Elects X","url":"https://api.twitter.com/2/users/{user_id}/tweets","format":"twitter","method":"GET","user_id":"","optional":true,"coverage_role":"discovery"}
+    {
+      "id": "cis_rss",
+      "name": "CIS (RSS legacy)",
+      "url": "https://www.cis.es/cis/opencm/ES/1_encuestas/estudios/rss.xml",
+      "format": "rss",
+      "method": "GET",
+      "disabled": true,
+      "reason": "legacy endpoint returns HTTP 410; use CIS catalog/news discovery",
+      "coverage_role": "discovery"
+    },
+    {
+      "id": "electomania_ajax",
+      "name": "Electomanía — catálogo público",
+      "url": "https://electomania.es/encuestas/",
+      "format": "page",
+      "coverage_role": "discovery",
+      "reason": "El endpoint AJAX legacy devuelve HTTP 400; se monitoriza el catálogo público como capa de descubrimiento."
+    },
+    {
+      "id": "cis_catalog",
+      "name": "CIS catálogo",
+      "url": "https://www.cis.es/es/estudios/catalogo",
+      "format": "page",
+      "method": "GET",
+      "coverage_role": "discovery"
+    },
+    {
+      "id": "cis_news",
+      "name": "CIS noticias",
+      "url": "https://www.cis.es/es/sala-prensa/noticias",
+      "format": "page",
+      "method": "GET",
+      "coverage_role": "discovery"
+    },
+    {
+      "id": "elpais_40db",
+      "name": "EL PAÍS / 40dB",
+      "url": "https://elpais.com/noticias/encuestas-electorales/?outputType=amp",
+      "format": "national_html",
+      "method": "GET",
+      "pollster": "40dB",
+      "coverage_role": "primary",
+      "reason": "La página pública normal aplica 403 a clientes automatizados; AMP mantiene el contenido editorial accesible."
+    },
+    {
+      "id": "datoelectoral",
+      "name": "Dato Electoral",
+      "url": "https://www.datoelectoral.es/encuestas",
+      "format": "datoelectoral_html",
+      "method": "GET",
+      "coverage_role": "discovery"
+    },
+    {
+      "id": "europe_elects_spain",
+      "name": "Europe Elects",
+      "url": "https://europeelects.eu/spain/",
+      "format": "page",
+      "method": "GET",
+      "coverage_role": "discovery"
+    },
+    {
+      "id": "myfdata",
+      "name": "MyF Data",
+      "url": "https://www.myfdata.com/elecciones-generales/",
+      "format": "national_html",
+      "method": "GET",
+      "coverage_role": "discovery",
+      "disabled": true,
+      "reason": "Endpoint rechazado por conexión (111) y no se ha localizado publicación electoral activa verificable en 2026; conservar como fuente histórica, no como bloqueo operativo."
+    },
+    {
+      "id": "sigma_dos",
+      "name": "Sigma Dos",
+      "url": "https://www.sigmados.com/",
+      "format": "national_html",
+      "method": "GET",
+      "coverage_role": "primary",
+      "reason": "Sustituido el endpoint EL MUNDO obsoleto por el sitio oficial de Sigma Dos."
+    },
+    {
+      "id": "gad3",
+      "name": "GAD3",
+      "url": "https://www.gad3.com/informes/",
+      "format": "national_html",
+      "method": "GET",
+      "pollster": "GAD3",
+      "coverage_role": "primary"
+    },
+    {
+      "id": "nc_report",
+      "name": "NC Report",
+      "url": "https://ncreport.es/",
+      "format": "national_html",
+      "method": "GET",
+      "pollster": "NC Report",
+      "coverage_role": "primary"
+    },
+    {
+      "id": "demoscopia",
+      "name": "Demoscopia",
+      "url": "https://www.demoscopia.es/encuestas/",
+      "format": "national_html",
+      "method": "GET",
+      "coverage_role": "primary"
+    },
+    {
+      "id": "celeste_tel",
+      "name": "Celeste-Tel",
+      "url": "https://www.celeste-tel.es/",
+      "format": "national_html",
+      "method": "GET",
+      "pollster": "Celeste-Tel",
+      "coverage_role": "primary"
+    },
+    {
+      "id": "invymark",
+      "name": "Invymark",
+      "url": "https://invymark.es/",
+      "format": "national_html",
+      "method": "GET",
+      "coverage_role": "primary",
+      "reason": "Dominio oficial actual; el certificado TLS está caducado, por lo que un bloqueo persistente queda como incidencia primaria."
+    },
+    {
+      "id": "political_stats_spain",
+      "name": "Political Stats",
+      "url": "https://politicalstats.eu/spain",
+      "format": "page",
+      "method": "GET",
+      "coverage_role": "discovery"
+    },
+    {
+      "id": "europe_elects_twitter",
+      "name": "Europe Elects X",
+      "url": "https://api.twitter.com/2/users/{user_id}/tweets",
+      "format": "twitter",
+      "method": "GET",
+      "user_id": "",
+      "optional": true,
+      "coverage_role": "discovery"
+    }
   ],
   "policy": {
     "no_search_engine_inference": true,
@@ -34,6 +159,7 @@
     "no_national_to_territorial_conversion": true,
     "fail_closed": true,
     "alert_on_new_or_changed_validated_poll": true,
-    "alert_on_persistent_source_failure": true
+    "alert_on_persistent_source_failure": true,
+    "alert_discovery_source_failure": false
   }
 }

@@ -491,7 +491,12 @@ class PollMonitor:
             sid = source["id"]
             if source.get("optional") and source.get("coverage_role") != "primary":
                 continue
-            if sid in failed_ids or statuses.get(sid, {}).get("status") != "OK":
+            # Discovery layers are coverage sensors, not primary evidence.
+            # Their transport failures must be recorded but must not block the
+            # national primary-source coverage gate.
+            if source.get("coverage_role") == "primary" and (
+                sid in failed_ids or statuses.get(sid, {}).get("status") != "OK"
+            ):
                 blockers.append(f"SOURCE_NOT_HEALTHY:{sid}")
             if source.get("coverage_role") == "primary" and source.get("format", "page") not in structured:
                 blockers.append(f"PRIMARY_WITHOUT_STRUCTURED_EXTRACTOR:{sid}")
@@ -541,12 +546,23 @@ class PollMonitor:
         unsent_failures = []
         streaks = self.state.setdefault("failure_streaks", {})
         reported = self.state.setdefault("failure_reported", {})
+        source_roles = {
+            s["id"]: s.get("coverage_role", "discovery")
+            for s in self.config.get("sources", [])
+        }
         for failure in failures:
             sid = failure["source_id"]
             key = hashlib.sha256(json.dumps(failure, sort_keys=True).encode()).hexdigest()
             streaks[sid] = int(streaks.get(sid, 0)) + 1
             self.state.setdefault("failure_hashes", {})[sid] = key
-            if streaks[sid] >= 3 and reported.get(sid) != key:
+            # Discovery failures stay in artifacts/state for auditability, but
+            # never generate Telegram noise. Only primary-source outages are
+            # actionable electoral-monitoring incidents.
+            if (
+                source_roles.get(sid) == "primary"
+                and streaks[sid] >= 3
+                and reported.get(sid) != key
+            ):
                 unsent_failures.append((failure, key, streaks[sid]))
         if not events and not discoveries and not unsent_failures:
             return False
@@ -662,11 +678,19 @@ class PollMonitor:
             "seat_projection":"BLOCKED_NO_TERRITORIAL_INPUT",
         }
         failure_notifications = []
+        source_roles = {
+            s["id"]: s.get("coverage_role", "discovery")
+            for s in self.config.get("sources", [])
+        }
         for failure in failures:
             sid = failure["source_id"]
             streak = int(self.state.get("failure_streaks", {}).get(sid, 0))
             key = hashlib.sha256(json.dumps(failure, sort_keys=True).encode()).hexdigest()
-            if streak >= 3 and self.state.get("failure_reported", {}).get(sid) != key:
+            if (
+                source_roles.get(sid) == "primary"
+                and streak >= 3
+                and self.state.get("failure_reported", {}).get(sid) != key
+            ):
                 failure_notifications.append(failure)
         previous_coverage = self.state.get("last_coverage")
         coverage_changed = previous_coverage != coverage
