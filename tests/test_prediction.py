@@ -1,6 +1,6 @@
 from src.prediction import (
     PollObservation, Candidate, accept_update, base, expanding_oos,
-    select_best, _errors, change_vs_previous_election,
+    select_best, _errors, change_vs_previous_election, decompose_movement,
 )
 
 def obs(e, poll, actual, field):
@@ -60,6 +60,16 @@ def test_change_vs_previous_uses_poll_to_poll():
     assert result.actual_change == 2
     assert result.poll_change == 5
     assert result.change_error == 3
+
+def test_movement_decomposition_uses_poll_to_poll():
+    rows = [
+        obs("2004", 40, 42, "2004-03-01"),
+        obs("2008", 45, 44, "2008-03-01"),
+    ]
+    result = decompose_movement(rows)[0]
+    assert result.actual_change == 2
+    assert result.observed_change == 5
+    assert result.movement_error == 3
 
 def test_equal_model_not_accepted():
     r = expanding_oos([("a", 1), ("b", 2)], lambda t: t[-1][1])
