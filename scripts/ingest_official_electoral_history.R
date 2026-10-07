@@ -137,7 +137,11 @@ for (sheet in wb) {
 }
 
 result <- dplyr::bind_rows(pieces)
-if (!nrow(result)) {\n  diag <- tryCatch(readxl::read_excel(local_xlsx, sheet=wb[[1]], col_names=FALSE, n_max=12), error=function(e) NULL)\n  if (!is.null(diag)) print(diag)\n  stop("Official workbook: no recognizable provincial/candidature rows.")\n}
+if (!nrow(result)) {
+  diag <- tryCatch(readxl::read_excel(local_xlsx, sheet=wb[[1]], col_names=FALSE, n_max=12), error=function(e) NULL)
+  if (!is.null(diag)) print(diag)
+  stop("Official workbook: no recognizable provincial/candidature rows.")
+}
 result <- result |>
   dplyr::distinct(election, fecha_eleccion, circunscripcion, partido, .keep_all=TRUE)
 
