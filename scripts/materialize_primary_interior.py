@@ -38,13 +38,30 @@ def main():
     finally:
         tmp_path.unlink(missing_ok=True)
     if data is None:
-        ctx=ssl.create_default_context(cafile=ca)
         req=urllib.request.Request(URL,headers={"User-Agent":"coalicion-primary-materializer/1.0","Referer":PAGE})
         try:
+            ctx=ssl.create_default_context(cafile=ca)
             with urllib.request.urlopen(req,context=ctx,timeout=900) as r:
                 data=r.read()
-        except Exception as exc:
-            raise RuntimeError("FAIL-CLOSED: verified HTTPS acquisition from official Interior failed via curl and urllib") from exc
+        except Exception:
+            ape_url="https://www.cert.fnmt.es/certs/ACRAIZAPE.crt"
+            ape_tmp=Path(tempfile.mkstemp(suffix=".crt")[1])
+            bundle_tmp=Path(tempfile.mkstemp(suffix=".pem")[1])
+            try:
+                ape_req=urllib.request.Request(ape_url,headers={"User-Agent":"coalicion-primary-materializer/1.0"})
+                with urllib.request.urlopen(ape_req,context=ssl.create_default_context(),timeout=120) as r:
+                    ape_tmp.write_bytes(r.read())
+                if ape_tmp.stat().st_size < 1000:
+                    raise RuntimeError("FAIL-CLOSED: invalid official APE root certificate")
+                bundle_tmp.write_bytes(Path(ca).read_bytes()+b"\n"+ape_tmp.read_bytes())
+                ctx=ssl.create_default_context(cafile=bundle_tmp.as_posix())
+                with urllib.request.urlopen(req,context=ctx,timeout=900) as r:
+                    data=r.read()
+            except Exception as exc:
+                raise RuntimeError("FAIL-CLOSED: verified HTTPS acquisition from official Interior failed") from exc
+            finally:
+                ape_tmp.unlink(missing_ok=True)
+                bundle_tmp.unlink(missing_ok=True)
     if len(data)<=10000 or data[:4]!=b"PK\x03\x04":
         raise RuntimeError("FAIL-CLOSED: official Interior response is not a valid XLSX")
     XLSX.write_bytes(data)
