@@ -60,117 +60,77 @@ target_dates <- c(
   "2023N"="2023-11-23"
 )
 
-election_from_text <- function(x) {
-  z <- tolower(iconv(as.character(x), to="ASCII//TRANSLIT"))
-  if (grepl("14[ -]?03[ -]?2004|marzo.*2004|2004", z)) return("2004")
-  if (grepl("09[ -]?03[ -]?2008|marzo.*2008|2008", z)) return("2008")
-  if (grepl("20[ -]?11[ -]?2011|noviembre.*2011|2011", z)) return("2011")
-  if (grepl("20[ -]?12[ -]?2015|diciembre.*2015|2015", z)) return("2015")
-  if (grepl("26[ -]?06[ -]?2016|junio.*2016|2016", z)) return("2016")
-  if (grepl("28[ -]?04[ -]?2019|abril.*2019", z)) return("2019A")
-  if (grepl("10[ -]?11[ -]?2019|noviembre.*2019", z)) return("2019N")
-  if (grepl("23[ -]?07[ -]?2023|julio.*2023", z)) return("2023J")
-  if (grepl("23[ -]?11[ -]?2023|noviembre.*2023", z)) return("2023N")
-  NA_character_
-}
-
 wb <- readxl::excel_sheets(local_xlsx)
+if (length(wb) != 1L || wb[[1]] != "Congreso")
+  stop("Unexpected official Interior workbook sheets: ", paste(wb, collapse=", "))
+
+raw <- readxl::read_excel(
+  local_xlsx, sheet="Congreso", skip=3, col_names=TRUE,
+  .name_repair="minimal"
+)
+if (!nrow(raw)) stop("Official Interior workbook is empty after header row.")
+
+headers <- names(raw)
+datecol <- find_col(headers, c("Fecha"))
+desccol <- find_col(headers, c("Descripción","Descripcion"))
+typecol <- find_col(headers, c("Tipo Elección","Tipo Eleccion"))
+
+if (is.na(datecol) || is.na(desccol) || is.na(typecol))
+  stop("Official workbook schema missing Fecha/Tipo Elección/Descripción.")
+
+province_cols <- setdiff(seq_along(headers), c(1:4))
+province_names <- trimws(headers[province_cols])
+province_names <- province_names[nzchar(province_names)]
+if (length(province_names) != 52L)
+  stop("Official workbook must expose exactly 52 constituency columns; got ", length(province_names))
+
 pieces <- list()
-
-for (sheet in wb) {
-  message("Inspecting official Interior sheet: ", sheet)
-  raw0 <- tryCatch(readxl::read_excel(local_xlsx, sheet=sheet, col_names=FALSE,
-                                              .name_repair="minimal", n_max=30),
-                   error=function(e) NULL)
-  if (is.null(raw0) || !nrow(raw0)) next
-
-  header_row <- NA_integer_
-  for (hr in seq_len(min(10, nrow(raw0)))) {
-    headers0 <- as.character(unlist(raw0[hr, ], use.names=FALSE))
-    if (!is.na(find_col(headers0, c("Provincia","Circunscripcion","Circunscripción"))) &&
-        !is.na(find_col(headers0, c("Candidatura","Candidaturas","Partido","Siglas"))) &&
-        !is.na(find_col(headers0, c("Votos","Votos candidatura")))) {
-      header_row <- hr
-      break
-    }
-  }
-  if (is.na(header_row)) next
-
-  raw <- tryCatch(readxl::read_excel(local_xlsx, sheet=sheet, col_names=FALSE,
-                                     .name_repair="minimal", skip=header_row-1),
-                  error=function(e) NULL)
-  if (is.null(raw) || nrow(raw) < 2) next
-  headers <- as.character(unlist(raw[1, ], use.names=FALSE))
-  raw <- raw[-1, , drop=FALSE]
-  names(raw) <- paste0("V", seq_along(headers))
-
-  pcol <- find_col(headers, c("Provincia","Circunscripcion","Circunscripción"))
-  partycol <- find_col(headers, c("Candidatura","Candidaturas","Partido","Siglas"))
-  votescol <- find_col(headers, c("Votos","Votos candidatura"))
-  seatscol <- find_col(headers, c("Escanos","Escaños","Diputados","Representantes"))
-  datecol <- find_col(headers, c("Fecha","Fecha eleccion","Fecha elección","Convocatoria","Eleccion","Elección","Año","Ano"))
-
-  if (is.na(pcol) || is.na(partycol) || is.na(votescol)) next
-
-  election <- election_from_text(sheet)
-  if (is.na(election) && !is.na(datecol)) {
-    vals <- raw[[datecol]]
-    for (v in vals) {
-      e <- election_from_text(v)
-      if (!is.na(e)) { election <- e; break }
-    }
-  }
+for (i in seq_len(nrow(raw))) {
+  d <- raw[[datecol]][i]
+  date_text <- tryCatch(format(as.Date(d), "%Y-%m-%d"), error=function(e) as.character(d))
+  election <- names(target_dates)[match(date_text, unname(target_dates))]
   if (is.na(election)) next
+  if (!identical(trimws(as.character(raw[[typecol]][i])), "Congreso")) next
 
+  desc <- trimws(as.character(raw[[desccol]][i]))
+  m <- regexec("^(Votos|Escaños|Escanos|Diputados)\\s*\\((.*)\\)$", desc, ignore.case=TRUE)
+  z <- regmatches(desc, m)[[1]]
+  if (!length(z)) next
+
+  metric <- tolower(iconv(z[2], to="ASCII//TRANSLIT"))
+  if (metric == "votos") {
+    metric_name <- "votos"
+  } else if (metric %in% c("escanos","diputados")) {
+    metric_name <- "escanos"
+  } else {
+    next
+  }
+  party <- trimws(z[3])
+  if (!nzchar(party)) next
+
+  vals <- suppressWarnings(as.numeric(unlist(raw[i, province_cols], use.names=FALSE)))
   y <- tibble::tibble(
     election=election,
     fecha_eleccion=unname(target_dates[election]),
-    circunscripcion=trimws(as.character(raw[[pcol]])),
-    partido=trimws(as.character(raw[[partycol]])),
-    votos=suppressWarnings(as.numeric(raw[[votescol]])),
-    escaños=if (!is.na(seatscol)) suppressWarnings(as.numeric(raw[[seatscol]])) else NA_real_
+    circunscripcion=province_names,
+    partido=party,
+    metric=metric_name,
+    value=vals
   ) |>
-    dplyr::filter(!is.na(fecha_eleccion), nzchar(circunscripcion), nzchar(partido),
-                  !is.na(votos), votos >= 0)
-
+    dplyr::filter(!is.na(value), value >= 0)
   if (nrow(y)) pieces[[length(pieces)+1]] <- y
 }
 
-result <- dplyr::bind_rows(pieces)
-if (!nrow(result)) {
-  diag <- tryCatch(readxl::read_excel(local_xlsx, sheet=wb[[1]], col_names=FALSE, n_max=12), error=function(e) NULL)
-  if (!is.null(diag)) print(diag)
-  stop("Official workbook: no recognizable provincial/candidature rows.")
-}
-result <- result |>
-  dplyr::distinct(election, fecha_eleccion, circunscripcion, partido, .keep_all=TRUE)
+long <- dplyr::bind_rows(pieces)
+if (!nrow(long)) stop("No official Votos/Escaños rows were recognized.")
 
-expected <- names(target_dates)
-got <- unique(result$election)
-missing_elections <- setdiff(expected, got)
-if (length(missing_elections))
-  stop("Official Interior workbook did not expose all required elections: ",
-       paste(missing_elections, collapse=", "))
-
-if (any(is.na(result$escaños))) {
-  result <- result |>
-    dplyr::mutate(escaños=ifelse(is.na(escaños), 0, escaños))
-}
-
-integrity <- result |>
-  dplyr::group_by(election) |>
-  dplyr::summarise(total_escaños=sum(escaños,na.rm=TRUE),
-                   n_circunscripciones=dplyr::n_distinct(circunscripcion),
-                   .groups="drop")
-
-bad <- integrity |>
-  dplyr::filter(total_escaños != 350L | n_circunscripciones != 52L)
-if (nrow(bad))
-  stop("Historical official data failed 350/52 integrity: ",
-       paste(paste0(bad$election, "(seats=",bad$total_escaños,
-                    ",circ=",bad$n_circunscripciones,")"), collapse=", "))
-
-result <- result |>
+result <- long |>
+  dplyr::group_by(election, fecha_eleccion, circunscripcion, partido) |>
+  dplyr::summarise(
+    votos=sum(value[metric=="votos"], na.rm=TRUE),
+    escaños=sum(value[metric=="escanos"], na.rm=TRUE),
+    .groups="drop"
+  ) |>
   dplyr::mutate(
     circunscripcion_codigo=NA_character_,
     partido_codigo=NA_character_,
@@ -179,6 +139,26 @@ result <- result |>
   ) |>
   dplyr::select(election, fecha_eleccion, circunscripcion_codigo, circunscripcion,
                 partido_codigo, partido, votos, escaños, fuente, nivel_fuente)
+
+expected <- names(target_dates)
+got <- unique(result$election)
+missing_elections <- setdiff(expected, got)
+if (length(missing_elections))
+  stop("Official Interior workbook missing elections: ", paste(missing_elections, collapse=", "))
+
+integrity <- result |>
+  dplyr::group_by(election) |>
+  dplyr::summarise(
+    total_escaños=sum(escaños,na.rm=TRUE),
+    n_circunscripciones=dplyr::n_distinct(circunscripcion),
+    .groups="drop"
+  )
+bad <- integrity |>
+  dplyr::filter(total_escaños != 350L | n_circunscripciones != 52L)
+if (nrow(bad))
+  stop("Historical official data failed 350/52 integrity: ",
+       paste(paste0(bad$election, "(seats=",bad$total_escaños,
+                    ",circ=",bad$n_circunscripciones,")"), collapse=", "))
 
 readr::write_csv(result, "data/resultados_oficiales_2004_2023.csv")
 message("Wrote ", nrow(result), " official constituency-party rows from ", official_url)
