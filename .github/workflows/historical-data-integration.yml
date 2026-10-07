@@ -87,6 +87,8 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libcurl4-openssl-dev pkg-config
           Rscript -e 'options(repos=c(CRAN="https://packagemanager.posit.co/cran/latest"), timeout=300); install.packages(c("opencis","readxl","dplyr","readr","tibble","haven","purrr","jsonlite"), Ncpus=2)'
           Rscript -e 'pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr","jsonlite"); ok <- vapply(pkgs, requireNamespace, logical(1), quietly=TRUE); print(data.frame(package=names(ok),available=unname(ok))); stopifnot(all(ok))'
 
