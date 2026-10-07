@@ -1,4 +1,4 @@
-name: Inspect official BOE election results
+name: Inspect official Interior download transport
 
 on:
   pull_request:
@@ -17,18 +17,22 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Discover BOE result resolutions
+      - name: Test official XLSX transport
+        run: |
+          set -euxo pipefail
+          u="https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
+          curl --fail --location --retry 2 --connect-timeout 20 --max-time 60 "$u" -o /tmp/interior.xlsx
+          ls -lh /tmp/interior.xlsx
+          file /tmp/interior.xlsx
+      - name: Inspect workbook
         run: |
           python - <<'PY'
-          import requests, re
-          dates=["14 de marzo de 2004","9 de marzo de 2008","20 de noviembre de 2011","20 de diciembre de 2015","26 de junio de 2016","28 de abril de 2019","10 de noviembre de 2019","23 de julio de 2023"]
-          for d in dates:
-              u="https://www.boe.es/buscar/?q="+requests.utils.quote("ELECCIONES GENERALES DE "+d)+"&campo%5B0%5D=DOC"
-              r=requests.get(u,timeout=30)
-              r.raise_for_status()
-              ids=sorted(set(re.findall(r"BOE-A-\\d+-\\d+",r.text)))
-              print(d, "status", r.status_code, "len", len(r.text), ids[:10])
-              if not ids:
-                  links=re.findall(r'href="([^"]*(?:doc.php|diario_boe)[^"]*)"',r.text)
-                  print("LINKS", links[:20])
+          import openpyxl, json
+          p="/tmp/interior.xlsx"
+          wb=openpyxl.load_workbook(p,read_only=True,data_only=True)
+          print("SHEETS",json.dumps(wb.sheetnames,ensure_ascii=False))
+          for ws in wb.worksheets:
+              print("SHEET",ws.title,"ROWS",ws.max_row,"COLS",ws.max_column)
+              for row in ws.iter_rows(min_row=1,max_row=min(5,ws.max_row),values_only=True):
+                  print(json.dumps(list(row),ensure_ascii=False,default=str))
           PY
