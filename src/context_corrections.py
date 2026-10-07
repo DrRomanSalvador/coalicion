@@ -36,7 +36,7 @@ def _predict(train: Sequence[PollObservation], obs: PollObservation,
         "status": obs.government_status,
     }
     def key(r: PollObservation) -> str:
-        return "|".join(getattr(r, d) for d in dimensions)
+        return "|".join(getattr(r, {"government": "governing_party"}.get(d, d)) for d in dimensions)
     # For an interaction, learn exactly the observed context in the training data.
     value = "|".join(keys[d] for d in dimensions)
     return obs.poll + _bias(train, key, value)
