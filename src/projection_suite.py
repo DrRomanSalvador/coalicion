@@ -6,7 +6,7 @@ from dataclasses import asdict
 from typing import Mapping, Sequence
 import math
 from .electoral import allocate
-from .prediction_engine import apply_share_swing
+from .prediction import apply_share_swing
 from .uncertainty import SimulationConfig, run_monte_carlo
 
 
