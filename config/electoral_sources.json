@@ -1,0 +1,40 @@
+{
+  "schema": "SPAIN_ELECTORAL_SOURCE_REGISTRY_V1",
+  "scope": "Spain",
+  "principle": "Primary source wins; aggregators are discovery/control layers and never overwrite primary observations.",
+  "official_results": [
+    {"id":"interior","name":"Ministerio del Interior","url":"https://www.interior.gob.es/opencms/es/elecciones/","role":"primary_official","data":["resultados Congreso","resultados Senado","participacion","censo","historico"]},
+    {"id":"jec","name":"Junta Electoral Central","url":"https://www.juntaelectoralcentral.es/","role":"primary_official","data":["actas","resoluciones","recursos","criterios de escrutinio"]},
+    {"id":"ine","name":"Instituto Nacional de Estadística","url":"https://www.ine.es/","role":"primary_official","data":["censo","demografia","poblacion","series territoriales"]},
+    {"id":"hacienda","name":"Ministerio de Hacienda","url":"https://www.hacienda.gob.es/","role":"primary_official","data":["renta","fiscalidad","IRPF","datos territoriales"]},
+    {"id":"catastro","name":"Dirección General del Catastro","url":"https://www.catastro.gob.es/","role":"primary_official","data":["inmuebles","valoraciones","seccion_censal"]}
+  ],
+  "official_surveys": [
+    {"id":"cis","name":"Centro de Investigaciones Sociológicas","url":"https://www.cis.es/","role":"primary_official","data":["barometros","preelectorales","postelectorales","microdatos","ficheros_tecnicos"]}
+  ],
+  "private_pollsters": [
+    {"id":"myfdata","name":"Instituto MyF / MyF Data","url":"https://www.myfdata.com/","role":"primary_private"},
+    {"id":"sigma_dos","name":"Sigma Dos","url":"https://www.sigmados.com/","role":"primary_private"},
+    {"id":"gad3","name":"GAD3","url":"https://www.gad3.com/","role":"primary_private"},
+    {"id":"nc_report","name":"NC Report","url":"https://ncreport.es/","role":"primary_private"},
+    {"id":"demoscopia","name":"Demoscopia","url":"https://www.demoscopia.es/","role":"primary_private"}
+  ],
+  "aggregators_discovery": [
+    {"id":"electomania","name":"Electomanía","url":"https://electomania.es/","role":"discovery_aggregator"}
+  ],
+  "poll_monitor_primary_universe": [
+    "40dB","GAD3","Sigma Dos","NC Report","Demoscopia","Celeste-Tel","Invymark"
+  ],
+  "election_scope_correction": {
+    "general_elections_2023": "2023-07-23",
+    "invalid_claim_rejected": "2023-11-23",
+    "reason": "There was no Spanish general election on 2023-11-23; the 2023 general election was held on 2023-07-23."
+  },
+  "data_policy": {
+    "no_synthetic_values": true,
+    "no_national_to_territorial_conversion": true,
+    "no_seat_to_vote_backcalculation": true,
+    "primary_source_precedence": true,
+    "fail_closed_on_schema_or_provenance_failure": true
+  }
+}
