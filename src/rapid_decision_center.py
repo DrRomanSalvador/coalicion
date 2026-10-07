@@ -13,7 +13,7 @@ import json
 
 from .projection_suite import project, compare_projections, uncertainty_summary
 from .marginality import rank_marginality
-from .scenarios import compare_scenarios as compare_coalition_scenarios
+from .coalition import coalition_decision
 
 
 VERSION = "1.0"
@@ -130,14 +130,24 @@ def decision_snapshot(
             c: sum(votes_by_constituency[c].values()) + blank.get(c, 0)
             for c in votes_by_constituency
         }
-        coalition_result = compare_coalition_scenarios(
-            votes_by_constituency,
-            seats_by_constituency,
-            valid_votes,
-            blank,
-            normalized,
-            special,
-        )
+        coalition_result = {
+            "all_coalitions": [
+                coalition_decision(
+                    votes_by_constituency,
+                    seats_by_constituency,
+                    blank,
+                    coalition,
+                    special,
+                )
+                for coalition in normalized
+            ],
+            "ranking": False,
+            "policy": {
+                "exhaustive_counterfactuals": True,
+                "ranking_as_best_option": False,
+                "recommendations": False,
+            },
+        }
 
     uncertainty = None
     if uncertainty_draws is not None:
