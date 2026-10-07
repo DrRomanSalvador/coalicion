@@ -14,6 +14,8 @@ STAGES = [
     ("calculator_2023_tests", ["-m", "pytest", "tests/test_2023_calculator_integration.py", "tests/test_coalition_reports.py", "-q"]),
     ("coalition_reports_2023", ["scripts/agent2_coalition_reports.py"]),
     ("historical_polls", ["scripts/acquire_historical_polls.py"]),
+    ("poll_methodology_tests", ["-m", "pytest", "tests/test_poll_aggregator.py", "tests/test_poll_uncertainty.py", "-q"]),
+    ("poll_aggregator_oos", ["scripts/backtest_poll_aggregator.py"]),
     ("historical_secondary", ["scripts/stage_historico_secondary.py"]),
     ("historical_validation", ["scripts/validate_historical_secondary.py"]),
     ("backtest_baseline", ["scripts/backtest_2023_baseline.py"]),
