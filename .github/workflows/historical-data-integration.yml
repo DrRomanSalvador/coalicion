@@ -33,7 +33,6 @@ concurrency:
 
 jobs:
   integrate:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     env:
       R_LIBS_USER: ${{ runner.temp }}/r-lib
@@ -89,7 +88,7 @@ jobs:
         run: python scripts/run_full_oos.py --input data/encuestas_historicas_2004_2023.csv --output artifacts/oos_historical_2004_2023.json
 
       - name: Commit only validated materialization
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
