@@ -87,7 +87,9 @@ jobs:
         run: |
           set -euo pipefail
           if [ -d data/official_materialization_parts ] && [ "$(find data/official_materialization_parts -name "*.csv" | wc -l)" -eq 11 ]; then
-            python scripts/materialize_official_history_from_parts.py
+            if ! python scripts/materialize_official_history_from_parts.py; then
+              echo "Materialization parts incomplete/incompatible; falling back to primary Interior acquisition."
+            fi
           fi
           if [ -s data/resultados_oficiales_2004_2023.csv ] && [ -s data/manifests/INTERIOR_ACQUISITION.json ]; then
             python - <<'PY'
