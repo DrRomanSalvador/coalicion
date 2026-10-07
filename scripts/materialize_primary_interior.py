@@ -24,12 +24,12 @@ def main():
     ca=ca_candidates[0]
     with tempfile.NamedTemporaryFile(suffix=".xlsx",delete=False) as tmp:
         tmp_path=Path(tmp.name)
+    curl_base=["curl","-fL","--http1.1","--retry","5","--retry-all-errors","--retry-delay","3",
+               "--connect-timeout","30","--max-time","900","--compressed",
+               "-A","coalicion-primary-materializer/1.0"]
     try:
-        curl_base=["curl","-fL","--retry","4","--retry-all-errors","--retry-delay","3",
-                    "--connect-timeout","30","--max-time","900","--compressed",
-                    "-A","coalicion-primary-materializer/1.0"]
-        for cmd in (curl_base+["-o",str(tmp_path),URL],
-                    curl_base+["--cacert",ca,"-o",str(tmp_path),URL]):
+        for cmd in (curl_base+["--cacert",ca,"-o",str(tmp_path),URL],
+                    curl_base+["--cacert",certifi.where(),"-o",str(tmp_path),URL]):
             cp=subprocess.run(cmd,check=False,capture_output=True,text=True)
             if cp.returncode==0 and tmp_path.exists() and tmp_path.stat().st_size>10000:
                 data=tmp_path.read_bytes()
@@ -38,40 +38,7 @@ def main():
     finally:
         tmp_path.unlink(missing_ok=True)
     if data is None:
-        req=urllib.request.Request(URL,headers={"User-Agent":"coalicion-primary-materializer/1.0","Referer":PAGE})
-        try:
-            ctx=ssl.create_default_context(cafile=ca)
-            with urllib.request.urlopen(req,context=ctx,timeout=900) as r:
-                data=r.read()
-        except Exception:
-            root_urls=[
-                "http://www.cert.fnmt.es/certs/ACRAIZSERVIDORESSEGUROS.crt",
-            ]
-            bundle_tmp=Path(tempfile.mkstemp(suffix=".pem")[1])
-            root_tmps=[]
-            try:
-                for root_url in root_urls:
-                    root_tmp=Path(tempfile.mkstemp(suffix=".crt")[1])
-                    root_tmps.append(root_tmp)
-                    root_req=urllib.request.Request(root_url,headers={"User-Agent":"coalicion-primary-materializer/1.0"})
-                    with urllib.request.urlopen(root_req,context=ssl.create_default_context(),timeout=120) as r:
-                        root_tmp.write_bytes(r.read())
-                    if root_tmp.stat().st_size < 1000:
-                        raise RuntimeError("FAIL-CLOSED: invalid official FNMT root certificate")
-                    expected_sha="554153B13D2CF9DDB753BFBE1A4E0AE08D0AA4187058FE60A2B862B2E4B87BCB"
-                    actual_sha=hashlib.sha256(root_tmp.read_bytes()).hexdigest().upper()
-                    if actual_sha != expected_sha:
-                        raise RuntimeError("FAIL-CLOSED: official FNMT root fingerprint mismatch")
-                bundle_tmp.write_bytes(Path(ca).read_bytes()+b"\n"+b"\n".join(p.read_bytes() for p in root_tmps))
-                ctx=ssl.create_default_context(cafile=bundle_tmp.as_posix())
-                with urllib.request.urlopen(req,context=ctx,timeout=900) as r:
-                    data=r.read()
-            except Exception as exc:
-                raise RuntimeError("FAIL-CLOSED: verified HTTPS acquisition from official Interior failed") from exc
-            finally:
-                for root_tmp in root_tmps:
-                    root_tmp.unlink(missing_ok=True)
-                bundle_tmp.unlink(missing_ok=True)
+        raise RuntimeError("FAIL-CLOSED: verified HTTPS acquisition from official Interior failed via all trusted CA paths")
     if len(data)<=10000 or data[:4]!=b"PK\x03\x04":
         raise RuntimeError("FAIL-CLOSED: official Interior response is not a valid XLSX")
     XLSX.write_bytes(data)
