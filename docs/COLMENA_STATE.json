@@ -1,7 +1,7 @@
 {
   "schema": "COLMENA_STATE_V1",
   "project": "REINA-SEEC",
-  "checkpoint_date": "2026-10-06",
+  "checkpoint_date": "2026-10-07",
   "methodology": "SEEC",
   "methodology_version": "4.0",
   "status": "OPERATIONAL_BETA",
@@ -20,37 +20,36 @@
   "blocking_errors": [
     {
       "id": "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
-      "status": "DEFERRED"
+      "status": "OPEN"
     },
     {
       "id": "PRIMARY_RECONCILIATION",
-      "status": "DEFERRED"
+      "status": "OPEN"
     },
     {
       "id": "SEEC_PRODUCTION_EXECUTION",
-      "status": "DEFERRED"
+      "status": "OPEN"
     },
     {
       "id": "OOS_CALIBRATION",
-      "status": "DEFERRED"
+      "status": "OPEN"
     },
     {
       "id": "EXTERNAL_AUDIT",
-      "status": "DEFERRED"
+      "status": "OPEN"
     },
     {
-      "id": "CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT",
-      "status": "DEFERRED"
+      "id": "POLL_SOURCE_COVERAGE",
+      "status": "OPEN"
     },
     {
-      "id": "PRIMARY_2023_MATRIX_MATERIALIZATION",
-      "status": "SECONDARY_READY_PRIMARY_BLOCKED",
-      "detail": "Matriz 2023 completa materializada desde Dato Electoral como réplica secundaria verificada: 52 circunscripciones, 350 escaños y 24.487.414 votos a candidaturas. La descarga primaria del Interior sigue bloqueada por verificación TLS; no se degrada a primaria."
+      "id": "CI_MASTER_CERTIFICATION",
+      "status": "OPEN_EXPECTED_FAIL_CLOSED"
     }
   ],
-  "last_action": "Ejecutado run26.py tras endurecer los fallbacks territoriales y los parsers HTML.",
-  "last_action_result": "RUN26_PRODUCT_PIPELINE_SECONDARY_DATA_READY",
-  "next_single_action": "Resolver la materialización primaria 2023 del Ministerio del Interior sin desactivar TLS; mantener la matriz secundaria como OPERATIONAL_BETA hasta entonces.",
+  "last_action": "Auditoría de parciales y corrección de automatización CI",
+  "last_action_result": "PARTIALS_REASSESSED_WITH_RUNTIME_EVIDENCE",
+  "next_single_action": "Materializar y fijar el PDF binario primario del Interior con SHA-256 canónico y ejecutar reconciliación primaria.",
   "certification": "PARTIAL",
   "data_source": "SECONDARY_REPLICA_VERIFIED",
   "primary_binary": "PENDING",
