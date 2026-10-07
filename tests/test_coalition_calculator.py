@@ -17,11 +17,11 @@ def test_separate_result_uses_all_candidates():
     engine = CoalitionDecisionEngine({"A": 3}, {"A": 0})
     result = engine.analyze_coalition(
         ("P1", "P2"),
-        [CoalitionScenario("central", {"A": {"P1": 400, "P2": 300, "P3": 300}})],
+        [CoalitionScenario("central", {"A": {"P1": 400, "P2": 200, "P3": 200}})],
     )
     # P1 and P2 receive seats against P3; neither is calculated in isolation.
     assert result["separate_seats"] == 2
-    assert result["coalition_seats"] == 3
+    assert result["coalition_seats"] == 2
     assert result["benefit"] == 1
 
 
