@@ -498,7 +498,7 @@ class PollMonitor:
         blockers: list[str] = []
         statuses = self.state.get("source_status", {})
         failed_ids = {f["source_id"] for f in failures}
-        structured = {"national_html", "datoelectoral_html", "electomania_json"}
+        structured = {"national_html", "datoelectoral_html", "electomania_json", "electomania_html"}
         for source in sources:
             sid = source["id"]
             if source.get("optional") and source.get("coverage_role") != "primary":
