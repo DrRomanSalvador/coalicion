@@ -1,0 +1,39 @@
+name: Global repository orchestrator
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/**"
+      - "scripts/**"
+      - "src/**"
+      - "tests/**"
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: global-repository-orchestrator
+  cancel-in-progress: true
+
+jobs:
+  orchestrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Sweep active workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          echo "GLOBAL ORCHESTRATOR: repository sweep started"
+          gh api --paginate "repos/$REPOSITORY/actions/workflows?per_page=100" --jq '.workflows[] | select(.state == "active") | [.id,.path,.name] | @tsv' > /tmp/workflows.tsv
+          while IFS=$'\t' read -r workflow_id workflow_path workflow_name; do
+            echo "ACTIVE: $workflow_path | $workflow_name | $workflow_id"
+          done < /tmp/workflows.tsv
+          echo "GLOBAL ORCHESTRATOR: repository sweep completed"
