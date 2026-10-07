@@ -33,8 +33,6 @@ concurrency:
 
 jobs:
   integrate:
-    env:
-      R_LIBS_USER: ${{ runner.temp }}/r-lib
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 150
