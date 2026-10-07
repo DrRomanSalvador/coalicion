@@ -3,7 +3,7 @@ name: Exhaustive fail-closed validation
 on:
   push:
     branches:
-      - "fix/seec-compositional-temporal"
+      - "fix/seec-oos-main-current"
     paths:
       - "src/**"
       - "tests/**"
