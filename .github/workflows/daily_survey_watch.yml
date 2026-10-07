@@ -26,10 +26,11 @@ jobs:
         id: watch
         continue-on-error: true
         run: python scripts/survey_watch.py
-      - name: Mostrar alerta operacional
+      - name: Mostrar informe operacional
         if: always()
         run: |
           test ! -f artifacts/survey_watch_report.json || cat artifacts/survey_watch_report.json
+          test ! -f artifacts/neutral_poll_report.json || cat artifacts/neutral_poll_report.json
       - name: Persistir informe, alertas y estado
         if: always()
         run: |
