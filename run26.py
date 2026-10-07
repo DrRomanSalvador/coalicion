@@ -51,7 +51,7 @@ def main():
         seec_status["reason"]="Survey archive exists, but technical fichas/microdata must be materialized before production inference."
 
     subprocess.run([sys.executable,"scripts/build_sha256_manifest.py"],check=False)
-    required = {"matrix_2023", "calculator_2023_integration", "calculator_2023_tests", "coalition_reports_2023"}
+    required = {"matrix_2023", "calculator_2023_integration", "calculator_2023_tests", "coalition_reports_2023", "poll_methodology_tests"}
     required_failures = [r for r in results if r["stage"] in required and r["returncode"] != 0]
     payload={
         "schema":"RUN26_EXECUTION_V1",
