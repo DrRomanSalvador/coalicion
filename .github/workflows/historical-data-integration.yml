@@ -7,28 +7,6 @@ name: Historical data — canonical integration
 on:
   schedule:
     - cron: "17 3 1 * *"
-  push:
-    branches: [main]
-    paths:
-      - "scripts/ingest_official_electoral_history.R"
-      - "scripts/ingest_cis_historical_surveys.R"
-      - "scripts/validate_historical_data.py"
-      - "scripts/run_full_oos.py"
-      - "src/oos_pipeline.py"
-      - "config/electoral_sources.json"
-      - "config/poll_monitor.json"
-      - "scripts/complete_historical_calibration.py"
-      - "scripts/run_seec_production.py"
-      - "scripts/master_certification.py"
-      - "scripts/materialize_official_history_from_parts.py"
-      - "src/data.py"
-      - "src/electoral.py"
-      - "src/coalition.py"
-      - "src/decision.py"
-      - "src/prediction.py"
-      - "src/uncertainty.py"
-      - "scripts/materialize_poll_source_coverage.py"
-      - ".github/workflows/historical-data-integration.yml"
   pull_request:
     branches: [main]
     paths:
