@@ -33,3 +33,12 @@ def test_rss_entries_are_metadata_only():
     polls=parse_rss(rss,{"id":"electomania","url":"https://example.test/feed","pollster_default":"Electomania"})
     assert len(polls)==1
     assert polls[0].parties=={}
+
+
+def test_poll_report_never_turns_national_sum_into_seat_projection():
+    from scripts.build_poll_report import build
+    payload=build([{"id":"p1","parties":{"PSOE":31.0,"SUMAR":5.7}}],[["SUMAR","PSOE"]])
+    report=payload["reports"][0]
+    assert report["national_vote_share_scenarios"][0]["combined_national_vote_share"]==36.7
+    assert report["national_vote_share_scenarios"][0]["seat_projection"]=="BLOCKED_NO_TERRITORIAL_INPUT"
+    assert report["seat_scenarios"]=="BLOCKED_NO_VALID_TERRITORIAL_INPUT"
