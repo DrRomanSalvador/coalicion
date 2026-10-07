@@ -184,11 +184,9 @@ long <- dplyr::bind_rows(pieces)
 if (!nrow(long)) stop("No official Votos/Escaños rows were recognized.")
 
 metric_integrity <- long |>
-  dplyr::count(election, fecha_eleccion, circunscripcion, partido, metric) |>
-  tidyr::pivot_wider(names_from=metric, values_from=n, values_fill=0)
-if (!all(c("votos", "escanos") %in% names(metric_integrity)))
-  stop("Official workbook does not provide both Votos and Escaños metrics.")
-if (any(metric_integrity$votos != 1L | metric_integrity$escanos != 1L))
+  dplyr::group_by(election, fecha_eleccion, circunscripcion, partido) |>
+  dplyr::summarise(n_votos=sum(metric == "votos"), n_escanos=sum(metric == "escanos"), .groups="drop")
+if (any(metric_integrity$n_votos != 1L | metric_integrity$n_escanos != 1L))
   stop("Official workbook has missing or duplicated Votos/Escaños observations for a constituency-party key.")
 
 result <- long |>
