@@ -172,6 +172,33 @@ def test_unresolved_discovery_blocks_total_coverage():
     assert result["total"] is False
     assert "UNRESOLVED_DISCOVERIES:1" in result["blockers"]
 
+
+def test_discovery_source_failure_does_not_block_coverage():
+    from src.poll_monitor import PollMonitor
+    monitor = PollMonitor.__new__(PollMonitor)
+    monitor.config = {"coverage_contract":{"scope":"configured_national_poll_universe"},
+                      "sources":[
+                          {"id":"primary","coverage_role":"primary","format":"national_html"},
+                          {"id":"discovery","coverage_role":"discovery","format":"page"},
+                      ]}
+    monitor.state = {"source_status":{
+        "primary":{"status":"OK"},
+        "discovery":{"status":"FAILED"},
+    }}
+    result = monitor.audit_coverage([{"source_id":"discovery","error":"HTTP 400"}], [])
+    assert result["total"] is True
+    assert "SOURCE_NOT_HEALTHY:discovery" not in result["blockers"]
+
+
+def test_config_uses_current_known_source_endpoints():
+    cfg=json.loads(Path("config/poll_monitor.json").read_text())
+    by_id={s["id"]: s for s in cfg["sources"]}
+    assert by_id["electomania_ajax"]["url"] == "https://electomania.es/encuestas/"
+    assert by_id["sigma_dos"]["url"] == "https://www.sigmados.com/"
+    assert by_id["elpais_40db"]["url"].endswith("?outputType=amp")
+    assert by_id["myfdata"]["disabled"] is True
+    assert by_id["myfdata"]["coverage_role"] == "discovery"
+
 def test_workflow_has_json_preflight():
     workflow = Path(".github/workflows/poll_monitor.yml").read_text()
     assert "python -m json.tool config/poll_monitor.json" in workflow
