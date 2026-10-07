@@ -192,3 +192,6 @@ Calcula resultado separado, resultado coaligado con D'Hondt recalculado por circ
 Ejemplo: `python scripts/coalition_decision_engine.py --input decision_scenarios.json --parties PARTIDO_A PARTIDO_B PARTIDO_C --max-size 2 --output reports/coalition_decision.json`
 
 El motor no inventa escenarios ni considera certificada una predicción. Si el espacio combinatorio es demasiado grande, falla cerrado en vez de muestrear coaliciones silenciosamente.
+
+
+<!-- CI verification marker: final GitHub Actions check requested 2026-10-07. -->
