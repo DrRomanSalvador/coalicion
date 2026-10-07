@@ -5,13 +5,23 @@ name: Historical data — canonical integration
 # v13: explicit certification execution on main after primary-source validation.
 
 on:
+  schedule:
+    - cron: "17 3 1 * *"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - "src/**"
+      - "config/**"
+      - "data/official_materialization_parts/**"
+      - ".github/workflows/historical-data-integration.yml"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: coalicion-historical-canonical
+  group: historical-data-canonical-main-v18
   cancel-in-progress: false
 
 jobs:
@@ -49,18 +59,17 @@ jobs:
               echo "Materialization parts incomplete/incompatible; using primary Interior acquisition."
             fi
           fi
-          if ! python -c 'import json; m=json.load(open("data/manifests/INTERIOR_ACQUISITION.json", encoding="utf-8")); assert m["status"]=="PASS" and m["source_tier"]=="PRIMARY_INTERIOR" and m["official_results"]["rows"]==50700 and len(m["official_results"]["elections"])==8 and m["official_results"]["constituencies_per_election"]==52 and m["official_results"]["seats_per_election"]==350' 2>/dev/null; then
-            export CURL_CA_BUNDLE="$(python -c 'import certifi; print(certifi.where())')"
+          if ! python -c 'import json; m=json.load(open("data/manifests/INTERIOR_ACQUISITION.json", encoding="utf-8")); assert m["status"]=="PASS" and m["source_tier"]=="PRIMARY_INTERIOR" and (m.get("official_results",{}).get("rows",m.get("n_rows")))==50700 and len(m.get("official_results",{}).get("elections",m.get("elections",{})))==8 and m.get("official_results",{}).get("constituencies_per_election",m.get("n_constituencies_per_election"))==52 and m.get("official_results",{}).get("seats_per_election",m.get("seats_per_election"))==350' 2>/dev/null; then
             acquired=0
             for attempt in 1 2 3 4 5; do
-              echo "Interior acquisition attempt $attempt/5"
-              if Rscript scripts/ingest_official_electoral_history.R; then
-                if [ -s data/raw/Elecciones-Congreso.xlsx ] && [ -s data/manifests/INTERIOR_ACQUISITION.json ]; then
+              echo "Interior primary acquisition attempt $attempt/5"
+              if python scripts/materialize_primary_interior.py; then
+                if [ -s data/resultados_oficiales_2004_2023.csv ] && [ -s data/manifests/INTERIOR_ACQUISITION.json ]; then
                   acquired=1
                   break
                 fi
               fi
-              echo "Transient acquisition failure; waiting before retry."
+              echo "Transient primary acquisition failure; waiting before retry."
               sleep $((attempt * 10))
             done
             test "$acquired" -eq 1
