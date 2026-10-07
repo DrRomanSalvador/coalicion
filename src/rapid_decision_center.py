@@ -18,6 +18,7 @@ from .scenarios import compare_scenarios as compare_coalition_scenarios
 
 VERSION = "1.0"
 EXPECTED_CONSTITUENCIES = 52
+EXPECTED_SEATS = 350
 
 
 def _canonical(value):
@@ -32,16 +33,19 @@ def _validate_matrix(votes, seats, blank):
     if not votes:
         raise ValueError("BLOCKED: matriz territorial vacía")
     missing = sorted(set(votes) - set(seats))
-    if missing:
-        raise ValueError(f"BLOCKED: faltan escaños: {missing}")
-    missing_blank = sorted(set(votes) - set(blank))
-    if missing_blank:
-        raise ValueError(f"BLOCKED: faltan votos en blanco: {missing_blank}")
+    extra_seats = sorted(set(seats) - set(votes))
+    if missing or extra_seats:
+        raise ValueError(f"BLOCKED: claves territoriales incompatibles; faltan={missing}; sobran_escaños={extra_seats}")
+    extra_blank = sorted(set(blank) - set(votes))
+    if extra_blank:
+        raise ValueError(f"BLOCKED: votos en blanco para circunscripciones inexistentes: {extra_blank}")
     for constituency, row in votes.items():
-        if not row or any(int(v) < 0 for v in row.values()):
+        if not row or any(not isinstance(v, int) or isinstance(v, bool) or v < 0 for v in row.values()):
             raise ValueError(f"BLOCKED: votos inválidos en {constituency}")
-        if int(seats[constituency]) <= 0:
+        if not isinstance(seats[constituency], int) or isinstance(seats[constituency], bool) or seats[constituency] <= 0:
             raise ValueError(f"BLOCKED: magnitud inválida en {constituency}")
+        if not isinstance(blank.get(constituency, 0), int) or isinstance(blank.get(constituency, 0), bool) or blank.get(constituency, 0) < 0:
+            raise ValueError(f"BLOCKED: votos en blanco inválidos en {constituency}")
 
 
 def _marginality_input(votes, seats, blank, special):
@@ -93,11 +97,17 @@ def decision_snapshot(
     blank = dict(blank_votes_by_constituency or {})
     special = dict(special_by_constituency or {})
     _validate_matrix(votes_by_constituency, seats_by_constituency, blank)
-    if strict_territory and len(votes_by_constituency) != EXPECTED_CONSTITUENCIES:
-        raise ValueError(
-            f"BLOCKED: se esperan {EXPECTED_CONSTITUENCIES} circunscripciones; "
-            f"recibidas {len(votes_by_constituency)}"
-        )
+    if strict_territory:
+        if len(votes_by_constituency) != EXPECTED_CONSTITUENCIES:
+            raise ValueError(
+                f"BLOCKED: se esperan {EXPECTED_CONSTITUENCIES} circunscripciones; "
+                f"recibidas {len(votes_by_constituency)}"
+            )
+        if sum(int(v) for v in seats_by_constituency.values()) != EXPECTED_SEATS:
+            raise ValueError(
+                f"BLOCKED: se esperan {EXPECTED_SEATS} escaños; "
+                f"recibidos {sum(int(v) for v in seats_by_constituency.values())}"
+            )
 
     projection = project(
         votes_by_constituency,
@@ -169,5 +179,7 @@ def decision_snapshot(
             "La incertidumbre solo se muestra si existen simulaciones explícitas.",
         ],
     }
-    payload["traceability"]["output_hash"] = _hash(payload)
+    stable_payload = dict(payload)
+    stable_payload.pop("generated_at", None)
+    payload["traceability"]["output_hash"] = _hash(stable_payload)
     return payload
