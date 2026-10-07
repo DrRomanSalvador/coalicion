@@ -14,11 +14,27 @@ def test_invalid_canonical_is_fail_closed(tmp_path: Path):
     assert r["reason"]=="INVALID_CANONICAL_JSON"
 
 def test_valid_structure(tmp_path: Path):
-    provinces=[{"name":f"P{i}","seats":1,"parties":[{"name":"A","votes":10},{"name":"B","votes":5}]} for i in range(52)]
-    data={"source":"INTERIOR_PRIMARY","election":"2023","data":{"provinces":provinces,"valid_votes":{f"P{i}":15 for i in range(52)},"blank_votes":{}}}
+    total=24_487_414
+    base, rem=divmod(total, 52)
+    constituencies={}
+    for i in range(52):
+        seats=7 if i < 38 else 6
+        votes=base + (1 if i < rem else 0)
+        constituencies[f"P{i}"]={
+            "seats": seats,
+            "parties": {"A": votes, "B": 0},
+            "blank_votes": 0,
+            "valid_votes": votes,
+        }
+    data={
+        "schema":"ELECTION_2023_CONSTITUENCY_MATRIX_V1",
+        "election":2023,
+        "source_tier":"OFFICIAL_PRIMARY",
+        "data":{"constituencies":constituencies},
+    }
     p=tmp_path/"matrix.json"
     import json
     p.write_text(json.dumps(data),encoding="utf-8")
     r=audit_canonical(p)
     assert r["status"]=="PASS"
-    assert r["province_count"]==52 and r["seat_total"]==52
+    assert r["province_count"]==52 and r["seat_total"]==350
