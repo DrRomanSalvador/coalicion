@@ -38,3 +38,16 @@ def test_decisive_constituencies_are_exposed():
 
 def test_no_arbitrary_shift_is_embedded():
     assert not hasattr(engine(), "run_scenario")
+
+
+def test_batch_output_is_mathematical_not_strategic():
+    r = engine().analyze_all_coalitions(
+        ["P1", "P2", "P3"],
+        [scenario({
+            "A": {"P1": 500, "P2": 260, "P3": 100},
+            "B": {"P1": 1000, "P2": 1, "P3": 1},
+        })],
+        max_size=2,
+    )
+    assert "ranking" in r
+    assert "recommendation" not in r
