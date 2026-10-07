@@ -2,6 +2,7 @@ name: Historical data — canonical integration
 # Canonical acquisition runner: v7 verified HTTPS fallback.
 # Certification execution trigger: historical OOS + SEEC + master gates.
 # Final trigger after deterministic materialization fixes.
+# v13: explicit certification execution on main after primary-source validation.
 
 on:
   schedule:
