@@ -1,6 +1,7 @@
 name: Auditoria 2023 y suite SEEC
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - ".github/workflows/auditoria_2023.yml"
