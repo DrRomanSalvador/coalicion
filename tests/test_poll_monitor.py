@@ -195,7 +195,7 @@ def test_config_uses_current_known_source_endpoints():
     by_id={s["id"]: s for s in cfg["sources"]}
     assert by_id["electomania_ajax"]["url"] == "https://electomania.es/encuestas/"
     assert by_id["sigma_dos"]["url"] == "https://www.sigmados.com/"
-    assert by_id["elpais_40db"]["url"].endswith("?outputType=amp")
+    assert by_id["elpais_40db"]["url"] == "https://elpais.com/noticias/encuestas-electorales/"
     assert by_id["myfdata"]["disabled"] is True
     assert by_id["myfdata"]["coverage_role"] == "discovery"
 
