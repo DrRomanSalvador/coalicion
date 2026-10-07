@@ -60,8 +60,8 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p "$R_LIBS_USER"
-          Rscript -e 'options(repos=c(RSPM="https://packagemanager.posit.co/cran/latest"), timeout=300); install.packages(c("opencis","readxl","dplyr","readr","tibble","haven","purrr"), lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), Ncpus=2, quiet=FALSE)'
-          Rscript -e 'pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr"); stopifnot(all(vapply(pkgs, requireNamespace, logical(1), quietly=TRUE)))'
+          Rscript -e 'options(repos=c(RSPM="https://packagemanager.posit.co/cran/latest"), timeout=300); install.packages(c("opencis","readxl","dplyr","readr","tibble","haven","purrr","jsonlite"), lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), Ncpus=2, quiet=FALSE)'
+          Rscript -e 'pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr","jsonlite"); stopifnot(all(vapply(pkgs, requireNamespace, logical(1), quietly=TRUE)))'
 
       - name: Ingest official Interior results
         timeout-minutes: 30
@@ -106,7 +106,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json data/manifests/HISTORICAL_DATA_LIMITATIONS.json artifacts/oos_historical_2004_2023.json
+          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json data/manifests/HISTORICAL_DATA_LIMITATIONS.json data/manifests/INTERIOR_ACQUISITION.json artifacts/oos_historical_2004_2023.json
           if git diff --cached --quiet; then
             echo "No validated data changes."
             exit 0
