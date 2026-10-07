@@ -6,7 +6,7 @@ from src.coalition_decision_engine import CoalitionDecisionEngine, CoalitionScen
 def test_central_scenario_must_be_explicit():
     engine = CoalitionDecisionEngine({"A": 3}, {"A": 0})
     scenarios = [
-        CoalitionScenario("pessimistic", {"A": {"P1": 1, "P2": 1}}),
+        CoalitionScenario("pessimistic", {"A": {"P1": 4, "P2": 1}}),
         CoalitionScenario("optimistic", {"A": {"P1": 1, "P2": 1}}),
     ]
     with pytest.raises(ValueError, match="central"):
@@ -17,7 +17,7 @@ def test_separate_result_uses_all_candidates():
     engine = CoalitionDecisionEngine({"A": 3}, {"A": 0})
     result = engine.analyze_coalition(
         ("P1", "P2"),
-        [CoalitionScenario("central", {"A": {"P1": 400, "P2": 200, "P3": 200}})],
+        [CoalitionScenario("central", {"A": {"P1": 390, "P2": 220, "P3": 180}})],
     )
     # P1 and P2 receive seats against P3; neither is calculated in isolation.
     assert result["separate_seats"] == 3
