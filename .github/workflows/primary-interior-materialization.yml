@@ -26,7 +26,10 @@ jobs:
         run: |
           set -euo pipefail
           if [ -d data/official_materialization_parts ] && [ "$(find data/official_materialization_parts -name "*.csv" | wc -l)" -eq 11 ]; then
-            python scripts/materialize_official_history_from_parts.py
+            if ! python scripts/materialize_official_history_from_parts.py; then
+              echo "Materialization parts failed integrity; falling back to primary Interior acquisition."
+              python scripts/materialize_primary_interior.py
+            fi
           else
             python scripts/materialize_primary_interior.py
           fi
