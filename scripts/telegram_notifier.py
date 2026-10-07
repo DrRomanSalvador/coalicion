@@ -91,7 +91,7 @@ def send(text):
         raise RuntimeError(
             "BLOCKED: TELEGRAM_CHAT_ID is the bot's own user id. "
             "Set TELEGRAM_CHAT_ID to the real destination chat id "
-            "(your private chat, group, or channel), not the bot id."
+            "(private chat, group, or channel), not the bot id."
         )
     return _telegram_request(
         token,
