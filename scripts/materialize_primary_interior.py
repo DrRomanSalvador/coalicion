@@ -131,6 +131,10 @@ def main():
             if isinstance(v,(int,float)) and v>=0:
                 out.append((election,DATES[election],p,party,metric,int(v)))
     if not out: raise RuntimeError("No official rows recognized")
+    raw_counts={(e,m):sum(1 for r in out if r[0]==e and r[4]==m) for e in DATES for m in ("votos","escaños")}
+    raw_seat_sums={e:sum(r[5] for r in out if r[0]==e and r[4]=="escaños") for e in DATES}
+    print("RAW_SEAT_COUNTS",raw_counts)
+    print("RAW_SEAT_SUMS",raw_seat_sums)
     keys={}
     for e,d,p,party,metric,v in out:
         keys.setdefault((e,d,p,party),{})[metric]=v
