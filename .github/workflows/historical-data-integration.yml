@@ -9,6 +9,8 @@ on:
       - "scripts/ingest_official_electoral_history.R"
       - "scripts/ingest_cis_historical_surveys.R"
       - "scripts/validate_historical_data.py"
+      - "scripts/run_full_oos.py"
+      - "src/oos_pipeline.py"
       - ".github/workflows/historical-data-integration.yml"
       - "config/electoral_sources.json"
   pull_request:
@@ -71,6 +73,9 @@ jobs:
 
       - name: Ingest official CIS microdata
         run: Rscript scripts/ingest_cis_historical_surveys.R
+
+      - name: Compile Python validation and OOS code
+        run: python -m compileall -q src scripts
 
       - name: Validate datasets and create provenance manifest
         run: python scripts/validate_historical_data.py
