@@ -1,6 +1,6 @@
 import pytest
 
-from src.coalition_decision_engine import CoalitionDecisionEngine, CoalitionScenario
+from src.coalition import CoalitionDecisionEngine, CoalitionScenario
 
 
 def test_central_scenario_must_be_explicit():
