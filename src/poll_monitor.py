@@ -92,10 +92,13 @@ def validate_poll(poll: Poll, *, min_parties: int = 5) -> tuple[bool, str]:
     if not poll.pollster.strip() or not poll.source_id.strip():
         return False, "MISSING_SOURCE_METADATA"
     total = sum(values)
-    # Published tables may omit residual categories, so validation accepts
-    # 95-105% but never manufactures the missing mass.
-    if not 95 <= total <= 105:
-        return False, f"PARTY_TOTAL_OUTSIDE_95_105:{total:.3f}"
+    # Primary sources frequently omit minor parties or publish only the
+    # principal candidates. Accept incomplete published tables, but only
+    # when enough party-level evidence exists; never fill the residual mass.
+    if len(values) >= 5 and total < 70:
+        return False, f"PARTY_TOTAL_TOO_LOW:{total:.3f}"
+    if total > 105:
+        return False, f"PARTY_TOTAL_ABOVE_105:{total:.3f}"
     return True, "OK"
 
 def _parse_date(text: str) -> str | None:
