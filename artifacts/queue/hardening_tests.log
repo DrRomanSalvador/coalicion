@@ -1,5 +1,22 @@
-............
+............E
+======================================================================
+ERROR: test_seec_production (unittest.loader._FailedTest.test_seec_production)
 ----------------------------------------------------------------------
-Ran 12 tests in 0.008s
+ImportError: Failed to import test module: test_seec_production
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/coalicion/coalicion/tests/test_seec_production.py", line 1, in <module>
+    from scripts.run_seec_production import SURVEY
+  File "/home/runner/work/coalicion/coalicion/scripts/run_seec_production.py", line 17, in <module>
+    import pymc as pm
+ModuleNotFoundError: No module named 'pymc'
 
-OK
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.008s
+
+FAILED (errors=1)
