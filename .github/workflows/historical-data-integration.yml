@@ -29,7 +29,7 @@ permissions:
 
 concurrency:
   group: historical-data-canonical-main
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   integrate:
@@ -105,7 +105,7 @@ jobs:
             artifacts/oos_historical_2004_2023.json
 
       - name: Commit only validated materialization
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
