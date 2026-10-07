@@ -208,7 +208,9 @@ def test_workflow_has_json_preflight():
 
 def test_workflow_does_not_self_trigger_and_retries_non_fast_forward():
     workflow = Path(".github/workflows/poll_monitor.yml").read_text()
-    assert "if: github.actor != 'github-actions[bot]'" in workflow
+    assert "paths-ignore:" in workflow
+    assert '"artifacts/**"' in workflow
     assert "git fetch origin main" in workflow
-    assert "git rebase origin/main" in workflow
+    assert "git reset --hard HEAD" in workflow
+    assert "git rebase --autostash origin/main" in workflow
     assert "for attempt in 1 2 3" in workflow
