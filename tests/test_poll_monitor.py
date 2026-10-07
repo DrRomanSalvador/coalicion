@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from src.poll_monitor import Poll, normalize_party_name, poll_hash, validate_poll, parse_rss_metadata, parse_dato_electoral
+from src.poll_monitor import Poll, normalize_party_name, poll_hash, validate_poll, parse_rss_metadata, parse_dato_electoral, parse_national_html
 
 def valid_poll():
     return Poll("p1","2026-10-07","Demo","x","https://example.test",
@@ -59,3 +59,23 @@ def test_page_fingerprint_is_not_an_election_alert():
     assert polls == []
     assert discoveries[0]["validation"] == "PAGE_FINGERPRINT_ONLY"
     assert discoveries[0]["alertable"] is False
+
+
+def test_national_html_extracts_only_coherent_poll():
+    html = """<html><head><title>Barómetro ABC</title></head><body>
+    <h1>Barómetro ABC | Estimación de voto nacional. Septiembre 2026</h1>
+    <p>7 de septiembre de 2026. Elecciones generales. GAD3 para ABC.</p>
+    <p>PP 31,1% PSOE 26,1% Vox 19,2% Sumar 7,0% Podemos 3,0% ERC 2,0% Junts 1,5% PNV 1,2% BNG 1,0% Otros partidos 8,9%</p>
+    </body></html>""".encode("utf-8")
+    rows = parse_national_html(html, {"id":"gad3","name":"GAD3","pollster":"GAD3","url":"https://example.test"})
+    assert len(rows) == 1
+    assert rows[0].publication_date == "2026-09-07"
+    assert rows[0].parties["PP"] == 31.1
+    assert rows[0].parties["PSOE"] == 26.1
+
+
+def test_national_html_rejects_poll_commentary_without_full_estimates():
+    html = """<html><body><h1>Noticias electorales</h1>
+    <p>Las últimas encuestas sitúan al PP por delante y a Vox al alza.</p>
+    </body></html>""".encode("utf-8")
+    assert parse_national_html(html, {"id":"x","name":"X","pollster":"X","url":"https://example.test"}) == []
