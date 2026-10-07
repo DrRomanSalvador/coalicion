@@ -47,4 +47,17 @@ jobs:
           git add -f data/raw/Elecciones-Congreso.xlsx 2>/dev/null || true
           git add .github/workflows/primary-interior-materialization.yml
           git commit -m "Materialize primary Interior historical electoral data" || exit 0
-          git push origin HEAD:main
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            if git rebase origin/main; then
+              if git push origin HEAD:main; then
+                exit 0
+              fi
+            else
+              git rebase --abort || true
+            fi
+            echo "Concurrent main update; retrying materialization push."
+            sleep $((attempt * 5))
+          done
+          echo "FAIL-CLOSED: could not publish validated primary materialization after concurrent-update retries."
+          exit 1
