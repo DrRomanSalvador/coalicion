@@ -1,6 +1,6 @@
 from src.prediction import (
     PollObservation, Candidate, accept_update, base, expanding_oos,
-    select_best, _errors,
+    select_best, _errors, change_vs_previous_election,
 )
 
 def obs(e, poll, actual, field):
@@ -41,6 +41,25 @@ def test_oos_never_uses_future():
     assert [x.train_elections for x in r.folds] == [
         ("2004",), ("2004", "2008")
     ]
+
+def test_oos_min_train_counts_elections_not_rows():
+    r = expanding_oos(
+        [("2004", 10), ("2004", 11), ("2008", 20)],
+        lambda t: t[-1][1],
+        min_train_elections=2,
+    )
+    assert [x.election for x in r.folds] == ["2008"]
+    assert r.folds[0].train_elections == ("2004",)
+
+def test_change_vs_previous_uses_poll_to_poll():
+    rows = [
+        obs("2004", 40, 42, "2004-03-01"),
+        obs("2008", 45, 44, "2008-03-01"),
+    ]
+    result = change_vs_previous_election(rows)[0]
+    assert result.actual_change == 2
+    assert result.poll_change == 5
+    assert result.change_error == 3
 
 def test_equal_model_not_accepted():
     r = expanding_oos([("a", 1), ("b", 2)], lambda t: t[-1][1])
