@@ -12,6 +12,7 @@ on:
       - ".github/workflows/historical-data-integration.yml"
       - "config/electoral_sources.json"
       - "tests/test_poll_monitor.py"
+      - "src/oos_pipeline.py"
   pull_request:
     branches: [main]
     paths:
@@ -26,7 +27,7 @@ permissions:
 
 concurrency:
   group: historical-data-canonical-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   integrate:
@@ -79,13 +80,16 @@ jobs:
       - name: Validate datasets and create provenance manifest
         run: python scripts/validate_historical_data.py
 
+      - name: Validate OOS contract against canonical CIS and official results
+        run: python scripts/run_full_oos.py --input data/encuestas_historicas_2004_2023.csv --output artifacts/oos_historical_2004_2023.json
+
       - name: Commit only validated materialization
         if: github.event_name != 'pull_request'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/resultados_oficiales_2004_2023.csv                   data/encuestas_historicas_2004_2023.csv                   data/manifests/HISTORICAL_DATA_MATERIALIZATION.json
+          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json artifacts/oos_historical_2004_2023.json
           if git diff --cached --quiet; then
             echo "No validated data changes."
             exit 0
