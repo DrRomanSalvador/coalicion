@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests beautifulsoup4 lxml
+          pip install requests beautifulsoup4 lxml pytest
           python -m pytest tests/test_poll_monitor.py -q
 
       - name: Monitorizar fuentes
