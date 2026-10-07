@@ -214,4 +214,3 @@ def test_workflow_does_not_self_trigger_and_retries_non_fast_forward():
     assert "git rebase --autostash origin/main" in workflow
     assert "git merge-base --is-ancestor origin/main HEAD" in workflow
     assert "for attempt in 1 2 3 4 5" in workflow
-    assert "for attempt in 1 2 3" in workflow
