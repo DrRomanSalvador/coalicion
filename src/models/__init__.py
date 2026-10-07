@@ -13,9 +13,11 @@ from .robust_optimization import RobustEnsembleOptimizer
 from .lstm_electoral import LSTM_ElectoralModel
 from .causal_inference import CausalInference
 from .spatial_analysis import SpatialElectoralModel
+from .sensitivity_analysis import sobol_sensitivity_analysis
 
 __all__ = [
     "EnsembleModel","BayesianEnsemble","QuantileRegressionForest",
     "GaussianProcessElectoral","ConformalPredictor","BlockBootstrap",
     "RobustEnsembleOptimizer","LSTM_ElectoralModel","CausalInference","SpatialElectoralModel",
+    "sobol_sensitivity_analysis",
 ]
