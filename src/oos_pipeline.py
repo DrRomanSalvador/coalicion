@@ -7,7 +7,7 @@ from datetime import date
 from pathlib import Path
 
 from .bias_filter import Observation, select_best
-from .context_corrections import select
+from .context_corrections import predict as predict_context, select
 from .poll_error import PollObservation
 
 ELECTIONS = (
@@ -193,7 +193,13 @@ def run_oos(rows: list[PollObservation]) -> dict:
     if len({r.election for r in rows}) < 2:
         raise ValueError("OOS requiere al menos dos elecciones")
     for row in rows:
-        if date.fromisoformat(row.field_end) >= date.fromisoformat(row.election_date):
+        if row.election not in ELECTION_DATES:
+            raise ValueError(f"unknown election in OOS: {row.election}")
+        if row.election_date != ELECTION_DATES[row.election]:
+            raise ValueError(f"election date mismatch for {row.election}: {row.election_date}")
+        field_end = date.fromisoformat(row.field_end)
+        election_date = date.fromisoformat(row.election_date)
+        if field_end >= election_date:
             raise ValueError(f"future leakage detected: {row.poll_id}")
 
     elections = _election_order(rows)
@@ -207,11 +213,14 @@ def run_oos(rows: list[PollObservation]) -> dict:
     selected_bias = select_best(train_bias)
     selected_context = select(training)
 
-    predictions = [
+    bias_predictions = [
         _predict_bias(selected_bias.name, train_bias, Observation(
             r.election, r.party, r.poll, r.actual, r.house, r.field_end
         ))
         for r in holdout
+    ]
+    context_predictions = [
+        predict_context(selected_context, training, r) for r in holdout
     ]
     holdout_actuals = [r.actual for r in holdout]
     holdout_polls = [r.poll for r in holdout]
@@ -226,6 +235,7 @@ def run_oos(rows: list[PollObservation]) -> dict:
         "selected_bias_correction": selected_bias.name,
         "selected_context_correction": selected_context,
         "holdout_mae_base": _mae(holdout_polls, holdout_actuals),
-        "holdout_mae_selected_bias": _mae(predictions, holdout_actuals),
+        "holdout_mae_selected_bias": _mae(bias_predictions, holdout_actuals),
+        "holdout_mae_selected_context": _mae(context_predictions, holdout_actuals),
         "holdout_rows": len(holdout),
     }
