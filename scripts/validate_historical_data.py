@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Strict validation and provenance manifest for Spain historical electoral data."""
+"""Strict validation and provenance manifest for Spain historical electoral data.\n\nEvery published historical dataset must pass this validator first.\n"""
 
 from __future__ import annotations
 
