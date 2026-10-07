@@ -38,3 +38,10 @@ def test_valid_structure(tmp_path: Path):
     r=audit_canonical(p)
     assert r["status"]=="PASS"
     assert r["province_count"]==52 and r["seat_total"]==350
+
+
+def test_canonical_contract_constants_are_pinned():
+    from src.neutral_audit import EXPECTED_CANONICAL_PATH, EXPECTED_CANONICAL_SHA256, EXPECTED_CANDIDATE_VOTES
+    assert EXPECTED_CANONICAL_PATH == "artifacts/data/election_2023_canonical.json"
+    assert EXPECTED_CANONICAL_SHA256 == "db07f35c862a1a7c620b3242d2b1ddda041b2b68765427385ae41d958b6d3cb2"
+    assert EXPECTED_CANDIDATE_VOTES == 24_487_414
