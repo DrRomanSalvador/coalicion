@@ -5,6 +5,7 @@ on:
     branches: ["main"]
     paths:
       - ".github/workflows/inspect-interior-source.yml"
+      - "scripts/ingest_official_electoral_history.R"
   workflow_dispatch:
 
 permissions:
