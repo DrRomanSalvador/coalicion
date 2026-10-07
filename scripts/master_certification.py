@@ -87,8 +87,21 @@ def certify(root="."):
             external_ok=False
     gates.append(_gate("external_audit", external_ok,
                        "auditoría independiente materializada y declarada"))
-    ok=all(g.status=="PASS" for g in gates)
-    return {"status":"CERTIFIED" if ok else "BLOCKED","gates":[g.__dict__ for g in gates]}
+    approved=all(g.status=="PASS" for g in gates)
+    request = r/"ci_evidence/certification_request.json"
+    approval = r/"ci_evidence/certification_approval.json"
+    request_present = request.exists()
+    approval_present = approval.exists()
+    # A request is only a request. It can never make certification PASS.
+    # Approval must be an explicit, separately issued artifact tied to this evidence.
+    approved = approved and approval_present
+    return {
+        "status": "CERTIFIED" if approved else ("PENDING_APPROVAL" if request_present else "PENDING_REQUEST"),
+        "certification_request": request_present,
+        "certification_approval": approval_present,
+        "gates": [g.__dict__ for g in gates],
+        "rule": "La solicitud y la aprobación son estados distintos; ningún archivo de solicitud certifica por sí mismo.",
+    }
 
 if __name__=="__main__":
     out=certify()
