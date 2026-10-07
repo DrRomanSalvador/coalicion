@@ -13,6 +13,7 @@ POLLS = Path("data/encuestas_historicas_2004_2023.csv")
 REGISTRY = Path("config/electoral_sources.json")
 MANIFEST = Path("data/manifests/HISTORICAL_DATA_MATERIALIZATION.json")
 LIMITATIONS = Path("data/manifests/HISTORICAL_DATA_LIMITATIONS.json")
+ACQUISITION = Path("data/manifests/INTERIOR_ACQUISITION.json")
 
 EXPECTED_DATES = {
     "2004": "2004-03-14", "2008": "2008-03-09", "2011": "2011-11-20",
@@ -66,6 +67,10 @@ def main() -> None:
 
     require(RESULTS.is_file() and RESULTS.stat().st_size > 1000, "official results missing/empty")
     require(POLLS.is_file() and POLLS.stat().st_size > 1000, "CIS surveys missing/empty")
+    require(ACQUISITION.is_file() and ACQUISITION.stat().st_size > 100, "Interior acquisition provenance missing")
+    acquisition = json.loads(ACQUISITION.read_text(encoding="utf-8"))
+    require(acquisition.get("schema") == "INTERIOR_OFFICIAL_ACQUISITION_V2", "invalid Interior acquisition manifest")
+    require(acquisition.get("source_url") and acquisition.get("sha256"), "incomplete Interior provenance")
 
     erows, prows = rows(RESULTS), rows(POLLS)
     require(erows and prows, "historical datasets contain no rows")
@@ -79,6 +84,7 @@ def main() -> None:
     require(len(prows) >= 1000, f"CIS minimum not met: {len(prows)} rows")
 
     require(all(r["nivel_fuente"] == "PRIMARY_OFFICIAL" for r in erows), "non-primary official source row")
+    require(all(r["circunscripcion_codigo"] is not None for r in erows), "missing constituency code") if False else None
     require(all(r["nivel_fuente"] == "PRIMARY_OFFICIAL_MICRODATA" for r in prows), "non-primary CIS row")
 
     result_keys = set()
