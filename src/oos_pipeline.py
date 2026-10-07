@@ -20,7 +20,7 @@ ELECTIONS = (
     ("2019-11-10", "2019N"),
     ("2023-07-23", "2023J"),
 )
-ELECTION_DATES = dict(ELECTIONS)
+ELECTION_DATES = {**{raw: raw for raw, _code in ELECTIONS}, **{code: raw for raw, code in ELECTIONS}}
 CANONICAL = {"fecha_encuesta", "partido", "estimacion_voto", "tipo_encuesta", "fuente", "codigo_estudio"}
 LEGACY = {"election", "election_date", "party", "poll", "actual", "house", "field_end", "source", "poll_id"}
 ALIAS = {
