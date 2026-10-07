@@ -66,8 +66,9 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p "$R_LIBS_USER"
-          Rscript -e 'options(repos=c(CRAN="https://packagemanager.posit.co/cran/__linux__/noble/latest"), timeout=300); install.packages(c("opencis","readxl","dplyr","readr","tibble","haven","purrr"), lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), Ncpus=2, quiet=FALSE)'
-          Rscript -e 'pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr"); stopifnot(all(vapply(pkgs, requireNamespace, logical(1), quietly=TRUE)))'
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends             r-cran-readxl r-cran-dplyr r-cran-readr r-cran-tibble r-cran-haven             r-cran-purrr r-cran-jsonlite
+          Rscript -e 'options(repos=c(CRAN="https://cloud.r-project.org"), timeout=300); install.packages("opencis", lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), Ncpus=2, quiet=FALSE)'
+          Rscript -e 'pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr","jsonlite"); stopifnot(all(vapply(pkgs, requireNamespace, logical(1), quietly=TRUE)))'
 
       - name: Ingest official Interior results
         timeout-minutes: 30
