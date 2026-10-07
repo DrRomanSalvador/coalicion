@@ -20,7 +20,7 @@ ALIASES = {
     "valencia": "valencia/valència",
     "valencia valencia": "valencia/valència",
     "pais valenciano": "valencia/valència",
-    "pais valenciat": "valencia/valència",
+    "pais valencia": "valencia/valència",
     "valencia valencia": "valencia/valència",
     "castellon castello": "castellón/castelló",
     "castellon": "castellón/castelló",
