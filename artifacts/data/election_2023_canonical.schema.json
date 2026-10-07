@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Coalicion canonical Congress 2023 matrix",
+  "type": "object",
+  "required": ["source", "election", "data"],
+  "properties": {
+    "source": {"const": "INTERIOR_PRIMARY"},
+    "election": {"const": "2023"},
+    "data": {
+      "type": "object",
+      "required": ["provinces", "valid_votes"],
+      "properties": {
+        "provinces": {
+          "type": "array",
+          "minItems": 52,
+          "maxItems": 52,
+          "items": {
+            "type": "object",
+            "required": ["name", "seats", "parties"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "seats": {"type": "integer", "minimum": 1},
+              "parties": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["name", "votes"],
+                  "properties": {
+                    "name": {"type": "string", "minLength": 1},
+                    "votes": {"type": "integer", "minimum": 0}
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "valid_votes": {"type": "object"},
+        "blank_votes": {"type": "object"},
+        "special": {"type": "object"}
+      }
+    }
+  }
+}
