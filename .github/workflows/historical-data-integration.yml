@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       R_LIBS_USER: /tmp/coalicion-r-lib
-    timeout-minutes: 150
+    timeout-minutes: 180
 
     steps:
       - name: Checkout
@@ -98,5 +98,5 @@ jobs:
             echo "No validated data changes."
             exit 0
           fi
-          git commit -m "Add validated official Spain historical electoral data"
+          git commit -m "Materialize and certify official Spain historical electoral data"
           git push origin HEAD:main
