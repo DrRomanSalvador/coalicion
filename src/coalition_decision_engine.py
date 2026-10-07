@@ -91,7 +91,7 @@ class CoalitionDecisionEngine:
         for c, row in scenario.votes.items():
             valid = sum(row.values()) + self.blank.get(c, 0)
             if merged:
-                v = sum(row[p] for p in parties)
+                v = sum(row.get(p, 0) for p in parties)
                 total += v if v * 100 < valid * 3 else 0
             else:
                 total += sum(v for p, v in row.items()
