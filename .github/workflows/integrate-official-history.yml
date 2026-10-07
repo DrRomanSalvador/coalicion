@@ -40,7 +40,7 @@ jobs:
       - name: Install R dependencies
         shell: bash
         run: |
-          Rscript -e 'install.packages(c("infoelectoral","opencis","dplyr","readr","tibble","haven","purrr"), repos="https://cloud.r-project.org")'
+          Rscript -e 'install.packages(c("infoelectoral","opencis","readxl","dplyr","readr","tibble","haven","purrr"), repos="https://cloud.r-project.org")'
       - name: Ingest official Interior constituency results
         run: Rscript scripts/ingest_official_electoral_history.R
       - name: Ingest official CIS historical surveys
