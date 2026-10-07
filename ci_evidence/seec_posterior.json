@@ -1,0 +1,9 @@
+{
+  "schema": "SEEC_PRODUCTION_POSTERIOR_V1",
+  "status": "PENDING",
+  "reason": "Requires successful primary historical data acquisition and an actual PyMC production run; posterior values are never fabricated.",
+  "minimum_total_draws": 10000,
+  "seed": 20261006,
+  "rng": "numpy.PCG64",
+  "fail_closed": true
+}
