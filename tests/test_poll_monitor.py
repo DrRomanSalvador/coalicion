@@ -152,3 +152,26 @@ def test_coverage_blocks_failed_source_and_status_cannot_be_ready():
     result = monitor.audit_coverage([{"source_id":"primary","error":"timeout"}], [])
     assert result["total"] is False
     assert "SOURCE_NOT_HEALTHY:primary" in result["blockers"]
+
+
+def test_optional_primary_source_blocks_total_coverage():
+    from src.poll_monitor import PollMonitor
+    monitor = PollMonitor.__new__(PollMonitor)
+    monitor.config = {"coverage_contract":{"scope":"configured_national_poll_universe"}, "sources":[{"id":"primary","coverage_role":"primary","format":"national_html","optional":True}]}
+    monitor.state = {"source_status":{"primary":{"status":"OK"}}}
+    result = monitor.audit_coverage([], [])
+    assert result["total"] is False
+    assert "PRIMARY_CANNOT_BE_OPTIONAL:primary" in result["blockers"]
+
+def test_unresolved_discovery_blocks_total_coverage():
+    from src.poll_monitor import PollMonitor
+    monitor = PollMonitor.__new__(PollMonitor)
+    monitor.config = {"coverage_contract":{"scope":"configured_national_poll_universe","require_zero_unresolved_discoveries":True}, "sources":[{"id":"primary","coverage_role":"primary","format":"national_html"}]}
+    monitor.state = {"source_status":{"primary":{"status":"OK"}}}
+    result = monitor.audit_coverage([], [{"source_id":"d","discovery_id":"1","validation":"DISCOVERY_ONLY"}])
+    assert result["total"] is False
+    assert "UNRESOLVED_DISCOVERIES:1" in result["blockers"]
+
+def test_workflow_has_json_preflight():
+    workflow = Path(".github/workflows/poll_monitor.yml").read_text()
+    assert "python -m json.tool config/poll_monitor.json" in workflow
