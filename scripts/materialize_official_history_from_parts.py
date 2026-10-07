@@ -31,7 +31,7 @@ def main():
             rows.extend(r)
     required=["election","fecha_eleccion","circunscripcion","partido","votos","escaños","fuente","nivel_fuente"]
     if header!=required: raise RuntimeError("official CSV schema mismatch")
-    if len(rows)!=50700: raise RuntimeError(f"expected 50700 rows, got {len(rows)}")
+    if len(rows)!=50700: raise RuntimeError(f"FAIL-CLOSED: official historical materialization requires 50700 rows, got {len(rows)}; primary acquisition must be used")
     by_e={e:[] for e in DATES}
     for row in rows:
         if row[0] not in DATES: raise RuntimeError(f"unknown election: {row[0]}")
