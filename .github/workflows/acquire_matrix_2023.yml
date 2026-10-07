@@ -9,6 +9,8 @@ on:
       - ".github/workflows/acquire_matrix_2023.yml"
   workflow_dispatch:
 
+# Reproducible acquisition: materialize only after structural validation.
+
 permissions:
   contents: write
 
