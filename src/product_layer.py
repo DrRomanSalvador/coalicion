@@ -22,6 +22,7 @@ from .decision_engine import (
 from .electoral import allocate
 from .reproducibility_contract import verify_contract
 from .projection_suite import project as project_projection, compare_projections, uncertainty_summary, backtest_rows
+from .rapid_decision_center import decision_snapshot
 
 
 PRODUCT_VERSION = "1.0"
@@ -37,6 +38,7 @@ SUPPORTED_FUNCTIONS = (
     "projection",
     "uncertainty",
     "backtest",
+    "decision_center",
 )
 
 
@@ -431,3 +433,8 @@ def uncertainty(draw_results):
 
 def backtest(predictions, actuals):
     return backtest_rows(predictions, actuals)
+
+
+def decision_center(*args, **kwargs):
+    """Centro operativo único: voto → territorio → escaños → marginalidad → pactos."""
+    return decision_snapshot(*args, **kwargs)
