@@ -56,6 +56,7 @@ download_candidate <- function(url, destination) {
       py_status <- system2(py, c("-c", py_code, url, tmp))
       ok <- identical(py_status, 0L) && file.exists(tmp) && file.info(tmp)$size > 10000
     }
+  }
   if (ok) {
     con <- file(tmp, "rb"); on.exit(close(con), add=TRUE)
     magic <- readBin(con, "raw", n=4)
