@@ -7,7 +7,12 @@
     "require_zero_unresolved_discoveries": true,
     "require_zero_unresolved_source_failures": true,
     "require_primary_registry_reviewed": true,
-    "claim": "COBERTURA_TOTAL_VERIFICADA"
+    "claim": "COBERTURA_TOTAL_VERIFICADA",
+    "source_registry": "config/poll_source_registry.json",
+    "discovery_registry_sources": [
+      "datoelectoral",
+      "pollingforecast_registry"
+    ]
   },
   "timezone": "Europe/Madrid",
   "sources": [
@@ -165,6 +170,15 @@
       "coverage_role": "primary",
       "reason": "Publicación de laSexta que expone explícitamente el barómetro Invymark y sus porcentajes; se usa como evidencia publicada mientras el dominio del instituto no es accesible por TLS.",
       "pollster": "Invymark"
+    },
+    {
+      "id": "pollingforecast_registry",
+      "name": "Polling Forecast — registro de encuestas",
+      "url": "https://www.pollingforecast.com/es/polls?lang=es&tab=raw",
+      "format": "page",
+      "method": "GET",
+      "coverage_role": "discovery",
+      "reason": "Registro independiente de descubrimiento; nunca sustituye la fuente primaria ni se usa para canonizar valores."
     }
   ],
   "policy": {
