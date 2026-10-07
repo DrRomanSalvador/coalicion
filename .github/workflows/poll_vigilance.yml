@@ -20,13 +20,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: Install Python dependencies
         run: |
-          pip install beautifulsoup4 requests
+          pip install beautifulsoup4 requests lxml
 
       - name: Comprobar ventana 08:00 Europe/Madrid
         id: gate
