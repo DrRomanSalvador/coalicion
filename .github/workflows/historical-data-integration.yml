@@ -11,7 +11,6 @@ on:
       - "scripts/validate_historical_data.py"
       - "scripts/run_full_oos.py"
       - "src/oos_pipeline.py"
-      - ".github/workflows/historical-data-integration.yml"
       - "config/electoral_sources.json"
   pull_request:
     branches: [main]
