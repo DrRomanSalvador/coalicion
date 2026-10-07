@@ -1,5 +1,5 @@
 import pytest
-from src.decision_engine import coalition_result,apply_absolute_shift,Scenario,validate_scenario
+from src.decision import coalition_result,apply_absolute_shift,Scenario,validate_scenario
 
 def base():
     return ({"A":{"X":600,"Y":250,"Z":150},"B":{"X":500,"Y":300,"Z":200}},
