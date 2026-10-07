@@ -3,7 +3,7 @@ from src.rapid_decision_center import decision_snapshot
 
 def _matrix():
     votes = {f"C{i}": {"A": 600 - i, "B": 400 + i, "C": 50} for i in range(52)}
-    seats = {f"C{i}": 1 for i in range(52)}
+    seats = {f"C{i}": (44 if i == 0 else 6) for i in range(52)}
     blank = {f"C{i}": 0 for i in range(52)}
     return votes, seats, blank
 
@@ -18,6 +18,8 @@ def test_decision_snapshot_is_complete_and_traced():
     assert out["marginality"]["most_marginal"]
     assert len(out["traceability"]["input_hash"]) == 64
     assert len(out["traceability"]["output_hash"]) == 64
+    again = decision_snapshot(votes, seats)
+    assert out["traceability"]["output_hash"] == again["traceability"]["output_hash"]
 
 
 def test_decision_snapshot_compares_previous_projection():
@@ -42,3 +44,20 @@ def test_decision_snapshot_rejects_non_52_in_strict_mode():
         assert "52" in str(exc)
     else:
         raise AssertionError("strict territory must reject incomplete matrix")
+
+
+def test_decision_snapshot_accepts_optional_blank_votes():
+    votes, seats, _ = _matrix()
+    out = decision_snapshot(votes, seats)
+    assert out["status"] == "OK"
+
+
+def test_decision_snapshot_rejects_wrong_seat_total():
+    votes, seats, blank = _matrix()
+    seats["C0"] -= 1
+    try:
+        decision_snapshot(votes, seats, blank)
+    except ValueError as exc:
+        assert "350" in str(exc)
+    else:
+        raise AssertionError("strict territory must reject a non-350 seat total")
