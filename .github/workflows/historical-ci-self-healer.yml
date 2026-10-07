@@ -38,7 +38,7 @@ jobs:
             conclusion="$(python -c 'import json,sys; print(json.loads(sys.argv[1])[0].get("conclusion") or "")' "${run_json}")"
             echo "cycle=$cycle run=$run_id status=$status conclusion=$conclusion"
 
-            if [ "$status" = "in_progress" ] || [ "$status" = "queued" ] || [ "$status" = "waiting" ] || [ "$status" = "requested" ]; then
+            if [ "$status" = "in_progress" ] || [ "$status" = "queued" ] || [ "$status" = "waiting" ] || [ "$status" = "requested" ] || [ "$status" = "pending" ]; then
               echo "Historical CI is still running; do not interfere."
               exit 0
             fi
