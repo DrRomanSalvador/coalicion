@@ -392,7 +392,8 @@ def generate_leader_report(
             "version": PRODUCT_VERSION,
             "function": "report",
             "status": "OK",
-            "markdown": "\n".join(lines),
+            "markdown": "
+".join(lines),
         },
         "technical": decision["technical"],
     }
@@ -413,4 +414,21 @@ def audit_decision() -> dict:
         },
         "technical": contract,
     }
-\n\ndef project(votes_by_constituency, seats_by_constituency, blank_votes_by_constituency,\n            share_changes=None, turnout_factors=None, special_by_constituency=None):\n    return project_projection(votes_by_constituency, seats_by_constituency, blank_votes_by_constituency,\n                              share_changes, turnout_factors, special_by_constituency)\n\n\ndef compare_projection_results(reference, candidate):\n    return compare_projections(reference, candidate)\n\n\ndef uncertainty(draw_results):\n    return uncertainty_summary(draw_results)\n\n\ndef backtest(predictions, actuals):\n    return backtest_rows(predictions, actuals)\n
+
+
+def project(votes_by_constituency, seats_by_constituency, blank_votes_by_constituency,
+            share_changes=None, turnout_factors=None, special_by_constituency=None):
+    return project_projection(votes_by_constituency, seats_by_constituency, blank_votes_by_constituency,
+                              share_changes, turnout_factors, special_by_constituency)
+
+
+def compare_projection_results(reference, candidate):
+    return compare_projections(reference, candidate)
+
+
+def uncertainty(draw_results):
+    return uncertainty_summary(draw_results)
+
+
+def backtest(predictions, actuals):
+    return backtest_rows(predictions, actuals)
