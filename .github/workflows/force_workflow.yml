@@ -4,23 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       workflow:
-        description: "Workflow to dispatch"
+        description: "Workflow filename under .github/workflows"
         required: true
-        type: choice
-        options:
-          - acquire_matrix_2023.yml
-          - activate_colmena.yml
-          - auditoria_2023.yml
-          - colmena_reproducible.yml
-          - exhaustive_validation.yml
-          - historical-data-integration.yml
-          - inspect-interior-source.yml
-          - materializar_fuentes_oficiales.yml
-          - neutral_tests.yml
-          - poll_monitor.yml
-          - product-layer.yml
-          - product_pipeline.yml
-          - reproducibility-product-verification.yml
+        type: string
       ref:
         description: "Branch or tag to execute"
         required: true
@@ -45,42 +31,30 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Validate and dispatch target workflow
+      - name: Validate and dispatch
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
           TARGET: ${{ inputs.workflow }}
           REF: ${{ inputs.ref }}
           INPUTS_JSON: ${{ inputs.inputs_json }}
+        shell: bash
         run: |
+          set -euo pipefail
           python - <<'PY'
-          import json
-          import os
-          import subprocess
+          import json, os, re, urllib.error, urllib.request
 
-          target = os.environ["TARGET"]
+          target = os.environ["TARGET"].strip()
           ref = os.environ["REF"].strip()
           raw = os.environ["INPUTS_JSON"].strip() or "{}"
 
-          allowed = {
-              "acquire_matrix_2023.yml",
-              "activate_colmena.yml",
-              "auditoria_2023.yml",
-              "colmena_reproducible.yml",
-              "exhaustive_validation.yml",
-              "historical-data-integration.yml",
-              "inspect-interior-source.yml",
-              "materializar_fuentes_oficiales.yml",
-              "neutral_tests.yml",
-              "poll_monitor.yml",
-              "product-layer.yml",
-              "product_pipeline.yml",
-              "reproducibility-product-verification.yml",
-          }
-          if target not in allowed:
-              raise SystemExit(f"WORKFLOW_NOT_ALLOWED:{target}")
-          if not ref or any(x in ref for x in ("\n", "\r")):
+          if not re.fullmatch(r"[A-Za-z0-9._-]+\.(yml|yaml)", target):
+              raise SystemExit("INVALID_WORKFLOW_FILENAME")
+          if target == "force_workflow.yml":
+              raise SystemExit("DISPATCHER_RECURSION_BLOCKED")
+          if not ref or any(c in ref for c in "\r\n"):
               raise SystemExit("INVALID_REF")
+
           try:
               inputs = json.loads(raw)
           except json.JSONDecodeError as exc:
@@ -90,13 +64,43 @@ jobs:
           if len(inputs) > 25:
               raise SystemExit("INVALID_INPUTS_JSON:too_many_inputs")
 
-          payload = json.dumps({"ref": ref, "inputs": inputs}, ensure_ascii=False)
-          endpoint = f"repos/{os.environ['REPOSITORY']}/actions/workflows/{target}/dispatches"
-          subprocess.run(
-              ["gh", "api", "--method", "POST", endpoint, "--input", "-"],
-              input=payload,
-              text=True,
-              check=True,
+          token = os.environ["GH_TOKEN"]
+          repo = os.environ["REPOSITORY"]
+          base = f"https://api.github.com/repos/{repo}/actions/workflows/{target}"
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "X-GitHub-Api-Version": "2026-03-10",
+              "Content-Type": "application/json",
+          }
+
+          try:
+              with urllib.request.urlopen(
+                  urllib.request.Request(base, headers=headers), timeout=30
+              ) as response:
+                  workflow = json.load(response)
+          except urllib.error.HTTPError as exc:
+              body = exc.read().decode("utf-8", "replace")
+              raise SystemExit(f"WORKFLOW_LOOKUP_FAILED:{exc.code}:{body[:1000]}")
+
+          if workflow.get("state") != "active":
+              raise SystemExit(f"WORKFLOW_NOT_ACTIVE:{workflow.get('state')}")
+
+          payload = json.dumps({"ref": ref, "inputs": inputs}).encode()
+          request = urllib.request.Request(
+              base + "/dispatches",
+              data=payload,
+              method="POST",
+              headers=headers,
           )
-          print(f"DISPATCHED:{target}@{ref}")
+          try:
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  body = response.read().decode("utf-8", "replace")
+                  print(f"DISPATCHED:{target}@{ref}")
+                  print(f"HTTP_STATUS:{response.status}")
+                  if body:
+                      print(body)
+          except urllib.error.HTTPError as exc:
+              body = exc.read().decode("utf-8", "replace")
+              raise SystemExit(f"DISPATCH_FAILED:{exc.code}:{body[:2000]}")
           PY
