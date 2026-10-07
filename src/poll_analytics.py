@@ -42,6 +42,13 @@ def detect_anomalies(polls: Iterable[Poll], z: float = 2.5) -> list[dict]:
         mad=median(deviations)
         scale=1.4826*mad
         if scale == 0:
+            # Si toda la serie histórica coincide con la mediana, cualquier
+            # desviación no nula es una anomalía inequívoca; no se puede
+            # fabricar un z-score finito con MAD=0.
+            for row in rows:
+                if party in row.parties and row.parties[party] != med:
+                    out.append({"poll_id": row.poll_id, "party": party, "value": row.parties[party],
+                                "median": med, "robust_z": float("inf")})
             continue
         for row in rows:
             if party in row.parties and abs(row.parties[party]-med)/scale >= z:
