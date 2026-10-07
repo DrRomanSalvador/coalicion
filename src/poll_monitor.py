@@ -348,6 +348,9 @@ class SourceMonitor:
             return [], parse_rss_metadata(body, self.source)
         if kind == "electomania_json":
             return parse_electomania_json(body, self.source), []
+        if kind == "electomania_html":
+            from .monitors.electomania_monitor import ElectomaniaMonitor
+            return ElectomaniaMonitor(self.source, self.session).parse(body)
         if kind == "national_html":
             return parse_national_html(body, self.source), []
         # Generic pages are monitored by cryptographic fingerprint only.
