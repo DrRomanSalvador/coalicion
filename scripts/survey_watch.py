@@ -22,8 +22,8 @@ def fetch(url):
 def main():
     cfg=load(CONFIG,{})
     tz=ZoneInfo(cfg.get("timezone","Europe/Madrid")); now=datetime.now(timezone.utc).astimezone(tz)
-    if now.hour != int(cfg.get("daily_local_hour",8)):
-        print(json.dumps({"status":"SKIPPED","reason":"OUTSIDE_DAILY_LOCAL_WINDOW","local_time":now.isoformat()})); return 0
+    # Ingestion is continuous. Daily aggregation belongs to the radar/digest layer,
+    # never to the source-ingestion layer.
     state=load(STATE,{"seen_sources":{},"seen_polls":{},"history":[]})
     events=[]; canonical=[]
     for src in cfg.get("sources",[]):
