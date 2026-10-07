@@ -117,7 +117,7 @@ def test_coverage_manifest_is_structurally_valid():
     assert all(s.get("coverage_role") in {"primary","discovery","optional"} for s in active)
     assert all("id" in s and "url" in s and "format" in s for s in active)
     assert len({s["id"] for s in active}) == len(active)
-    assert cfg["sources"][-1]["url"].endswith("/tweets")
+    assert any(s.get("format") == "twitter" and s["url"].endswith("/tweets") for s in cfg["sources"])
 
 
 def test_poll_identity_ignores_source_and_values():
