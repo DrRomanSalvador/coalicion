@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from math import sqrt
 from statistics import median
 from typing import Sequence
-from .poll_error import PollObservation
+from .data import PollObservation
 
 
 @dataclass(frozen=True)
