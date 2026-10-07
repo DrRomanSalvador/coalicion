@@ -11,7 +11,6 @@ on:
       - "scripts/neutral_coalition_cli.py"
       - "tests/test_neutral_audit.py"
       - "artifacts/data/election_2023_canonical.schema.json"
-      - "scripts/notify_webhook.py scripts/ingest_polls.py scripts/telegram_notifier.py"
       - "scripts/ingest_polls.py"
       - "scripts/telegram_notifier.py"
       - "tests/test_telegram_notifier.py"
