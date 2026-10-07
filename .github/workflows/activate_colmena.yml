@@ -24,7 +24,7 @@ permissions:
 
 concurrency:
   group: colmena-2023
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   queen:
