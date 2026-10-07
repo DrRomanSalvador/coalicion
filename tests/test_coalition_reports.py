@@ -9,7 +9,7 @@ def test_identity_aliases_are_closed_and_not_fuzzy():
     assert party_identity("PSE-EE (PSOE) PARTIDO SOCIALISTA DE EUSKADI-EUSKADIKO EZKERRA (PSOE)") == "PSOE"
     assert party_identity("SUMAR SUMAR") == "SUMAR"
     assert party_identity("ECP SUMAR - EN COMÚ PODEM - SUMAR") == "SUMAR"
-    assert party_identity("COMPROMÍS COMPROMÍS - SUMAR: SUMEM PER GUANYAR - SUMAR") is None
+    assert party_identity("COMPROMÍS COMPROMÍS - SUMAR: SUMEM PER GUANYAR - SUMAR") == "SUMAR"
 
 def test_aggregate_preserves_votes_and_does_not_split_joint_candidacies():
     raw = {"Valencia": {
@@ -20,7 +20,7 @@ def test_aggregate_preserves_votes_and_does_not_split_joint_candidacies():
     out = aggregate_identities(raw)["Valencia"]
     assert out["PP"] == 100
     assert out["PSOE"] == 80
-    assert out["COMPROMÍS COMPROMÍS - SUMAR: SUMEM PER GUANYAR - SUMAR"] == 50
+    assert out["SUMAR"] == 50
     assert sum(out.values()) == 230
 
 def test_real_matrix_reports_when_available():
