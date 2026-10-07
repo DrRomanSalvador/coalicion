@@ -392,8 +392,7 @@ def generate_leader_report(
             "version": PRODUCT_VERSION,
             "function": "report",
             "status": "OK",
-            "markdown": "
-".join(lines),
+            "markdown": "\\n".join(lines),
         },
         "technical": decision["technical"],
     }
