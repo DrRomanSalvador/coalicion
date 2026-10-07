@@ -73,8 +73,14 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libcurl4-openssl-dev pkg-config
+          for attempt in 1 2 3; do
+            if sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libcurl4-openssl-dev pkg-config; then
+              exit 0
+            fi
+            sleep $((attempt * 10))
+          done
+          echo "FAIL-CLOSED: required R system dependencies could not be installed."
+          exit 1
 
       - name: Install R dependencies
         timeout-minutes: 20
