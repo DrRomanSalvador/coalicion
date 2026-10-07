@@ -74,14 +74,12 @@ class CoalitionDecisionEngine:
         name = "+".join(parties)
         separate = coalition = 0
         for c, row in scenario.votes.items():
-            if any(p not in row for p in parties):
-                raise ValueError(f"{scenario.name}/{c}: candidatura ausente")
             a = self._allocate(row, c)
             separate += sum(a.seats.get(p, 0) for p in parties)
             merged = dict(row)
-            merged[name] = sum(row[p] for p in parties)
+            merged[name] = sum(row.get(p, 0) for p in parties)
             for p in parties:
-                del merged[p]
+                merged.pop(p, None)
             b = self._allocate(merged, c)
             coalition += b.seats.get(name, 0)
         return ScenarioOutcome(scenario.name, scenario.weight, separate, coalition,
@@ -106,9 +104,9 @@ class CoalitionDecisionEngine:
         for c, row in scenario.votes.items():
             a = self._allocate(row, c)
             merged = dict(row)
-            merged[name] = sum(row[p] for p in parties)
+            merged[name] = sum(row.get(p, 0) for p in parties)
             for p in parties:
-                del merged[p]
+                merged.pop(p, None)
             b = self._allocate(merged, c)
             s = sum(a.seats.get(p, 0) for p in parties)
             j = b.seats.get(name, 0)
