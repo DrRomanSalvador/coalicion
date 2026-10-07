@@ -35,10 +35,13 @@ def build_message(report):
                 "Estimación publicada: "
                 + ", ".join(f"{k} {v:g}%" for k, v in sorted(parties.items()))
             )
+            # National sums are descriptive vote-share arithmetic only.
+            # Never label them as seat or electoral projections.
             for coalition in SCENARIOS:
-                total = sum(float(parties.get(p, 0)) for p in coalition)
-                lines.append(f"{' + '.join(coalition)}: {total:g}%")
-    lines += ["", "Análisis descriptivo; sin recomendaciones ni ranking de coaliciones."]
+                members = [p for p in coalition if p in parties]
+                total = sum(float(parties[p]) for p in members)
+                lines.append("Voto nacional conjunto (" + " + ".join(members) + "): " + f"{total:g}%")
+            lines.append("Proyección de escaños: BLOQUEADA — faltan datos territoriales verificables.")
     return "\n".join(lines)[:4090]
 
 
