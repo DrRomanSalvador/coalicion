@@ -75,10 +75,9 @@ jobs:
           Path("data/manifests/HISTORICAL_DATA_MATERIALIZATION.json").write_text(json.dumps(x,ensure_ascii=False,indent=2)+"\n")
           PY
       - name: Setup R and system dependencies
-        timeout-minutes: 25
+        timeout-minutes: 20
         run: |
           set -euxo pipefail
-          sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends r-base r-base-dev libcurl4-openssl-dev pkg-config r-cran-readxl r-cran-dplyr r-cran-readr r-cran-tibble r-cran-haven r-cran-purrr r-cran-jsonlite
           mkdir -p "$R_LIBS_USER"
           chmod 700 "$R_LIBS_USER"
