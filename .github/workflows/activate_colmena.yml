@@ -81,7 +81,7 @@ jobs:
       - name: Publicar estado de colmena
         if: always()
         run: |
-          python scripts/product_status.py || true
+          python scripts/product_status.py
           test ! -f artifacts/queen_bee_v3_report.json || cat artifacts/queen_bee_v3_report.json
       - name: Persistir evidencia
         if: always()
