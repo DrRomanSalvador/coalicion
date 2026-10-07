@@ -52,7 +52,7 @@ def format_electoral_radar(radar: dict) -> str:
     for event in radar.get("alerts", []):
         severity = str(event.get("severity", "INFO"))
         facts = event.get("facts") or {}
-        lines.append(f"\n[{severity}] {event.get('title', event.get('code', ''))}")
+        lines.append(f"\n[{event.get('priority', 'P4')}/{severity}] {event.get('title', event.get('code', ''))}")
         if facts.get("constituency"):
             lines.append("Circunscripción: " + str(facts["constituency"]))
         if facts.get("party"):
