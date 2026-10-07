@@ -2,27 +2,9 @@ name: Reproducibility and Product Verification
 
 on:
   workflow_dispatch:
-  push:
-    branches: ["main"]
-    paths:
-      - "src/**"
-      - "tests/**"
-      - "scripts/**"
-      - "config/**"
-      - "data/source_anchors/**"
-      - ".github/workflows/**"
-      - "political_product.py"
-      - "coalicion.py"
-  pull_request:
-    paths:
-      - "src/**"
-      - "tests/**"
-      - "scripts/**"
-      - "config/**"
-      - "data/source_anchors/**"
-      - ".github/workflows/**"
-      - "political_product.py"
-      - "coalicion.py"
+  workflow_run:
+    workflows: ["Historical data — canonical integration"]
+    types: [completed]
 
 concurrency:
   group: verify-main
@@ -30,7 +12,7 @@ concurrency:
 
 jobs:
   verify:
-    if: github.actor != 'github-actions[bot]'
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
