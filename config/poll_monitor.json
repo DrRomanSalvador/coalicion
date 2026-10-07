@@ -8,10 +8,10 @@
     {"id":"europe_elects_spain","name":"Europe Elects","url":"https://europeelects.eu/spain/","format":"page","method":"GET"},
     {"id":"myfdata","name":"MyF Data","url":"https://www.myfdata.com/elecciones-generales/","format":"page","method":"GET","optional":true},
     {"id":"sigma_dos","name":"Sigma Dos","url":"https://www.elmundo.es/sigmasdos/","format":"page","method":"GET","optional":true},
-    {"id":"gad3","name":"GAD3","url":"https://www.gad3.com/informes/","format":"page","method":"GET"},
-    {"id":"nc_report","name":"NC Report","url":"https://ncreport.es/","format":"page","method":"GET"},
+    {"id":"gad3","name":"GAD3","url":"https://www.gad3.com/informes/","format":"national_html","method":"GET","pollster":"GAD3"},
+    {"id":"nc_report","name":"NC Report","url":"https://ncreport.es/","format":"national_html","method":"GET","pollster":"NC Report"},
     {"id":"demoscopia","name":"Demoscopia","url":"https://www.demoscopia.es/encuestas/","format":"page","method":"GET"},
-    {"id":"celeste_tel","name":"Celeste-Tel","url":"https://www.celeste-tel.es/","format":"page","method":"GET"},
+    {"id":"celeste_tel","name":"Celeste-Tel","url":"https://www.celeste-tel.es/","format":"national_html","method":"GET","pollster":"Celeste-Tel"},
     {"id":"invymark","name":"Invymark","url":"https://invymark.com/encuestas/","format":"page","method":"GET"},
     {"id":"political_stats_spain","name":"Political Stats","url":"https://politicalstats.eu/spain","format":"page","method":"GET"},
     {"id":"europe_elects_twitter","name":"Europe Elects X","url":"https://api.twitter.com/2/users/{user_id}/tweets","format":"twitter","method":"GET","user_id":"","optional":true}
