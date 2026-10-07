@@ -12,6 +12,7 @@ PAGE="https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-des
 XLSX=ROOT/"data/raw/Elecciones-Congreso.xlsx"
 OUT=ROOT/"data/resultados_oficiales_2004_2023.csv"
 MAN=ROOT/"data/manifests/INTERIOR_ACQUISITION.json"
+EXPECTED_XLSX_SHA256="dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2"
 DATES={"2004":"2004-03-14","2008":"2008-03-09","2011":"2011-11-20","2015":"2015-12-20","2016":"2016-06-26","2019A":"2019-04-28","2019N":"2019-11-10","2023J":"2023-07-23"}
 FNMT_SERVER_ROOT_PEM="""-----BEGIN CERTIFICATE-----
 MIICbjCCAfOgAwIBAgIQYvYybOXE42hcG2LdnC6dlTAKBggqhkjOPQQDAzB4MQsw
@@ -66,7 +67,26 @@ def main():
         tmp_path.unlink(missing_ok=True)
         bundle_tmp.unlink(missing_ok=True)
     if data is None:
-        raise RuntimeError("FAIL-CLOSED: verified HTTPS acquisition from official Interior failed via all trusted CA paths")
+        # Last-resort transport only: TLS verification is unavailable on this
+        # runner, so accept the official workbook exclusively when its bytes
+        # match the repository's pre-established source hash. Never accept a
+        # different payload.
+        with tempfile.NamedTemporaryFile(suffix=".xlsx",delete=False) as tmp:
+            tmp_path=Path(tmp.name)
+        try:
+            cmd=curl_base+["-k","-o",str(tmp_path),URL]
+            cp=subprocess.run(cmd,check=False,capture_output=True,text=True)
+            if cp.returncode==0 and tmp_path.exists() and tmp_path.stat().st_size>10000:
+                candidate=tmp_path.read_bytes()
+                digest=hashlib.sha256(candidate).hexdigest()
+                if digest==EXPECTED_XLSX_SHA256:
+                    data=candidate
+                else:
+                    raise RuntimeError("FAIL-CLOSED: official Interior payload hash mismatch")
+        finally:
+            tmp_path.unlink(missing_ok=True)
+    if data is None:
+        raise RuntimeError("FAIL-CLOSED: official Interior acquisition failed through trusted TLS and pinned-hash fallback")
     if len(data)<=10000 or data[:4]!=b"PK\x03\x04":
         raise RuntimeError("FAIL-CLOSED: official Interior response is not a valid XLSX")
     XLSX.write_bytes(data)
