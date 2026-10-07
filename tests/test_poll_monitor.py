@@ -79,3 +79,10 @@ def test_national_html_rejects_poll_commentary_without_full_estimates():
     <p>Las últimas encuestas sitúan al PP por delante y a Vox al alza.</p>
     </body></html>""".encode("utf-8")
     assert parse_national_html(html, {"id":"x","name":"X","pollster":"X","url":"https://example.test"}) == []
+
+
+def test_validate_poll_accepts_published_subset_without_manufacturing_residual():
+    poll = Poll("subset","2026-10-07","Demo","x","https://example.test",
+                {"PP":31.6,"PSOE":27.4,"VOX":18.4,"SUMAR":5.6,"PODEMOS":2.7})
+    ok, reason = validate_poll(poll)
+    assert ok and reason == "OK"
