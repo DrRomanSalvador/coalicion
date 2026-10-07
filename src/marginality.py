@@ -54,3 +54,26 @@ def marginal_seat(votes, seats, blank_votes=0, special=""):
         "last_seat_votes": votes[last_party],
         "last_seat_count": base.seats[last_party],
     }
+
+
+def rank_marginality(constituencies):
+    """Rank constituency marginal seats by votes needed to change them.
+
+    Input: iterable of dicts with name, votes, seats, blank_votes, optional special.
+    """
+    ranked=[]
+    for item in constituencies:
+        result=marginal_seat(item["votes"], item["seats"], item.get("blank_votes", 0), item.get("special", ""))
+        if result is None:
+            continue
+        ranked.append({"constituency":item["name"], **result})
+    return sorted(ranked, key=lambda x:(x["votes_to_change"], x["constituency"]))
+
+
+def compare_marginality(snapshots):
+    """Compare marginal-seat rankings across dated snapshots."""
+    out=[]
+    for snapshot in snapshots:
+        ranked=rank_marginality(snapshot["constituencies"])
+        out.append({"date":snapshot["date"],"ranking":ranked})
+    return out
