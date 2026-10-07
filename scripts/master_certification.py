@@ -2,6 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
+import hashlib
 import json
 
 @dataclass(frozen=True)
@@ -12,6 +13,37 @@ class Gate:
 
 def _gate(name, condition, detail):
     return Gate(name, "PASS" if condition else "FAIL", detail)
+def _approval_evidence_digest(gates):
+    payload = [g.__dict__ for g in gates]
+    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
+
+def _valid_request(path: Path) -> bool:
+    try:
+        x = json.loads(path.read_text(encoding="utf-8"))
+        return (
+            x.get("schema") == "CERTIFICATION_REQUEST_V1"
+            and x.get("status") == "PENDING_APPROVAL"
+            and x.get("approval_required") is True
+            and x.get("approved") is False
+        )
+    except Exception:
+        return False
+
+def _valid_approval(path: Path, gates) -> bool:
+    try:
+        x = json.loads(path.read_text(encoding="utf-8"))
+        return (
+            x.get("schema") == "CERTIFICATION_APPROVAL_V1"
+            and x.get("decision") == "CERTIFY"
+            and x.get("approved") is True
+            and bool(x.get("approved_by"))
+            and bool(x.get("approved_at"))
+            and x.get("evidence_digest") == _approval_evidence_digest(gates)
+        )
+    except Exception:
+        return False
+
 
 def certify(root="."):
     r=Path(root)
@@ -87,20 +119,29 @@ def certify(root="."):
             external_ok=False
     gates.append(_gate("external_audit", external_ok,
                        "auditoría independiente materializada y declarada"))
-    approved=all(g.status=="PASS" for g in gates)
+    gates_pass = all(g.status=="PASS" for g in gates)
     request = r/"ci_evidence/certification_request.json"
     approval = r/"ci_evidence/certification_approval.json"
-    request_present = request.exists()
-    approval_present = approval.exists()
-    # A request is only a request. It can never make certification PASS.
-    # Approval must be an explicit, separately issued artifact tied to this evidence.
-    approved = approved and approval_present
+    request_valid = request.exists() and _valid_request(request)
+    approval_valid = approval.exists() and _valid_approval(approval, gates)
+
+    # Nunca se certifica por existencia de archivos. La aprobación debe ser
+    # humana, explícita y vinculada exactamente a los gates evaluados.
+    certified = gates_pass and request_valid and approval_valid
+    if certified:
+        status = "CERTIFIED"
+    elif request_valid:
+        status = "PENDING_APPROVAL"
+    else:
+        status = "PENDING_REQUEST"
     return {
-        "status": "CERTIFIED" if approved else ("PENDING_APPROVAL" if request_present else "PENDING_REQUEST"),
-        "certification_request": request_present,
-        "certification_approval": approval_present,
+        "status": status,
+        "eligible_for_approval": gates_pass,
+        "certification_request": request_valid,
+        "certification_approval": approval_valid,
+        "approval_evidence_digest": _approval_evidence_digest(gates),
         "gates": [g.__dict__ for g in gates],
-        "rule": "La solicitud y la aprobación son estados distintos; ningún archivo de solicitud certifica por sí mismo.",
+        "rule": "La solicitud y la aprobación son estados distintos; ningún archivo de solicitud certifica por sí mismo. La aprobación válida debe enlazar el digest exacto de los gates.",
     }
 
 if __name__=="__main__":
