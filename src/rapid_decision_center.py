@@ -14,6 +14,7 @@ import json
 from .projection_suite import project, compare_projections, uncertainty_summary
 from .marginality import rank_marginality
 from .coalition import coalition_decision
+from .methodology_registry import production_methodology_status
 
 
 VERSION = "1.0"
@@ -88,6 +89,7 @@ def decision_snapshot(
     coalitions: Sequence[Sequence[str]] | None = None,
     poll_summary: Mapping | None = None,
     strict_territory: bool = True,
+    methodology_status: Mapping | None = None,
 ) -> dict:
     """Produce one actionable, reproducible decision snapshot.
 
@@ -164,6 +166,7 @@ def decision_snapshot(
             "strict_52": strict_territory,
         },
         "polls": dict(poll_summary) if poll_summary is not None else None,
+        "methodology": production_methodology_status(methodology_status),
         "projection": projection,
         "marginality": {
             "count": len(marginality),
