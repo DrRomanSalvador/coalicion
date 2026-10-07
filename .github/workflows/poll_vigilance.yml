@@ -39,7 +39,7 @@ jobs:
         run: |
           if test -f artifacts/survey_watch_report.json && \
              grep -Eq '"status": "(ALERT|BLOCKED)"' artifacts/survey_watch_report.json; then
-            python scripts/notify_webhook.py artifacts/survey_watch_report.json
+            python scripts/telegram_notifier.py artifacts/poll_vigilance_report.json
           else
             echo "NO_TELEGRAM_ALERT"
           fi
