@@ -218,3 +218,14 @@ def test_workflow_does_not_self_trigger_and_persists_with_self_healing():
     assert "cp /tmp/poll-monitor-snapshot/survey_history.jsonl" in workflow
     assert "for attempt in 1 2 3 4 5" in workflow
     assert "git rebase" not in workflow
+
+
+def test_canonical_electoral_source_registry():
+    cfg = json.loads(Path("config/electoral_sources.json").read_text(encoding="utf-8"))
+    assert cfg["scope"] == "Spain"
+    assert cfg["data_policy"]["primary_source_precedence"] is True
+    assert cfg["data_policy"]["no_synthetic_values"] is True
+    assert any(s["id"] == "interior" and s["role"] == "primary_official" for s in cfg["official_results"])
+    assert any(s["id"] == "cis" and s["role"] == "primary_official" for s in cfg["official_surveys"])
+    assert cfg["election_scope_correction"]["general_elections_2023"] == "2023-07-23"
+    assert cfg["election_scope_correction"]["invalid_claim_rejected"] == "2023-11-23"
