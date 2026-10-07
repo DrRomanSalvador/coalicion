@@ -1,4 +1,20 @@
-import json\nfrom scripts.master_certification import certify\n\ndef test_present_but_invalid_evidence_cannot_certify(tmp_path):\n    d=tmp_path / "ci_evidence"\n    d.mkdir()\n    (d / "historico_manifest.json").write_text(json.dumps({"status":"FAIL","source_tier":"SECONDARY_REPLICA"}))\n    (d / "historico_source_tier.txt").write_text("PRIMARY_INTERIOR")\n    (d / "reconciliation.json").write_text(json.dumps({"status":"PASS","max_abs_diff":1722}))\n    (d / "seec_posterior.json").write_text(json.dumps({"status":"PASS","draws":10000}))\n    (d / "oos_calibration.json").write_text(json.dumps({"status":"PASS","coverage_90":0.90,"seat_mae":5}))\n    (d / "external_audit.json").write_text(json.dumps({"status":"PASS","independent":False,"auditor":""}))\n    out=certify(tmp_path)\n    assert out["status"]=="PENDING_REQUEST"\n    assert any(g["name"]=="reconciliation" and g["status"]=="FAIL" for g in out["gates"])\n    assert any(g["name"]=="external_audit" and g["status"]=="FAIL" for g in out["gates"])\n
+import json
+from scripts.master_certification import certify
+
+def test_present_but_invalid_evidence_cannot_certify(tmp_path):
+    d=tmp_path / "ci_evidence"
+    d.mkdir()
+    (d / "historico_manifest.json").write_text(json.dumps({"status":"FAIL","source_tier":"SECONDARY_REPLICA"}))
+    (d / "historico_source_tier.txt").write_text("PRIMARY_INTERIOR")
+    (d / "reconciliation.json").write_text(json.dumps({"status":"PASS","max_abs_diff":1722}))
+    (d / "seec_posterior.json").write_text(json.dumps({"status":"PASS","draws":10000}))
+    (d / "oos_calibration.json").write_text(json.dumps({"status":"PASS","coverage_90":0.90,"seat_mae":5}))
+    (d / "external_audit.json").write_text(json.dumps({"status":"PASS","independent":False,"auditor":""}))
+    out=certify(tmp_path)
+    assert out["status"]=="PENDING_REQUEST"
+    assert any(g["name"]=="reconciliation" and g["status"]=="FAIL" for g in out["gates"])
+    assert any(g["name"]=="external_audit" and g["status"]=="FAIL" for g in out["gates"])
+
 
 def test_request_never_certifies_and_invalid_approval_never_certifies(tmp_path):
     d=tmp_path / "ci_evidence"
