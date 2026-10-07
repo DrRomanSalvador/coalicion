@@ -48,12 +48,16 @@
     {
       "id": "elpais_40db",
       "name": "EL PAÍS / 40dB",
-      "url": "https://elpais.com/noticias/encuestas-electorales/?outputType=amp",
+      "url": "https://elpais.com/noticias/encuestas-electorales/",
       "format": "national_html",
       "method": "GET",
       "pollster": "40dB",
       "coverage_role": "primary",
-      "reason": "La página pública normal aplica 403 a clientes automatizados; AMP mantiene el contenido editorial accesible."
+      "reason": "Ruta pública actual + rutas alternativas; no usar el endpoint AMP obsoleto como ruta primaria.",
+      "alternate_urls": [
+        "https://elpais.com/noticias/barometro-el-pais/",
+        "https://elpais.com/noticias/encuestas/"
+      ]
     },
     {
       "id": "datoelectoral",
@@ -132,7 +136,7 @@
       "format": "national_html",
       "method": "GET",
       "coverage_role": "primary",
-      "reason": "Dominio oficial actual; el certificado TLS está caducado, por lo que un bloqueo persistente queda como incidencia primaria."
+      "reason": "El dominio oficial presenta un fallo TLS observable; no se desactiva la verificación SSL. La cobertura secundaria se controla por medios que publican sus barómetros."
     },
     {
       "id": "political_stats_spain",
@@ -151,6 +155,15 @@
       "user_id": "",
       "optional": true,
       "coverage_role": "discovery"
+    },
+    {
+      "id": "lasexta_invymark_discovery",
+      "name": "laSexta — barómetros InvyMark",
+      "url": "https://www.lasexta.com/elecciones/generales/encuestas-elecciones-generales_202610056ac365161c30184d44b52907.html",
+      "format": "page",
+      "method": "GET",
+      "coverage_role": "discovery",
+      "reason": "Capa secundaria para detectar nuevas publicaciones de InvyMark mientras su dominio oficial no es accesible por TLS."
     }
   ],
   "policy": {
