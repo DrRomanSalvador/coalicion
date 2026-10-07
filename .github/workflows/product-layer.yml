@@ -1,0 +1,24 @@
+name: Product Layer Tests
+
+on:
+  push:
+    paths:
+      - "src/product_layer.py"
+      - "political_product.py"
+      - "tests/test_product_layer.py"
+      - "schemas/COALICION_PRODUCT_V1.schema.json"
+      - "src/**"
+      - "tests/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile
+        run: python -m py_compile src/product_layer.py political_product.py
+      - name: Product tests
+        run: python -m unittest tests/test_product_layer.py
