@@ -63,35 +63,60 @@ jobs:
           python -m pip install --disable-pip-version-check --no-input certifi requests beautifulsoup4 lxml pytest
           python -c 'import certifi; print(certifi.where())'
 
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "release"
+          use-public-rspm: true
+
+      - name: Install R dependencies
+        timeout-minutes: 20
+        shell: bash
+        run: |
+          set -euxo pipefail
+          Rscript -e 'options(repos=c(CRAN="https://packagemanager.posit.co/cran/latest"), timeout=300); install.packages(c("opencis","readxl","dplyr","readr","tibble","haven","purrr","jsonlite"), Ncpus=2)'
+          Rscript -e 'pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr","jsonlite"); ok <- vapply(pkgs, requireNamespace, logical(1), quietly=TRUE); print(data.frame(package=names(ok),available=unname(ok))); stopifnot(all(ok))'
+
       - name: Validate or acquire official Interior results
-        timeout-minutes: 30
+        timeout-minutes: 45
         shell: bash
         run: |
           set -euo pipefail
           if [ -d data/official_materialization_parts ] && [ "$(find data/official_materialization_parts -name "*.csv" | wc -l)" -eq 11 ]; then
             if ! python scripts/materialize_official_history_from_parts.py; then
-              echo "Materialization parts incomplete/incompatible; falling back to primary Interior acquisition."
+              echo "Materialization parts incomplete/incompatible; using primary Interior acquisition."
             fi
           fi
-          if [ -s data/resultados_oficiales_2004_2023.csv ] && [ -s data/manifests/INTERIOR_ACQUISITION.json ]; then
-            python - <<'PY'
-            import json
-            from pathlib import Path
-            m=json.loads(Path("data/manifests/INTERIOR_ACQUISITION.json").read_text(encoding="utf-8"))
-            assert m["status"] == "PASS"
-            assert m["source_tier"] == "PRIMARY_INTERIOR"
-            assert m["official_results"]["rows"] == 50700
-            assert len(m["official_results"]["elections"]) == 8
-            assert m["official_results"]["constituencies_per_election"] == 52
-            assert m["official_results"]["seats_per_election"] == 350
-            PY
-            echo "Using validated primary Interior materialization."
-          else
-            echo "Primary materialization unavailable; acquisition will run after R setup."
+          if [ ! -s data/resultados_oficiales_2004_2023.csv ] || [ ! -s data/manifests/INTERIOR_ACQUISITION.json ]; then
+            export CURL_CA_BUNDLE="$(python -c 'import certifi; print(certifi.where())')"
+            acquired=0
+            for attempt in 1 2 3 4 5; do
+              echo "Interior acquisition attempt $attempt/5"
+              if Rscript scripts/ingest_official_electoral_history.R; then
+                if [ -s data/raw/Elecciones-Congreso.xlsx ] && [ -s data/manifests/INTERIOR_ACQUISITION.json ]; then
+                  acquired=1
+                  break
+                fi
+              fi
+              echo "Transient acquisition failure; waiting before retry."
+              sleep $((attempt * 10))
+            done
+            test "$acquired" -eq 1
           fi
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path("data/manifests/INTERIOR_ACQUISITION.json").read_text(encoding="utf-8"))
+          assert m["status"] == "PASS"
+          assert m["source_tier"] == "PRIMARY_INTERIOR"
+          assert m["official_results"]["rows"] == 50700
+          assert len(m["official_results"]["elections"]) == 8
+          assert m["official_results"]["constituencies_per_election"] == 52
+          assert m["official_results"]["seats_per_election"] == 350
+          assert Path("data/resultados_oficiales_2004_2023.csv").stat().st_size > 0
+          PY
 
       - name: Materialize canonical historical manifest
-        if: ${{ hashFiles('data/resultados_oficiales_2004_2023.csv') != '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -107,20 +132,6 @@ jobs:
           x["official_results"]["csv"]="data/resultados_oficiales_2004_2023.csv"
           dst.write_text(json.dumps(x,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
           PY
-
-      - name: Setup R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: "release"
-          use-public-rspm: true
-
-      - name: Install R dependencies
-        timeout-minutes: 20
-        shell: bash
-        run: |
-          set -euxo pipefail
-          Rscript -e 'options(repos=c(CRAN="https://packagemanager.posit.co/cran/latest"), timeout=300); install.packages(c("opencis","readxl","dplyr","readr","tibble","haven","purrr","jsonlite"), Ncpus=2)'
-          Rscript -e 'pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr","jsonlite"); ok <- vapply(pkgs, requireNamespace, logical(1), quietly=TRUE); print(data.frame(package=names(ok),available=unname(ok))); stopifnot(all(ok))'
 
       - name: Ingest official CIS microdata
         timeout-minutes: 90
