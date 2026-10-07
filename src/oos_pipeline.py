@@ -35,6 +35,8 @@ def _canonical(rows,actual_path):
     for r in rows:
         try: d=date.fromisoformat(r["fecha_encuesta"][:10]); estimate=float(r["estimacion_voto"])
         except (KeyError,TypeError,ValueError): continue
+        if r.get("tipo_encuesta","").strip().lower() == "postelectoral":
+            continue
         target=_next(d)
         if not target: continue
         ed,election=target; party=_norm(r["partido"]); actual=actuals.get((election,party))
