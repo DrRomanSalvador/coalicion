@@ -286,6 +286,10 @@ class PollMonitor:
         discoveries: list[dict[str, Any]] = []
         failures: list[dict[str, Any]] = []
         for source in self.config["sources"]:
+            if source.get("optional") and (
+                not os.environ.get("X_BEARER_TOKEN") or not source.get("user_id")
+            ):
+                continue
             try:
                 monitor = TwitterMonitor(source, self.session) if source.get("format") == "twitter" else SourceMonitor(source, self.session)
                 body = monitor.fetch()
@@ -349,15 +353,20 @@ class PollMonitor:
 
     def alert(self, payload: dict[str, Any]) -> bool:
         events = payload["new_polls"] + payload["changed_polls"]
+        discoveries = payload.get("discoveries", [])
         failures = payload["failures"]
         unsent_failures = []
         for failure in failures:
             key = hashlib.sha256(json.dumps(failure, sort_keys=True).encode()).hexdigest()
             if self.state.get("failure_hashes", {}).get(failure["source_id"]) != key:
                 unsent_failures.append((failure, key))
-        if not events and not unsent_failures:
+        if not events and not discoveries and not unsent_failures:
             return False
         lines = ["🔔 Vigilancia electoral — actualización"]
+        for d in discoveries[:10]:
+            lines += ["", "🛰️ NUEVO DESCUBRIMIENTO", f"Fuente: {d['source_id']}",
+                      f"Título: {d['title']}", f"Enlace: {d['link']}",
+                      f"Estado: {d['validation']}"]
         for e in events[:10]:
             p = e["poll"]
             lines += ["", f"Estado: {'NUEVA' if e in payload['new_polls'] else 'CAMBIADA'}",
