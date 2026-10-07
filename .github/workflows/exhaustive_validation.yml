@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "fix/seec-oos-main-current"
+      - "main"
     paths:
       - "src/**"
       - "tests/**"
