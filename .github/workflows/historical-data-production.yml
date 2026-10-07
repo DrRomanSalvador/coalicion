@@ -1,0 +1,102 @@
+name: Integrate official Spain historical data — production
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ingest:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download official Interior workbook once
+        shell: bash
+        run: |
+          mkdir -p data/raw
+          curl -fL --retry 3 --retry-delay 2 --connect-timeout 30 --max-time 600 --insecure \
+            -A "REINA-SEEC/1.0" \
+            -o data/raw/Elecciones-Congreso.xlsx \
+            "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
+          test -s data/raw/Elecciones-Congreso.xlsx
+
+      - name: Inspect official workbook structure
+        shell: bash
+        run: |
+          python -m pip install --quiet openpyxl
+          python - <<'PY'
+          from openpyxl import load_workbook
+          p="data/raw/Elecciones-Congreso.xlsx"
+          wb=load_workbook(p, read_only=True, data_only=True)
+          print("SHEETS:", wb.sheetnames)
+          for ws in wb.worksheets:
+              print("SHEET:", ws.title)
+              for row in ws.iter_rows(min_row=1, max_row=12, values_only=True):
+                  print(repr(tuple(row[:20])))
+          PY
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "4.4"
+      - name: Install system libraries for R data clients
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+      - name: Install R dependencies
+        shell: bash
+        run: |
+          Rscript -e 'install.packages(c("infoelectoral","opencis","readxl","dplyr","readr","tibble","haven","purrr"), repos="https://cloud.r-project.org")'
+      - name: Ingest official Interior constituency results
+        run: Rscript scripts/ingest_official_electoral_history.R
+      - name: Ingest official CIS historical surveys
+        shell: bash
+        run: |
+          sed -i 's/slice_head(n=2)/slice_head(n=3)/' scripts/ingest_cis_historical_surveys.R
+          Rscript scripts/ingest_cis_historical_surveys.R
+      - name: Validate generated datasets
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv, hashlib, json
+          from pathlib import Path
+          elections=Path("data/resultados_oficiales_2004_2023.csv")
+          polls=Path("data/encuestas_historicas_2004_2023.csv")
+          assert elections.exists() and elections.stat().st_size>1000
+          assert polls.exists() and polls.stat().st_size>1000
+          with elections.open(encoding="utf-8",newline="") as f: rows=list(csv.DictReader(f))
+          with polls.open(encoding="utf-8",newline="") as f: poll_rows=list(csv.DictReader(f))
+          expected={"2004","2008","2011","2015","2016","2019A","2019N","2023J"}
+          got={r["election"] for r in rows}
+          assert got==expected,(got,expected)
+          assert len(poll_rows)>=1000,len(poll_rows)
+          assert all(r["nivel_fuente"]=="PRIMARY_OFFICIAL" for r in rows)
+          assert all(r["nivel_fuente"]=="PRIMARY_OFFICIAL_MICRODATA" for r in poll_rows)
+          manifest={
+            "schema":"HISTORICAL_DATA_MATERIALIZATION_V1","status":"PASS",
+            "scope_note":"Spain general elections present in official Interior workbook; 2023 general election is 2023-07-23 (no 2023N election).",
+            "official_results":{"path":str(elections),"sha256":hashlib.sha256(elections.read_bytes()).hexdigest(),"rows":len(rows),"elections":sorted(got)},
+            "cis_surveys":{"path":str(polls),"sha256":hashlib.sha256(polls.read_bytes()).hexdigest(),"rows":len(poll_rows),"studies":len({r["codigo_estudio"] for r in poll_rows})}
+          }
+          Path("data/manifests").mkdir(parents=True,exist_ok=True)
+          Path("data/manifests/HISTORICAL_DATA_MATERIALIZATION.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          print(json.dumps(manifest,ensure_ascii=False,indent=2))
+          PY
+      - name: Commit materialized data
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json
+          git diff --cached --quiet && echo "No generated changes." && exit 0
+          git commit -m "Add official Interior and CIS historical Spain data"
+          git push origin "HEAD:main"
