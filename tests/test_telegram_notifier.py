@@ -1,7 +1,7 @@
-import json
 from scripts import notify_webhook
 
-# Regression: Telegram credentials must fail closed.\n\ndef test_missing_telegram_secrets_fails_closed(monkeypatch):
+# Regression: Telegram credentials must fail closed.
+def test_missing_telegram_secrets_fails_closed(monkeypatch):
     monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
     monkeypatch.delenv("TELEGRAM_CHAT_ID", raising=False)
     try:
