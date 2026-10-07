@@ -99,12 +99,14 @@ def decide_coalition(
         special_by_constituency,
     )
     result = engine.analyze_coalition((party_a, party_b), scenarios)
+    central = next(s for s in result["scenarios"] if s["name"] == "central")
     gains, losses = _territorial_split(result["decisive_constituencies"])
     decision = {
         "coalition": result["coalition"],
-        "separate_seats": result["separate_seats"],
-        "coalition_seats": result["coalition_seats"],
-        "seat_delta": result["benefit"],
+        "reference_scenario": "central",
+        "separate_seats": central["separate_seats"],
+        "coalition_seats": central["coalition_seats"],
+        "seat_delta": central["delta"],
         "decision_rule": "SÍ" if result["benefit"] > 0 else "NO",
         "decisive_constituencies": result["decisive_constituencies"],
         "beneficial_constituencies": gains,
@@ -127,7 +129,7 @@ def decide_coalition(
         {"party_a": party_a, "party_b": party_b},
         decision,
         ("Los pesos de escenarios son relativos; no se presentan como probabilidades calibradas.",
-         "La decisión SÍ/NO refleja únicamente si el delta central es positivo."),
+         "La decisión SÍ/NO refleja únicamente si el delta del escenario central es positivo."),
     )
 
 
