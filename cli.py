@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI reproducible de REINA-SEEC.
+"""CLI reproducible de COALICIÓN.
 
 Mantiene los comandos de ingestión históricos y añade la interfaz operativa
 documentada para 2023. Todo análisis electoral exige matriz canónica primaria
