@@ -1,6 +1,8 @@
 name: Historical data — canonical integration
 
 on:
+  schedule:
+    - cron: "17 3 1 * *"
   push:
     branches: [main]
     paths:
@@ -8,6 +10,8 @@ on:
       - "scripts/ingest_cis_historical_surveys.R"
       - "scripts/validate_historical_data.py"
       - ".github/workflows/historical-data-integration.yml"
+      - "config/electoral_sources.json"
+      - "tests/test_poll_monitor.py"
   pull_request:
     branches: [main]
     paths:
@@ -28,7 +32,7 @@ jobs:
   integrate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
 
     steps:
       - name: Checkout
@@ -66,6 +70,9 @@ jobs:
 
       - name: Ingest official CIS microdata
         run: Rscript scripts/ingest_cis_historical_surveys.R
+
+      - name: Run regression tests
+        run: python -m pytest tests/test_poll_monitor.py -q
 
       - name: Validate datasets and create provenance manifest
         run: python scripts/validate_historical_data.py
