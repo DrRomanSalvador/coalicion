@@ -1,6 +1,6 @@
 import unittest
 
-from src.coalition_decision_engine import CoalitionScenario
+from src.coalition import CoalitionScenario
 from src.product_layer import (
     decide_coalition, rank_coalitions, coalition_alert,
     shock_scenario, generate_leader_report, compare_scenarios,
