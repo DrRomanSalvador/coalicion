@@ -43,7 +43,7 @@ def audit_canonical(path: str | Path) -> dict[str, Any]:
         and unique
         and all(isinstance(v,int) and v>=0 for v in valid.values())
         and all(isinstance(v,int) and v>=0 for v in blank.values())
-        and all(v == sum(c.get("parties",{}).values()) + blank[k] for k,v in valid.items())
+        and all(v == sum(constituencies[k].get("parties",{}).values()) + blank[k] for k,v in valid.items())
         and sum(sum(c.get("parties",{}).values()) for c in provinces)==24487414
     )
     return {
