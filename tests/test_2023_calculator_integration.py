@@ -50,3 +50,15 @@ def test_2023_matrix_missing_fails_closed(tmp_path):
     )
     assert result.returncode != 0
     assert "MATRIX_NOT_AVAILABLE" in result.stderr or "MATRIX_NOT_AVAILABLE" in result.stdout
+
+
+def test_constituency_aliases_resolve_to_canonical():
+    from scripts.integrate_2023_calculator import canonical_constituency
+
+    known = {"Valencia/València", "Balears, Illes", "Castellón/Castelló", "Araba/Álava"}
+    assert canonical_constituency("Valencia", known) == "Valencia/València"
+    assert canonical_constituency("València", known) == "Valencia/València"
+    assert canonical_constituency("País Valencià", known) == "Valencia/València"
+    assert canonical_constituency("Baleares", known) == "Balears, Illes"
+    assert canonical_constituency("Castelló", known) == "Castellón/Castelló"
+    assert canonical_constituency("Álava", known) == "Araba/Álava"
