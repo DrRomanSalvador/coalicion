@@ -87,7 +87,7 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libcurl4-openssl-dev pkg-config r-cran-readxl r-cran-dplyr r-cran-readr r-cran-tibble r-cran-haven r-cran-purrr r-cran-jsonlite
           Rscript -e 'options(repos=c(CRAN="https://packagemanager.posit.co/cran/latest"), timeout=300); install.packages(c("opencis","readxl"), lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), Ncpus=2)'
-          Rscript -e 'pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr","jsonlite"); stopifnot(all(vapply(pkgs, requireNamespace, logical(1), quietly=TRUE)))'
+          Rscript -e 'lib <- Sys.getenv("R_LIBS_USER"); .libPaths(unique(c(lib, .libPaths()))); pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr","jsonlite"); ok <- vapply(pkgs, requireNamespace, logical(1), quietly=TRUE); print(data.frame(package=names(ok),available=unname(ok))); stopifnot(all(ok))'
 
       - name: Validate or acquire official Interior results
         timeout-minutes: 30
