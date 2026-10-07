@@ -5,8 +5,53 @@ from datetime import date
 from math import sqrt
 from statistics import mean, median
 from typing import Callable, Iterable, Mapping, Sequence
-from .data import PollObservation
 from .electoral import allocate
+
+@dataclass(frozen=True)
+class PollObservation:
+    election: str
+    election_date: str
+    party: str
+    poll: float
+    actual: float
+    house: str
+    field_end: str
+    source: str
+    poll_id: str = ""
+    governing_party: str = ""
+    government_status: str = ""
+    government_change: str = ""
+    party_family: str = ""
+    poll_method: str = ""
+    sample_size: int | None = None
+    source_tier: str = ""
+
+    @property
+    def error(self) -> float:
+        return self.poll - self.actual
+
+    @property
+    def abs_error(self) -> float:
+        return abs(self.error)
+
+    @property
+    def error_direction(self) -> str:
+        if self.error > 0:
+            return "SOBREESTIMACION"
+        if self.error < 0:
+            return "SUBESTIMACION"
+        return "CERO"
+
+    @property
+    def change_magnitude(self) -> float:
+        return abs(self.error)
+
+    @property
+    def days_to_election(self) -> int:
+        return (date.fromisoformat(self.election_date) -
+                date.fromisoformat(self.field_end)).days
+
+
 
 @dataclass(frozen=True)
 class TurnoutScenario:
