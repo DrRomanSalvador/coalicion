@@ -1,0 +1,23 @@
+{
+  "schema": "SURVEY_WATCH_V1",
+  "timezone": "Europe/Madrid",
+  "daily_local_hour": 8,
+  "source_policy": {
+    "require_explicit_sources": true,
+    "no_search_engine_inference": true,
+    "no_unverified_poll_values": true
+  },
+  "sources": [],
+  "scenario_sets": [
+    ["SUMAR", "PODEMOS"],
+    ["SUMAR", "PSOE"],
+    ["SUMAR", "PODEMOS", "PSOE"]
+  ],
+  "comparison_policy": {
+    "also_keep_all_separate": true,
+    "descriptive_only": true,
+    "recommendations": false,
+    "ranking_as_best_option": false,
+    "campaign_advice": false
+  }
+}
