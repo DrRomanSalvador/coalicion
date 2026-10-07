@@ -130,7 +130,9 @@ class CoalitionDecisionEngine:
         p_nonpositive = sum(o.weight for o in outcomes if o.delta <= 0) / weight
         variance = sum(o.weight * (o.delta - mean) ** 2 for o in outcomes) / weight
         deltas = [o.delta for o in outcomes]
-        central = scenarios[0]
+        central = next((s for s in scenarios if s.name == "central"), None)
+        if central is None:
+            raise ValueError("Falta escenario explícito: central")
         waste_sep = self._threshold_waste(central, parties, False)
         waste_coal = self._threshold_waste(central, parties, True)
         risk = "LOW" if p_nonpositive == 0 and min(deltas) > 0 else (
@@ -153,8 +155,8 @@ class CoalitionDecisionEngine:
             "robustness": {
                 "level": robustness, "worst_case_delta": min(deltas),
                 "best_case_delta": max(deltas), "weighted_mean_delta": mean,
-                "weighted_probability_improvement": p_positive,
-                "weighted_weighted_non_improvement": p_nonpositive,
+                "weighted_improvement": p_positive,
+                "weighted_non_improvement": p_nonpositive,
                 "weighted_std_delta": sqrt(variance),
             },
             "risk": {"level": risk, "weighted_non_improvement": p_nonpositive, "weight_interpretation": "Los pesos son pesos relativos de escenarios; no son una probabilidad calibrada."},
