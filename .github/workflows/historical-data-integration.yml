@@ -51,12 +51,13 @@ jobs:
           python-version: "3.12"
 
       - name: Setup R
-        timeout-minutes: 8
+        timeout-minutes: 15
         shell: bash
         run: |
           set -euxo pipefail
-          sudo apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends r-base r-base-dev
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
+          sudo apt-get update -o Acquire::Retries=3
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends r-base r-base-dev libcurl4-openssl-dev libssl-dev libxml2-dev
           R --version
 
       - name: Install R dependencies
@@ -105,7 +106,7 @@ jobs:
             artifacts/oos_historical_2004_2023.json
 
       - name: Commit only validated materialization
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]' && github.actor != 'github-actions[bot]'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
