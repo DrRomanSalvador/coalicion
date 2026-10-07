@@ -1,0 +1,71 @@
+{
+  "schema": "POLL_MONITOR_STATE_V2",
+  "poll_hashes": {
+    "datoelectoral::2026-09-23::Barómetro de septiembre 2026 (estudio 3577 del CIS)": "6308c56a6b21dd3d20d98a0889db3c58dca979ef95d45876dd663572d51c902b",
+    "datoelectoral::2026-09-07::Barómetro de julio 2026 (estudio 3571 del CIS)": "0987e8cf7fc705531fd94a48c5b587f4d168715117a6098f2edb72f7edab2202",
+    "datoelectoral::2026-06-26::Barómetro de junio 2026 (estudio 3567 del CIS)": "3cf012dc6f3cd9c2638027ea9402eea4e13a6fa1d2508102224a52c2c36b19a7"
+  },
+  "discovery_hashes": {
+    "europe_elects_spain::80185495b8e51cf20be6072567e458f3255bd42205c3102083a70c4369a32281": "11a917db8bfb5d0058dc77a7f40e200d11556c33b44b57a505e7f332625ae068",
+    "gad3::5dbef5eccab15ac5584662168bc9da030c44cda55a695d7590eeab0d0315eb48": "cfcb9be8d350e959fb4a5a3938771b5e2758a16eb1833b396505439657b63bcd",
+    "demoscopia::6dc9c7fc93bb488bb0520a6c780a8d3c0fb5486a4711aca49b4c53fac7393023": "0be12d4e783ec2f88e1c27204b5d7c3a87482c9913df558caba2f3310226f2c8"
+  },
+  "source_hashes": {
+    "datoelectoral": "55a4adcddd53ed78049d44f3a2a502a50a7c795b009085b4366bf67c83483dd1",
+    "europe_elects_spain": "80185495b8e51cf20be6072567e458f3255bd42205c3102083a70c4369a32281",
+    "gad3": "5dbef5eccab15ac5584662168bc9da030c44cda55a695d7590eeab0d0315eb48",
+    "demoscopia": "6dc9c7fc93bb488bb0520a6c780a8d3c0fb5486a4711aca49b4c53fac7393023"
+  },
+  "failure_hashes": {
+    "cis_rss": "98ea0025d75fc20919f8f71a774647e26ce099c02a1a0ee06b68b10229575a0d",
+    "electomania_ajax": "4842c716715e0faf79cf6458d15d38b854648ad2b2457c7c0085452d3c4862e6",
+    "myfdata": "107b7d046641adaa11279d35ca6413cd935aff55ca72859109ced85b387436f3",
+    "sigma_dos": "c06d3b2dc190ec3298aa0e2973bbc69d3af453bf8218c7eeb30bf7bb9b805ca6",
+    "nc_report": "e686305aa7784796ef8df53e3e3e6a6d138238f63d54d6382aefd27389bd91a1",
+    "celeste_tel": "8e51a037eaa0b118fd67c9cd9805c8b0ec8b0f546772582bafa4876dd19d4afe",
+    "invymark": "0c93cca1f76820187b373806c7605f74db95ab651b6368f3b77356d69ec415a1",
+    "political_stats_spain": "d7e42b594fbc4c954fb7431cdc0564d024eea46a7fd89cd44c27b8ee4a022124"
+  },
+  "runs": 1,
+  "total_validated": 3,
+  "baseline_completed": true,
+  "last_run": "2026-10-07T16:43:53.362974+00:00",
+  "last_status": "BLOCKED",
+  "last_new": 0,
+  "last_changed": 0,
+  "last_discoveries": 0,
+  "last_failures": [
+    {
+      "source_id": "cis_rss",
+      "error": "HTTPError:410 Client Error: Gone for url: https://www.cis.es/cis/opencm/ES/1_encuestas/estudios/rss.xml"
+    },
+    {
+      "source_id": "electomania_ajax",
+      "error": "HTTPError:400 Client Error: Bad Request for url: https://electomania.es/wp-admin/admin-ajax.php"
+    },
+    {
+      "source_id": "myfdata",
+      "error": "ConnectionError:HTTPSConnectionPool(host='www.myfdata.com', port=443): Max retries exceeded with url: /elecciones-generales/ (Caused by NewConnectionError(\"HTTPSConnection(host='www.myfdata.com', port=443): Failed to establish a new connection: [Errno 111] Connection refused\"))"
+    },
+    {
+      "source_id": "sigma_dos",
+      "error": "HTTPError:404 Client Error: Not Found for url: https://www.elmundo.es/sigmasdos/"
+    },
+    {
+      "source_id": "nc_report",
+      "error": "HTTPError:404 Client Error: Not Found for url: https://ncreport.es/encuestas/"
+    },
+    {
+      "source_id": "celeste_tel",
+      "error": "HTTPError:404 Client Error: Not Found for url: https://www.abc.es/tema/celesta/"
+    },
+    {
+      "source_id": "invymark",
+      "error": "SSLError:HTTPSConnectionPool(host='invymark.com', port=443): Max retries exceeded with url: /encuestas/ (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1010)')))"
+    },
+    {
+      "source_id": "political_stats_spain",
+      "error": "ConnectionError:HTTPSConnectionPool(host='politicalstats.eu', port=443): Max retries exceeded with url: /spain (Caused by NameResolutionError(\"HTTPSConnection(host='politicalstats.eu', port=443): Failed to resolve 'politicalstats.eu' ([Errno -2] Name or service not known)\"))"
+    }
+  ]
+}
