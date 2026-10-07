@@ -47,6 +47,12 @@ jobs:
           timeout 120 sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq || true
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends r-base r-base-dev libcurl4-openssl-dev pkg-config
 
+      - name: Prepare R user library
+        run: |
+          set -euo pipefail
+          mkdir -p "$R_LIBS_USER"
+          chmod u+rwx "$R_LIBS_USER"
+
       - name: Install R dependencies
         timeout-minutes: 20
         shell: bash
