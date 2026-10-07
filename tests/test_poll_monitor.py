@@ -232,3 +232,54 @@ def test_canonical_electoral_source_registry():
     assert any(s["id"] == "sigma_dos" and "EL MUNDO" in s["publication_media"] for s in cfg["private_pollsters"])
     assert cfg["election_scope_correction"]["general_elections_2023"] == "2023-07-23"
     assert cfg["election_scope_correction"]["invalid_claim_rejected"] == "2023-11-23"
+
+
+def test_oos_selection_excludes_latest_holdout(monkeypatch):
+    from src import oos_pipeline
+    from src.poll_error import PollObservation
+
+    rows = [
+        PollObservation("2004", "2004-03-14", "PSOE", 40.0, 42.0, "Congreso", "2004-03-01", "CIS", "a"),
+        PollObservation("2008", "2008-03-09", "PSOE", 43.0, 44.0, "Congreso", "2008-03-01", "CIS", "b"),
+        PollObservation("2023J", "2023-07-23", "PSOE", 28.0, 31.0, "Congreso", "2023-07-01", "CIS", "c"),
+    ]
+    seen = {}
+    original_bias = oos_pipeline.select_best
+    original_context = oos_pipeline.select
+
+    def capture_bias(training):
+        seen["bias"] = list(training)
+        return original_bias(training)
+
+    def capture_context(training):
+        seen["context"] = list(training)
+        return original_context(training)
+
+    monkeypatch.setattr(oos_pipeline, "select_best", capture_bias)
+    monkeypatch.setattr(oos_pipeline, "select", capture_context)
+    result = oos_pipeline.run_oos(rows)
+
+    assert result["holdout_election"] == "2023J"
+    assert all(r.election != "2023J" for r in seen["bias"])
+    assert all(r.election != "2023J" for r in seen["context"])
+    assert result["holdout_rows"] == 1
+    assert result["contract"] == "EXPANDING_WINDOW_NO_FUTURE_LEAKAGE"
+
+
+def test_oos_rejects_poll_on_or_after_target_election():
+    from src import oos_pipeline
+    from src.poll_error import PollObservation
+
+    rows = [
+        PollObservation("2004", "2004-03-14", "PSOE", 40.0, 42.0, "Congreso", "2004-03-14", "CIS", "bad"),
+        PollObservation("2008", "2008-03-09", "PSOE", 43.0, 44.0, "Congreso", "2008-03-01", "CIS", "ok"),
+    ]
+    import pytest
+    with pytest.raises(ValueError, match="future leakage"):
+        oos_pipeline.run_oos(rows)
+
+
+def test_historical_validator_uses_certified_official_row_floor():
+    source = Path("scripts/validate_historical_data.py").read_text(encoding="utf-8")
+    assert 'len(erows) >= 50000' in source
+    assert 'seats.is_integer()' in source
