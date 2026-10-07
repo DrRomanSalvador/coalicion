@@ -359,7 +359,6 @@ class PollMonitor:
         HISTORY.parent.mkdir(parents=True, exist_ok=True)
         with HISTORY.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(payload, ensure_ascii=False, sort_keys=True) + "\n")
-        self.state["runs"] = int(self.state.get("runs", 0)) + 1
         self.state["total_validated"] = len(self.state["poll_hashes"])
         self.state_path.parent.mkdir(parents=True, exist_ok=True)
         self.state_path.write_text(json.dumps(self.state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -484,6 +483,7 @@ class PollMonitor:
         }
         meaningful = baseline or bool(new or changed or new_discoveries or failures)
         path = self.save(payload, meaningful=meaningful)
+        self.state["runs"] = int(self.state.get("runs", 0)) + 1
         self.state["last_run"] = checked
         self.state["last_status"] = payload["status"]
         self.state["last_new"] = len(new)
