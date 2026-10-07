@@ -135,8 +135,8 @@
       "url": "https://invymark.es/",
       "format": "national_html",
       "method": "GET",
-      "coverage_role": "primary",
-      "reason": "El dominio oficial presenta un fallo TLS observable; no se desactiva la verificación SSL. La cobertura secundaria se controla por medios que publican sus barómetros."
+      "coverage_role": "discovery",
+      "reason": "El dominio oficial presenta fallo TLS; se conserva como descubrimiento y control de salud, sin bloquear la cobertura publicada."
     },
     {
       "id": "political_stats_spain",
@@ -160,10 +160,11 @@
       "id": "lasexta_invymark_discovery",
       "name": "laSexta — barómetros InvyMark",
       "url": "https://www.lasexta.com/elecciones/generales/encuestas-elecciones-generales_202610056ac365161c30184d44b52907.html",
-      "format": "page",
+      "format": "national_html",
       "method": "GET",
-      "coverage_role": "discovery",
-      "reason": "Capa secundaria para detectar nuevas publicaciones de InvyMark mientras su dominio oficial no es accesible por TLS."
+      "coverage_role": "primary",
+      "reason": "Publicación de laSexta que expone explícitamente el barómetro Invymark y sus porcentajes; se usa como evidencia publicada mientras el dominio del instituto no es accesible por TLS.",
+      "pollster": "Invymark"
     }
   ],
   "policy": {
