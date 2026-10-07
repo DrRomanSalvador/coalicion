@@ -143,8 +143,6 @@ jobs:
           echo "FAIL-CLOSED: production SEEC did not converge."
           exit 1
 
-      - name: Materialize territorial uncertainty evidence
-        run: python scripts/materialize_seec_posterior.py
 
       - name: Complete historical OOS calibration
         run: python scripts/complete_historical_calibration.py --input data/encuestas_historicas_2004_2023.csv --output ci_evidence/oos_calibration.json
