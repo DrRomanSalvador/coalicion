@@ -84,7 +84,6 @@ def main() -> None:
     require(len(prows) >= 1000, f"CIS minimum not met: {len(prows)} rows")
 
     require(all(r["nivel_fuente"] == "PRIMARY_OFFICIAL" for r in erows), "non-primary official source row")
-    require(all(r["circunscripcion_codigo"] is not None for r in erows), "missing constituency code") if False else None
     require(all(r["nivel_fuente"] == "PRIMARY_OFFICIAL_MICRODATA" for r in prows), "non-primary CIS row")
 
     result_keys = set()
