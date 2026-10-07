@@ -1,14 +1,15 @@
 {
-  "schema": "SURVEY_WATCH_V2",
+  "schema": "SURVEY_WATCH_V3",
   "timezone": "Europe/Madrid",
   "daily_local_hour": 8,
   "alert_policy": {
-    "new_source": "INFO",
+    "new_poll": "ALERT",
     "changed_poll": "ALERT",
+    "new_source": "INFO",
+    "changed_source": "ALERT",
     "source_failure": "CRITICAL",
     "parse_failure": "CRITICAL",
-    "territorial_data_missing": "WARNING",
-    "report_generated": "INFO"
+    "territorial_data_missing": "WARNING"
   },
   "source_policy": {
     "require_explicit_sources": true,
@@ -17,7 +18,21 @@
     "require_publication_date": true,
     "require_pollster_or_source": true
   },
-  "sources": [],
+  "sources": [
+    {
+      "id": "electomania_generales_rss",
+      "url": "https://electomania.es/category/electopanel/electopanel-generales/feed/",
+      "format": "rss",
+      "pollster_default": "Electomanía",
+      "discovery_only": false
+    },
+    {
+      "id": "datoelectoral_encuestas",
+      "url": "https://www.datoelectoral.es/encuestas",
+      "format": "raw",
+      "discovery_only": true
+    }
+  ],
   "scenario_sets": [
     ["SUMAR", "PODEMOS"],
     ["SUMAR", "PSOE"],
@@ -28,12 +43,20 @@
     "descriptive_only": true,
     "recommendations": false,
     "ranking_as_best_option": false,
-    "campaign_advice": false
+    "campaign_advice": false,
+    "vote_transfer_assumptions": false
   },
   "report_policy": {
     "include_source_hash": true,
     "include_change_hash": true,
     "include_timestamp": true,
+    "include_poll_metadata": true,
+    "include_national_vote_share_scenarios": true,
     "include_seat_scenarios_only_when_territorial_input_is_valid": true
+  },
+  "notification": {
+    "provider": "telegram",
+    "secret_endpoint_name": "NOTIFY_WEBHOOK_URL",
+    "send_on": ["ALERT", "BLOCKED"]
   }
 }
