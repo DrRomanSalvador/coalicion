@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Materialize official Interior Congress historical results without R."""
 from __future__ import annotations
-import csv, hashlib, json, ssl, urllib.request\nimport certifi
+import csv, hashlib, json, ssl, urllib.request
+import certifi
 from pathlib import Path
 from openpyxl import load_workbook
 
@@ -78,7 +79,8 @@ def main():
     with OUT.open("w",encoding="utf-8",newline="") as f:
         w=csv.writer(f); w.writerow(["election","fecha_eleccion","circunscripcion","partido","votos","escaños","fuente","nivel_fuente"]); w.writerows(result)
     manifest={"schema":"INTERIOR_OFFICIAL_ACQUISITION_V3","status":"PASS","source_url":URL,"download_page":PAGE,"sha256":sha,"file_bytes":len(data),"elections":DATES,"n_rows":len(result),"n_constituencies_per_election":52,"source_tier":"PRIMARY_INTERIOR"}
-    MAN.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    MAN.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"
+",encoding="utf-8")
     print(json.dumps(manifest,ensure_ascii=False,indent=2))
 
 if __name__=="__main__": main()
