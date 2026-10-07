@@ -11,6 +11,7 @@ from pathlib import Path
 STAGES = [
     ("matrix_2023", ["scripts/acquire_2023_matrix.py"]),
     ("calculator_2023_integration", ["scripts/integrate_2023_calculator.py"]),
+    ("calculator_2023_tests", ["-m", "pytest", "tests/test_2023_calculator_integration.py", "-q"]),
     ("historical_polls", ["scripts/acquire_historical_polls.py"]),
     ("historical_secondary", ["scripts/stage_historico_secondary.py"]),
     ("historical_validation", ["scripts/validate_historical_secondary.py"]),
@@ -47,6 +48,8 @@ def main():
         seec_status["reason"]="Survey archive exists, but technical fichas/microdata must be materialized before production inference."
 
     subprocess.run([sys.executable,"scripts/build_sha256_manifest.py"],check=False)
+    required = {"matrix_2023", "calculator_2023_integration", "calculator_2023_tests"}
+    required_failures = [r for r in results if r["stage"] in required and r["returncode"] != 0]
     payload={
         "schema":"RUN26_EXECUTION_V1",
         "prediction_first":True,
@@ -60,6 +63,8 @@ def main():
     out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(payload,ensure_ascii=False,indent=2))
+    if required_failures:
+        raise SystemExit(1)
     # The diagnostic bundle is the product of run26; consumers remain fail-closed
     # when required inputs are unavailable.
 
