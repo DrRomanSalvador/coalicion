@@ -1,0 +1,14 @@
+{
+  "schema": "HISTORICAL_OOS_CALIBRATION_V2",
+  "status": "PENDING",
+  "reason": "Requires successful historical observations and expanding-window OOS execution.",
+  "required_metrics": [
+    "MAE",
+    "RMSE",
+    "median_abs_error",
+    "max_abs_error",
+    "bias",
+    "coverage"
+  ],
+  "fail_closed": true
+}
