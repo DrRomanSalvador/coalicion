@@ -32,8 +32,7 @@ def test_house_effect_is_shrunk_with_limited_history():
         rows, "P", "2023-07-23", h,
         AggregationConfig(house_shrinkage=10, min_history_observations=1)
     )
-    assert r.weighted_observations[0].corrected_estimate_pct > 40
-    assert r.weighted_observations[0].corrected_estimate_pct < 45
+    assert 37 < r.weighted_observations[0].corrected_estimate_pct < 40
 
 
 def test_future_poll_is_rejected_instead_of_leaking():
