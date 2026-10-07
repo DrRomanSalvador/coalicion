@@ -71,13 +71,12 @@ jobs:
           use-public-rspm: false
 
       - name: Install R dependencies
-        timeout-minutes: 20
+        timeout-minutes: 15
         shell: bash
         run: |
           set -euxo pipefail
           mkdir -p "$R_LIBS_USER"
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends             libcurl4-openssl-dev pkg-config             r-cran-readxl r-cran-dplyr r-cran-readr r-cran-tibble r-cran-haven             r-cran-purrr r-cran-jsonlite
-          Rscript -e 'options(repos=c(CRAN="https://cloud.r-project.org"), timeout=300); install.packages("opencis", lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), Ncpus=2, quiet=FALSE)'
+          Rscript -e 'options(repos=c(CRAN="https://packagemanager.posit.co/cran/latest"), timeout=300); install.packages(c("opencis","readxl","dplyr","readr","tibble","haven","purrr","jsonlite"), lib=Sys.getenv("R_LIBS_USER"), dependencies=TRUE, Ncpus=2)'
           Rscript -e 'pkgs <- c("opencis","readxl","dplyr","readr","tibble","haven","purrr","jsonlite"); stopifnot(all(vapply(pkgs, requireNamespace, logical(1), quietly=TRUE)))'
 
       - name: Ingest official Interior results
