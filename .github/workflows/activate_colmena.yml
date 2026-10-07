@@ -87,13 +87,33 @@ jobs:
       - name: Persistir evidencia
         if: always()
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           mkdir -p artifacts reports
-          git add -A artifacts reports
-          if git diff --cached --quiet; then
-            echo "NO_CHANGES"
-          else
+          cp -a artifacts /tmp/colmena-artifacts
+          cp -a reports /tmp/colmena-reports
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp -a /tmp/colmena-artifacts/. artifacts/
+            cp -a /tmp/colmena-reports/. reports/
+
+            git add -A artifacts reports
+            if git diff --cached --quiet; then
+              echo "NO_CHANGES"
+              exit 0
+            fi
+
             git commit -m "ci: persist colmena execution evidence"
-            git push
-          fi
+            if git push origin HEAD:main; then
+              echo "Persistencia publicada en main (intento $attempt)."
+              exit 0
+            fi
+
+            echo "Carrera detectada; reintentando sobre main actualizado (intento $attempt)."
+          done
+
+          echo "ERROR: no se pudo publicar la evidencia después de 5 intentos."
+          exit 1
