@@ -319,23 +319,26 @@ class SourceMonitor:
         self.session = session
 
     def fetch(self) -> bytes:
-        headers = {"User-Agent": "coalicion-poll-monitor/2.0 (+https://github.com/DrRomanSalvador/coalicion)"}
+        headers = {"User-Agent": "coalicion-poll-monitor/2.1 (+https://github.com/DrRomanSalvador/coalicion)"}
         method = self.source.get("method", "GET").upper()
-        last_error = None
-        for attempt in range(2):
-            try:
-                if method == "POST":
-                    r = self.session.post(self.source["url"], data=self.source.get("data", {}),
-                                          headers=headers, timeout=30)
-                else:
-                    r = self.session.get(self.source["url"], headers=headers, timeout=30)
-                r.raise_for_status()
-                return r.content
-            except requests.RequestException as exc:
-                last_error = exc
-                if attempt == 0:
-                    time.sleep(1)
-        raise last_error
+        urls = [self.source["url"], *self.source.get("alternate_urls", [])]
+        errors = []
+        for url in dict.fromkeys(urls):
+            for attempt in range(2):
+                try:
+                    if method == "POST":
+                        r = self.session.post(url, data=self.source.get("data", {}),
+                                              headers=headers, timeout=30)
+                    else:
+                        r = self.session.get(url, headers=headers, timeout=30)
+                    r.raise_for_status()
+                    self.source["resolved_url"] = url
+                    return r.content
+                except requests.RequestException as exc:
+                    errors.append(f"{url} => {type(exc).__name__}:{exc}")
+                    if attempt == 0:
+                        time.sleep(1)
+        raise RuntimeError("SOURCE_FETCH_FAILED; " + " | ".join(errors[-4:]))
 
     def parse(self, body: bytes) -> tuple[list[Poll], list[dict[str, Any]]]:
         kind = self.source.get("format", "page")
@@ -383,7 +386,7 @@ class PollMonitor:
         if not self.state_path.exists():
             return {"schema":"POLL_MONITOR_STATE_V3","poll_hashes":{},
                     "poll_identities":{},"discovery_hashes":{},"source_hashes":{},"failure_hashes":{},
-                    "failure_streaks": {}, "failure_reported": {},
+                    "failure_streaks": {}, "failure_reported": {}, "recovered_sources": [],
                     "runs":0,"total_validated":0,"baseline_completed":False}
         state = json.loads(self.state_path.read_text(encoding="utf-8"))
         for key, default in {"poll_hashes": {}, "poll_identities": {}, "discovery_hashes": {}, "source_hashes": {}, "failure_hashes": {}, "runs": 0, "total_validated": 0, "baseline_completed": False}.items():
@@ -420,6 +423,12 @@ class PollMonitor:
                 body = monitor.fetch()
                 digest = self._save_raw(source["id"], body)
                 self.state["source_hashes"][source["id"]] = digest
+                previous_streak = int(self.state.setdefault("failure_streaks", {}).get(source["id"], 0))
+                if previous_streak >= 3 and self.state.setdefault("failure_reported", {}).get(source["id"]):
+                    self.state.setdefault("recovered_sources", []).append({
+                        "source_id": source["id"], "previous_streak": previous_streak,
+                        "resolved_url": source.get("resolved_url", source["url"]),
+                    })
                 self.state.setdefault("failure_hashes", {}).pop(source["id"], None)
                 self.state.setdefault("failure_streaks", {})[source["id"]] = 0
                 self.state.setdefault("failure_reported", {}).pop(source["id"], None)
@@ -541,9 +550,11 @@ class PollMonitor:
         events = payload["new_polls"] + payload["changed_polls"]
         discoveries = payload.get("discoveries", [])
         failures = payload["failures"]
-        # Source failures are health telemetry, not electoral events.
-        # Escalate only after 3 consecutive failures (15 min at current cadence).
+        # Health alerts are actionable incidents, not per-run noise:
+        # initial alert at 3 failures, reminder every 12 failures, recovery
+        # only after a previously escalated outage actually recovers.
         unsent_failures = []
+        recoveries = self.state.pop("recovered_sources", [])
         streaks = self.state.setdefault("failure_streaks", {})
         reported = self.state.setdefault("failure_reported", {})
         source_roles = {
@@ -555,16 +566,10 @@ class PollMonitor:
             key = hashlib.sha256(json.dumps(failure, sort_keys=True).encode()).hexdigest()
             streaks[sid] = int(streaks.get(sid, 0)) + 1
             self.state.setdefault("failure_hashes", {})[sid] = key
-            # Discovery failures stay in artifacts/state for auditability, but
-            # never generate Telegram noise. Only primary-source outages are
-            # actionable electoral-monitoring incidents.
-            if (
-                source_roles.get(sid) == "primary"
-                and streaks[sid] >= 3
-                and reported.get(sid) != key
-            ):
-                unsent_failures.append((failure, key, streaks[sid]))
-        if not events and not discoveries and not unsent_failures:
+            if source_roles.get(sid) == "primary" and streaks[sid] >= 3:
+                if not reported.get(sid) or streaks[sid] % 12 == 0:
+                    unsent_failures.append((failure, key, streaks[sid]))
+        if not events and not discoveries and not unsent_failures and not recoveries:
             return False
         lines = ["🔔 Vigilancia electoral — actualización"]
         for d in discoveries[:10]:
@@ -580,8 +585,14 @@ class PollMonitor:
         for f, key, streak in unsent_failures[:10]:
             self.state.setdefault("failure_reported", {})[f["source_id"]] = key
             lines += ["", f"⚠️ SALUD DE FUENTE: {f['source_id']}",
-                      f"Caída durante {streak} ejecuciones consecutivas.",
+                      f"Incidencia persistente durante {streak} ejecuciones consecutivas.",
+                      "Acción: revisar la ruta primaria/adaptador; no se sustituye por datos no verificados.",
                       f"Error: {f['error']}"]
+        for recovery in recoveries[:10]:
+            self.state.setdefault("failure_reported", {}).pop(recovery["source_id"], None)
+            lines += ["", f"✅ FUENTE RECUPERADA: {recovery['source_id']}",
+                      f"Había fallado {recovery['previous_streak']} ejecuciones consecutivas.",
+                      f"Ruta operativa: {recovery['resolved_url']}"]
         text = "\n".join(lines)[:4090]
         token = os.environ.get("TELEGRAM_BOT_TOKEN")
         if not token:
