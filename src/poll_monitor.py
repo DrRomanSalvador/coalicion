@@ -489,17 +489,19 @@ class PollMonitor:
         structured = {"national_html", "datoelectoral_html", "electomania_json"}
         for source in sources:
             sid = source["id"]
-            if source.get("optional"):
+            if source.get("optional") and source.get("coverage_role") != "primary":
                 continue
             if sid in failed_ids or statuses.get(sid, {}).get("status") != "OK":
                 blockers.append(f"SOURCE_NOT_HEALTHY:{sid}")
             if source.get("coverage_role") == "primary" and source.get("format", "page") not in structured:
                 blockers.append(f"PRIMARY_WITHOUT_STRUCTURED_EXTRACTOR:{sid}")
+            if source.get("coverage_role") == "primary" and source.get("optional"):
+                blockers.append(f"PRIMARY_CANNOT_BE_OPTIONAL:{sid}")
         unresolved = [
             d.get("discovery_id") for d in discoveries
             if d.get("validation") in {"DISCOVERY_ONLY", "UNVERIFIED", "PENDING"}
         ]
-        if self.config.get("coverage_contract", {}).get("require_zero_unresolved_discoveries") and unresolved:
+        if self.config.get("coverage_contract", {}).get("require_zero_unresolved_discoveries", True) and unresolved:
             blockers.append(f"UNRESOLVED_DISCOVERIES:{len(unresolved)}")
         unclassified = [s["id"] for s in sources if s.get("coverage_role") not in {"primary", "discovery", "optional"}]
         if unclassified:
@@ -666,7 +668,9 @@ class PollMonitor:
             key = hashlib.sha256(json.dumps(failure, sort_keys=True).encode()).hexdigest()
             if streak >= 3 and self.state.get("failure_reported", {}).get(sid) != key:
                 failure_notifications.append(failure)
-        meaningful = baseline or bool(new or changed or new_discoveries or failure_notifications)
+        previous_coverage = self.state.get("last_coverage")
+        coverage_changed = previous_coverage != coverage
+        meaningful = baseline or bool(new or changed or new_discoveries or failure_notifications or coverage_changed)
         path = self.save(payload, meaningful=meaningful)
         self.state["runs"] = int(self.state.get("runs", 0)) + 1
         self.state["last_run"] = checked
@@ -675,6 +679,7 @@ class PollMonitor:
         self.state["last_changed"] = len(changed)
         self.state["last_discoveries"] = len(new_discoveries)
         self.state["last_failures"] = failures
+        self.state["last_coverage"] = coverage
         self.state["total_validated"] = len(self.state["poll_hashes"])
         self.state_path.parent.mkdir(parents=True, exist_ok=True)
         self.state_path.write_text(json.dumps(self.state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
