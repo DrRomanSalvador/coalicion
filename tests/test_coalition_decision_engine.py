@@ -23,7 +23,7 @@ def test_recomputes_dhondt_instead_of_adding_seats():
 
 def test_weighted_risk_is_explicitly_weighted_not_probability_calibrated():
     r = engine().analyze_coalition(("P2","P3"), [
-        scenario({"A":{"P1":400,"P2":220,"P3":220},"B":{"P1":1000,"P2":1,"P3":1}}, weight=3),
+        scenario({"A":{"P1":400,"P2":230,"P3":220},"B":{"P1":1000,"P2":1,"P3":1}}, weight=3),
         scenario({"A":{"P1":600,"P2":201,"P3":199},"B":{"P1":1000,"P2":1,"P3":1}}, "no_gain", 1)])
     assert r["risk"]["weighted_non_improvement"] == 0.25
     assert "no son una probabilidad calibrada" in r["risk"]["weight_interpretation"]
