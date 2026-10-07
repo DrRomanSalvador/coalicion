@@ -181,3 +181,21 @@ Calcula resultado separado, resultado coaligado con D'Hondt recalculado por circ
 Ejemplo: `python scripts/coalition_decision_engine.py --input decision_scenarios.json --parties PARTIDO_A PARTIDO_B PARTIDO_C --max-size 2 --output reports/coalition_decision.json`
 
 El motor no inventa escenarios ni considera certificada una predicción. Si el espacio combinatorio es demasiado grande, falla cerrado en vez de muestrear coaliciones silenciosamente.
+## Monitorización autónoma de encuestas
+
+El sistema operativo de vigilancia está en `src/poll_monitor.py`, configurado por
+`config/poll_monitor.json` y ejecutado por `.github/workflows/poll_monitor.yml`.
+
+- Captura cada 5 minutos mediante GitHub Actions, con ejecución manual disponible.
+- Fuentes configuradas: CIS, Electomanía, Dato Electoral, Europe Elects, MyF Data, Sigma Dos, GAD3, NC Report, Demoscopia, Celeste-Tel, Invymark y Political Stats.
+- Las fuentes estructuradas se validan antes de generar una encuesta utilizable.
+- RSS y páginas sin estructura reproducible quedan como **DISCOVERY_ONLY/PAGE_FINGERPRINT_ONLY**; nunca se inventan porcentajes.
+- Cada captura cruda recibe SHA-256 y se conserva en `artifacts/surveys/`.
+- El histórico longitudinal queda en `artifacts/survey_history.jsonl` y el estado en `artifacts/poll_monitor_state.json`.
+- Telegram alerta ante encuesta validada nueva/modificada y ante el primer cambio de un fallo de fuente.
+- No se convierte voto nacional en voto territorial ni en escaños. La proyección de escaños permanece bloqueada hasta disponer de matriz territorial verificable.
+
+La documentación completa está en `docs/POLL_MONITORING.md`.
+
+**Importante:** GitHub documenta que 5 minutos es el intervalo mínimo de los schedules, pero también que las ejecuciones programadas pueden retrasarse o incluso perderse bajo carga; por ello la latencia es *near-real-time*, no una garantía dura de cinco minutos.
+
