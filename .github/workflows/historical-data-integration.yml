@@ -87,6 +87,23 @@ jobs:
           assert Path("data/resultados_oficiales_2004_2023.csv").stat().st_size > 0
           PY
 
+      - name: Materialize canonical historical manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          src=Path("data/manifests/INTERIOR_ACQUISITION.json")
+          dst=Path("data/manifests/HISTORICAL_DATA_MATERIALIZATION.json")
+          x=json.loads(src.read_text(encoding="utf-8"))
+          assert x["status"] == "PASS"
+          x["schema"]="HISTORICAL_DATA_MATERIALIZATION_V2"
+          x["source_tier"]="PRIMARY_INTERIOR"
+          x["official_results"]["csv"]="data/resultados_oficiales_2004_2023.csv"
+          dst.write_text(json.dumps(x,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          PY
+
       - name: Install R runtime and system dependencies
         timeout-minutes: 15
         shell: bash
@@ -112,23 +129,6 @@ jobs:
           chmod 700 "$R_LIBS_USER"
           Rscript -e 'pkgs <- c("readxl","dplyr","readr","tibble","haven","purrr","jsonlite"); ok <- vapply(pkgs, requireNamespace, logical(1), quietly=TRUE); print(data.frame(package=names(ok),available=unname(ok))); stopifnot(all(ok))'
           Rscript -e 'if (!requireNamespace("opencis", quietly=TRUE)) { options(repos=c(CRAN="https://packagemanager.posit.co/cran/latest"), timeout=300); install.packages("opencis", lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), Ncpus=2) }; stopifnot(requireNamespace("opencis", quietly=TRUE))'
-
-      - name: Materialize canonical historical manifest
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          src=Path("data/manifests/INTERIOR_ACQUISITION.json")
-          dst=Path("data/manifests/HISTORICAL_DATA_MATERIALIZATION.json")
-          x=json.loads(src.read_text(encoding="utf-8"))
-          assert x["status"] == "PASS"
-          x["schema"]="HISTORICAL_DATA_MATERIALIZATION_V2"
-          x["source_tier"]="PRIMARY_INTERIOR"
-          x["official_results"]["csv"]="data/resultados_oficiales_2004_2023.csv"
-          dst.write_text(json.dumps(x,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-          PY
 
       - name: Ingest official CIS microdata
         timeout-minutes: 90
