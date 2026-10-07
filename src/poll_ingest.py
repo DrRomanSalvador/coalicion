@@ -95,7 +95,13 @@ def parse_datoelectoral_html(body, source):
                 break
             txt=node.get_text(" ",strip=True)
             if txt: section.append(txt)
-        parent=heading.parent.get_text(" ",strip=True) if heading.parent else ""
+        meta=[]
+        for node in heading.find_all_previous():
+            if node.name in {"h2","h3"}:
+                break
+            txt=node.get_text(" ",strip=True)
+            if txt: meta.append(txt)
+        parent=" ".join(reversed(meta))
         title=next((h.get_text(" ",strip=True) for h in heading.find_all_previous(["h2","h3"]) if h.get_text(" ",strip=True)), "Encuesta")
         m=re.search(r"publicado el (\d{1,2}) de ([a-záéíóú]+) de (\d{4})",parent,re.I)
         if not m or m.group(2).lower() not in months:
