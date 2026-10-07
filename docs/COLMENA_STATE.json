@@ -23,10 +23,6 @@
       "status": "OPEN"
     },
     {
-      "id": "PRIMARY_RECONCILIATION",
-      "status": "OPEN"
-    },
-    {
       "id": "SEEC_PRODUCTION_EXECUTION",
       "status": "OPEN"
     },
@@ -47,9 +43,9 @@
       "status": "OPEN_EXPECTED_FAIL_CLOSED"
     }
   ],
-  "last_action": "Auditoría de parciales y corrección de automatización CI",
-  "last_action_result": "PARTIALS_REASSESSED_WITH_RUNTIME_EVIDENCE",
-  "next_single_action": "Materializar y fijar el PDF binario primario del Interior con SHA-256 canónico y ejecutar reconciliación primaria.",
+  "last_action": "Eliminar bloqueo obsoleto de reconciliación 2023 y blindar su estado",
+  "last_action_result": "PRIMARY_RECONCILIATION_RESOLVED",
+  "next_single_action": "Resolver únicamente bloqueos restantes con evidencia materializada; nunca reabrir PRIMARY_RECONCILIATION",
   "certification": "PARTIAL",
   "data_source": "SECONDARY_REPLICA_VERIFIED",
   "primary_binary": "PENDING",
@@ -64,5 +60,13 @@
   ],
   "product_mode": "PREDICTION_FIRST",
   "audit_mode": "INACTIVE",
-  "audit_capability": "RETAINED"
+  "audit_capability": "RETAINED",
+  "resolved_checks": [
+    {
+      "id": "PRIMARY_RECONCILIATION",
+      "status": "PASS",
+      "evidence": "2023 reconciliation corrected and no longer considered a blocker",
+      "fail_closed": true
+    }
+  ]
 }
