@@ -1,7 +1,7 @@
 {
   "schema": "COLMENA_STATE_V1",
   "project": "REINA-SEEC",
-  "checkpoint_date": "2026-10-06",
+  "checkpoint_date": "2026-10-07",
   "methodology": "SEEC",
   "methodology_version": "4.0",
   "status": "OPERATIONAL_BETA",
@@ -48,9 +48,9 @@
       "detail": "Matriz 2023 completa materializada desde Dato Electoral como réplica secundaria verificada: 52 circunscripciones, 350 escaños y 24.487.414 votos a candidaturas. La descarga primaria del Interior sigue bloqueada por verificación TLS; no se degrada a primaria."
     }
   ],
-  "last_action": "Ejecutado run26.py tras endurecer los fallbacks territoriales y los parsers HTML.",
-  "last_action_result": "RUN26_PRODUCT_PIPELINE_SECONDARY_DATA_READY",
-  "next_single_action": "Resolver la materialización primaria 2023 del Ministerio del Interior sin desactivar TLS; mantener la matriz secundaria como OPERATIONAL_BETA hasta entonces.",
+  "last_action": "Integrada la calculadora accesible y generación reproducible de informes bilaterales sobre la matriz 2023.",
+  "last_action_result": "COALITION_REPORTS_REAL_MATRIX_VALIDATED",
+  "next_single_action": "Regenerar reports/ mediante run26.py cuando el pipeline de producto vuelva a emitir un check-run; no declarar certificación primaria.",
   "certification": "PARTIAL",
   "data_source": "SECONDARY_REPLICA_VERIFIED",
   "primary_binary": "PENDING",
@@ -61,7 +61,8 @@
     "Encuestas históricas: 140 últimas encuestas en ocho elecciones (2004-2023), réplica secundaria; fichas/microdatos técnicos no inferidos.",
     "Útil para análisis de coaliciones, no para certificación oficial.",
     "No es un predictor electoral validado.",
-    "Auditoría y certificación permanecen codificadas pero inactivas en el flujo operativo."
+    "Auditoría y certificación permanecen codificadas pero inactivas en el flujo operativo.",
+    "Informes bilaterales 2023: 78 pares entre 13 identidades observables relevantes; IU, Podemos, Más País y Compromís por separado quedan bloqueados al no ser candidaturas separables."
   ],
   "product_mode": "PREDICTION_FIRST",
   "audit_mode": "INACTIVE",
