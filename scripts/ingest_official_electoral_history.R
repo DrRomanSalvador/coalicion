@@ -79,16 +79,36 @@ pieces <- list()
 
 for (sheet in wb) {
   message("Inspecting official Interior sheet: ", sheet)
-  raw <- tryCatch(readxl::read_excel(local_xlsx, sheet=sheet, col_names=TRUE, .name_repair="minimal"),
-                  error=function(e) NULL)
-  if (is.null(raw) || !nrow(raw)) next
+  raw0 <- tryCatch(readxl::read_excel(local_xlsx, sheet=sheet, col_names=FALSE,
+                                              .name_repair="minimal", n_max=30),
+                   error=function(e) NULL)
+  if (is.null(raw0) || !nrow(raw0)) next
 
-  headers <- names(raw)
+  header_row <- NA_integer_
+  for (hr in seq_len(min(10, nrow(raw0)))) {
+    headers0 <- as.character(unlist(raw0[hr, ], use.names=FALSE))
+    if (!is.na(find_col(headers0, c("Provincia","Circunscripcion","Circunscripción"))) &&
+        !is.na(find_col(headers0, c("Candidatura","Candidaturas","Partido","Siglas"))) &&
+        !is.na(find_col(headers0, c("Votos","Votos candidatura")))) {
+      header_row <- hr
+      break
+    }
+  }
+  if (is.na(header_row)) next
+
+  raw <- tryCatch(readxl::read_excel(local_xlsx, sheet=sheet, col_names=FALSE,
+                                     .name_repair="minimal", skip=header_row-1),
+                  error=function(e) NULL)
+  if (is.null(raw) || nrow(raw) < 2) next
+  headers <- as.character(unlist(raw[1, ], use.names=FALSE))
+  raw <- raw[-1, , drop=FALSE]
+  names(raw) <- paste0("V", seq_along(headers))
+
   pcol <- find_col(headers, c("Provincia","Circunscripcion","Circunscripción"))
   partycol <- find_col(headers, c("Candidatura","Candidaturas","Partido","Siglas"))
   votescol <- find_col(headers, c("Votos","Votos candidatura"))
   seatscol <- find_col(headers, c("Escanos","Escaños","Diputados","Representantes"))
-  datecol <- find_col(headers, c("Fecha","Fecha eleccion","Fecha elección","Convocatoria","Eleccion","Elección"))
+  datecol <- find_col(headers, c("Fecha","Fecha eleccion","Fecha elección","Convocatoria","Eleccion","Elección","Año","Ano"))
 
   if (is.na(pcol) || is.na(partycol) || is.na(votescol)) next
 
@@ -116,7 +136,9 @@ for (sheet in wb) {
   if (nrow(y)) pieces[[length(pieces)+1]] <- y
 }
 
-result <- dplyr::bind_rows(pieces) |>
+result <- dplyr::bind_rows(pieces)
+if (!nrow(result)) stop("Official workbook: no recognizable provincial/candidature rows.")
+result <- result |>
   dplyr::distinct(election, fecha_eleccion, circunscripcion, partido, .keep_all=TRUE)
 
 expected <- names(target_dates)
