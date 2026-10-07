@@ -2,11 +2,11 @@
 
 ## Arquitectura
 
-`config/poll_monitor.json` define las fuentes. `src/poll_monitor.py` captura, hashea, normaliza, valida y persiste. El workflow `.github/workflows/poll_monitor.yml` ejecuta el proceso cada cinco minutos y en modo manual.
+`config/poll_monitor.json` define las fuentes. `src/monitors/` expone adaptadores nominales para CIS, Electomanía, Dato Electoral y X. `src/poll_monitor.py` captura, hashea, normaliza, valida y persiste. El workflow `.github/workflows/poll_monitor.yml` ejecuta el proceso cada cinco minutos y en modo manual.
 
 ## Fuentes
 
-Se vigilan CIS, Electomanía, Dato Electoral, Europe Elects, MyF Data, Sigma Dos, GAD3, NC Report, Demoscopia, Celeste-Tel, Invymark y Political Stats. Europe Elects X queda preparado como adaptador opcional mediante `X_BEARER_TOKEN` y un ID de usuario configurado; no se inventa ese identificador.
+Se vigilan CIS, Electomanía, Dato Electoral, Europe Elects, MyF Data, Sigma Dos, GAD3, NC Report, Demoscopia, Celeste-Tel, Invymark y Political Stats. Electomanía dispone ahora de extractor HTML estructurado sobre la tabla pública de sondeos; no depende del endpoint AJAX legado. Europe Elects X queda preparado como adaptador opcional mediante `X_BEARER_TOKEN` y un ID de usuario configurado; no se inventa ese identificador.
 
 La cobertura tiene tres niveles:
 - **VALIDATED:** se han extraído valores de partido y han superado validación.
