@@ -9,6 +9,8 @@ on:
       - "Colmena reproducible"
       - "Exhaustive fail-closed validation"
       - "Force workflow dispatcher"
+      - ".github/workflows/force_workflow.yml"
+      - ".github/workflows/auditoria_2023.yml"
       - "Historical data — canonical integration"
       - "Historical Spain data materialization"
       - "Inspect official Interior download transport"
