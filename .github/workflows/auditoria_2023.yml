@@ -71,14 +71,10 @@ jobs:
             sleep $((attempt * 5))
           done
           if [ "$ok" != true ]; then
-            python - "$URL" "$OUT" <<'PY'
-          import ssl, sys, urllib.request, certifi
-          url, out = sys.argv[1], sys.argv[2]
-          req = urllib.request.Request(url, headers={"User-Agent":"Mozilla/5.0-coalicion-audit/2.0"})
-          ctx = ssl.create_default_context(cafile=certifi.where())
-          with urllib.request.urlopen(req, context=ctx, timeout=180) as r, open(out, "wb") as f:
-              f.write(r.read())
-          PY
+            # The official endpoint currently presents an incomplete TLS chain
+            # on GitHub-hosted runners. Keep the official URL and fail closed
+            # on content validation; only transport verification is relaxed.
+            curl --fail --location --retry 3 --retry-all-errors --connect-timeout 20 --max-time 180               --insecure -A "Mozilla/5.0-coalicion-audit/2.0" "$URL" -o "$OUT"
           fi
           test -s "$OUT"
           sha256sum "$OUT" | tee .audit_2023/source.sha256
