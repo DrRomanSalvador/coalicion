@@ -28,8 +28,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: historical-data-canonical-${{ github.run_id }}
-  cancel-in-progress: true
+  group: historical-data-canonical-main
+  cancel-in-progress: false
 
 jobs:
   integrate:
