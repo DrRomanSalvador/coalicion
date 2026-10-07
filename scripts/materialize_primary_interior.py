@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Materialize official Interior Congress historical results without R."""
 from __future__ import annotations
-import csv, hashlib, json, ssl, urllib.request, subprocess, tempfile
+import csv, hashlib, json, ssl, urllib.request, subprocess, tempfile, os
 import certifi
 from pathlib import Path
 from openpyxl import load_workbook
@@ -18,7 +18,9 @@ def main():
     XLSX.parent.mkdir(parents=True,exist_ok=True)
     MAN.parent.mkdir(parents=True,exist_ok=True)
     data=None
-    ca=certifi.where()
+    ca_candidates=[p for p in ("/etc/ssl/certs/ca-certificates.crt", certifi.where()) if os.path.exists(p)]
+    if not ca_candidates:
+        raise RuntimeError("FAIL-CLOSED: no trusted CA bundle available")
     with tempfile.NamedTemporaryFile(suffix=".xlsx",delete=False) as tmp:
         tmp_path=Path(tmp.name)
     try:
