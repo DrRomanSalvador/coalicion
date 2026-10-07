@@ -41,7 +41,7 @@ def main():
     ca=ca_candidates[0]
     bundle_tmp=Path(tempfile.mkstemp(suffix=".pem")[1])
     try:
-        der=ssl.PEM_cert_to_DER_cert(FNMT_SERVER_ROOT_PEM).encode("latin1")
+        der=ssl.PEM_cert_to_DER_cert(FNMT_SERVER_ROOT_PEM)
         if hashlib.sha256(der).hexdigest().upper()!="554153B13D2CF9DDB753BFBE1A4E0AE08D0AA4187058FE60A2B862B2E4B87BCB":
             raise RuntimeError("FAIL-CLOSED: embedded FNMT server-root fingerprint mismatch")
         bundle_tmp.write_bytes(Path(ca).read_bytes()+b"\n"+FNMT_SERVER_ROOT_PEM.encode("ascii"))
