@@ -1,11 +1,21 @@
 {
-  "schema": "SURVEY_WATCH_V1",
+  "schema": "SURVEY_WATCH_V2",
   "timezone": "Europe/Madrid",
   "daily_local_hour": 8,
+  "alert_policy": {
+    "new_source": "INFO",
+    "changed_poll": "ALERT",
+    "source_failure": "CRITICAL",
+    "parse_failure": "CRITICAL",
+    "territorial_data_missing": "WARNING",
+    "report_generated": "INFO"
+  },
   "source_policy": {
     "require_explicit_sources": true,
     "no_search_engine_inference": true,
-    "no_unverified_poll_values": true
+    "no_unverified_poll_values": true,
+    "require_publication_date": true,
+    "require_pollster_or_source": true
   },
   "sources": [],
   "scenario_sets": [
@@ -19,5 +29,11 @@
     "recommendations": false,
     "ranking_as_best_option": false,
     "campaign_advice": false
+  },
+  "report_policy": {
+    "include_source_hash": true,
+    "include_change_hash": true,
+    "include_timestamp": true,
+    "include_seat_scenarios_only_when_territorial_input_is_valid": true
   }
 }
