@@ -30,6 +30,7 @@ download_candidate <- function(url, destination) {
     "--connect-timeout", "30", "--max-time", "900",
     "--compressed", "--location-trusted",
     "-A", "Mozilla/5.0-coalicion-historical-ingest/2.0",
+    "--cacert", ca_bundle,
     "-o", tmp, url
   ))
   ok <- identical(status, 0L) && file.exists(tmp) && file.info(tmp)$size > 10000
