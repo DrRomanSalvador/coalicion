@@ -49,7 +49,7 @@ jobs:
           #    If jobs exist, retry only failed jobs. Old-SHA failures are never
           #    silently accepted: dispatch current main when workflow_dispatch exists.
           api --paginate "repos/$REPOSITORY/actions/runs?per_page=100&branch=main"             --jq '.workflow_runs[] | select(.conclusion == "failure") |
-              [.id,.workflow_id,.workflow_name,.head_sha,.run_attempt] | @tsv'             > /tmp/failed.tsv
+              [.id,.workflow_id,.name,.head_sha,.run_attempt] | @tsv'             > /tmp/failed.tsv
 
           while IFS=$'\t' read -r run_id workflow_id workflow_name head_sha run_attempt; do
             [ -n "$run_id" ] || continue
@@ -66,7 +66,7 @@ jobs:
               content="$(api "repos/$REPOSITORY/contents/$workflow_path?ref=main" --jq '.content' | tr -d '\n' | base64 --decode)"
               if printf '%s\n' "$content" | grep -Eq '^[[:space:]]*workflow_dispatch[[:space:]]*:'; then
                 echo "RECOVERY: old-SHA failure $run_id -> dispatch $workflow_path on main"
-                api --method POST                   -H "Accept: application/vnd.github+json"                   -H "X-GitHub-Api-Version: 2026-03-10"                   "repos/$REPOSITORY/actions/workflows/$workflow_path/dispatches"                   -f ref=main
+                api --method POST                   -H "Accept: application/vnd.github+json"                   -H "X-GitHub-Api-Version: 2026-03-10"                   "repos/$REPOSITORY/actions/workflows/$workflow_id/dispatches"                   -f ref=main
               else
                 echo "RECOVERY: old-SHA failure $run_id -> full rerun"
                 api --method POST                   -H "Accept: application/vnd.github+json"                   -H "X-GitHub-Api-Version: 2026-03-10"                   "repos/$REPOSITORY/actions/runs/$run_id/rerun"
