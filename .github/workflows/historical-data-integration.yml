@@ -14,6 +14,11 @@ on:
       - "scripts/run_full_oos.py"
       - "src/oos_pipeline.py"
       - "config/electoral_sources.json"
+      - "config/poll_monitor.json"
+      - "scripts/complete_historical_calibration.py"
+      - "scripts/run_seec_production.py"
+      - "scripts/master_certification.py"
+      - "scripts/materialize_poll_source_coverage.py"
       - ".github/workflows/historical-data-integration.yml"
   pull_request:
     branches: [main]
@@ -56,7 +61,7 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          python -m pip install --disable-pip-version-check --no-input certifi
+          python -m pip install --disable-pip-version-check --no-input certifi requests beautifulsoup4 lxml pytest
           python -c 'import certifi; print(certifi.where())'
 
       - name: Setup R
@@ -118,6 +123,12 @@ jobs:
 
       - name: Regression tests
         run: python -m pytest tests/test_poll_monitor.py -q
+
+      - name: Refresh poll-source coverage evidence
+        run: python src/poll_monitor.py
+
+      - name: Materialize poll-source coverage
+        run: python scripts/materialize_poll_source_coverage.py
 
       - name: Validate historical data
         run: python scripts/validate_historical_data.py
@@ -211,13 +222,13 @@ jobs:
         run: python scripts/master_certification.py
 
       - name: Commit validated materialization
-        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]' }}
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json data/manifests/HISTORICAL_DATA_LIMITATIONS.json data/manifests/INTERIOR_ACQUISITION.json artifacts/oos_historical_2004_2023.json ci_evidence/historico_manifest.json ci_evidence/historico_source_tier.txt ci_evidence/reconciliation.json ci_evidence/oos_calibration.json ci_evidence/oos_calibration_complete.json ci_evidence/seec_posterior.json ci_evidence/master_certification.json artifacts/verification/full_backtest.json
+          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json data/manifests/HISTORICAL_DATA_LIMITATIONS.json data/manifests/INTERIOR_ACQUISITION.json artifacts/oos_historical_2004_2023.json ci_evidence/historico_manifest.json ci_evidence/historico_source_tier.txt ci_evidence/reconciliation.json ci_evidence/oos_calibration.json ci_evidence/oos_calibration_complete.json ci_evidence/seec_posterior.json ci_evidence/poll_source_coverage.json ci_evidence/master_certification.json artifacts/verification/full_backtest.json
           if git diff --cached --quiet; then
             echo "No validated materialization changes."
             exit 0
