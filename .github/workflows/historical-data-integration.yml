@@ -87,7 +87,7 @@ jobs:
               echo "Materialization parts incomplete/incompatible; using primary Interior acquisition."
             fi
           fi
-          if [ ! -s data/resultados_oficiales_2004_2023.csv ] || [ ! -s data/manifests/INTERIOR_ACQUISITION.json ]; then
+          if ! python -c 'import json; m=json.load(open("data/manifests/INTERIOR_ACQUISITION.json", encoding="utf-8")); assert m["status"]=="PASS" and m["source_tier"]=="PRIMARY_INTERIOR" and m["official_results"]["rows"]==50700 and len(m["official_results"]["elections"])==8 and m["official_results"]["constituencies_per_election"]==52 and m["official_results"]["seats_per_election"]==350' 2>/dev/null; then
             export CURL_CA_BUNDLE="$(python -c 'import certifi; print(certifi.where())')"
             acquired=0
             for attempt in 1 2 3 4 5; do
