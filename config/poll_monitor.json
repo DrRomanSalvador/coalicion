@@ -12,13 +12,13 @@
   "timezone": "Europe/Madrid",
   "sources": [
     {"id":"cis_rss","name":"CIS (RSS legacy)","url":"https://www.cis.es/cis/opencm/ES/1_encuestas/estudios/rss.xml","format":"rss","method":"GET","disabled":true,"reason":"legacy endpoint returns HTTP 410; use CIS catalog/news discovery","coverage_role":"discovery"},
-    {"id":"electomania_ajax","name":"Electomanía","url":"https://electomania.es/wp-admin/admin-ajax.php","format":"electomania_json","method":"POST","data":{"action":"get_encuestas","coverage_role":"discovery"}},
+    {"id":"electomania_ajax","name":"Electomanía","url":"https://electomania.es/wp-admin/admin-ajax.php","format":"electomania_json","method":"POST","data":{"action":"get_encuestas"},"coverage_role":"discovery"},
     {"id":"cis_catalog","name":"CIS catálogo","url":"https://www.cis.es/es/estudios/catalogo","format":"page","method":"GET","coverage_role":"discovery"},
     {"id":"cis_news","name":"CIS noticias","url":"https://www.cis.es/es/sala-prensa/noticias","format":"page","method":"GET","coverage_role":"discovery"},
     {"id":"elpais_40db","name":"EL PAÍS / 40dB","url":"https://elpais.com/noticias/barometro-el-pais/","format":"national_html","method":"GET","pollster":"40dB","coverage_role":"primary"},
     {"id":"datoelectoral","name":"Dato Electoral","url":"https://www.datoelectoral.es/encuestas","format":"datoelectoral_html","method":"GET","coverage_role":"discovery"},
     {"id":"europe_elects_spain","name":"Europe Elects","url":"https://europeelects.eu/spain/","format":"page","method":"GET","coverage_role":"discovery"},
-    {"id":"myfdata","name":"MyF Data","url":"https://www.myfdata.com/elecciones-generales/","format":"national_html","method":"GET","optional":true,"coverage_role":"optional","coverage_role":"primary"},
+    {"id":"myfdata","name":"MyF Data","url":"https://www.myfdata.com/elecciones-generales/","format":"national_html","method":"GET","optional":true,"coverage_role":"primary"},
     {"id":"sigma_dos","name":"Sigma Dos","url":"https://www.elmundo.es/sigmasdos/","format":"national_html","method":"GET","optional":true,"coverage_role":"primary"},
     {"id":"gad3","name":"GAD3","url":"https://www.gad3.com/informes/","format":"national_html","method":"GET","pollster":"GAD3","coverage_role":"primary"},
     {"id":"nc_report","name":"NC Report","url":"https://ncreport.es/","format":"national_html","method":"GET","pollster":"NC Report","coverage_role":"primary"},
@@ -26,7 +26,7 @@
     {"id":"celeste_tel","name":"Celeste-Tel","url":"https://www.celeste-tel.es/","format":"national_html","method":"GET","pollster":"Celeste-Tel","coverage_role":"primary"},
     {"id":"invymark","name":"Invymark","url":"https://invymark.com/encuestas/","format":"national_html","method":"GET","coverage_role":"primary"},
     {"id":"political_stats_spain","name":"Political Stats","url":"https://politicalstats.eu/spain","format":"page","method":"GET","coverage_role":"discovery"},
-    {"id":"europe_elects_twitter","name":"Europe Elects X","url":"https://api.twitter.com/2/users/{user_id,"coverage_role":"discovery"}/tweets","format":"twitter","method":"GET","user_id":"","optional":true}
+    {"id":"europe_elects_twitter","name":"Europe Elects X","url":"https://api.twitter.com/2/users/{user_id}/tweets","format":"twitter","method":"GET","user_id":"","optional":true,"coverage_role":"discovery"}
   ],
   "policy": {
     "no_search_engine_inference": true,
