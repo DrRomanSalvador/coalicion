@@ -21,15 +21,32 @@ def _next(d:date):
         if d < date.fromisoformat(raw): return raw,code
     return None
 
-def _official(path:Path)->dict[tuple[str,str],float]:
-    if not path.exists(): raise FileNotFoundError(f"official results required for canonical OOS: {path}")
+def _election_key(row):
+    raw=(row.get("election") or "").strip()
+    codes={code for _,code in ELECTIONS}
+    if raw in codes: return raw
+    raw_date=(row.get("fecha_eleccion") or "").strip()[:10]
+    for election_date, code in ELECTIONS:
+        if raw_date == election_date: return code
+    raise ValueError("official row has unknown election/date: %s" % row)
+
+def _official(path):
+    if not path.exists(): raise FileNotFoundError("official results required for canonical OOS: %s" % path)
     totals={}; national={}
     with path.open(newline="",encoding="utf-8") as fh:
-        for r in csv.DictReader(fh):
-            k=(r["election"],_norm(r["partido"])); v=float(r["votos"])
-            totals[k]=totals.get(k,0.0)+v; national[k[0]]=national.get(k[0],0.0)+v
+        reader=csv.DictReader(fh)
+        if not reader.fieldnames: raise ValueError("official results CSV has no header")
+        required={"partido","votos"}
+        if not required.issubset(reader.fieldnames): raise ValueError("official results missing columns: %s" % sorted(required-set(reader.fieldnames)))
+        for r in reader:
+            election=_election_key(r); party=_norm(r["partido"])
+            try: v=float(r["votos"])
+            except (TypeError,ValueError): continue
+            if v < 0: raise ValueError("negative official votes")
+            k=(election,party)
+            totals[k]=totals.get(k,0.0)+v
+            national[election]=national.get(election,0.0)+v
     return {k:100*v/national[k[0]] for k,v in totals.items() if national[k[0]]>0}
-
 def _canonical(rows,actual_path):
     actuals=_official(actual_path); out=[]
     for r in rows:
