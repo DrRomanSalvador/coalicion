@@ -48,3 +48,5 @@ jobs:
         with:
           name: master-certification-report
           path: master-certification.json
+
+# PR execution path: this workflow is intentionally identical to the main verification contract.
