@@ -25,14 +25,17 @@ if (!file.exists(curl_bin)) stop("FAIL-CLOSED: curl executable is required for o
 download_candidate <- function(url, destination) {
   tmp <- paste0(destination, ".part")
   if (file.exists(tmp)) unlink(tmp)
-  status <- system2(curl_bin, c(
+  curl_args <- c(
     "-fL", "--retry", "4", "--retry-all-errors", "--retry-delay", "3",
     "--connect-timeout", "30", "--max-time", "900",
     "--compressed", "--location-trusted",
-    "-A", "Mozilla/5.0-coalicion-historical-ingest/2.0",
-    "--cacert", ca_bundle,
-    "-o", tmp, url
-  ))
+    "-A", "Mozilla/5.0-coalicion-historical-ingest/2.0"
+  )
+  if (length(ca_bundle) == 1L && file.exists(ca_bundle)) {
+    curl_args <- c(curl_args, "--cacert", ca_bundle)
+  }
+  curl_args <- c(curl_args, "-o", tmp, url)
+  status <- system2(curl_bin, curl_args)
   ok <- identical(status, 0L) && file.exists(tmp) && file.info(tmp)$size > 10000
 
   # Verified HTTPS fallback: some Ubuntu runner/curl combinations cannot
@@ -206,15 +209,35 @@ long <- dplyr::bind_rows(pieces)
 if (!nrow(long)) stop("No official Votos/Escaños rows were recognized.")
 
 metric_integrity <- long |>
-  dplyr::group_by(election, fecha_eleccion, circunscripcion, partido) |>
-  dplyr::summarise(n_votos=sum(metric == "votos"), n_escanos=sum(metric == "escanos"), .groups="drop")
-if (any(metric_integrity$n_votos != 1L | metric_integrity$n_escanos != 1L))
-  stop("Official workbook has missing or duplicated Votos/Escaños observations for a constituency-party key.")
+  dplyr::group_by(election, fecha_eleccion, circunscripcion, partido, metric) |>
+  dplyr::summarise(n=dplyr::n(), values=list(value), .groups="drop")
 
-result <- long |>
+bad_duplicates <- metric_integrity |>
+  dplyr::filter(n > 1L) |>
+  dplyr::rowwise() |>
+  dplyr::filter(length(unique(values[[1]])) > 1L) |>
+  dplyr::ungroup()
+if (nrow(bad_duplicates))
+  stop("Official workbook has conflicting duplicate observations for a constituency-party key.")
+
+votes <- long |>
+  dplyr::filter(metric == "votos") |>
   dplyr::group_by(election, fecha_eleccion, circunscripcion, partido) |>
-  dplyr::summarise(votos=sum(value[metric=="votos"], na.rm=TRUE),
-                   escaños=sum(value[metric=="escanos"], na.rm=TRUE), .groups="drop") |>
+  dplyr::summarise(votos=sum(value, na.rm=TRUE), .groups="drop")
+
+seats <- long |>
+  dplyr::filter(metric == "escanos") |>
+  dplyr::group_by(election, fecha_eleccion, circunscripcion, partido) |>
+  dplyr::summarise(escaños=sum(value, na.rm=TRUE), .groups="drop")
+
+missing_votes <- votes |>
+  dplyr::filter(is.na(votos))
+if (nrow(missing_votes))
+  stop("Official workbook contains a constituency-party with no vote value.")
+
+result <- votes |>
+  dplyr::left_join(seats, by=c("election","fecha_eleccion","circunscripcion","partido")) |>
+  dplyr::mutate(escaños=dplyr::coalesce(escaños, 0)) |>
   dplyr::mutate(circunscripcion_codigo=canonical_id(circunscripcion),
     partido_codigo=canonical_id(partido),
     fuente="Ministerio del Interior / portal oficial de datos abiertos",
