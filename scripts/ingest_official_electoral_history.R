@@ -18,7 +18,10 @@ local_xlsx <- "data/raw/Elecciones-Congreso.xlsx"
 
 curl_bin <- Sys.which("curl")
 if (!nzchar(curl_bin)) curl_bin <- "/usr/bin/curl"
-ca_bundle <- tryCatch(system2("python", c("-c", "import certifi; print(certifi.where())"), stdout=TRUE, stderr=FALSE), error=function(e) character())
+ca_bundle <- Sys.getenv("CURL_CA_BUNDLE", unset="")
+if (!nzchar(ca_bundle)) {
+  ca_bundle <- tryCatch(system2("python", c("-c", shQuote("import certifi; print(certifi.where())")), stdout=TRUE, stderr=FALSE), error=function(e) character())
+}
 if (length(ca_bundle) == 1L && file.exists(ca_bundle)) Sys.setenv(CURL_CA_BUNDLE=ca_bundle)
 if (!file.exists(curl_bin)) stop("FAIL-CLOSED: curl executable is required for official Interior ingestion.")
 
