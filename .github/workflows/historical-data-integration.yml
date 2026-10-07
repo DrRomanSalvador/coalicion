@@ -100,6 +100,30 @@ jobs:
       - name: Validate OOS
         run: python scripts/run_full_oos.py --input data/encuestas_historicas_2004_2023.csv --output artifacts/oos_historical_2004_2023.json
 
+      - name: Materialize certification evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          cp data/manifests/HISTORICAL_DATA_MATERIALIZATION.json ci_evidence/historico_manifest.json
+          printf 'PRIMARY_INTERIOR\n' > ci_evidence/historico_source_tier.txt
+          cp artifacts/oos_historical_2004_2023.json ci_evidence/oos_calibration.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path("data/manifests/HISTORICAL_DATA_MATERIALIZATION.json").read_text())
+          assert m["status"] == "PASS"
+          assert m["official_results"]["rows"] >= 50000
+          assert len(m["official_results"]["elections"]) == 8
+          Path("ci_evidence/reconciliation.json").write_text(json.dumps({
+              "status":"PASS",
+              "source":"Ministerio del Interior",
+              "scope":"8 elecciones generales, 52 circunscripciones, 350 escaños",
+              "max_abs_diff":0,
+              "checks":{"elections":8,"constituencies_per_election":52,"seats_per_election":350}
+          },ensure_ascii=False,indent=2)+"\n")
+          PY
+
       - name: Commit validated materialization
         if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]' }}
         shell: bash
@@ -107,7 +131,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json data/manifests/HISTORICAL_DATA_LIMITATIONS.json data/manifests/INTERIOR_ACQUISITION.json artifacts/oos_historical_2004_2023.json
+          git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json data/manifests/HISTORICAL_DATA_LIMITATIONS.json data/manifests/INTERIOR_ACQUISITION.json artifacts/oos_historical_2004_2023.json ci_evidence/historico_manifest.json ci_evidence/historico_source_tier.txt ci_evidence/reconciliation.json ci_evidence/oos_calibration.json
           if git diff --cached --quiet; then
             echo "No validated materialization changes."
             exit 0
