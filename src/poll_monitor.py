@@ -16,6 +16,7 @@ import os
 import re
 import sys
 import time
+from datetime import date
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -84,6 +85,12 @@ def validate_poll(poll: Poll, *, min_parties: int = 5) -> tuple[bool, str]:
         return False, "INVALID_PERCENTAGE"
     if not poll.publication_date or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", poll.publication_date):
         return False, "INVALID_PUBLICATION_DATE"
+    try:
+        date.fromisoformat(poll.publication_date)
+    except ValueError:
+        return False, "INVALID_PUBLICATION_DATE"
+    if not poll.pollster.strip() or not poll.source_id.strip():
+        return False, "MISSING_SOURCE_METADATA"
     total = sum(values)
     # Published tables may omit residual categories, so validation accepts
     # 95-105% but never manufactures the missing mass.
@@ -176,7 +183,7 @@ def parse_rss_metadata(body: bytes, source: dict[str, Any]) -> list[dict[str, An
             out.append({
                 "discovery_id": guid, "title": title, "link": link,
                 "publication_raw": pub, "source_id": source["id"],
-                "validation": "DISCOVERY_ONLY",
+                "validation": "DISCOVERY_ONLY", "alertable": True,
             })
     return out
 
@@ -241,7 +248,7 @@ class SourceMonitor:
             "link": self.source["url"],
             "publication_raw": "",
             "source_id": self.source["id"],
-            "validation": "PAGE_FINGERPRINT_ONLY",
+            "validation": "PAGE_FINGERPRINT_ONLY", "alertable": False,
         }]
 
 class TwitterMonitor(SourceMonitor):
@@ -271,7 +278,10 @@ class PollMonitor:
             return {"schema":"POLL_MONITOR_STATE_V2","poll_hashes":{},
                     "discovery_hashes":{},"source_hashes":{},"failure_hashes":{},
                     "runs":0,"total_validated":0,"baseline_completed":False}
-        return json.loads(self.state_path.read_text(encoding="utf-8"))
+        state = json.loads(self.state_path.read_text(encoding="utf-8"))
+        for key, default in {"poll_hashes": {}, "discovery_hashes": {}, "source_hashes": {}, "failure_hashes": {}, "runs": 0, "total_validated": 0, "baseline_completed": False}.items():
+            state.setdefault(key, default)
+        return state
 
     def _save_raw(self, source_id: str, body: bytes) -> str:
         digest = hashlib.sha256(body).hexdigest()
@@ -317,7 +327,8 @@ class PollMonitor:
             ).hexdigest()
             if self.state["discovery_hashes"].get(key) != fingerprint:
                 self.state["discovery_hashes"][key] = fingerprint
-                new_discoveries.append(discovery)
+                if discovery.get("alertable", False):
+                    new_discoveries.append(discovery)
         for poll in polls:
             h = poll_hash(poll)
             old = self.state["poll_hashes"].get(poll.poll_id)
