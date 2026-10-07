@@ -16,7 +16,7 @@ def test_projection_comparison_and_uncertainty():
     b={"party":{"X":{"votes":110,"seats":3,"vote_share":.55}}}
     assert compare_projections(a,b)["X"]["seat_change"] == 1
     u=uncertainty_summary([{"X":1},{"X":3},{"X":5}])
-    assert u["X"]["1.0"] == 5
+    assert u["X"]["0.5"] == 3
 
 
 def test_backtest_is_partitionable():
