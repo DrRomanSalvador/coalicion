@@ -1,10 +1,9 @@
 from pathlib import Path
-from src.reproducibility_contract import ANCHOR_SHA256, ANCHOR_MANIFEST, verify_contract
+from src.reproducibility_contract import ANCHOR_SHA256, ANCHOR_MANIFEST, ANCHOR_BINARY, verify_contract
 
 def test_reproducibility_contract_is_fail_closed():
     result = verify_contract(Path("."))
-    anchor_path = Path(ANCHOR_MANIFEST)
-    if anchor_path.exists():
+    if Path(ANCHOR_BINARY).exists():
         assert result["status"] == "PASS"
     else:
         assert result["status"] == "FAIL"
