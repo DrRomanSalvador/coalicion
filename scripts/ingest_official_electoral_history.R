@@ -223,12 +223,12 @@ if (nrow(bad_duplicates))
 votes <- long |>
   dplyr::filter(metric == "votos") |>
   dplyr::group_by(election, fecha_eleccion, circunscripcion, partido) |>
-  dplyr::summarise(votos=sum(value, na.rm=TRUE), .groups="drop")
+  dplyr::summarise(votos=dplyr::first(value), .groups="drop")
 
 seats <- long |>
   dplyr::filter(metric == "escanos") |>
   dplyr::group_by(election, fecha_eleccion, circunscripcion, partido) |>
-  dplyr::summarise(escaños=sum(value, na.rm=TRUE), .groups="drop")
+  dplyr::summarise(escaños=dplyr::first(value), .groups="drop")
 
 missing_votes <- votes |>
   dplyr::filter(is.na(votos))
