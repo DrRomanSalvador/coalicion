@@ -29,8 +29,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: historical-data-canonical-${{ github.ref }}-v5
-  cancel-in-progress: false
+  group: historical-data-canonical-main-v6
+  cancel-in-progress: true
 
 jobs:
   integrate:
