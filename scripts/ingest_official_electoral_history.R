@@ -68,7 +68,12 @@ discover_xlsx_urls <- function(page_url) {
 }
 
 source_url <- NA_character_
-if (!file.exists(local_xlsx) || file.info(local_xlsx)$size < 1000) {
+# Never trust a pre-existing workspace/repository cache for canonical provenance.
+# Every canonical run acquires the workbook from an explicit official URL.
+if (file.exists(local_xlsx)) unlink(local_xlsx)
+if (file.exists(paste0(local_xlsx, ".part"))) unlink(paste0(local_xlsx, ".part"))
+{
+
   candidates <- unique(c(official_urls, discover_xlsx_urls(official_download_page)))
   last <- NULL
   for (url in candidates) {
@@ -93,8 +98,6 @@ if (!file.exists(local_xlsx) || file.info(local_xlsx)$size < 1000) {
     if (ok) break
   }
   if (!length(candidates)) stop("FAIL-CLOSED: no official Interior XLSX candidates were discovered. Last attempt: ", ifelse(is.null(last), "none", last))
-} else {
-  source_url <- "repository-cache:data/raw/Elecciones-Congreso.xlsx"
 }
 
 norm <- function(x) gsub("[^a-z0-9]", "", tolower(iconv(as.character(x), to="ASCII//TRANSLIT")))
