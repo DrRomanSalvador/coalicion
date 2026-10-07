@@ -16,6 +16,7 @@ from .marginality import rank_marginality
 from .coalition import coalition_decision
 from .methodology_registry import production_methodology_status
 from .methodology_bridge import candidate_summary
+from .methodology_pipeline import methodology_stage
 
 
 VERSION = "1.0"
@@ -92,6 +93,8 @@ def decision_snapshot(
     strict_territory: bool = True,
     methodology_status: Mapping | None = None,
     methodology_oos: Sequence[Mapping] | None = None,
+    methodology_calibration: Mapping | None = None,
+    methodology_sensitivity: Mapping | None = None,
 ) -> dict:
     """Produce one actionable, reproducible decision snapshot.
 
@@ -170,6 +173,11 @@ def decision_snapshot(
         "polls": dict(poll_summary) if poll_summary is not None else None,
         "methodology": production_methodology_status(methodology_status),
         "methodology_oos": candidate_summary(methodology_oos) if methodology_oos else None,
+        "methodology_stage": methodology_stage(
+            oos_results=methodology_oos or (),
+            calibration=methodology_calibration,
+            sensitivity=methodology_sensitivity,
+        ),
         "projection": projection,
         "marginality": {
             "count": len(marginality),
