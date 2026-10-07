@@ -18,6 +18,10 @@ on:
       - "run26.py"
       - "requirements.txt"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     runs-on: ubuntu-latest
