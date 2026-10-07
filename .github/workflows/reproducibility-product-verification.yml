@@ -24,8 +24,13 @@ on:
       - "political_product.py"
       - "coalicion.py"
 
+concurrency:
+  group: verify-main
+  cancel-in-progress: true
+
 jobs:
   verify:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
