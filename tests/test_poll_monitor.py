@@ -329,3 +329,17 @@ def test_poll_monitor_migrates_v2_state_schema(tmp_path):
     loaded = monitor._load_state()
     assert loaded["schema"] == "POLL_MONITOR_STATE_V3"
     assert loaded["poll_hashes"] == {"x":"h"}
+
+
+def test_poll_monitor_versions_corrections(tmp_path):
+    from src.poll_monitor import PollMonitor, Poll
+    monitor = PollMonitor.__new__(PollMonitor)
+    monitor.state_path = tmp_path / "state.json"
+    monitor.state = {"poll_hashes": {}, "poll_identities": {}, "discovery_hashes": {}}
+    poll = Poll("p1", "2026-10-07", "House", "s1", "https://example.test", {"PP": 35, "PSOE": 30, "VOX": 10, "SUMAR": 8, "PODEMOS": 5})
+    new, changed, _ = monitor.detect_new([poll], [])
+    assert new[0]["event_type"] == "NEW"
+    poll2 = Poll("p1", "2026-10-07", "House", "s1", "https://example.test", {"PP": 36, "PSOE": 29, "VOX": 10, "SUMAR": 8, "PODEMOS": 5})
+    new, changed, _ = monitor.detect_new([poll2], [])
+    assert changed[0]["event_type"] == "CORRECTION_OR_REPUBLICATION"
+    assert len(monitor.state["poll_versions"]["p1"]) == 2
