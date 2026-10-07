@@ -57,8 +57,8 @@
       "format": "national_html",
       "method": "GET",
       "pollster": "40dB",
-      "coverage_role": "primary",
-      "reason": "Ruta pública actual + rutas alternativas; no usar el endpoint AMP obsoleto como ruta primaria.",
+      "coverage_role": "discovery",
+      "reason": "La ruta pública y sus alternativas devuelven 403 desde el runner; se conserva como sensor de descubrimiento. 40dB queda cubierto por registros de descubrimiento sin canonizar valores desde ellos.",
       "alternate_urls": [
         "https://elpais.com/noticias/barometro-el-pais/",
         "https://elpais.com/noticias/encuestas/"
