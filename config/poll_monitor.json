@@ -1,12 +1,21 @@
 {
-  "schema": "POLL_MONITOR_CONFIG_V2",
+  "schema": "POLL_MONITOR_CONFIG_V3",
+  "coverage_contract": {
+    "scope": "configured_national_poll_universe",
+    "require_all_nonoptional_sources_healthy": true,
+    "require_structured_primary_extractors": true,
+    "require_zero_unresolved_discoveries": true,
+    "require_zero_unresolved_source_failures": true,
+    "require_primary_registry_reviewed": true,
+    "claim": "COBERTURA_TOTAL_VERIFICADA"
+  },
   "timezone": "Europe/Madrid",
   "sources": [
     {"id":"cis_rss","name":"CIS (RSS legacy)","url":"https://www.cis.es/cis/opencm/ES/1_encuestas/estudios/rss.xml","format":"rss","method":"GET","disabled":true,"reason":"legacy endpoint returns HTTP 410; use CIS catalog/news discovery"},
     {"id":"electomania_ajax","name":"Electomanía","url":"https://electomania.es/wp-admin/admin-ajax.php","format":"electomania_json","method":"POST","data":{"action":"get_encuestas"}},
     {"id":"datoelectoral","name":"Dato Electoral","url":"https://www.datoelectoral.es/encuestas","format":"datoelectoral_html","method":"GET"},
     {"id":"europe_elects_spain","name":"Europe Elects","url":"https://europeelects.eu/spain/","format":"page","method":"GET"},
-    {"id":"myfdata","name":"MyF Data","url":"https://www.myfdata.com/elecciones-generales/","format":"page","method":"GET","optional":true},
+    {"id":"myfdata","name":"MyF Data","url":"https://www.myfdata.com/elecciones-generales/","format":"page","method":"GET","optional":true,"coverage_role":"optional"},
     {"id":"sigma_dos","name":"Sigma Dos","url":"https://www.elmundo.es/sigmasdos/","format":"page","method":"GET","optional":true},
     {"id":"gad3","name":"GAD3","url":"https://www.gad3.com/informes/","format":"national_html","method":"GET","pollster":"GAD3"},
     {"id":"nc_report","name":"NC Report","url":"https://ncreport.es/","format":"national_html","method":"GET","pollster":"NC Report"},
@@ -22,6 +31,6 @@
     "no_national_to_territorial_conversion": true,
     "fail_closed": true,
     "alert_on_new_or_changed_validated_poll": true,
-    "alert_on_first_or_changed_source_failure": true
+    "alert_on_persistent_source_failure": true
   }
 }
