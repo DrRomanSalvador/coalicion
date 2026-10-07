@@ -48,7 +48,7 @@ jobs:
       - name: Product layer
         run: python -m pytest -q tests/test_product_layer.py
       - name: Master certification report
-        run: python scripts/master_certification.py > master-certification.json || true
+        run: python scripts/master_certification.py > master-certification.json
       - name: Publish certification report
         uses: actions/upload-artifact@v4
         with:
