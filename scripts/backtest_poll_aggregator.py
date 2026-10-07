@@ -27,6 +27,10 @@ def main():
     missing=REQUIRED-set(df.columns)
     if missing:
         raise SystemExit("Faltan columnas obligatorias: "+",".join(sorted(missing)))
+    technical = df[["sample_size","field_end"]].replace("", pd.NA).dropna()
+    if technical.empty:
+        result={"schema":"POLL_AGGREGATOR_OOS_V1","status":"BLOCKED","reason":"las encuestas históricas disponibles no contienen tamaños muestrales ni fechas de campo materializadas; no se infieren"}
+        OUT.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8"); print(json.dumps(result,ensure_ascii=False)); return 0
     for c in ("estimate_pct","sample_size","actual"):
         if c in df: df[c]=pd.to_numeric(df[c],errors="raise")
     df["sample_size"]=df["sample_size"].astype(int)
