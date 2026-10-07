@@ -16,6 +16,7 @@ OBSERVABLE_IDENTITIES = (
     "PSOE", "PP", "SUMAR", "VOX", "ERC", "JUNTS", "EH Bildu",
     "EAJ-PNV", "BNG", "CCa", "CUP", "UPN", "PACMA",
 )
+DEFAULT_REPORT_IDENTITIES = REQUESTED_IDENTITIES + ("CCa", "CUP", "UPN", "PACMA")
 IDENTITY_RULES = (
     ("PP", ("PP ",)),
     ("PSOE", ("PSOE ", "PSC ", "PSdeG-PSOE ", "PSE-EE (PSOE)",
@@ -66,13 +67,13 @@ def make_engine(matrix: Mapping):
     engine._validate(scenario)
     return engine, scenario, observed
 
-def supported_parties(matrix: Mapping, requested: Sequence[str] = REQUESTED_IDENTITIES):
+def supported_parties(matrix: Mapping, requested: Sequence[str] = DEFAULT_REPORT_IDENTITIES):
     _, _, _, _, observed = build_scenario(matrix)
     return [p for p in requested if p in observed], [p for p in requested if p not in observed]
 
 def pairwise_report(matrix: Mapping, parties: Sequence[str] | None = None):
     engine, scenario, observed = make_engine(matrix)
-    requested = list(parties or REQUESTED_IDENTITIES)
+    requested = list(parties or DEFAULT_REPORT_IDENTITIES)
     selected = [p for p in requested if p in observed]
     unsupported = [p for p in requested if p not in observed]
     results = []
