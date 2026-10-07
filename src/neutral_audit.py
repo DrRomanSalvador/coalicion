@@ -14,6 +14,7 @@ EXPECTED_SOURCE_TIERS = {"OFFICIAL_PRIMARY", "SECONDARY_REPLICA_VERIFIED"}
 EXPECTED_CANDIDATE_VOTES = 24_487_414
 EXPECTED_CANONICAL_SHA256 = "db07f35c862a1a7c620b3242d2b1ddda041b2b68765427385ae41d958b6d3cb2"
 EXPECTED_CANONICAL_PATH = "artifacts/data/election_2023_canonical.json"
+ROOT = Path(__file__).resolve().parents[1]
 
 def sha256_file(path: Path) -> str:
     h = hashlib.sha256()
@@ -26,7 +27,11 @@ def audit_canonical(path: str | Path) -> dict[str, Any]:
     p = Path(path)
     if not p.is_file():
         return {"status":"BLOCKED","reason":"MISSING_CANONICAL_MATRIX","path":str(p)}
-    if p.as_posix() != EXPECTED_CANONICAL_PATH:
+    try:
+        relative = p.resolve().relative_to(ROOT.resolve()).as_posix()
+    except ValueError:
+        relative = p.as_posix()
+    if relative != EXPECTED_CANONICAL_PATH:
         return {"status":"BLOCKED","reason":"UNAUTHORIZED_MATRIX_PATH","path":str(p)}
     try:
         data=json.loads(p.read_text(encoding="utf-8"))
