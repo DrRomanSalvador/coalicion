@@ -1,24 +1,7 @@
 name: Autonomous repository self-healer
 
 on:
-  workflow_run:
-    workflows:
-      - "Acquire and certify 2023 coalition matrix"
-      - "Activar Colmena"
-      - "Auditoria 2023 y suite SEEC"
-      - "Colmena reproducible"
-      - "Exhaustive fail-closed validation"
-      - "Force workflow dispatcher"
-      - "Global repository orchestrator"
-      - "Historical data — canonical integration"
-      - "Inspect official Interior download transport"
-      - "Neutral coalition tests"
-      - "Autonomous poll monitor"
-      - "Product Layer Tests"
-      - "Product pipeline 2026"
-      - "Reproducibility and Product Verification"
-    types: [completed]
-
+  workflow_dispatch:
 
 permissions:
   actions: write
@@ -30,60 +13,20 @@ concurrency:
 
 jobs:
   heal:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Recuperar ejecución fallida
+      - name: Self-heal an explicitly selected failed run
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-          FAILED_RUN_ID: ${{ github.event.workflow_run.id }}
-          FAILED_SHA: ${{ github.event.workflow_run.head_sha }}
-          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
-          WORKFLOW_ID: ${{ github.event.workflow_run.workflow_id }}
-          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          FAILED_RUN_ID: ${{ inputs.failed_run_id }}
         shell: bash
         run: |
           set -euo pipefail
-
-          max_attempts=3
-          if [ "$RUN_ATTEMPT" -ge "$max_attempts" ]; then
-            echo "AUTO-HEAL: límite de $max_attempts intentos alcanzado; no se crea un bucle."
-            exit 0
+          if [ -z "${FAILED_RUN_ID:-}" ]; then
+            echo "No failed_run_id supplied; refusing to guess or create retry churn."
+            exit 1
           fi
-
-          current_sha="$(gh api "repos/$REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
-          workflow_file="$(gh api "repos/$REPOSITORY/actions/workflows/$WORKFLOW_ID" --jq '.path')"
-
-          active_same_sha="$(gh api --paginate \
-            "repos/$REPOSITORY/actions/workflows/$WORKFLOW_ID/runs?head_sha=$FAILED_SHA&per_page=100" \
-            --jq '[.workflow_runs[] | select(.status == "queued" or .status == "in_progress" or .status == "pending" or .status == "waiting")] | length')"
-          if [ "$active_same_sha" -gt 0 ]; then
-            echo "AUTO-HEAL: ya existe una ejecución activa para el mismo workflow y SHA; no duplicar."
-            exit 0
-          fi
-          jobs_count="$(gh api "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/jobs?per_page=100" --jq '.jobs | length')"
-
-          rerun_full() {
-            echo "AUTO-HEAL: relanzando la ejecución completa $FAILED_RUN_ID."
-            gh api --method POST               -H "Accept: application/vnd.github+json" "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/rerun"
-          }
-
-          if [ "$FAILED_SHA" != "$current_sha" ]; then
-            echo "AUTO-HEAL: ejecución antigua; relanzando la ejecución fallida existente."
-            rerun_full
-          fi
-
-          exit 0
-          fi
-
-          if [ "$jobs_count" -eq 0 ]; then
-            echo "AUTO-HEAL: fallo a nivel de workflow sin jobs; rerun completo."
-            rerun_full
-            exit 0
-          fi
-
-          echo "AUTO-HEAL: reintentando solo jobs fallidos ($jobs_count jobs detectados)."
-          gh run rerun "$FAILED_RUN_ID" --failed --repo "$REPOSITORY"
-          echo "AUTO-HEAL: jobs fallidos reintentados."
+          echo "Explicit self-heal target: $FAILED_RUN_ID"
+          gh api --method POST "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/rerun-failed-jobs"
