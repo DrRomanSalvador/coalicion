@@ -141,7 +141,38 @@ def main() -> int:
                 continue
         results.append(run(f"backtest:{rel}", [sys.executable, rel], timeout=1800))
 
-    # Phase 4: existing deterministic verification scripts.
+    # Phase 4: new executable capability gates.
+    temporal = run("temporal_decay", [sys.executable, "scripts/add_temporal_decay.py",
+                                      "--dates", "2004-03-14", "2023-07-23"])
+    results.append(temporal)
+
+    oos_input = ROOT / "data" / "encuestas_historicas_2004_2023.csv"
+    if oos_input.exists() and oos_input.read_text(encoding="utf-8").strip().splitlines()[1:]:
+        results.append(run("full_oos_pipeline", [sys.executable, "scripts/run_full_oos.py",
+                                                  "--input", str(oos_input)]))
+        results.append(run("prediction_oos_integration",
+                           [sys.executable, "scripts/integrate_oos_in_prediction.py",
+                            "--input", str(oos_input)]))
+    else:
+        results.append(Result("full_oos_pipeline", "PENDING",
+                              detail="data/encuestas_historicas_2004_2023.csv existe pero no contiene observaciones"))
+        results.append(Result("prediction_oos_integration", "PENDING",
+                              detail="requiere observaciones históricas de encuestas"))
+
+    calibration_input = ROOT / "artifacts" / "verification" / "oos_calibration_input.csv"
+    if calibration_input.exists():
+        results.append(run("probabilistic_calibration",
+                           [sys.executable, "scripts/run_probabilistic_calibration.py",
+                            "--input", str(calibration_input)]))
+    else:
+        results.append(Result("probabilistic_calibration", "PENDING",
+                              detail="falta artifacts/verification/oos_calibration_input.csv"))
+
+    results.append(run("full_backtest", [sys.executable, "scripts/run_full_backtest.py",
+                                         "--oos-input", str(oos_input)],
+                       timeout=1800))
+
+    # Phase 5: existing deterministic verification scripts.
     for rel in ("scripts/verify_seec_v4.py", "scripts/master_certification.py"):
         if (ROOT / rel).exists():
             results.append(run(f"verification:{rel}", [sys.executable, rel], timeout=900))
@@ -149,8 +180,8 @@ def main() -> int:
     # Missing capabilities are explicit; no invented replacement is executed.
     missing = []
     expected_capabilities = {
-        "full_oos_pipeline": not any("oos" in p.lower() and p.endswith(".py") for p in inv["scripts"]),
-        "probabilistic_calibration_pipeline": not any("calibr" in p.lower() and p.endswith(".py") for p in inv["scripts"]),
+        "full_oos_pipeline": not (ROOT / "scripts" / "run_full_oos.py").exists(),
+        "probabilistic_calibration_pipeline": not (ROOT / "scripts" / "run_probabilistic_calibration.py").exists(),
         "temporal_decay_script": not (ROOT / "scripts" / "add_temporal_decay.py").exists(),
         "prediction_oos_integration_script": not (ROOT / "scripts" / "integrate_oos_in_prediction.py").exists(),
         "full_backtest_script": not (ROOT / "scripts" / "run_full_backtest.py").exists(),
@@ -170,6 +201,7 @@ def main() -> int:
         "pymc_required": pymc_required,
         "pymc_available": pymc_available,
         "missing_capabilities": missing,
+        "pending_evidence": [r.detail for r in results if r.status == "PENDING"],
         "results": [asdict(r) for r in results],
     }
     ARTIFACT.parent.mkdir(parents=True, exist_ok=True)
