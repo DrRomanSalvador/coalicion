@@ -33,6 +33,26 @@ download_candidate <- function(url, destination) {
     "-o", tmp, url
   ))
   ok <- identical(status, 0L) && file.exists(tmp) && file.info(tmp)$size > 10000
+
+  # Verified HTTPS fallback: some Ubuntu runner/curl combinations cannot
+  # negotiate the Interior endpoint reliably even with the certifi bundle.
+  # Never disable certificate verification.
+  if (!ok) {
+    if (file.exists(tmp)) unlink(tmp)
+    py <- Sys.which("python")
+    if (nzchar(py)) {
+      py_code <- paste(
+        "import sys,ssl,urllib.request,certifi;",
+        "u,p=sys.argv[1],sys.argv[2];",
+        "req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0-coalicion-historical-ingest/2.0','Referer':'https://infoelectoral.interior.gob.es/'});",
+        "ctx=ssl.create_default_context(cafile=certifi.where());",
+        "r=urllib.request.urlopen(req,context=ctx,timeout=900);",
+        "f=open(p,'wb'); f.write(r.read()); f.close(); r.close()"
+      )
+      py_status <- system2(py, c("-c", py_code, url, tmp))
+      ok <- identical(py_status, 0L) && file.exists(tmp) && file.info(tmp)$size > 10000
+    }
+  }
   if (ok) {
     con <- file(tmp, "rb"); on.exit(close(con), add=TRUE)
     magic <- readBin(con, "raw", n=4)
