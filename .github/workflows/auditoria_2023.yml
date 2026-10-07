@@ -106,20 +106,24 @@ with urlopen(url, timeout=180, context=ctx) as r:
     open(".audit_historico/Elecciones-Congreso.xlsx","wb").write(r.read())
 PY
           fi
-      - name: Staging histórico seleccionado
+      - name: Staging histórico oficial (si está disponible)
+        if: steps.official.outcome == 'success'
         run: |
           set -o pipefail
-          if test -s .audit_historico/Elecciones-Congreso.xlsx; then
-            echo "SOURCE_TIER=PRIMARY_INTERIOR_RAW_ONLY" | tee .audit_historico/source_tier.txt
-            python scripts/stage_historico_interior.py 2>&1 | tee .audit_historico/staging.log
-            echo "PRIMARY_SOURCE_PRESENT_SECONDARY_VALIDATION_SKIPPED" | tee .audit_historico/validation_status.txt
-          else
+          echo "SOURCE_TIER=PRIMARY_INTERIOR_RAW_ONLY" | tee .audit_historico/source_tier.txt
+          python scripts/stage_historico_interior.py 2>&1 | tee .audit_historico/staging.log
+          echo "PRIMARY_SOURCE_STAGED_SECONDARY_BACKTEST_FOLLOWS" | tee .audit_historico/validation_status.txt
+      - name: Staging histórico secundario para backtest OOS
+        run: |
+          set -o pipefail
+          if test "${{ steps.official.outcome }}" != "success"; then
             echo "SOURCE_TIER=SECONDARY_REPLICA" | tee .audit_historico/source_tier.txt
-            python scripts/stage_historico_secondary.py 2>&1 | tee .audit_historico/staging.log
-            python scripts/validate_historical_secondary.py
-            set -o pipefail
-            python scripts/backtest_2023_baseline.py 2>&1 | tee .audit_historico/backtest.log
+          else
+            echo "PRIMARY_PLUS_SECONDARY_BACKTEST" | tee .audit_historico/source_tier.txt
           fi
+          python scripts/stage_historico_secondary.py 2>&1 | tee -a .audit_historico/staging.log
+          python scripts/validate_historical_secondary.py
+          python scripts/backtest_2023_baseline.py 2>&1 | tee .audit_historico/backtest.log
       - name: Publicar diagnóstico del staging
         if: always()
         run: |
