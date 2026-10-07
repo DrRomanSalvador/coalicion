@@ -12,8 +12,8 @@ class ProductLayerTests(unittest.TestCase):
     def setUp(self):
         self.seats = {"A": 2, "B": 2}
         self.votes = {
-            "A": {"P1": 50, "P2": 30, "P3": 20},
-            "B": {"P1": 40, "P2": 20, "P3": 40},
+            "A": {"P1": 16, "P2": 15, "P3": 69},
+            "B": {"P1": 16, "P2": 15, "P3": 69},
         }
         self.scenarios = [
             CoalitionScenario("central", self.votes, 1.0, ("test",)),
