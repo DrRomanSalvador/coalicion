@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-07T12:54:30.723957+00:00",
+  "timestamp": "2026-10-07T19:55:21.542293+00:00",
   "version": "v3",
   "sources": [],
   "tasks": [
@@ -7,7 +7,7 @@
       "task": "neutral_canonical_audit",
       "status": "PASS",
       "attempt": 1,
-      "stdout": "{\n  \"status\": \"PASS\",\n  \"reason\": \"STRUCTURAL_VALIDATION\",\n  \"path\": \"/home/runner/work/coalicion/coalicion/artifacts/data/election_2023_canonical.json\",\n  \"sha256\": \"db2c720fda68ee0be898c874c5aef016dcd6bb02c3593ee6c7ac96bbbf7983bf\",\n  \"schema\": \"ELECTION_2023_CONSTITUENCY_MATRIX_V1\",\n  \"source_tier\": \"SECONDARY_REPLICA_VERIFIED\",\n  \"election\": 2023,\n  \"province_count\": 52,\n  \"seat_total\": 350,\n  \"candidate_votes_total\": 24487414,\n  \"valid_vote_keys\": 52\n}\n",
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"reason\": \"STRUCTURAL_VALIDATION\",\n  \"path\": \"/home/runner/work/coalicion/coalicion/artifacts/data/election_2023_canonical.json\",\n  \"sha256\": \"db2c720fda68ee0be898c874c5aef016dcd6bb02c3593ee6c7ac96bbbf7983bf\",\n  \"recorded_sha256\": \"db2c720fda68ee0be898c874c5aef016dcd6bb02c3593ee6c7ac96bbbf7983bf\",\n  \"schema\": \"ELECTION_2023_CONSTITUENCY_MATRIX_V1\",\n  \"source_tier\": \"SECONDARY_REPLICA_VERIFIED\",\n  \"election\": 2023,\n  \"province_count\": 52,\n  \"seat_total\": 350,\n  \"candidate_votes_total\": 24487414,\n  \"valid_vote_keys\": 52\n}\n",
       "stderr": ""
     }
   ],
