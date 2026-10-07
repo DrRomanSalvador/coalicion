@@ -14,6 +14,7 @@ REGISTRY = Path("config/electoral_sources.json")
 MANIFEST = Path("data/manifests/HISTORICAL_DATA_MATERIALIZATION.json")
 LIMITATIONS = Path("data/manifests/HISTORICAL_DATA_LIMITATIONS.json")
 ACQUISITION = Path("data/manifests/INTERIOR_ACQUISITION.json")
+INTERIOR_WORKBOOK = Path("data/raw/Elecciones-Congreso.xlsx")
 
 EXPECTED_DATES = {
     "2004": "2004-03-14", "2008": "2008-03-09", "2011": "2011-11-20",
@@ -74,6 +75,10 @@ def main() -> None:
             "Interior provenance must retain the explicit official XLSX URL")
     require(acquisition.get("sha256") and int(acquisition.get("file_bytes", 0)) > 10000,
             "incomplete Interior provenance")
+    require(INTERIOR_WORKBOOK.is_file() and INTERIOR_WORKBOOK.stat().st_size == int(acquisition["file_bytes"]),
+            "downloaded Interior workbook is missing or its byte size differs from provenance")
+    require(sha256(INTERIOR_WORKBOOK) == acquisition["sha256"],
+            "downloaded Interior workbook SHA-256 differs from provenance")
 
     erows, prows = rows(RESULTS), rows(POLLS)
     require(erows and prows, "historical datasets contain no rows")
