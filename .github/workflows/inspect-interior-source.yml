@@ -1,0 +1,41 @@
+name: Inspect official Interior Congress dataset
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/inspect-interior-source.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download official Interior workbook
+        run: |
+          python - <<'PY'
+          import requests
+          from pathlib import Path
+          u="https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
+          r=requests.get(u,timeout=60)
+          r.raise_for_status()
+          Path("/tmp/Elecciones-Congreso.xlsx").write_bytes(r.content)
+          print("downloaded_bytes",len(r.content))
+          PY
+      - name: Inspect workbook
+        run: |
+          python - <<'PY'
+          import openpyxl, json
+          p="/tmp/Elecciones-Congreso.xlsx"
+          wb=openpyxl.load_workbook(p,read_only=True,data_only=True)
+          print("SHEETS",json.dumps(wb.sheetnames,ensure_ascii=False))
+          for ws in wb.worksheets:
+              print("\nSHEET",ws.title,"ROWS",ws.max_row,"COLS",ws.max_column)
+              for row in ws.iter_rows(min_row=1,max_row=min(8,ws.max_row),values_only=True):
+                  print(json.dumps(list(row),ensure_ascii=False,default=str))
+          PY
