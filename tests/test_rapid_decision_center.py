@@ -13,7 +13,7 @@ def test_decision_snapshot_is_complete_and_traced():
     out = decision_snapshot(votes, seats, blank)
     assert out["status"] == "OK"
     assert out["territory"]["constituencies"] == 52
-    assert out["territory"]["seats"] == 52
+    assert out["territory"]["seats"] == 350
     assert out["projection"]["national"]["seats"]
     assert out["marginality"]["most_marginal"]
     assert len(out["traceability"]["input_hash"]) == 64
