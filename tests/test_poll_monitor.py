@@ -211,6 +211,6 @@ def test_workflow_does_not_self_trigger_and_retries_non_fast_forward():
     assert "paths-ignore:" in workflow
     assert '"artifacts/**"' in workflow
     assert "git fetch origin main" in workflow
-    assert "git rebase --autostash origin/main" in workflow
-    assert "git merge-base --is-ancestor origin/main HEAD" in workflow
+    assert "git reset --hard origin/main" in workflow
+    assert "python -m src.poll_monitor" in workflow
     assert "for attempt in 1 2 3 4 5" in workflow
