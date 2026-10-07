@@ -16,7 +16,7 @@ def test_v_AB_equals_v_A_plus_v_B():
     assert merge_votes(a,b)=={"A":60,"B":40}
 
 def test_coalition_seats_are_recomputed_not_added():
-    votes={"X":{"A":60,"B":25,"C":15}}
+    votes={"X":{"A":10,"B":15,"C":75}}
     separate=dhondt(votes["X"],3,100).seats
     merged=merge_coalition_votes(votes,("A","B"))["X"]
     joined=dhondt(merged,3,100).seats["A+B"]
