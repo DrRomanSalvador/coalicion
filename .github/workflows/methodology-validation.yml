@@ -18,3 +18,5 @@ jobs:
       - run: python -m pip install --upgrade pip
       - run: python -m pip install numpy scipy scikit-learn pytest
       - run: python -m pytest -q tests/test_methodology_extensions.py
+
+# methodology extension gate kept active on every main push
