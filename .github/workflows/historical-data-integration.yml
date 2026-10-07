@@ -39,32 +39,6 @@ jobs:
           python -m pip install --disable-pip-version-check --no-input certifi requests beautifulsoup4 lxml pytest
           python -c 'import certifi; print(certifi.where())'
 
-      - name: Install R runtime and system dependencies
-        timeout-minutes: 15
-        shell: bash
-        run: |
-          set -euxo pipefail
-          timeout 120 sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq || true
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends r-base r-base-dev libcurl4-openssl-dev pkg-config
-
-      - name: Prepare R user library
-        run: |
-          set -euo pipefail
-          mkdir -p "$R_LIBS_USER"
-          chmod u+rwx "$R_LIBS_USER"
-
-      - name: Install R dependencies
-        timeout-minutes: 20
-        shell: bash
-        run: |
-          set -euxo pipefail
-          sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends r-cran-readxl r-cran-dplyr r-cran-readr r-cran-tibble r-cran-haven r-cran-purrr r-cran-jsonlite libcurl4-openssl-dev pkg-config
-          mkdir -p "$R_LIBS_USER"
-          chmod 700 "$R_LIBS_USER"
-          Rscript -e 'pkgs <- c("readxl","dplyr","readr","tibble","haven","purrr","jsonlite"); ok <- vapply(pkgs, requireNamespace, logical(1), quietly=TRUE); print(data.frame(package=names(ok),available=unname(ok))); stopifnot(all(ok))'
-          Rscript -e 'if (!requireNamespace("opencis", quietly=TRUE)) { options(repos=c(CRAN="https://packagemanager.posit.co/cran/latest"), timeout=300); install.packages("opencis", lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), Ncpus=2) }; stopifnot(requireNamespace("opencis", quietly=TRUE))'
-
       - name: Validate or acquire official Interior results
         timeout-minutes: 45
         shell: bash
@@ -103,6 +77,32 @@ jobs:
           assert m["official_results"]["seats_per_election"] == 350
           assert Path("data/resultados_oficiales_2004_2023.csv").stat().st_size > 0
           PY
+
+      - name: Install R runtime and system dependencies
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          set -euxo pipefail
+          timeout 120 sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq || true
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends r-base r-base-dev libcurl4-openssl-dev pkg-config
+
+      - name: Prepare R user library
+        run: |
+          set -euo pipefail
+          mkdir -p "$R_LIBS_USER"
+          chmod u+rwx "$R_LIBS_USER"
+
+      - name: Install R dependencies
+        timeout-minutes: 20
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends r-cran-readxl r-cran-dplyr r-cran-readr r-cran-tibble r-cran-haven r-cran-purrr r-cran-jsonlite libcurl4-openssl-dev pkg-config
+          mkdir -p "$R_LIBS_USER"
+          chmod 700 "$R_LIBS_USER"
+          Rscript -e 'pkgs <- c("readxl","dplyr","readr","tibble","haven","purrr","jsonlite"); ok <- vapply(pkgs, requireNamespace, logical(1), quietly=TRUE); print(data.frame(package=names(ok),available=unname(ok))); stopifnot(all(ok))'
+          Rscript -e 'if (!requireNamespace("opencis", quietly=TRUE)) { options(repos=c(CRAN="https://packagemanager.posit.co/cran/latest"), timeout=300); install.packages("opencis", lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), Ncpus=2) }; stopifnot(requireNamespace("opencis", quietly=TRUE))'
 
       - name: Materialize canonical historical manifest
         shell: bash
