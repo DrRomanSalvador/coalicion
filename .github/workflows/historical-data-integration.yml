@@ -35,7 +35,7 @@ jobs:
   integrate:
     runs-on: ubuntu-latest
     env:
-      R_LIBS_USER: ${{ runner.temp }}/r-lib
+      R_LIBS_USER: /tmp/coalicion-r-lib
     timeout-minutes: 150
 
     steps:
