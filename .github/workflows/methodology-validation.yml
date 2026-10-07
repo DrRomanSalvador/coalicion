@@ -1,0 +1,20 @@
+name: Methodology extensions validation
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * *"
+permissions:
+  contents: read
+jobs:
+  extensions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install numpy scipy scikit-learn pytest
+      - run: python -m pytest -q tests/test_methodology_extensions.py
