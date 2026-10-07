@@ -39,3 +39,35 @@ if __name__=="__main__":
     path=sys.argv[1] if len(sys.argv)>1 else "artifacts/survey_watch_report.json"
     with open(path,encoding="utf-8") as fh: report=json.load(fh)
     print(json.dumps(send(format_report(report)),ensure_ascii=False))
+
+
+def format_electoral_radar(radar: dict) -> str:
+    """Formato compacto y neutral para alertas del radar electoral."""
+    lines = [
+        "📡 Radar electoral — " + str(radar.get("status", "UNKNOWN")),
+        "Fecha de corte: " + str(radar.get("as_of", "")),
+        "Elección: " + str(radar.get("election_date", "")),
+        "Alertas: " + str(radar.get("alert_count", 0)),
+    ]
+    for event in radar.get("alerts", []):
+        severity = str(event.get("severity", "INFO"))
+        facts = event.get("facts") or {}
+        lines.append(f"\n[{severity}] {event.get('title', event.get('code', ''))}")
+        if facts.get("constituency"):
+            lines.append("Circunscripción: " + str(facts["constituency"]))
+        if facts.get("party"):
+            lines.append("Candidatura: " + str(facts["party"]))
+        if "seat_change" in facts:
+            lines.append("Cambio de escaños: " + f"{facts['seat_change']:+g}")
+        if "vote_share_change" in facts:
+            lines.append("Cambio de voto: " + f"{100 * facts['vote_share_change']:+.2f} pp")
+        if "days_remaining" in facts:
+            lines.append("Días restantes: " + str(facts["days_remaining"]))
+        if "coalition_delta_change" in facts:
+            lines.append("Cambio del delta del contrafactual: " + f"{facts['coalition_delta_change']:+g}")
+        if "votes_to_change_change" in facts:
+            lines.append("Cambio del margen de desplazamiento: " + f"{facts['votes_to_change_change']:+d} votos")
+        if facts.get("source_id"):
+            lines.append("Fuente: " + str(facts["source_id"]))
+    lines.append("\nEvidencia: " + ", ".join(map(str, radar.get("evidence_refs", []))) if radar.get("evidence_refs") else "\nEvidencia: no especificada")
+    return "\n".join(lines)
