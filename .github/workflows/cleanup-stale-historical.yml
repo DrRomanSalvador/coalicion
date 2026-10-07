@@ -1,10 +1,7 @@
 name: Cleanup stale historical runners
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/cleanup-stale-historical.yml"
+  workflow_dispatch:
 
 permissions:
   actions: write
