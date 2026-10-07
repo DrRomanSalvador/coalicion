@@ -2,7 +2,18 @@ name: Autonomous repository self-healer
 
 on:
   workflow_run:
-    workflows: ["*"]
+    workflows:
+      - "Historical data — canonical integration"
+      - "Colmena reproducible"
+      - "Product pipeline 2026"
+      - "Autonomous poll monitor"
+      - "Reproducibility and Product Verification"
+      - ".github/workflows/auditoria_2023.yml"
+      - "Historical Spain data materialization"
+      - ".github/workflows/force_workflow.yml"
+      - "Autonomous workflow self-healer"
+      - "Product Layer Tests"
+      - "Exhaustive fail-closed validation"
     types: [completed]
 
 permissions:
