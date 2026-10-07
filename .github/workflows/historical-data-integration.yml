@@ -48,12 +48,14 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends r-base r-base-dev libcurl4-openssl-dev pkg-config
 
       - name: Install R dependencies
-        timeout-minutes: 15
+        timeout-minutes: 20
         shell: bash
         run: |
           set -euxo pipefail
           sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends r-cran-readxl r-cran-dplyr r-cran-readr r-cran-tibble r-cran-haven r-cran-purrr r-cran-jsonlite libcurl4-openssl-dev pkg-config
+          mkdir -p "$R_LIBS_USER"
+          chmod 700 "$R_LIBS_USER"
           Rscript -e 'pkgs <- c("readxl","dplyr","readr","tibble","haven","purrr","jsonlite"); ok <- vapply(pkgs, requireNamespace, logical(1), quietly=TRUE); print(data.frame(package=names(ok),available=unname(ok))); stopifnot(all(ok))'
           Rscript -e 'if (!requireNamespace("opencis", quietly=TRUE)) { options(repos=c(CRAN="https://packagemanager.posit.co/cran/latest"), timeout=300); install.packages("opencis", lib=Sys.getenv("R_LIBS_USER"), dependencies=c("Depends","Imports","LinkingTo"), Ncpus=2) }; stopifnot(requireNamespace("opencis", quietly=TRUE))'
 
