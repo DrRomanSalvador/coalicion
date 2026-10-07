@@ -1,6 +1,9 @@
 name: Force workflow dispatcher
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       workflow:
@@ -27,6 +30,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  bootstrap:
+    if: github.event_name == 'push' && github.event.head_commit.message == 'ci: bootstrap product_pipeline dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch product_pipeline.yml
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            "repos/${REPOSITORY}/actions/workflows/product_pipeline.yml/dispatches" \
+            -f ref=main \
+            -f inputs='{}'
+          echo "DISPATCHED:product_pipeline.yml@main"
+
   dispatch:
     runs-on: ubuntu-latest
     timeout-minutes: 5
