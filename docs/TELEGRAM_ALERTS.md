@@ -1,28 +1,59 @@
 # Alertas Telegram de la Colmena
 
-La vigilancia diaria ya genera un informe neutral y un adaptador de notificación. Telegram usa el Bot API HTTP y el método sendMessage.
+## 1. Crear el bot
 
-## Configuración única
+En Telegram abre **@BotFather** y ejecuta `/newbot`. El token que devuelve es una credencial: no lo publiques ni lo commits.
 
-1. En Telegram abre @BotFather, ejecuta /newbot y guarda el token como una contraseña.
-2. Abre una conversación con el bot y pulsa Start.
-3. Obtén el chat_id de tu conversación usando el mecanismo oficial de actualizaciones del Bot API.
-4. En GitHub, abre Settings → Secrets and variables → Actions y crea:
-   - NOTIFY_WEBHOOK_URL: endpoint completo de sendMessage, con el token del bot incorporado, guardado como secreto.
-   - TELEGRAM_CHAT_ID: identificador del chat.
-5. El workflow debe exponer esos dos secretos al paso scripts/notify_webhook.py.
+Después abre tu bot y pulsa **Start**.
 
-El token nunca debe entrar en el repositorio. Telegram indica expresamente que el token identifica al bot y debe tratarse como una contraseña.
+## 2. Obtener el chat ID
 
-## Qué se notifica
+Puedes obtenerlo mediante el Bot API, por ejemplo consultando las actualizaciones del bot después de enviarle `/start`. El valor se guarda únicamente como secreto de GitHub.
 
-- encuesta nueva;
-- encuesta modificada;
-- fuente inaccesible o parseo bloqueado;
-- referencia al informe generado.
+## 3. Crear los Secrets
 
-Las cifras se normalizan y validan antes de entrar en el informe. Los escenarios de coalición son descriptivos; no hay recomendación, ranking ni asesoramiento de campaña.
+En `DrRomanSalvador/coalicion → Settings → Secrets and variables → Actions` crea:
 
-## Límites deliberados
+- `TELEGRAM_BOT_TOKEN`: token entregado por @BotFather.
+- `TELEGRAM_CHAT_ID`: identificador del chat que recibirá las alertas.
 
-Un feed RSS puede demostrar que apareció un nuevo sondeo, pero no necesariamente contiene sus porcentajes. En ese caso el informe queda marcado como METADATA_ONLY y no inventa cifras. Los escaños solo se calculan cuando existe entrada territorial válida; no se proyectan porcentajes nacionales a provincias mediante supuestos de transferencia de voto.
+No deben aparecer en ningún archivo del repositorio.
+
+## 4. Qué ejecuta GitHub Actions
+
+El workflow `.github/workflows/daily_survey_watch.yml`:
+
+- ejecuta la vigilancia dos veces en UTC para cubrir el cambio horario europeo;
+- el programa solo continúa cuando son las 08:00 en `Europe/Madrid`;
+- descarga las fuentes explícitas;
+- detecta fuentes nuevas/cambiadas;
+- valida y normaliza encuestas;
+- genera `artifacts/neutral_poll_report.json`;
+- envía Telegram ante `ALERT` o `BLOCKED`;
+- persiste evidencia y estado.
+
+La API utilizada es la oficial `sendMessage`. El token se proporciona exclusivamente mediante GitHub Secrets.
+
+## 5. Prueba segura
+
+Ejecuta el workflow manualmente con **Run workflow**. No se introduce una encuesta ficticia en los datos productivos. Para probar Telegram, la prueba debe usar el propio notifier con una carga sintética y no contaminar el histórico electoral.
+
+## 6. Neutralidad
+
+Las alertas son descriptivas. No producen:
+
+- recomendación de coalición;
+- ranking de opciones;
+- asesoramiento de campaña;
+- priorización territorial;
+- supuestos de transferencia de voto no observados.
+
+Los escenarios de SUMAR + Podemos, SUMAR + PSOE, SUMAR + Podemos + PSOE y candidaturas separadas se mantienen como escenarios matemáticos descriptivos.
+
+## 7. Fallos
+
+Si falta un secreto, Telegram rechaza el mensaje, una fuente no está disponible o una encuesta no puede validarse, el sistema falla cerrado y conserva la evidencia del incidente.
+
+## 8. Horario
+
+La referencia es **08:00 Europe/Madrid**. No se fija una única hora UTC durante todo el año porque Madrid alterna UTC+1 y UTC+2.
