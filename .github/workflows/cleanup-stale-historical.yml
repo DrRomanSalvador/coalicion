@@ -29,6 +29,8 @@ jobs:
             [ -n "${run_id:-}" ] || continue
             if [ "$run_id" != "$latest" ]; then
               echo "Cancelling stale historical run #$run_number ($run_id)"
-              gh api --method POST "repos/$REPOSITORY/actions/runs/$run_id/cancel" >/dev/null || true
+              gh api --method POST "repos/$REPOSITORY/actions/runs/$run_id/force-cancel" >/dev/null || gh api --method POST "repos/$REPOSITORY/actions/runs/$run_id/cancel" >/dev/null || true
             fi
           done <<< "$runs"
+          echo "Dispatching canonical historical integration on current main"
+          gh api --method POST "repos/$REPOSITORY/actions/workflows/377488491/dispatches" -f ref=main >/dev/null
