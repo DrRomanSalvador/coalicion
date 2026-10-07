@@ -50,20 +50,22 @@ jobs:
           python-version: "3.12"
 
       - name: Acquire official Interior workbook
+        timeout-minutes: 10
         env:
           INTERIOR_XLSX_URL: https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx
         run: |
-          set -euo pipefail
+          set -euxo pipefail
           mkdir -p data/raw
-          /usr/bin/curl --fail --location --retry 3 --retry-delay 3 --connect-timeout 30 --max-time 300 --cacert /etc/ssl/certs/ca-certificates.crt --user-agent 'coalicion-historical-ingest/1.0' "$INTERIOR_XLSX_URL" --output data/raw/Elecciones-Congreso.xlsx
-          test -s data/raw/Elecciones-Congreso.xlsx
-          test "$(stat -c%s data/raw/Elecciones-Congreso.xlsx)" -gt 1000
+          curl --fail --location --retry 3 --retry-all-errors --retry-delay 2 \
+            --connect-timeout 30 --max-time 120 \
+            -A "Mozilla/5.0-coalicion-historical-ingest/1.0" \
+            -o data/raw/Elecciones-Congreso.xlsx "$INTERIOR_XLSX_URL"
           python - <<'PY'
           from pathlib import Path
           p=Path("data/raw/Elecciones-Congreso.xlsx")
-          if p.read_bytes()[:2] != b"PK":
-              raise SystemExit("FAIL-CLOSED: official Interior response is not XLSX")
-          print(f"Official Interior workbook acquired: {p.stat().st_size} bytes")
+          if p.stat().st_size <= 1000 or p.read_bytes()[:2] != b"PK":
+              raise SystemExit("FAIL-CLOSED: official response is not a valid XLSX payload")
+          print(f"Downloaded official Interior workbook: {p.stat().st_size} bytes")
           PY
 
       - name: Setup R
