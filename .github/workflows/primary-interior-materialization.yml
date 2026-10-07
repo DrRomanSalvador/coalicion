@@ -19,7 +19,7 @@ jobs:
         with: {fetch-depth: 0}
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
-      - run: python -m pip install --disable-pip-version-check --no-input openpyxl
+      - run: python -m pip install --disable-pip-version-check --no-input openpyxl certifi
       - run: python scripts/materialize_primary_interior.py
       - run: |
           set -euo pipefail
