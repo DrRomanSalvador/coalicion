@@ -29,8 +29,8 @@
     {
       "id": "datoelectoral_encuestas",
       "url": "https://www.datoelectoral.es/encuestas",
-      "format": "raw",
-      "discovery_only": true
+      "format": "datoelectoral_html",
+      "discovery_only": false
     }
   ],
   "scenario_sets": [
