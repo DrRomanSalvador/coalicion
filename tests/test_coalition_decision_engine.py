@@ -1,4 +1,4 @@
-from src.coalition_decision_engine import CoalitionDecisionEngine, CoalitionScenario
+from src.coalition import CoalitionDecisionEngine, CoalitionScenario
 
 def scenario(votes, name="central", weight=1):
     return CoalitionScenario(name, votes, weight)
