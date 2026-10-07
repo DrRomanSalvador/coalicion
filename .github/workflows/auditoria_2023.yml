@@ -21,8 +21,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: auditoria-2023-${{ github.ref }}
-  cancel-in-progress: true
+  group: auditoria-2023-main
+  cancel-in-progress: false
 
 jobs:
   audit:
