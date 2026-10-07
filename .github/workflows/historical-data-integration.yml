@@ -31,7 +31,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: historical-data-canonical-main-v7
+  group: historical-data-canonical-main-v8
   cancel-in-progress: false
 
 jobs:
