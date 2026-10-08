@@ -292,3 +292,18 @@ Distinguir siempre: **IMPLEMENTADO / TESTEADO / EJECUTADO / VALIDADO / OOS / CAL
 Solo STOP cuando **árbol estable + cero pendientes legibles + ningún blocker abierto que impida la afirmación realizada**.
 
 > **Principio final:** nunca decir “terminado” porque el modelo lo recuerde; decir “terminado” solo porque la evidencia del repositorio lo demuestre.
+
+## Telegram bot (fail-closed)
+
+The repository includes `src/telegram_bot.py`, a lightweight long-poll command bot using the existing `requests` dependency.
+
+Run with:
+
+    export TELEGRAM_BOT_TOKEN='...'
+    python -m src.telegram_bot
+
+Commands: `/prediccion`, `/encuestas`, `/estado`, `/ayuda`.
+
+`/prediccion` shows seats only when `artifacts/decision_snapshot.json` exists and contains an explicit materialized territorial projection; otherwise it reports BLOCKED. `/encuestas` reads validated observations persisted by the poll monitor. Replies are sent to the same Telegram chat ID that issued the command.
+
+The bot does not contain hard-coded polling, seat projections, probabilities, MAE, coverage or political recommendations. Predictive methodology extensions under `src/models/` remain optional candidates and are not promoted to production without the repository's OOS, calibration and leakage gates.
