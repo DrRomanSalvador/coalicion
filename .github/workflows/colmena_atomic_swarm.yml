@@ -1,0 +1,85 @@
+name: COALICION — Queen Atomic Swarm
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "docs/COLMENA_MISSION_CONTROL.json"
+      - "scripts/colmena_queen.py"
+      - "scripts/colmena_worker.py"
+      - ".github/workflows/colmena_atomic_swarm.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: colmena-atomic-swarm
+  cancel-in-progress: false
+
+jobs:
+  queen:
+    name: "👑 Queen — plan + approvals"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      plan_sha: ${{ steps.plan.outputs.plan_sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - id: plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/colmena
+          python scripts/colmena_queen.py --ref "$GITHUB_SHA" --output artifacts/colmena/queen_approval.json
+          python scripts/queen_dispatcher.py --validate
+          matrix="$(python - <<'PY'
+          import json
+          d=json.load(open("artifacts/colmena/queen_approval.json",encoding="utf-8"))
+          print(json.dumps({"include":d["missions"]},separators=(",",":")))
+          PY
+          )"
+          plan_sha="$(python - <<'PY'
+          import json
+          print(json.load(open("artifacts/colmena/queen_approval.json",encoding="utf-8"))["plan_sha256"])
+          PY
+          )"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "plan_sha=$plan_sha" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: colmena-queen-approval
+          path: artifacts/colmena/queen_approval.json
+
+  workers:
+    name: "🐝 Worker ${{ matrix.id }}"
+    needs: queen
+    strategy:
+      fail-fast: false
+      max-parallel: 179
+      matrix: ${{ fromJSON(needs.queen.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Recreate Queen approval deterministically
+        run: |
+          mkdir -p artifacts/colmena
+          python scripts/colmena_queen.py             --ref "$GITHUB_SHA"             --output artifacts/colmena/queen_approval.json
+      - name: Execute Queen-gated worker
+        run: |
+          python scripts/colmena_worker.py             --mission-id "${{ matrix.id }}"             --approval artifacts/colmena/queen_approval.json             --ref "$GITHUB_SHA"             --out "artifacts/colmena/worker_${{ matrix.index }}.json"
+      - name: Upload worker evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: colmena-worker-${{ matrix.id }}
+          path: artifacts/colmena/worker_*.json
+          if-no-files-found: error
