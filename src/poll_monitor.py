@@ -448,15 +448,40 @@ class PollMonitor:
             try:
                 monitor = TwitterMonitor(source, self.session) if source.get("format") == "twitter" else SourceMonitor(source, self.session)
                 body = monitor.fetch()
-                digest = self._save_raw(source["id"], body)
+                digest = hashlib.sha256(body).hexdigest()
                 previous_source_hash = self.state.setdefault("source_hashes", {}).get(source["id"])
-                if previous_source_hash and previous_source_hash != digest:
-                    self.state.setdefault("source_changes", []).append({
-                        "source_id": source["id"],
-                        "previous_hash": previous_source_hash,
-                        "current_hash": digest,
-                        "detected_at": datetime.now(timezone.utc).isoformat(),
-                    })
+                p, d = monitor.parse(body)
+                previous_poll_hashes = self.state.setdefault("poll_hashes", {})
+                previous_versions = self.state.setdefault("poll_versions", {})
+                changed_polls = []
+                for poll in p:
+                    old_hash = previous_poll_hashes.get(poll.poll_id)
+                    versions = previous_versions.get(poll.poll_id, [])
+                    if old_hash is None or old_hash != poll_hash(poll) or not versions:
+                        changed_polls.append(poll.poll_id)
+                previous_discoveries = self.state.setdefault("discovery_hashes", {})
+                changed_discoveries = []
+                for item in d:
+                    key = f"{item['source_id']}::{item['discovery_id']}"
+                    fingerprint = hashlib.sha256(json.dumps(
+                        {k: v for k, v in item.items() if k != "source_hash"},
+                        ensure_ascii=False, sort_keys=True, separators=(",", ":")
+                    ).encode()).hexdigest()
+                    if previous_discoveries.get(key) != fingerprint:
+                        changed_discoveries.append(key)
+                # Source pages often contain changing navigation/timestamps.
+                # Archive bytes only when they carry a new/corrected poll or a
+                # new discovery; otherwise avoid one large raw file per poll cycle.
+                raw_archived = bool(changed_polls or changed_discoveries)
+                if raw_archived:
+                    self._save_raw(source["id"], body)
+                    if previous_source_hash and previous_source_hash != digest:
+                        self.state.setdefault("source_changes", []).append({
+                            "source_id": source["id"],
+                            "previous_hash": previous_source_hash,
+                            "current_hash": digest,
+                            "detected_at": datetime.now(timezone.utc).isoformat(),
+                        })
                 self.state["source_hashes"][source["id"]] = digest
                 previous_streak = int(self.state.setdefault("failure_streaks", {}).get(source["id"], 0))
                 if previous_streak >= 3 and self.state.setdefault("failure_reported", {}).get(source["id"]):
@@ -472,13 +497,30 @@ class PollMonitor:
                     "coverage_role": source.get("coverage_role", "primary"),
                     "source_tier": source.get("source_tier", "UNCLASSIFIED"),
                     "source_url": source.get("url"),
+                    "raw_archived": raw_archived,
                     "checked_at": datetime.now(timezone.utc).isoformat(),
                 }
-                p, d = monitor.parse(body)
                 captured_at = datetime.now(timezone.utc).isoformat()
                 for poll in p:
-                    object.__setattr__(poll, "captured_at", captured_at)
-                    object.__setattr__(poll, "source_content_hash", digest)
+                    old_hash = previous_poll_hashes.get(poll.poll_id)
+                    versions = previous_versions.get(poll.poll_id, [])
+                    poll_changed = poll.poll_id in changed_polls
+                    if poll_changed:
+                        object.__setattr__(poll, "captured_at", captured_at)
+                        object.__setattr__(poll, "source_content_hash", digest)
+                    elif versions:
+                        previous_record = versions[-1].get("poll", {})
+                        object.__setattr__(poll, "captured_at", previous_record.get("captured_at"))
+                        object.__setattr__(poll, "source_content_hash", previous_record.get("source_content_hash"))
+                    else:
+                        # Legacy state without version provenance: archive this
+                        # source now rather than emit a dangling content hash.
+                        if not raw_archived:
+                            self._save_raw(source["id"], body)
+                            raw_archived = True
+                            self.state["source_status"][source["id"]]["raw_archived"] = True
+                        object.__setattr__(poll, "captured_at", captured_at)
+                        object.__setattr__(poll, "source_content_hash", digest)
                     production_ok, _ = validate_poll_for_production(poll)
                     if production_ok:
                         object.__setattr__(poll, "validation", "PRIMARY_VERIFIED")
