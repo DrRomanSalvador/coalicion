@@ -43,15 +43,25 @@ jobs:
           path: |
             node_modules
             .cache
-          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-3.8.1-smollm2
+          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-4.3.0-smollm2
       - name: Prepare local AI runtime
         if: steps.local-ai-cache.outputs.cache-hit != 'true'
         run: |
           npm init -y >/dev/null 2>&1
-          npm install --no-audit --no-fund @huggingface/transformers@3.8.1
+          npm install --no-audit --no-fund @huggingface/transformers@4.3.0
       - name: Warm local AI model
         run: |
           node scripts/colmena_local_ai.mjs --warm
+      - name: Real local AI smoke test
+        run: |
+          printf '%s\n' '{"agent_id":"agent-SMOKE","mission_id":"SMOKE","mission":"runtime smoke test","scope":"Generate one independent response."}' |
+            node scripts/colmena_local_ai.mjs > smoke.json
+          python - <<'PY'
+          import json
+          d=json.loads(open("smoke.json",encoding="utf-8").read().splitlines()[-1])
+          assert d.get("content"), "LOCAL_AI_SMOKE_FAILED: empty generated content"
+          print(json.dumps({"smoke":"PASS","model":d.get("model"),"response_sha256":__import__("hashlib").sha256(d["content"].encode()).hexdigest()}))
+          PY
       - name: Save local AI cache
         if: steps.local-ai-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
@@ -59,7 +69,7 @@ jobs:
           path: |
             node_modules
             .cache
-          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-3.8.1-smollm2
+          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-4.3.0-smollm2
       - id: gate
         run: |
           set -euo pipefail
@@ -103,7 +113,7 @@ jobs:
           path: |
             node_modules
             .cache
-          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-3.8.1-smollm2
+          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-4.3.0-smollm2
           fail-on-cache-miss: true
       - uses: actions/download-artifact@v4
         with:
