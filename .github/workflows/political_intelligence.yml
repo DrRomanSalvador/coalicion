@@ -1,0 +1,27 @@
+name: COALICION political intelligence integration
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "config/political_intelligence_sources.json"
+      - "src/political_intelligence.py"
+      - "tests/test_political_intelligence.py"
+      - "docs/POLITICAL_INTELLIGENCE.md"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate source registry and integration
+        run: |
+          python -m py_compile src/political_intelligence.py
+          python -c "from src.political_intelligence import validate_registry; assert validate_registry()['status'] == 'PASS'"
+          python -m pytest -q tests/test_political_intelligence.py
