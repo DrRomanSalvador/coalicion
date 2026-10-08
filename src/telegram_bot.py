@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 from pathlib import Path
 from typing import Any
@@ -127,37 +128,44 @@ def _delta(current: dict[str, Any], previous: dict[str, Any], party: str) -> str
 
 
 def _public_text(text: str) -> str:
-    """Final safety barrier: never leak internal failure vocabulary to Telegram users."""
+    """Sanitize internal vocabulary without hiding substantive factual content."""
     value = str(text or "").strip()
     if not value:
-        return "🟦 COALICIÓN\n\nNo hay una actualización publicable todavía. Consulta /hoy para el estado verificable disponible."
-    replacements = {
-        "BLOCKED": "NO PUBLICABLE",
-        "BLOQUEADO": "NO PUBLICABLE",
-        "BLOQUEADA": "NO PUBLICABLE",
-        "BLOQUEO": "COMPROBACIÓN PENDIENTE",
-        "ERROR": "INCIDENCIA TÉCNICA",
-        "Exception": "INCIDENCIA TÉCNICA",
-    }
-    for source, target in replacements.items():
-        value = value.replace(source, target)
-    return value[:MAX_MESSAGE]
+        return "🟦 COALICIÓN\n\nEstado verificable disponible en /hoy."
+    value = re.sub(r"(?i)blocked(?:[_-][a-z0-9_-]+)*", "COMPROBACIÓN PENDIENTE", value)
+    value = re.sub(r"(?i)\bbloquead[oa]?\b|\bbloqueo\b", "COMPROBACIÓN PENDIENTE", value)
+    value = re.sub(r"(?i)\berror\b|\bexception\b", "COMPROBACIÓN PENDIENTE", value)
+    value = re.sub(r"(?i)not[_-]strictly[_-]certified", "VERIFICACIÓN OOS PENDIENTE", value)
+    return value
 
 
 def _send(chat_id: int, text: str, markup: dict[str, Any] | None = None) -> None:
-    payload: dict[str, Any] = {"chat_id": chat_id, "text": _public_text(text)}
-    if markup:
-        payload["reply_markup"] = markup
-    _api("sendMessage", json=payload)
-
-
-def send_message(chat_id: int, text: str) -> None:
-    _send(chat_id, text)
-
-
-def _answer_callback(callback_id: str) -> None:
-    _api("answerCallbackQuery", json={"callback_query_id": callback_id})
-
+    """Send complete public content in Telegram-safe chunks."""
+    value = _public_text(text)
+    chunks: list[str] = []
+    current = ""
+    for line in value.splitlines(keepends=True):
+        if len(current) + len(line) <= MAX_MESSAGE:
+            current += line
+            continue
+        if current:
+            chunks.append(current.rstrip())
+            current = ""
+        while len(line) > MAX_MESSAGE:
+            cut = line.rfind(" ", 0, MAX_MESSAGE + 1)
+            cut = cut if cut > 0 else MAX_MESSAGE
+            chunks.append(line[:cut].rstrip())
+            line = line[cut:].lstrip()
+        current = line
+    if current.strip():
+        chunks.append(current.rstrip())
+    if not chunks:
+        chunks = [value]
+    for index, chunk in enumerate(chunks):
+        payload: dict[str, Any] = {"chat_id": chat_id, "text": chunk}
+        if markup and index == 0:
+            payload["reply_markup"] = markup
+        _api("sendMessage", json=payload)
 
 def _month_text() -> str:
     """Executive neutral briefing for the current election month."""
@@ -238,8 +246,8 @@ def _majorities_text() -> str:
             "🏛 MAYORÍAS · ARITMÉTICA\n\n"
             "Referencia parlamentaria: 350 escaños.\n"
             "Mayoría absoluta: 176.\n\n"
-            "No hay una composición territorial vigente publicada en el sistema; "
-            "por rigor no se atribuyen mayorías actuales a partidos."
+            "La mayoría absoluta es de 176 escaños. "
+            "La atribución actual a partidos requiere una composición territorial explícita."
         )
     seats = projection.get("national_seats") or projection.get("party") or {}
     rows = []
@@ -267,8 +275,8 @@ def _coalitions_text() -> str:
     if not isinstance(seats, dict) or not seats:
         return (
             "🤝 COMBINACIONES · ARITMÉTICA\n\n"
-            "El sistema está preparado para calcular combinaciones sobre una composición "
-            "de escaños explícita. No convierte porcentajes nacionales en escaños."
+            "Las combinaciones se calculan sobre una composición explícita de escaños. "
+            "Los porcentajes nacionales no se convierten automáticamente en escaños."
         )
     rows = []
     for party, value in seats.items():
@@ -348,8 +356,8 @@ def _escanos_text() -> str:
             return "🪑 ESCAÑOS · COMPOSICIÓN MATERIALIZADA\n\n" + "\n".join(f"{p}: {s}" for p, s in rows)
     return (
         "🪑 ESCAÑOS · SITUACIÓN ACTUAL\n\n"
-        "No se publica una cifra de escaños actual a partir de porcentajes nacionales. "
-        "El sistema conserva la aritmética electoral preparada para ejecutarse cuando exista una entrada territorial explícita."
+        "La cifra actual de escaños requiere evidencia provincial explícita. "
+        "El sistema no convierte automáticamente porcentajes nacionales en reparto territorial."
     )
 
 
@@ -429,7 +437,7 @@ def _urgencies_text() -> str:
 def _polls_text() -> str:
     polls = _latest_polls()
     if not polls:
-        return "🗳 ENCUESTAS\nNo hay observaciones validadas materializadas."
+        return "🗳 ENCUESTAS\n\nNo hay una observación validada reciente que publicar. Se conserva la vigilancia de fuentes."
     lines = [f"🗳 ENCUESTAS · {len(polls)} observaciones validadas", ""]
     for i, poll in enumerate(polls[:7]):
         parties = poll.get("parties")
@@ -473,8 +481,8 @@ def _territory_text() -> str:
         "Cobertura electoral: 52 circunscripciones / 350 escaños.\n\n"
         + ("🟢 Existe entrada territorial explícita en los artefactos observados."
            if explicit else
-           "ℹ️ No hay distribución territorial explícita suficiente en las observaciones actuales. "
-           "No se fabrica una distribución provincial.")
+           "ℹ️ Cobertura territorial actual limitada: los escaños solo se calculan con evidencia provincial explícita. "
+           "No se convierte automáticamente un porcentaje nacional en reparto provincial.")
     )
 
 
@@ -490,7 +498,7 @@ def _scenario_files() -> list[Path]:
 def _scenarios_text() -> str:
     files = _scenario_files()
     if not files:
-        return "🧪 ESCENARIOS\n\nNo hay escenarios publicados en este momento. La aritmética se mantiene disponible para datos materializados; no se fabrican escenarios."
+        return "🧪 ESCENARIOS\n\nNo hay escenarios materializados para publicar en este momento. No se fabrican valores."
     lines = ["🧪 ESCENARIOS MATERIALIZADOS", ""]
     for path in files:
         data = _safe_json(path)
@@ -520,6 +528,16 @@ def _sources_text() -> str:
     return "\n".join(lines)
 
 
+def _human_oos_status(status: Any) -> str:
+    value = str(status or "").strip().upper()
+    return {
+        "NOT_STRICTLY_CERTIFIED": "verificación OOS pendiente",
+        "CERTIFIED": "verificado",
+        "PASS": "verificado",
+        "FAILED": "requiere revisión",
+    }.get(value, "no determinado")
+
+
 def _audit_text() -> str:
     execution = _safe_json(EXECUTION)
     oos = _safe_json(OOS)
@@ -530,7 +548,7 @@ def _audit_text() -> str:
         "🔎 AUDITORÍA · EVIDENCIA Y LIMITACIONES",
         "",
         f"Fase: {execution.get('current_phase', 'n/d')}",
-        f"Estado OOS: {oos.get('status', 'n/d')}",
+        f"Estado OOS: {_human_oos_status(oos.get('status'))}",
         f"Elecciones OOS registradas: {oos.get('elections', 'n/d')}",
         f"Observaciones OOS: {oos.get('poll_observations', 'n/d')}",
         f"Predicción actual: {estimation.get('status', 'n/d')}",
@@ -567,7 +585,7 @@ def _radar_text() -> str:
 def _changes_text() -> str:
     polls = _latest_polls()
     if len(polls) < 2:
-        return "📈 CAMBIOS\n\nNo hay cambio cuantificable todavía: falta una segunda observación comparable."
+        return "📈 CAMBIOS\n\nLa serie comparable aún no contiene dos observaciones fechadas suficientes para medir un cambio."
     current, previous = polls[0], polls[1]
     a = current.get("parties") if isinstance(current.get("parties"), dict) else {}
     b = previous.get("parties") if isinstance(previous.get("parties"), dict) else {}
