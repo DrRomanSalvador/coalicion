@@ -1,4 +1,5 @@
 name: certification state materialization
+
 on:
   push:
     branches: [main]
@@ -7,17 +8,47 @@ on:
       - "scripts/master_certification.py"
       - ".github/workflows/certification-state.yml"
   workflow_dispatch:
-permissions: {contents: write}
+    inputs:
+      reason:
+        description: "Motivo de la ejecución manual"
+        required: false
+        default: "manual-certification"
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: certification-state-main
+  cancel-in-progress: true
+
 jobs:
   state:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
       - uses: actions/setup-python@v5
-        with: {python-version: "3.12"}
-      - run: python scripts/master_certification.py || test -f ci_evidence/master_certification.json
-      - run: |
+        with:
+          python-version: "3.12"
+      - name: Generate certification state
+        run: |
+          set -euo pipefail
+          python scripts/master_certification.py || rc=$?
+          if [ "${rc:-0}" -ne 0 ] && [ ! -f ci_evidence/master_certification.json ]; then
+            exit "${rc}"
+          fi
+      - name: Persist state without recursive certification push
+        run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add ci_evidence/master_certification.json
-          git diff --cached --quiet || (git commit -m "ci: refresh master certification state" && git push origin HEAD:main)
+          if git diff --cached --quiet; then
+            echo "Sin cambios."
+            exit 0
+          fi
+          git commit -m "ci: refresh master certification state"
+          git push origin HEAD:main
