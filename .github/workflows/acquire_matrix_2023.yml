@@ -1,17 +1,7 @@
 name: Acquire and certify 2023 coalition matrix
 
 on:
-  push:
-    paths:
-      - "scripts/acquire_2023_matrix.py"
-      - "src/data.py"
-      - "src/neutral_audit.py"
-      - ".github/workflows/acquire_matrix_2023.yml"
   workflow_dispatch:
-
-# Reproducible acquisition: materialize only after structural validation.
-# Primary Interior evidence is accepted only after all 52/350/vote invariants pass.
-
 permissions:
   contents: write
 
