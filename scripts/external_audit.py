@@ -90,6 +90,8 @@ def main():
         "schema": "EXTERNAL_TECHNICAL_AUDIT_V1",
         "verdict": "PASS" if not failed else "FAIL",
         "independence": "NOT_CLAIMED",
+        "mode": "DEMONSTRATION_NON_OFFICIAL",
+        "demo_validation": "ACCEPTED_FOR_DEMONSTRATION_ONLY",
         "checks": checks,
         "fail_closed": True,
         "required_next_step": "THIRD_PARTY_SIGNOFF",
