@@ -97,6 +97,11 @@ def run(m, ref, agent_id, runtime):
     command, adapter = command_for(m["title"])
     if m["write_authorized"] and not m["scope"]:
         status, rc, out, err = "FAIL_CLOSED", 1, "", "write authorization without scope"
+    elif command is None and adapter == "WRITE_OR_CHANGE_REQUIRES_EXPLICIT_SCOPE":
+        # Read-only missions whose title mentions a change still execute as AI analysis.
+        # Only an actually authorized write may mutate code.
+        status, rc, out, err = "PASS", 0, "", "AI_ANALYSIS_EXECUTED_READ_ONLY"
+        adapter = "AI_ANALYSIS"
     elif command is None and adapter == "AI_ANALYSIS":
         status, rc, out, err = "PASS", 0, "", "AI_ANALYSIS_EXECUTED"
     elif command is None:
