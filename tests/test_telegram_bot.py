@@ -187,3 +187,57 @@ def test_send_splits_long_public_response(monkeypatch):
     assert len(texts) == 2
     assert "".join(texts) == "A" * (telegram_bot.MAX_MESSAGE + 100)
     assert all(len(x) <= telegram_bot.MAX_MESSAGE for x in texts)
+
+
+
+def test_callback_navigation_edits_same_message_and_persists_back(monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setattr(telegram_bot, "USER_STATE", tmp_path / "user_state.json")
+    monkeypatch.setattr(
+        telegram_bot,
+        "_api",
+        lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True},
+    )
+    first = {
+        "update_id": 10,
+        "callback_query": {
+            "id": "cb1",
+            "from": {"id": 42},
+            "data": "cmd:/encuestas",
+            "message": {"chat": {"id": 123}, "message_id": 77},
+        },
+    }
+    assert telegram_bot._handle_update(first, None) == 11
+    assert any(method == "editMessageText" for method, _ in calls)
+    assert not any(method == "sendMessage" for method, _ in calls)
+
+    calls.clear()
+    second = {
+        "update_id": 11,
+        "callback_query": {
+            "id": "cb2",
+            "from": {"id": 42},
+            "data": "back",
+            "message": {"chat": {"id": 123}, "message_id": 77},
+        },
+    }
+    assert telegram_bot._handle_update(second, 11) == 12
+    edits = [kwargs["json"] for method, kwargs in calls if method == "editMessageText"]
+    assert edits
+    assert "SALA DE SITUACIÓN" in edits[-1]["text"]
+
+
+def test_navigation_markup_has_back_home_refresh():
+    markup = telegram_bot._navigation_markup("/encuestas")
+    labels = [button["text"] for row in markup["inline_keyboard"] for button in row]
+    assert "← Atrás" in labels
+    assert "🏠 Inicio" in labels
+    assert "🔄 Actualizar" in labels
+
+
+def test_home_navigation_markup_has_refresh_and_drilldown():
+    markup = telegram_bot._navigation_markup("/briefing")
+    labels = [button["text"] for row in markup["inline_keyboard"] for button in row]
+    assert "🔄 Actualizar" in labels
+    assert "🧭 Inicio" in labels
+    assert "📈 Cambios" in labels
