@@ -1,4 +1,4 @@
-# Python 3.12 CI/runtime pins, generated 2026-10-06
+# Python 3.12 CI/runtime pins, generated 2026-10-08
 numpy==2.3.3
 pandas==2.3.3
 openpyxl==3.1.5
@@ -7,7 +7,6 @@ certifi==2025.10.5
 pymc==6.3.2
 pytensor==3.3.3
 scipy==1.18.1
-
 beautifulsoup4==4.14.2
 lxml==6.0.2
 requests==2.32.5
@@ -15,3 +14,4 @@ scikit-learn==1.9.1
 pyreadr==0.5.7
 SALib==1.6.0
 reportlab==4.5.1
+streamlit==1.50.0
