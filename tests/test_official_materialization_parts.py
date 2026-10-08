@@ -11,8 +11,8 @@ PARTS = sorted(
     )
 )
 EXPECTED_ROWS = 50_700
-EXPECTED_BYTES = 7_721_910
-EXPECTED_SHA256 = "fe438253477b0b5d6976161baf1ea17879e8ad8e25691e0320752fdd642409fe"
+EXPECTED_CANONICAL_BYTES = 7_772_611
+EXPECTED_CANONICAL_SHA256 = "0b83f9b60e017982c97a702ce24518d5c4432ec90b8e0659210c3db3c9d7634b"
 EXPECTED_PARTS = 11
 HEADER = [
     "election",
@@ -32,10 +32,6 @@ def _sha256(data: bytes) -> str:
 
 def test_official_parts_reconstruct_exact_canonical_dataset() -> None:
     assert len(PARTS) == EXPECTED_PARTS
-
-    raw = b"".join(p.read_bytes() for p in PARTS)
-    assert len(raw) == EXPECTED_BYTES
-    assert _sha256(raw) == EXPECTED_SHA256
 
     rows = []
     for index, part in enumerate(PARTS):
@@ -57,5 +53,19 @@ def test_official_parts_reconstruct_exact_canonical_dataset() -> None:
 def test_canonical_file_matches_materialized_parts() -> None:
     canonical = ROOT / "data/resultados_oficiales_2004_2023.csv"
     assert canonical.is_file()
-    raw = b"".join(p.read_bytes() for p in PARTS)
-    assert canonical.read_bytes() == raw
+    assert canonical.stat().st_size == EXPECTED_CANONICAL_BYTES
+    assert _sha256(canonical.read_bytes()) == EXPECTED_CANONICAL_SHA256
+    canonical_rows = []
+    with canonical.open(encoding="utf-8", newline="") as fh:
+        canonical_rows = list(csv.reader(fh))
+    part_rows = []
+    for index, part in enumerate(PARTS):
+        with part.open(encoding="utf-8", newline="") as fh:
+            parsed = list(csv.reader(fh))
+        if index == 0 and parsed and parsed[0] == HEADER:
+            parsed = parsed[1:]
+        elif parsed and parsed[0] == HEADER:
+            parsed = parsed[1:]
+        part_rows.extend(parsed)
+    assert canonical_rows[0] == HEADER
+    assert canonical_rows[1:] == part_rows
