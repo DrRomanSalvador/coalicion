@@ -110,7 +110,8 @@ for prov,votes in target_maps.items():
     seat_n=int(seats.loc[seats["prov"].eq(prov),"escanos_2023"].iloc[0])
     valid=int(target_valid[prov])
     alloc=allocate({p:int(v) for p,v in votes.items()},seat_n,valid,
-                   special=prov if prov in {"Ceuta","Melilla"} else "")
+                   special=prov if prov in {"Ceuta","Melilla"} else "",
+                   blank_votes=int(target_blank.get(prov,0)))
     if alloc.status!="OK":
         raise RuntimeError(f"actual 2023 allocation blocked: {prov} {alloc.status} {alloc.tie}")
     for party,s in alloc.seats.items():
@@ -152,20 +153,26 @@ sim_seats={p:np.zeros(N_SIM,dtype=np.int16) for p in parties}
 for prov in sorted(train_maps):
     votes=train_maps[prov]
     valid=int(train_valid[prov])
+    blank=int(train_blank.get(prov,0))
+    party_total=valid-blank
     seat_n=int(seats.loc[seats["prov"].eq(prov),"escanos_2023"].iloc[0])
     ps=list(votes)
     counts=np.array([max(float(votes[p]),0.0) for p in ps],dtype=float)
     alpha=counts+1.0
     draws=rng.dirichlet(alpha,size=N_SIM)
     for i in range(N_SIM):
-        dv={p:int(round(x*valid)) for p,x in zip(ps,draws[i])}
-        # Preserve exact total after integer rounding by assigning residual to
-        # the largest sampled category.
-        residual=valid-sum(dv.values())
+        dv={p:int(round(x*party_total)) for p,x in zip(ps,draws[i])}
+        # Preserve the party-vote total after integer rounding. Blank votes
+        # remain an explicit component of valid votes and never enter a party.
+        residual=party_total-sum(dv.values())
         if residual:
             winner=max(dv,key=dv.get)
             dv[winner]+=residual
-        alloc=allocate_pred(dv,seat_n,valid,prov if prov in {"Ceuta","Melilla"} else "")
+        alloc=allocate({p:int(v) for p,v in dv.items()},seat_n,valid,
+                       special=prov if prov in {"Ceuta","Melilla"} else "",
+                       blank_votes=blank)
+        if alloc.status!="OK":
+            raise RuntimeError(f"simulated allocation blocked: {prov} {alloc.status} {alloc.tie}")
         for p,s in alloc.items():
             if p in sim_seats: sim_seats[p][i]+=s
 
