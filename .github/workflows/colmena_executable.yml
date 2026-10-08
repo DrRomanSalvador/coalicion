@@ -1,4 +1,5 @@
 name: COALMENA — Queen + Atomic Workers
+# COALMENA_ACTIVE_MAX: never cancel an active hive; every run must leave observable evidence.
 # Real execution trigger: this workflow must produce observable runtime evidence.
 
 on:
@@ -27,7 +28,7 @@ permissions:
 
 concurrency:
   group: colmena-executable-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   queen-gate:
