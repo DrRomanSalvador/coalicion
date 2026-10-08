@@ -11,7 +11,7 @@
     "4_reproducibility": "IMPLEMENTED",
     "5_security_operation": "PARTIAL_EXISTING",
     "6_release_package": "PARTIAL_EXISTING",
-    "7_demo_e2e": "PENDING_REAL_TERRITORIAL_INPUT"
+    "7_demo_e2e": "IN_PROGRESS"
   },
   "completed_changes": [
     "src/trailability/evidence.py",
@@ -29,5 +29,5 @@
     "No 3 explicit current territorial surveys canonized by constituency.",
     "No November 2026 observations exist at the 2026-10-08 cutoff; future data must not be fabricated."
   ],
-  "next_gate": "CANONICALIZE_CURRENT_PRIMARY_SURVEYS_AND_EXPLICIT_TERRITORIAL_OBSERVATIONS"
+  "next_gate": "VERIFY_GITHUB_ACTIONS_PHASE2_AND_PROMOTE_ONLY_WHAT_IS_EXECUTED"
 }
