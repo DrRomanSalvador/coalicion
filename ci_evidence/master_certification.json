@@ -2,7 +2,7 @@
   "schema": "MASTER_CERTIFICATION_V1",
   "status": "BLOCKED",
   "certification": "BLOCKED",
-  "reason": "Primary Interior data, SEEC posterior and OOS calibration are not yet execution-materialized. External independent audit is also required for CERTIFIED.",
+  "reason": "Historical Interior source/materialization and exact reconciliation are PASS. Remaining certification gates are actual OOS calibration, production SEEC >=10,000 posterior draws, and independent external audit.",
   "required_gates": [
     "source_manifest",
     "primary_interior",
@@ -14,5 +14,16 @@
     "poll_source_coverage",
     "external_audit"
   ],
-  "fail_closed": true
+  "fail_closed": true,
+  "gates": {
+    "source_manifest": "PASS",
+    "primary_interior": "PASS",
+    "reconciliation": "PASS",
+    "seec_posterior": "PENDING",
+    "mc_10000": "PENDING",
+    "oos_calibration": "PENDING",
+    "oos_walk_forward": "PENDING",
+    "poll_source_coverage": "PASS",
+    "external_audit": "PENDING"
+  }
 }
