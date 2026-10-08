@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fail-closed executable atomic worker for the COALICION Queen."""
 from __future__ import annotations
-import argparse, hashlib, json, re, subprocess, sys, time
+import argparse, hashlib, json, re, subprocess, sys, time, os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -54,14 +54,14 @@ def load_approval(path, mission_id, ref):
     if m is None or m.get("ref") != ref:
         raise SystemExit("FAIL_CLOSED: mission/ref not approved")
     expected = sha(canon({
-        "mission_id": m["id"], "ref": m["ref"], "plan_sha256": d["plan_sha256"],
+        "mission_id": m["id"], "agent_id": m["agent_id"], "ref": m["ref"], "plan_sha256": d["plan_sha256"],
         "write_authorized": m["write_authorized"], "scope": m["scope"],
     }))
     if expected != m.get("approval"):
         raise SystemExit("FAIL_CLOSED: invalid Queen approval")
     return d, m
 
-def run(m, ref):
+def run(m, ref, agent_id, runtime):
     started = datetime.now(timezone.utc).isoformat()
     command, adapter = command_for(m["title"])
     if m["write_authorized"] and not m["scope"]:
@@ -73,7 +73,9 @@ def run(m, ref):
         rc, out, err = p.returncode, p.stdout[-12000:], p.stderr[-12000:]
         status = "PASS" if rc == 0 else "FAIL"
     return {
-        "schema": "COLMENA_WORKER_EVIDENCE_V2",
+        "schema": "COLMENA_WORKER_EVIDENCE_V3",
+        "agent_id": agent_id,
+        "agent_runtime": runtime,
         "mission_id": m["id"], "title": m["title"], "kind": m["kind"],
         "status": status, "adapter": adapter, "command": command,
         "ref": ref, "queen_approval": m["approval"],
@@ -89,7 +91,11 @@ def main():
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
     _, m = load_approval(Path(a.approval), a.mission_id, a.ref)
-    evidence = run(m, a.ref)
+    agent_id = m.get("agent_id")
+    if agent_id != "agent-" + m["id"]:
+        raise SystemExit("FAIL_CLOSED: invalid agent identity")
+    runtime = {"provider": os.environ.get("COLMENA_AGENT_PROVIDER", "github-actions-worker"), "execution_id": os.environ.get("COLMENA_AGENT_EXECUTION_ID", agent_id + ":" + a.ref), "independent": True}
+    evidence = run(m, a.ref, agent_id, runtime)
     o = Path(a.out); o.parent.mkdir(parents=True, exist_ok=True)
     o.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"mission_id": m["id"], "status": evidence["status"], "adapter": evidence["adapter"]}))
