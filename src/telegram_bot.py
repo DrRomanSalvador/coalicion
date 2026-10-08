@@ -383,7 +383,7 @@ def _menu_markup() -> dict[str, Any]:
             [{"text": "🟦 ¿Qué pasa ahora?", "callback_data": "cmd:/hoy"},
              {"text": "🗓 ¿Qué importa este mes?", "callback_data": "cmd:/mes"}],
             [{"text": "📈 ¿Qué ha cambiado?", "callback_data": "cmd:/cambios"},
-             {"text": "📈 ¿Qué ha cambiado?", "callback_data": "cmd:/cambios"}],
+             {"text": "🚨 ¿Qué requiere atención?", "callback_data": "cmd:/urgencias"}],
             [{"text": "🗳 ¿Qué dicen los sondeos?", "callback_data": "cmd:/encuestas"},
              {"text": "🪑 ¿Qué implica en escaños?", "callback_data": "cmd:/escanos"}],
             [{"text": "🏛 ¿Qué mayorías son posibles?", "callback_data": "cmd:/mayorias"},
