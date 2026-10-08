@@ -6,6 +6,10 @@ on:
     paths: ["src/**","tests/**","scripts/**","data/**","artifacts/data/**","requirements.txt",".github/workflows/full_reproducible_suite.yml"]
   workflow_dispatch:
 
+concurrency:
+  group: full-reproducible-suite
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
