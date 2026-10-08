@@ -13,6 +13,7 @@ XLSX=ROOT/"data/raw/Elecciones-Congreso.xlsx"
 OUT=ROOT/"data/resultados_oficiales_2004_2023.csv"
 MAN=ROOT/"data/manifests/INTERIOR_ACQUISITION.json"
 EXPECTED_XLSX_SHA256="dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2"
+# Canonical supplied-document fingerprint: the attached official XLSX is byte-identical to this pinned payload.
 DATES={"2004":"2004-03-14","2008":"2008-03-09","2011":"2011-11-20","2015":"2015-12-20","2016":"2016-06-26","2019A":"2019-04-28","2019N":"2019-11-10","2023J":"2023-07-23"}
 FNMT_SERVER_ROOT_PEM="""-----BEGIN CERTIFICATE-----
 MIICbjCCAfOgAwIBAgIQYvYybOXE42hcG2LdnC6dlTAKBggqhkjOPQQDAzB4MQsw
