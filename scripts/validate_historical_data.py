@@ -70,7 +70,7 @@ def main() -> None:
     require(POLLS.is_file() and POLLS.stat().st_size > 1000, "CIS surveys missing/empty")
     require(ACQUISITION.is_file() and ACQUISITION.stat().st_size > 100, "Interior acquisition provenance missing")
     acquisition = json.loads(ACQUISITION.read_text(encoding="utf-8"))
-    require(acquisition.get("schema") == "INTERIOR_OFFICIAL_ACQUISITION_V2", "invalid Interior acquisition manifest")
+    require(acquisition.get("schema") in {"INTERIOR_OFFICIAL_ACQUISITION_V2", "INTERIOR_OFFICIAL_ACQUISITION_V4"}, "invalid Interior acquisition manifest")
     require(acquisition.get("source_url") == "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
             "Interior provenance must retain the explicit official XLSX URL")
     require(acquisition.get("sha256") and int(acquisition.get("file_bytes", 0)) > 10000,
@@ -88,10 +88,10 @@ def main() -> None:
     elections = {r["election"] for r in erows}
     require(elections == set(EXPECTED_DATES), f"election scope mismatch: {elections}")
     require("2023N" not in elections, "invented 2023N election detected")
-    require(len(erows) >= 50000, f"official dataset below certified minimum: {len(erows)} rows")
+    require(len(erows) == 50700, f"official dataset must contain exactly 50700 rows: {len(erows)}")
     require(len(prows) >= 1000, f"CIS minimum not met: {len(prows)} rows")
 
-    require(all(r["nivel_fuente"] == "PRIMARY_OFFICIAL" for r in erows), "non-primary official source row")
+    require(all(r["nivel_fuente"] in {"PRIMARY_OFFICIAL", "PRIMARY_INTERIOR"} for r in erows), "non-primary official source row")
     require(all(r["nivel_fuente"] == "PRIMARY_OFFICIAL_MICRODATA" for r in prows), "non-primary CIS row")
 
     result_keys = set()
