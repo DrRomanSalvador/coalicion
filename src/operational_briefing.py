@@ -1,7 +1,7 @@
 """Deterministic operational briefing for the neutral electoral monitoring layer."""
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date
 from typing import Any
 
 from src.election_calendar import critical_window
