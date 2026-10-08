@@ -20,7 +20,7 @@ def test_render_polls_uses_materialized_state(tmp_path, monkeypatch):
             "parties": {"PP": 33.2, "PSOE": 28.1, "VOX": 13.0, "SUMAR": 12.2, "ERC": 3.1},
         }],
     }), encoding="utf-8")
-    monkeypatch.setattr(telegram_bot, "STATE", state)
+    monkeypatch.setattr(telegram_bot, "STATE", state)\n    monkeypatch.setattr(telegram_bot, "OBSERVATIONS", tmp_path / "missing-observations.json")
     text = telegram_bot.render_command("/encuestas")
     assert "Fuente primaria" in text
     assert "PP 33.2%" in text
