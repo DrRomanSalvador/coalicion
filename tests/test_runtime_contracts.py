@@ -69,3 +69,19 @@ def test_telegram_inline_allowlist_is_fail_closed(monkeypatch):
     assert _inline_allowed(update) is False
     monkeypatch.setenv("TELEGRAM_ALLOWED_CHATS", "123")
     assert _inline_allowed(update) is True
+
+from src.coalition import CoalitionDecisionEngine, CoalitionScenario
+
+
+def test_coalition_central_output_is_order_invariant():
+    votes = {"X": {"A": 120, "B": 80, "C": 100}}
+    scenarios = [
+        CoalitionScenario("optimista", votes, weight=1.0),
+        CoalitionScenario("central", votes, weight=1.0),
+    ]
+    engine = CoalitionDecisionEngine({"X": 2}, {"X": 0}, {})
+    a = engine.analyze_coalition(("A", "B"), scenarios)
+    b = engine.analyze_coalition(("A", "B"), list(reversed(scenarios)))
+    assert a["separate_seats"] == b["separate_seats"]
+    assert a["coalition_seats"] == b["coalition_seats"]
+    assert a["benefit"] == b["benefit"]
