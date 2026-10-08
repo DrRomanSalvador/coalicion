@@ -6,7 +6,7 @@ env.cacheDir = process.env.TRANSFORMERS_CACHE || "./.cache";
 env.useFSCache = true;
 env.useWasmCache = true;
 
-const MODEL = "onnx-community/SmolLM2-135M-Instruct-ONNX-MHA";
+const MODEL = "onnx-community/Qwen3-0.6B-ONNX";
 const DTYPE = "q4f16";
 const DEVICE = process.env.COLMENA_AI_DEVICE || "cpu";
 const PORT = Number(process.env.COLMENA_AI_PORT || "8765");
