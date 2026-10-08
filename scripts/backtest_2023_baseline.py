@@ -190,20 +190,157 @@ actual_vec=np.array([actual_seats.get(p,0) for p in parties],dtype=float)
 seat_mae=float(np.mean(np.abs(actual_vec-medians)))
 seat_rmse=float(np.sqrt(np.mean((actual_vec-medians)**2)))
 
+# Historical conformal calibration of territorial seat uncertainty.
+# Calibration uses only election pairs strictly before 2023. For each pair,
+# the predictor is persistence from the previous election and the target is
+# the current election. 2023 is never used to fit the calibration quantile.
+#
+# The historical official file is the sole source for historical seat counts.
+# If those counts are absent, calibration fails closed instead of inventing
+# a seat structure.
+
+def official_seat_structure(election_date: str):
+    x = df[df["fecha_eleccion"].astype(str).str[:10].eq(election_date)].copy()
+    grouped = x.groupby("prov")["escaños"].sum().astype(int).to_dict()
+    positive = {p:s for p,s in grouped.items() if s > 0}
+    if not positive:
+        return None
+    if sum(positive.values()) != 350:
+        raise RuntimeError(
+            f"historical seat structure invalid for {election_date}: "
+            f"sum={sum(positive.values())}"
+        )
+    return positive
+
+def actual_seats_from_official(election_date: str):
+    x = df[df["fecha_eleccion"].astype(str).str[:10].eq(election_date)].copy()
+    if x.empty:
+        raise RuntimeError(f"missing election {election_date}")
+    y = x[x["kind"].eq("PARTY")].copy()
+    if y["escaños"].sum() <= 0:
+        return None
+    return y.groupby("party")["escaños"].sum().astype(int).to_dict()
+
+def persistent_seats(previous_date: str, current_date: str, current_structure):
+    prev_p, prev_valid, prev_blank, _ = election_matrix_by_date(previous_date)
+    prev_maps = {p: dict(zip(g["party"], g["votos"])) for p,g in prev_p.groupby("prov")}
+    pred = {}
+    for prov, seat_n in current_structure.items():
+        votes = prev_maps.get(prov, {})
+        if not votes:
+            continue
+        valid = int(prev_valid[prov])
+        blank = int(prev_blank.get(prov, 0))
+        alloc = allocate(
+            {p:int(v) for p,v in votes.items()},
+            int(seat_n),
+            valid,
+            special=prov if prov in {"Ceuta","Melilla"} else "",
+            blank_votes=blank,
+            tie_breaker=lottery_tie_breaker(prov),
+        )
+        if alloc.status != "OK":
+            raise RuntimeError(
+                f"historical allocation blocked: {previous_date}->{current_date} "
+                f"{prov} {alloc.status} {alloc.tie}"
+            )
+        for party, seats_n in alloc.seats.items():
+            pred[party] = pred.get(party, 0) + int(seats_n)
+    return pred
+
+historical_dates = sorted(
+    d for d in df["fecha_eleccion"].astype(str).str[:10].unique()
+    if d < "2023-07-23"
+)
+historical_residuals = []
+historical_new_party_residuals = []
+historical_pair_count = 0
+
+for previous_date, current_date in zip(historical_dates, historical_dates[1:]):
+    structure = official_seat_structure(current_date)
+    actual = actual_seats_from_official(current_date)
+    if structure is None or actual is None:
+        continue
+    predicted = persistent_seats(previous_date, current_date, structure)
+    historical_pair_count += 1
+    all_parties = set(predicted) | set(actual)
+    for party in all_parties:
+        pv = int(predicted.get(party, 0))
+        av = int(actual.get(party, 0))
+        residual = abs(av - pv)
+        historical_residuals.append(residual)
+        if pv == 0 and av > 0:
+            historical_new_party_residuals.append(residual)
+
+if historical_pair_count < 2 or len(historical_residuals) < 20:
+    raise RuntimeError(
+        "insufficient pre-2023 historical seat residuals for conformal calibration"
+    )
+
+def conformal_quantile(values, coverage=0.90):
+    vals = np.sort(np.asarray(values, dtype=float))
+    if vals.size == 0:
+        raise RuntimeError("empty conformal calibration set")
+    # Finite-sample split-conformal quantile:
+    # ceil((n+1)*coverage) / n, capped at the last observed residual.
+    rank = int(np.ceil((len(vals) + 1) * coverage)) - 1
+    rank = min(max(rank, 0), len(vals) - 1)
+    return float(vals[rank])
+
+Q90_SEATS = conformal_quantile(historical_residuals, 0.90)
+Q90_NEW_PARTY_SEATS = (
+    conformal_quantile(historical_new_party_residuals, 0.90)
+    if historical_new_party_residuals
+    else Q90_SEATS
+)
+
+# Persistence point prediction for 2023. The conformal interval is calibrated
+# independently from this target election and then applied to every 2023 party.
+point_pred_2023 = {}
+for prov, votes in train_maps.items():
+    seat_n = int(seats.loc[seats["prov"].eq(prov), "escanos_2023"].iloc[0])
+    valid = int(train_valid[prov])
+    blank = int(train_blank.get(prov, 0))
+    alloc = allocate(
+        {p:int(v) for p,v in votes.items()},
+        seat_n,
+        valid,
+        special=prov if prov in {"Ceuta","Melilla"} else "",
+        blank_votes=blank,
+        tie_breaker=lottery_tie_breaker(prov),
+    )
+    if alloc.status != "OK":
+        raise RuntimeError(
+            f"2023 point prediction blocked: {prov} {alloc.status} {alloc.tie}"
+        )
+    for party, seats_n in alloc.seats.items():
+        point_pred_2023[party] = point_pred_2023.get(party, 0) + int(seats_n)
+
 intervals={}
 winners=[p for p,s in actual_seats.items() if s>0]
 covered=0
 for p in winners:
-    q=np.percentile(sim_seats[p],[10,50,90])
-    intervals[p]={"actual":int(actual_seats[p]),"p10":float(q[0]),"p50":float(q[1]),"p90":float(q[2])}
-    covered += int(q[0] <= actual_seats[p] <= q[2])
+    predicted = int(point_pred_2023.get(p, 0))
+    q = Q90_NEW_PARTY_SEATS if predicted == 0 else Q90_SEATS
+    lo = max(0.0, predicted - q)
+    hi = min(350.0, predicted + q)
+    intervals[p]={
+        "actual": int(actual_seats[p]),
+        "p10": float(lo),
+        "p50": float(predicted),
+        "p90": float(hi),
+        "interval_method": "split_conformal_absolute_seat_residual",
+        "calibration_q90": float(q),
+    }
+    covered += int(lo <= actual_seats[p] <= hi)
+
 coverage=covered/len(winners) if winners else float("nan")
 
 result={
  "election":"2023",
  "cutoff":"2019-11-10",
- "model":"baseline_persistence_2019N",
- "note":"Canonical official Interior results; no 2023 votes are used in prediction. Actual 2023 seats are reconstructed from primary official votes with the canonical electoral allocation engine.",
+ "model":"baseline_persistence_2019N_with_historical_conformal_seat_calibration",
+ "note":"Canonical official Interior results. The prediction uses only 2019N votes. Seat uncertainty is calibrated from pre-2023 historical persistence errors; emerging-party intervals use the pre-2023 distribution of positive-seat parties absent from the preceding election.",
  "source_tier":"PRIMARY_OFFICIAL",
  "source_sha256":hashlib.sha256(OFFICIAL.read_bytes()).hexdigest(),
  "seat_structure_source":"data/2023_circunscripciones_oficiales.csv",
@@ -216,8 +353,18 @@ result={
    "rmse_vote_national_pp":vote_rmse,
    "mae_seats_median":seat_mae,
    "rmse_seats_median":seat_rmse,
-   "coverage_actual_seats_in_p10_p90_winners":coverage,
-   "n_2023_seat_winning_parties":len(winners)
+   "coverage_actual_seats_in_mc_p10_p90_winners":float(np.mean([
+       np.percentile(sim_seats[p],[10])[0] <= actual_seats[p] <=
+       np.percentile(sim_seats[p],[90])[0] for p in winners
+   ])) if winners else float("nan"),
+   "coverage_actual_seats_in_calibrated_p10_p90_winners":coverage,
+   "n_2023_seat_winning_parties":len(winners),
+   "historical_conformal_pairs":historical_pair_count,
+   "historical_conformal_residuals":len(historical_residuals),
+   "historical_new_party_residuals":len(historical_new_party_residuals),
+   "conformal_nominal_coverage":0.90,
+   "conformal_q90_seats":Q90_SEATS,
+   "conformal_q90_new_party_seats":Q90_NEW_PARTY_SEATS
  },
  "seat_intervals":intervals,
  "contracts":{
@@ -225,7 +372,11 @@ result={
    "seat_sum_350":True,
    "no_future_vote_input":True,
    "canonical_electoral_engine":True,
-   "absolute_ties_reproducible_lottery":True
+   "absolute_ties_reproducible_lottery":True,
+   "historical_conformal_calibration":True,
+   "calibration_before_target_election":True,
+   "new_party_uncertainty_calibrated":True,
+   "calibrated_coverage_gate": bool(coverage >= 0.85)
  }
 }
 OUT.parent.mkdir(parents=True,exist_ok=True)
