@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fail-closed executable atomic worker for the COALICION Queen."""
 from __future__ import annotations
-import argparse, hashlib, json, re, subprocess, sys, time, os, urllib.request, urllib.error
+import argparse, hashlib, json, re, subprocess, sys, time, os, json as _json
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -62,27 +62,39 @@ def load_approval(path, mission_id, ref):
     return d, m
 
 def invoke_ai_agent(m, agent_id):
-    token = os.environ.get("HF_TOKEN", "").strip()
-    model = os.environ.get("COLMENA_AGENT_MODEL", "openai/gpt-oss-120b:fastest").strip()
-    if not token:
-        raise RuntimeError("FAIL_CLOSED: HF_TOKEN missing")
+    model = os.environ.get("COLMENA_AGENT_MODEL", "onnx-community/SmolLM2-135M-Instruct-ONNX-MHA:q4f16").strip()
     payload = {
-        "model": model,
-        "messages": [
-            {"role": "system", "content": "You are an isolated COALICION worker agent. You do not govern the repository. Return JSON only."},
-            {"role": "user", "content": json.dumps({"agent_id": agent_id, "mission_id": m["id"], "mission": m["title"], "scope": m.get("scope","")}, ensure_ascii=False)}
-        ],
-        "stream": False,
-        "max_tokens": 300
+        "agent_id": agent_id,
+        "mission_id": m["id"],
+        "mission": m["title"],
+        "scope": m.get("scope", ""),
     }
-    req = urllib.request.Request("https://router.huggingface.co/v1/chat/completions", data=json.dumps(payload).encode("utf-8"), headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"}, method="POST")
-    with urllib.request.urlopen(req, timeout=120) as resp:
-        data = json.loads(resp.read().decode("utf-8"))
-    content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+    p = subprocess.run(
+        ["node", "scripts/colmena_local_ai.mjs"],
+        cwd=ROOT,
+        input=canon(payload),
+        text=True,
+        capture_output=True,
+        timeout=180,
+    )
+    if p.returncode != 0:
+        raise RuntimeError("LOCAL_AI_RUNTIME_ERROR: " + (p.stderr[-4000:] or p.stdout[-4000:]))
+    rows = [x for x in p.stdout.splitlines() if x.strip()]
+    if not rows:
+        raise RuntimeError("FAIL_CLOSED: empty local AI runtime response")
+    try:
+        data = json.loads(rows[-1])
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("FAIL_CLOSED: invalid local AI runtime JSON") from exc
+    content = str(data.get("content", "")).strip()
     if not content:
-        raise RuntimeError("FAIL_CLOSED: empty AI runtime response")
-    return {"model": model, "response_sha256": sha(content), "response_excerpt": content[:2000]}
-
+        raise RuntimeError("FAIL_CLOSED: empty local AI runtime content")
+    return {
+        "backend": "transformers.js-local",
+        "model": model,
+        "response_sha256": sha(content),
+        "response_excerpt": content[:2000],
+    }
 def run(m, ref, agent_id, runtime):
     started = datetime.now(timezone.utc).isoformat()
     command, adapter = command_for(m["title"])
