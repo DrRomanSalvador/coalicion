@@ -59,3 +59,22 @@ Los workflows automáticos no deben avanzar la misión mientras la Reina termina
 ## NO CONFUNDIR
 
 Las **179** son el contrato de misiones/slots lógicos gobernados por la Reina. Solo se llamarán “agentes IA autónomos” cuando exista evidencia real de ejecución autónoma; el código no inventa esa evidencia.
+## GATE DE CONTINUIDAD
+
+- **Modo persistente:** `PAUSED_FOR_COORDINATION`.
+- **No activar workflows nuevos** durante esta fase.
+- Leer, auditar, coordinar, corregir documentación/estado y preparar dependencias sí está permitido.
+- La ejecución nueva queda reservada para **una única prueba final coherente**, después de resolver las 179 misiones.
+- Esta regla está materializada además en `docs/COLMENA_STATE.json` y validada por `src/colmena_resume.py`.
+
+## RECUPERACIÓN EN CHAT NUEVO — MÍNIMO
+
+1. Repositorio: `DrRomanSalvador/coalicion`, rama `main`.
+2. Leer este mapa + `docs/COLMENA_STATE.json` + `docs/COLMENA_MISSION_CONTROL.json`.
+3. Leer estado/evidencia de Reina si existen; no asumir que una ejecución ocurrió por existir un workflow.
+4. Ejecutar `python -m src.colmena_resume`.
+5. Tomar **solo** `next_single_action` y respetar el `execution_gate`.
+6. Si hay contradicción entre memoria conversacional y GitHub, **manda GitHub**.
+7. No reconstruir, repetir ni reinterpretar trabajo ya persistido.
+8. Persistir cualquier cambio de estado antes de considerar la continuidad cerrada.
+
