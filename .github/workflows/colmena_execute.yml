@@ -156,18 +156,37 @@ jobs:
           fi
           python - <<'PY'
           import json, os
+          from datetime import datetime
           from pathlib import Path
+          from zoneinfo import ZoneInfo
           root=Path("artifacts/colmena/latest")
           evidence=sorted(root.glob("M*.json"))
-          checkpoints=sorted(root.glob("checkpoint_batch_*.json"))
           closure=json.loads((root/"colmena_closure.json").read_text(encoding="utf-8"))
+          tests=[
+            {"name":"queen_gate","status":"PASS" if Path("persist/queen/queen_approval.json").exists() else "FAIL"},
+            {"name":"worker_evidence_count","status":"PASS" if len(evidence)==179 else "FAIL","count":len(evidence)},
+            {"name":"closure","status":closure.get("status","UNKNOWN")}
+          ]
+          operational={
+            "schema":"COALICION_OPERATIONAL_STATE_V1",
+            "commit":os.environ["GITHUB_SHA"],
+            "mission_current":"P0_RUNTIME_179_AGENTS",
+            "tasks_completed":["queen_gate"] if tests[0]["status"]=="PASS" else [],
+            "tasks_blocked":[] if len(evidence)==179 else ["179 independent worker evidences not yet persisted"],
+            "tests":tests,
+            "workflow_run_id":int(os.environ["GITHUB_RUN_ID"]),
+            "workflow_status":"completed_persist_step",
+            "artifacts":[p.name for p in sorted(root.iterdir()) if p.is_file()],
+            "timestamp_europe_madrid":datetime.now(ZoneInfo("Europe/Madrid")).isoformat()
+          }
+          Path("artifacts/operational_state.json").write_text(json.dumps(operational,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
           summary={
             "schema":"COLMENA_PERSISTED_CHECKPOINT_V1",
             "run_id":int(os.environ["GITHUB_RUN_ID"]),
             "run_attempt":int(os.environ["GITHUB_RUN_ATTEMPT"]),
             "commit":os.environ["GITHUB_SHA"],
             "mission_evidence_files":len(evidence),
-            "batch_checkpoints":len(checkpoints),
+            "batch_checkpoints":len(sorted(root.glob("checkpoint_batch_*.json"))),
             "closure_status":closure.get("status"),
             "persisted_at":os.environ["RUN_STARTED_AT"]
           }
