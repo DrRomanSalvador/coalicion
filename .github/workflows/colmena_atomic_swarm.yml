@@ -149,13 +149,19 @@ jobs:
           from pathlib import Path
 
           root=Path("artifacts/colmena")
-          approval=json.loads((root/"queen_approval.json").read_text(encoding="utf-8"))
-          expected={m["id"]:m for m in approval["missions"]}
+          root.mkdir(parents=True, exist_ok=True)
+          approval_path=root/"queen_approval.json"
+          expected={}
+          if approval_path.exists():
+              approval=json.loads(approval_path.read_text(encoding="utf-8"))
+              expected={m["id"]:m for m in approval.get("missions",[])}
+          else:
+              approval={"missions":[],"fail_closed":True}
           files=sorted((root/"workers").glob("worker_*.json"))
           rows=[json.loads(p.read_text(encoding="utf-8")) for p in files]
           observed={r.get("mission_id"):r for r in rows}
 
-          exact_ids=(len(rows)==179 and len(observed)==179 and set(observed)==set(expected))
+          exact_ids=(len(rows)==179 and len(observed)==179 and len(expected)==179 and set(observed)==set(expected))
           valid=exact_ids
           for mid,m in expected.items():
               r=observed.get(mid)
@@ -181,6 +187,7 @@ jobs:
 
           payload={
               "schema":"COLMENA_RECONCILIATION_V6",
+              "approval_present": approval_path.exists(),
               "expected":179,
               "observed":len(rows),
               "unique_missions":len(observed),
