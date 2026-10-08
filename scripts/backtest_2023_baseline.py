@@ -31,6 +31,7 @@ def norm_constituency(value: str) -> str:
         "Castellón/Castelló":"Castellón",
         "Guipúzcoa/Gipuzkoa":"Gipuzkoa",
         "Islas Baleares/Illes Balears":"Illes Balears",
+        "Balears, Illes":"Illes Balears",
         "La Coruña/A Coruña":"A Coruña",
         "Navarra/Nafarroa":"Navarra",
         "Orense/Ourense":"Ourense",
