@@ -1,22 +1,13 @@
 """Validated, neutral ingestion of explicitly configured public poll feeds."""
 from __future__ import annotations
 import csv, io, json, re
+from dataclasses import dataclass
 from datetime import date
 from email.utils import parsedate_to_datetime
 from xml.etree import ElementTree as ET
 from bs4 import BeautifulSoup
 
-from .poll_monitor import Poll, normalize_party_name, poll_hash
-
-"""Validated, neutral ingestion of explicitly configured public poll feeds."""
-from __future__ import annotations
-import csv, io, json, re
-from datetime import date
-from email.utils import parsedate_to_datetime
-from xml.etree import ElementTree as ET
-from bs4 import BeautifulSoup
-
-from .poll_monitor import Poll, normalize_party_name, poll_hash
+from .poll_monitor import normalize_party_name, poll_hash
 
 ALIASES={
  "PP":"PP","PARTIDO POPULAR":"PP","PSOE":"PSOE","PARTIDO SOCIALISTA OBRERO ESPAÑOL":"PSOE",
