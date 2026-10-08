@@ -26,7 +26,10 @@ def _constituency_columns(headers):
 def normalize_workbook(path:Path,destination:Path)->dict:
     wb=openpyxl.load_workbook(path,read_only=True,data_only=True); records=0; elections=set()
     destination.parent.mkdir(parents=True,exist_ok=True)
-    with destination.open("w",encoding="utf-8",newline="") as fh:
+    # Never leave a truncated "official" dataset at the canonical path if a
+    # workbook validation fails midway through materialization.
+    temporary=destination.with_name(destination.name+".tmp")
+    with temporary.open("w",encoding="utf-8",newline="") as fh:
         writer=csv.writer(fh)
         writer.writerow(["election_date","election_code","election_type","metric","subject","constituency_code","constituency","value","national_total"])
         for ws in wb.worksheets:
@@ -47,7 +50,11 @@ def normalize_workbook(path:Path,destination:Path)->dict:
                     if isinstance(value,bool) or not isinstance(value,(int,float)) or not float(value).is_integer() or value<0:
                         raise ValueError(f"Valor inválido: {election_date}:{constituency}:{description}")
                     writer.writerow([election_date,int(row[1]),str(row[2]),metric,subject,code,constituency,int(value),national_total]); records+=1
-    if len(elections)!=16: raise ValueError(f"Se esperaban 16 elecciones históricas; recibidas {len(elections)}.")
+    if len(elections)!=16:
+        temporary.unlink(missing_ok=True)
+        raise ValueError(f"Se esperaban 16 elecciones históricas; recibidas {len(elections)}.")
+    temporary.replace(destination)
+    wb.close()
     return {"records":records,"elections":sorted(elections)}
 
 def main():
@@ -66,8 +73,14 @@ def main():
     matrix=load_official_constituency_matrix(source,"2023-07-23")
     if matrix["validation"]["status"]!="PASS": raise SystemExit("BLOCKED: matriz oficial 2023 inválida")
     result={"schema":"ELECTION_2023_CONSTITUENCY_MATRIX_V2","election":2023,"type":"general","source_tier":"OFFICIAL_PRIMARY","source":{"provider":"Ministerio del Interior / Infoelectoral","url":OFFICIAL_URL,"sha256":sha256,"hash_scope":"workbook_bytes"},"data":{"constituencies":matrix["constituencies"]},"validation":matrix["validation"]}
-    out=root/args.canonical_2023; out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    out=root/args.canonical_2023; out.parent.mkdir(parents=True,exist_ok=True)
+    out_tmp=out.with_name(out.name+".tmp")
+    out_tmp.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    out_tmp.replace(out)
     manifest={"schema":"OFFICIAL_INTERIOR_CONGRESS_DATASET_V1","status":"READY","provider":"Ministerio del Interior / Infoelectoral","source_url":OFFICIAL_URL,"input":str(args.input),"sha256":sha256,"hash_scope":"workbook_bytes","bytes":len(payload),"normalized_csv":str(args.output_csv),"canonical_2023":str(args.canonical_2023),"records":normalized["records"],"elections":normalized["elections"],"constituencies":52,"validated_2023":matrix["validation"]}
-    mp=root/args.manifest; mp.parent.mkdir(parents=True,exist_ok=True); mp.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    mp=root/args.manifest; mp.parent.mkdir(parents=True,exist_ok=True)
+    mp_tmp=mp.with_name(mp.name+".tmp")
+    mp_tmp.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    mp_tmp.replace(mp)
     print(json.dumps(manifest,ensure_ascii=False))
 if __name__=="__main__": main()
