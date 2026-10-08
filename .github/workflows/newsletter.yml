@@ -1,0 +1,49 @@
+name: daily-newsletter
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+    inputs:
+      send:
+        description: "Send through configured SMTP"
+        required: false
+        default: "false"
+
+jobs:
+  newsletter:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.lock
+      - name: Generate/send at 08:00 Madrid
+        env:
+          NEWSLETTER_SEND: ${{ github.event.inputs.send || 'false' }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          NEWSLETTER_FROM: ${{ secrets.NEWSLETTER_FROM }}
+          NEWSLETTER_TO: ${{ secrets.NEWSLETTER_TO }}
+        run: |
+          python - <<'PY'
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          from src.email.newsletter import write_newsletter, send_newsletter
+          now = datetime.now(ZoneInfo("Europe/Madrid"))
+          write_newsletter()
+          if now.hour == 8:
+              import os
+              if os.environ.get("NEWSLETTER_SEND","false").lower() == "true":
+                  if not send_newsletter():
+                      raise SystemExit("BLOCKED: newsletter SMTP is not configured")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coalicion-newsletter
+          path: artifacts/newsletter/latest.html
