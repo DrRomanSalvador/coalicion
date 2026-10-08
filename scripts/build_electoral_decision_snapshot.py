@@ -33,7 +33,7 @@ def main() -> int:
     }
     snapshot["limitations"].append("Este snapshot es un baseline histórico 23J; no representa una predicción ni un dato 2026.")
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    OUTPUT.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2, default=str) + "\n", encoding="utf-8")
     print(json.dumps({"status": snapshot["status"], "path": str(OUTPUT.relative_to(ROOT)), "baseline": snapshot["baseline"]}, ensure_ascii=False))
     return 0
 
