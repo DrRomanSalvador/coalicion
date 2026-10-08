@@ -43,6 +43,14 @@ No se inventa territorialidad para candidaturas sin base comparable. Toda imputa
 
 El núcleo neutral está implementado en `src/neutral_coalition.py` y su auditoría estructural en `src/neutral_audit.py`. La matriz canónica 2023 no se fabrica: si `artifacts/data/election_2023_canonical.json` no existe o no cumple la estructura exigida, el sistema permanece **BLOCKED**. El esquema esperado está versionado en `artifacts/data/election_2023_canonical.schema.json`.
 
+## Inteligencia electoral integrada
+
+La bibliografía oficial y de contraste está conectada mediante `config/political_intelligence_sources.json` y `src/political_intelligence.py`.
+
+La capa integra procedencia → evidencia → OOS/calibración → territorio → ley electoral → marginalidad → contrafactuales de coalición → snapshot de decisión, reutilizando los motores canónicos existentes y sin duplicar D'Hondt, predicción ni coaliciones.
+
+Validación estructural: `tests/test_political_intelligence.py` y `.github/workflows/political_intelligence.yml`. La existencia del registro no certifica materialización de datos: `readiness()` falla cerrado hasta disponer de las evidencias físicas requeridas.
+
 ## Estado actual
 - Contrato maestro: incorporado.
 - Magnitudes oficiales 2026: incorporadas.
