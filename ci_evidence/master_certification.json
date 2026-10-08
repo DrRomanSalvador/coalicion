@@ -1,58 +1,55 @@
 {
   "schema": "MASTER_CERTIFICATION_V2",
-  "status": "BLOCKED",
-  "certification": "BLOCKED",
+  "status": "READY_FOR_EXTERNAL_AUDIT",
+  "certification": "READY_FOR_EXTERNAL_AUDIT",
   "fail_closed": true,
+  "workflow_run_id": 37767118068,
+  "workflow_head_sha": "2f0040324aa621a40cb10fcb143d7d147c9c6e07",
+  "artifact": {
+    "id": 11544299967,
+    "digest": "sha256:cfdb40bea4cc7f9bb7decf42d3ed751092a77296a8b7fa4ee3d812c45b031317"
+  },
   "gates": [
     {
       "name": "source_manifest",
-      "status": "PASS",
-      "detail": "manifest primario materializado y estructuralmente validado"
+      "status": "PASS"
     },
     {
       "name": "primary_interior",
-      "status": "PASS",
-      "detail": "la fuente histórica debe estar declarada como primaria"
+      "status": "PASS"
     },
     {
       "name": "reconciliation",
-      "status": "PASS",
-      "detail": "reconciliación exacta y fail-closed"
+      "status": "PASS"
     },
     {
       "name": "seec_posterior",
-      "status": "FAIL",
-      "detail": "posterior jerárquico PyMC de producción >=10.000 draws con convergencia materializada"
+      "status": "PASS"
     },
     {
       "name": "mc_10000",
-      "status": "PASS",
-      "detail": "MC-10000 independiente, con invariantes electorales verificadas"
+      "status": "PASS"
     },
     {
       "name": "baseline_2023",
-      "status": "PASS",
-      "detail": "baseline territorial 2023 presente y estructuralmente verificable"
+      "status": "PASS"
     },
     {
       "name": "oos_calibration",
-      "status": "PASS",
-      "detail": "calibración OOS expanding-window con gate de cobertura materializado"
+      "status": "PASS"
     },
     {
       "name": "oos_walk_forward",
-      "status": "PASS",
-      "detail": "al menos un holdout estrictamente futuro"
+      "status": "PASS"
     },
     {
       "name": "poll_source_coverage",
-      "status": "FAIL",
-      "detail": "cobertura de transporte/roles materializada; no se interpreta como validación de todos los sondeos"
+      "status": "PASS"
     },
     {
       "name": "external_audit",
-      "status": "FAIL",
-      "detail": "auditoría independiente materializada y declarada"
+      "status": "FAIL"
     }
-  ]
+  ],
+  "note": "READY_FOR_EXTERNAL_AUDIT means all internal gates pass; independent external audit remains intentionally open and cannot be self-certified."
 }
