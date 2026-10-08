@@ -1,4 +1,5 @@
 """Operational Telegram interface for the neutral COALICIÓN evidence pipeline."""
+# runtime integration checkpoint: source_status, durable state, Madrid clock, fail-safe audit
 from __future__ import annotations
 
 import json
