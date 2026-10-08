@@ -52,6 +52,7 @@ class Poll:
     pollster: str
     source_id: str
     source_url: str
+    source_tier: str = "SECONDARY_REPLICA"
     parties: dict[str, float]
     fieldwork_start: str | None = None
     fieldwork_end: str | None = None
@@ -84,6 +85,7 @@ def poll_identity(poll: Poll) -> str:
     """Stable study identity independent of mirror/source and published values."""
     payload = {
         "pollster": re.sub(r"\s+", " ", poll.pollster.strip().upper()),
+        "source_tier": poll.source_tier,
         "publication_date": poll.publication_date,
         "fieldwork_start": poll.fieldwork_start,
         "fieldwork_end": poll.fieldwork_end,
@@ -106,8 +108,16 @@ def validate_poll(poll: Poll, *, min_parties: int = 5) -> tuple[bool, str]:
         date.fromisoformat(poll.publication_date)
     except ValueError:
         return False, "INVALID_PUBLICATION_DATE"
-    if not poll.pollster.strip() or not poll.source_id.strip():
+    if not poll.pollster.strip() or not poll.source_id.strip() or not poll.source_url.startswith("https://"):
         return False, "MISSING_SOURCE_METADATA"
+    if poll.source_tier not in {"PRIMARY_CIS", "PRIMARY_POLLSTER", "SECONDARY_REPLICA"}:
+        return False, "INVALID_SOURCE_TIER"
+    if poll.validation == "VALIDATED" and (
+        not poll.fieldwork_start or not poll.fieldwork_end
+        or poll.sample_size is None or poll.sample_size <= 0
+        or not poll.methodology
+    ):
+        return False, "MISSING_METHODOLOGY_OR_FIELDWORK"
     total = sum(values)
     # Primary sources frequently omit minor parties or publish only the
     # principal candidates. Accept incomplete published tables, but only
