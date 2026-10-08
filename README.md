@@ -315,3 +315,19 @@ Commands: `/prediccion`, `/encuestas`, `/estado`, `/ayuda`.
 `/prediccion` shows seats only when `artifacts/decision_snapshot.json` exists and contains an explicit materialized territorial projection; otherwise it reports BLOCKED. `/encuestas` reads validated observations persisted by the poll monitor. Replies are sent to the same Telegram chat ID that issued the command.
 
 The bot does not contain hard-coded polling, seat projections, probabilities, MAE, coverage or political recommendations. Predictive methodology extensions under `src/models/` remain optional candidates and are not promoted to production without the repository's OOS, calibration and leakage gates.
+
+
+## MVP vendible — estado operativo
+
+La superficie no-Telegram del MVP está materializada en:
+
+- src/web/dashboard.py: dashboard Streamlit para usuario político.
+- api.py: estado, encuestas, evidencia y demo JSON.
+- src/email/newsletter.py: newsletter determinista y envío SMTP opcional.
+- render.yaml: API + dashboard con plan gratuito.
+- .github/workflows/mvp-validation.yml: compilación, tests y materialización de newsletter.
+- ci_evidence/mvp_product_checkpoint.json: punto de reanudación.
+
+Regla: el MVP no convierte encuestas nacionales en observaciones territoriales ficticias. Cuando falta evidencia territorial suficiente, muestra NO DISPONIBLE.
+
+Telegram queda deliberadamente fuera de esta iteración para evitar conflictos con el trabajo concurrente del otro agente.
