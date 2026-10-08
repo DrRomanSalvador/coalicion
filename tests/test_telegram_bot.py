@@ -87,8 +87,10 @@ def test_audit_exposes_real_blockers(tmp_path, monkeypatch):
     monkeypatch.setattr(telegram_bot, "EXECUTION", execution)
     monkeypatch.setattr(telegram_bot, "OOS", oos)
     text = telegram_bot.render_command("/auditoria")
-    assert "PRIMARY_BINARY_NOT_REPOSITORY_PINNED" in text
+    assert "Comprobaciones pendientes: 2" in text
+    assert "PRIMARY_BINARY_NOT_REPOSITORY_PINNED" not in text
     assert "NOT_STRICTLY_CERTIFIED" in text
+    assert "Advertencias registradas: 1" in text
 
 
 def test_callback_menu_sends_keyboard(monkeypatch):
@@ -132,7 +134,7 @@ def test_month_situation_centre_is_available():
     text = telegram_bot.render_command("/mes")
     assert "CENTRO DE SITUACIÓN" in text
     assert "29/11/2026" in text
-    assert "PRÓXIMOS HITOS LEGALES" in text
+    assert "PRIORIDADES OPERATIVAS" in text
 
 
 def test_calendar_uses_official_timeline():
