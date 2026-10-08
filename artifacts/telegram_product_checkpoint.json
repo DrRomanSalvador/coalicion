@@ -1,7 +1,7 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "85bcc5e85d0d42058c1dd74b00d47cad8e7f0f5e",
+  "commit": "1bddf8a7e0eb476fe0998f5e0c750c2a3379d40b",
   "updated_at": "2026-10-08T12:42:00+02:00",
   "completed": [
     "source_status real del monitor",
@@ -26,11 +26,9 @@
   },
   "resume_from": "Run Telegram bot service on latest main; require validate + integration evidence PASS; then inspect runtime/persistence and continue product hardening.",
   "last_execution": {
-    "validation_run": 37778857895,
-    "validation_job": 113316553605,
-    "validation": "success",
-    "service_run": 37778716680,
-    "service_status": "cancelled_due_to_validation_gate",
-    "next_gate": "latest service run"
+    "run": 37779334950,
+    "validation_tests": "37 passed",
+    "integration_failure": "fixed verifier import path; fixed optional-state persistence path handling",
+    "next": "await latest service run; require integration PASS, then bot runtime and persistence checks"
   }
 }
