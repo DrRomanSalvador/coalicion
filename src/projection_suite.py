@@ -31,6 +31,15 @@ def project(votes_by_constituency, seats_by_constituency, blank_votes_by_constit
             share_changes=None, turnout_factors=None, special_by_constituency=None):
     """One deterministic projection with national, provincial, party, vote and seat views."""
     special_by_constituency = special_by_constituency or {}
+    if set(votes_by_constituency) != set(seats_by_constituency):
+        raise ValueError("las claves de votos y magnitudes electorales deben coincidir exactamente")
+    if blank_votes_by_constituency is None or set(blank_votes_by_constituency) != set(votes_by_constituency):
+        raise ValueError("los votos en blanco deben estar materializados para cada circunscripción")
+    if set(special_by_constituency) - set(votes_by_constituency):
+        raise ValueError("hay circunscripciones especiales fuera de la matriz")
+    for special in ("Ceuta", "Melilla"):
+        if special in votes_by_constituency and special_by_constituency.get(special) != special:
+            raise ValueError(f"{special} debe usar su regla legal de mayoría simple")
     adjusted = apply_share_swing(
         votes_by_constituency,
         share_changes or {},

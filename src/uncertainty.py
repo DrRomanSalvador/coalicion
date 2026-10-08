@@ -28,6 +28,17 @@ def run_monte_carlo(sampler,seats_by_constituency,blank_votes_by_constituency,sp
         raise ValueError("semilla de simulación inválida")
     if config.rng_algorithm != CANONICAL_RNG:
         raise ValueError(f"algoritmo RNG no implementado: {config.rng_algorithm!r}; se requiere {CANONICAL_RNG}")
+    if set(blank_votes_by_constituency) != set(seats_by_constituency):
+        raise ValueError("los votos en blanco deben estar materializados para cada circunscripción")
+    special_by_constituency = special_by_constituency or {}
+    if set(special_by_constituency) - set(seats_by_constituency):
+        raise ValueError("hay circunscripciones especiales fuera de la matriz")
+    for special in ("Ceuta", "Melilla"):
+        if special in seats_by_constituency and special_by_constituency.get(special) != special:
+            raise ValueError(f"{special} debe usar su regla legal de mayoría simple")
+    for constituency, special in special_by_constituency.items():
+        if special in {"Ceuta", "Melilla"} and constituency != special:
+            raise ValueError(f"la regla especial {special} no puede aplicarse a {constituency}")
     rng=np.random.Generator(np.random.PCG64(config.seed)); draws=[]
     for _ in range(config.iterations):
         scenario=sampler(rng); national={}

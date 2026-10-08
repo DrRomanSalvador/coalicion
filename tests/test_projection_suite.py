@@ -32,3 +32,16 @@ def test_backtest_is_partitionable():
     assert out["status"]=="PASS"
     assert out["vote_mae"]==10
     assert out["seat_mae"]==1
+
+def test_projection_fails_closed_when_blank_votes_are_missing():
+    import pytest
+    votes={"A":{"X":60,"Y":40}}
+    with pytest.raises(ValueError, match="votos en blanco"):
+        project(votes, {"A": 2}, {})
+
+
+def test_projection_requires_legal_special_rule_for_ceuta():
+    import pytest
+    votes={"Ceuta":{"X":60,"Y":40}}
+    with pytest.raises(ValueError, match="Ceuta"):
+        project(votes, {"Ceuta": 1}, {"Ceuta": 0})
