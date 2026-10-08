@@ -60,10 +60,10 @@ a{{color:#111827}}
 </style></head>
 <body><main>
 <div class="card">
-<h1>COALICIÓN</h1><div class="muted">Brief interno · {as_of}</div>
+<h1>COALICIÓN · SALA DE SITUACIÓN</h1><div class="muted">Brief interno · {as_of}</div>
 <p><span class="badge">RADAR: {radar}</span></p>
 </div>
-<div class="card"><h2>Lo que cambió</h2><ol>{changes_html}</ol></div>
+<div class="card"><h2>Encuestadora · Lo que cambió</h2><ol>{changes_html}</ol></div>
 <div class="card"><h2>Preguntas de hoy</h2><ol>{questions_html}</ol></div>
 <div class="card"><h2>Una incertidumbre</h2><ul>{uncertainty_html}</ul></div>
 <div class="card">
