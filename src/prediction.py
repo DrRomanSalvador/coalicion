@@ -27,11 +27,15 @@ def historical_turnout_scenarios(turnouts: list[float], window: int = 5) -> list
         TurnoutScenario("alta", q75, f"percentil_75_últimos_{len(vals)}"),
     ]
 
+def _round_half_up(value: float) -> int:
+    q = Fraction(str(value))
+    return q.numerator // q.denominator if q < 0 else (q.numerator * 2 + q.denominator) // (2 * q.denominator)
+
 def rescale_votes_by_turnout(votes: Mapping[str, int], observed_turnout: float, target_turnout: float) -> dict[str, int]:
     if not 0 < observed_turnout <= 1 or not 0 < target_turnout <= 1:
         raise ValueError("participación fuera de rango")
     factor = Fraction(str(target_turnout)) / Fraction(str(observed_turnout))
-    return {p: max(0, int(round(v * float(factor)))) for p, v in votes.items()}
+    return {p: max(0, _round_half_up(v * float(factor))) for p, v in votes.items()}
 
 def simulate_constituency(votes: Mapping[str, int], seats: int, blank: int, target_turnout_factor: float = 1.0) -> dict:
     adjusted = {p: max(0, int(round(v * target_turnout_factor))) for p, v in votes.items()}
@@ -143,7 +147,7 @@ def apply_share_swing(
             raise ValueError(f"{c}: participación objetivo inválida")
         raw = {p: raw_shares[p] * target_total for p in row}
         floors = {p: int(v) for p, v in raw.items()}
-        remainder = int(round(target_total)) - sum(floors.values())
+        remainder = _round_half_up(target_total) - sum(floors.values())
         order = sorted(raw, key=lambda p: (-(raw[p] - floors[p]), p))
         for p in order[:max(0, remainder)]:
             floors[p] += 1
