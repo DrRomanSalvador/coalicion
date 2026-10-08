@@ -56,3 +56,8 @@ Este paquete reúne en un punto único la evidencia esencial para un auditor. No
 **INTERNAL EVIDENCE: PASS**  
 **TECHNICAL AUDIT PACKAGE: PASS**  
 **INDEPENDENT EXTERNAL SIGN-OFF: OPEN UNTIL THIRD-PARTY REVIEW**
+
+
+## Modo DEMO NO OFICIAL
+
+Esta revisión es un borrador no oficial, no firmado y exclusivamente demostrativo. La falta de auditoría externa NO bloquea los gates técnicos de esta demostración. Si todos pasan, el resultado es PASS/SUCCESS para la demo. Queda expresamente pendiente la auditoría y certificación externa independiente obligatoria para cualquier validación oficial.
