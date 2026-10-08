@@ -1,0 +1,46 @@
+{
+  "schema": "COALICION_OPERATIONAL_STATE_V1",
+  "commit": "eeb019bb997ed94f84d2a0a82ebf632ff366dfb0",
+  "mission_current": "P0_RUNTIME_179_AGENTS",
+  "tasks_completed": [
+    "Queen Gate ejecutado",
+    "179 worker jobs materializados",
+    "runner estable verificado",
+    "fallo NameError del manejador de evidencia corregido",
+    "workflow preparado para secrets.HF_TOKEN o secrets.Reina"
+  ],
+  "tasks_blocked": [
+    "179 inferencias IA reales: bloqueado por secreto HF_TOKEN/Reina ausente en GitHub Actions",
+    "cierre 179/179 PASS",
+    "persistencia de operational_state generada por el workflow"
+  ],
+  "tests": [
+    {
+      "name": "Queen Gate",
+      "run_id": 37814169610,
+      "result": "PASS"
+    },
+    {
+      "name": "worker matrix",
+      "run_id": 37814169610,
+      "result": "BLOCKED",
+      "jobs": 180,
+      "queen_success": 1,
+      "worker_failures_observed": 99,
+      "cause": "HF_TOKEN vacío"
+    },
+    {
+      "name": "HF Inference authentication",
+      "result": "BLOCKED",
+      "evidence": "Actions log muestra HF_TOKEN vacío"
+    }
+  ],
+  "workflow_run_id": 37814169610,
+  "workflow_status": "BLOCKED",
+  "generated_artifacts": [
+    "colmena-queen-approval",
+    "worker-evidence-M0001...M0179 (partial persisted by failed run)"
+  ],
+  "timestamp_europe_madrid": "2026-10-08T19:24:00+02:00",
+  "fail_closed": true
+}
