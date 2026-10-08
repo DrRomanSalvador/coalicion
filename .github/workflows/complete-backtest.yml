@@ -3,10 +3,25 @@ name: Complete historical backtest
 on:
   push:
     branches: [main]
+    paths:
+      - "scripts/backtest_2023_baseline.py"
+      - "scripts/run_complete_backtest.py"
+      - "scripts/complete_historical_calibration.py"
+      - "scripts/run_full_oos.py"
+      - "src/electoral.py"
+      - "src/coalition.py"
+      - "data/resultados_oficiales_2004_2023.csv"
+      - "artifacts/data/cis_historical_2004_2023.csv"
+      - "data/2023_circunscripciones_oficiales.csv"
+      - ".github/workflows/complete-backtest.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: complete-backtest-main
+  cancel-in-progress: true
 
 jobs:
   backtest:
