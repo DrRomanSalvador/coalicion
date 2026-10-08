@@ -37,3 +37,5 @@ jobs:
           python -m py_compile scripts/queen_bee.py scripts/queen_bee_v2.py scripts/queen_bee_v3.py scripts/worker_bee.py scripts/product_status.py src/neutral_coalition.py
       - name: Validate neutral contracts
         run: python -m pytest -q tests/test_neutral_coalition.py tests/test_neutral_audit.py tests/test_electoral.py tests/test_decision.py
+
+# activation-touch: 2026-10-08 — ejecución explícita de la abeja reina/colmena
