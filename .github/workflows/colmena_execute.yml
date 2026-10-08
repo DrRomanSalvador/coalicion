@@ -68,7 +68,7 @@ jobs:
           MISSION_ID: ${{ matrix.mission_id }}
           COLMENA_AGENT_PROVIDER: huggingface-inference-providers
           COLMENA_AI_AGENT_EXECUTION: "true"
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN || secrets.Reina }}
           COLMENA_AGENT_MODEL: openai/gpt-oss-120b:fastest
           COLMENA_AGENT_EXECUTION_ID: ${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.mission_id }}
         run: |
