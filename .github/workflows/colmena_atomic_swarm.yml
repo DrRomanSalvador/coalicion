@@ -15,7 +15,7 @@ permissions:
 
 concurrency:
   group: colmena-atomic-swarm
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   queen:
