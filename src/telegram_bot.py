@@ -1254,7 +1254,7 @@ def _territory_text() -> str:
         f"Observaciones territoriales explícitas: {explicit}\n"
         "Cobertura actual: Catalunya, Comunitat Valenciana y Asturias (elecciones autonómicas).\n"
         "Cobertura general 2026 por circunscripción: NO DISPONIBLE.\n\n"
-        "Los datos territoriales disponibles no se convierten automáticamente en reparto provincial de las generales."
+        "La distribución territorial explícita disponible no equivale a una distribución provincial de las generales y no se convierte automáticamente desde porcentajes nacionales."
     )
 
 
