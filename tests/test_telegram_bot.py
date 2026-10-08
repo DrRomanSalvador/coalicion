@@ -329,7 +329,8 @@ def test_interactive_comparison_periods(tmp_path, monkeypatch):
 
 
 def test_territory_navigation_is_hierarchical(tmp_path, monkeypatch):
-    matrix = tmp_path / "election_2023_canonical.json"
+    matrix = tmp_path / "artifacts" / "data" / "election_2023_canonical.json"
+    matrix.parent.mkdir(parents=True)
     matrix.write_text(json.dumps({"data": {"constituencies": {
         "Madrid": {"seats": 37, "valid_votes": 1000, "parties": {"PP": 500, "PSOE": 400}}
     }}}), encoding="utf-8")
@@ -341,6 +342,7 @@ def test_territory_navigation_is_hierarchical(tmp_path, monkeypatch):
 
 
 def test_inline_callback_edits_inline_message(monkeypatch):
+    telegram_bot._RATE.clear()
     calls = []
     monkeypatch.setattr(telegram_bot, "_api", lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True})
     update = {"update_id": 9, "callback_query": {
