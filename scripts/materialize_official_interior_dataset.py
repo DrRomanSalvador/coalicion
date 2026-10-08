@@ -19,8 +19,12 @@ def _constituency_columns(headers):
         if not isinstance(value,str) or " - " not in value: continue
         prefix,name=value.split(" - ",1)
         if prefix.isdigit() and 1<=int(prefix)<=52: out[index]=(int(prefix),name.strip())
-    if {code for code,_ in out.values()}!=set(range(1,53)):
-        raise ValueError("El workbook oficial no contiene exactamente 52 circunscripciones.")
+    codes=[code for code,_ in out.values()]
+    names=[name for _,name in out.values()]
+    if len(codes)!=52 or set(codes)!=set(range(1,53)):
+        raise ValueError("El workbook oficial no contiene exactamente una columna por cada una de las 52 circunscripciones.")
+    if len(set(names))!=52 or any(not name for name in names):
+        raise ValueError("Nombres oficiales de circunscripción vacíos o duplicados.")
     return out
 
 def normalize_workbook(path:Path,destination:Path)->dict:
@@ -44,13 +48,19 @@ def normalize_workbook(path:Path,destination:Path)->dict:
                     if description.startswith("Votos (") and description.endswith(")"): metric,subject="votes",description[7:-1]
                     elif description.startswith("Escaños (") and description.endswith(")"): metric,subject="seats",description[9:-1]
                     else: metric,subject=description.lower().replace(" ","_"),""
-                    national_total="" if row[56] is None else int(row[56])
+                    raw_code=row[1]
+                    if isinstance(raw_code,bool) or not isinstance(raw_code,(int,float)) or not float(raw_code).is_integer() or raw_code<1:
+                        raise ValueError(f"Código electoral inválido: {election_date}:{raw_code!r}")
+                    raw_national=row[56]
+                    if raw_national is not None and (isinstance(raw_national,bool) or not isinstance(raw_national,(int,float)) or not float(raw_national).is_integer() or raw_national<0):
+                        raise ValueError(f"Total nacional inválido: {election_date}:{description}:{raw_national!r}")
+                    national_total="" if raw_national is None else int(raw_national)
                     for index,(code,constituency) in cols.items():
                         value=row[index] if index<len(row) else None
                         if value is None: continue
                         if isinstance(value,bool) or not isinstance(value,(int,float)) or not float(value).is_integer() or value<0:
                             raise ValueError(f"Valor inválido: {election_date}:{constituency}:{description}")
-                        writer.writerow([election_date,int(row[1]),str(row[2]),metric,subject,code,constituency,int(value),national_total]); records+=1
+                        writer.writerow([election_date,int(raw_code),str(row[2]),metric,subject,code,constituency,int(value),national_total]); records+=1
         if len(elections)!=16:
             raise ValueError(f"Se esperaban 16 elecciones históricas; recibidas {len(elections)}.")
         temporary.replace(destination)
