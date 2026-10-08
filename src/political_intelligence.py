@@ -125,6 +125,15 @@ COMPONENTS: dict[str, str] = {
     "poll_analytics": "src/poll_analytics.py",
     "evidence_certificate": "src/evidence_certificate.py",
     "reproducibility": "src/reproducibility_contract.py",
+    "historical_validator": "scripts/validate_historical_data.py",
+    "historical_oos": "scripts/run_full_oos.py",
+    "historical_calibration": "scripts/complete_historical_calibration.py",
+    "seec_production": "scripts/run_seec_production.py",
+    "master_certification": "scripts/master_certification.py",
+    "operational_briefing": "src/operational_briefing.py",
+    "telegram_bot": "src/telegram_bot.py",
+    "telegram_notifier": "src/telegram_notifier.py",
+    "miniapp": "web/telegram/index.html",
 }
 
 
