@@ -18,9 +18,9 @@
     "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH"
   },
   "blocking_errors": [],
-  "last_action": "Perfeccionar memoria/reinvocación de la Colmena y materializar el gate de no nueva ejecución",
-  "last_action_result": "COLMENA_REINVOCATION_HARDENED_NO_NEW_WORKFLOW_ACTIVATION",
-  "next_single_action": "Coordinar y reconciliar el estado persistido de las 179 misiones, identificar la primera limitación no-PASS y preparar su resolución sin activar ningún workflow nuevo",
+  "last_action": "Activar y verificar runtime IA de 179 agentes",
+  "last_action_result": "RUNTIME_VALIDATION_QUEUED",
+  "next_single_action": "Esperar y verificar la ejecución única de 179 agentes; no declarar PASS sin evidencia",
   "certification": "READY_FOR_EXTERNAL_AUDIT",
   "data_source": "PRIMARY_INTERIOR_SUPPLIED_VALIDATED",
   "primary_binary": "PINNED_BY_SHA256",
@@ -66,15 +66,16 @@
     "POLL_SOURCE_COVERAGE",
     "CI_MASTER_CERTIFICATION"
   ],
-  "colmena_mode": "PAUSED_FOR_COORDINATION",
-  "execution_gate": "NO_NEW_WORKFLOW_ACTIVATION",
+  "colmena_mode": "ACTIVE_FOR_RUNTIME_VALIDATION",
+  "execution_gate": "ALLOW_SINGLE_RUNTIME_VALIDATION",
   "final_test_gate": "BLOCKED_UNTIL_179_MISSIONS_RESOLVED",
   "reinvocation": {
     "entrypoint": "docs/INVOCACION_COLMENA.md",
     "machine_gate": "src/colmena_resume.py",
     "source_of_truth": "GitHub",
     "recover_from": "state+mission_control+queen_state+queen_approval+worker_evidence+closure",
-    "chat_is_not_state": true
+    "chat_is_not_state": true,
+    "coordination_rule": "Single runtime validation is authorized; repository writes remain Queen-controlled; no certification without persistent evidence."
   },
   "coordination_rule": "Read/recover/coordinate is allowed; do not activate new workflows until the Queen has completed coordination of all 179 missions."
 }
