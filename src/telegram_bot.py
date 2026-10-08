@@ -1362,9 +1362,10 @@ def _inline_query(update: dict[str, Any]) -> None:
         "title": "COALICIÓN · Sala de Situación",
         "description": "Datos, cambios, plazos y evidencia verificable",
         "input_message_content": {"message_text": _public_text(text)},
-        "reply_markup": {"inline_keyboard": [[
-            {"text": "🧭 Abrir Sala", "callback_data": "cmd:/briefing"}
-        ]]},
+        "reply_markup": {"inline_keyboard": [
+            [{"text": "🧭 Abrir Sala", "callback_data": "cmd:/briefing"}],
+            [{"text": "🔎 Evidencia", "callback_data": "cmd:/evidencia"}]
+        ]},
     }]
     _api("answerInlineQuery", json={"inline_query_id": inline_id, "results": results, "cache_time": 0, "is_personal": True})
 
@@ -1402,6 +1403,22 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
             _answer_callback(str(callback["id"]))
         message = callback.get("message") or {}
         message_id = message.get("message_id")
+        inline_message_id = callback.get("inline_message_id")
+        if not chat_id and inline_message_id:
+            target = _callback_command(data)
+            if target:
+                target = target.split("@", 1)[0].strip().lower()
+                inline_text = render_command(target)
+                try:
+                    _api("editMessageText", json={
+                        "inline_message_id": str(inline_message_id),
+                        "text": _public_text(inline_text),
+                        "reply_markup": _navigation_markup(target),
+                    })
+                except TelegramBotError:
+                    pass
+                _audit(update, "inline_callback", data, inline_text)
+            return next_offset
         if chat_id and isinstance(message_id, int):
             key = _state_key(update)
             state = _get_user_navigation(key)
@@ -1553,7 +1570,7 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
     return next_offset
 
 def poll_once(offset: int | None = None) -> int | None:
-    params: dict[str, Any] = {"timeout": 0, "allowed_updates": ["message", "callback_query"]}
+    params: dict[str, Any] = {"timeout": 0, "allowed_updates": ["message", "callback_query", "inline_query"]}
     if offset is not None:
         params["offset"] = offset
     payload = _api("getUpdates", params=params)
