@@ -3,7 +3,7 @@ from src.decision import coalition_result,apply_absolute_shift,Scenario,validate
 
 def base():
     return ({"A":{"X":600,"Y":250,"Z":150},"B":{"X":500,"Y":300,"Z":200}},
-            {"A":3,"B":3},{"A":1000,"B":1000},{},{})
+            {"A":3,"B":3},{"A":1000,"B":1000},{},{"A":0,"B":0})
 def test_coalition_reallocates():
     v,s,valid,special,blank=base()
     r=coalition_result(v,s,valid,("X","Y"),special,blank)
