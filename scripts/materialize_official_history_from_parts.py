@@ -42,9 +42,12 @@ def main():
     for e,rows_e in by_e.items():
         if len({r[2] for r in rows_e})!=52: raise RuntimeError(f"{e}: expected 52 constituencies")
         if sum(int(r[5]) for r in rows_e)!=350: raise RuntimeError(f"{e}: expected 350 seats")
-    OUT.parent.mkdir(parents=True,exist_ok=True)
-    with OUT.open("w",encoding="utf-8",newline="") as fh:
-        w=csv.writer(fh); w.writerow(header); w.writerows(rows)
+    # Preserve the supplied official partition bytes exactly. Re-serializing
+    # parsed CSV rows can change quoting/line endings and therefore the
+    # cryptographic fingerprint even when the logical rows are identical.
+    with OUT.open("wb") as fh:
+        for p in parts:
+            fh.write(p.read_bytes())
     derived_bytes=OUT.stat().st_size
     sha=hashlib.sha256(OUT.read_bytes()).hexdigest()
     if derived_bytes != EXPECTED_DERIVED_BYTES or sha != EXPECTED_DERIVED_SHA256:
