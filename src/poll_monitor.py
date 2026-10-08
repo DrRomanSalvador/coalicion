@@ -470,6 +470,8 @@ class PollMonitor:
                 self.state.setdefault("source_status", {})[source["id"]] = {
                     "status": "OK", "format": source.get("format", "page"),
                     "coverage_role": source.get("coverage_role", "primary"),
+                    "source_tier": source.get("source_tier", "UNCLASSIFIED"),
+                    "source_url": source.get("url"),
                     "checked_at": datetime.now(timezone.utc).isoformat(),
                 }
                 p, d = monitor.parse(body)
@@ -477,6 +479,13 @@ class PollMonitor:
                 for poll in p:
                     object.__setattr__(poll, "captured_at", captured_at)
                     object.__setattr__(poll, "source_content_hash", digest)
+                    production_ok, _ = validate_poll_for_production(poll)
+                    if production_ok:
+                        object.__setattr__(poll, "validation", "PRIMARY_VERIFIED")
+                    elif poll.source_tier == "SECONDARY_REPLICA":
+                        object.__setattr__(poll, "validation", "SECONDARY_REPLICA")
+                    else:
+                        object.__setattr__(poll, "validation", "STRUCTURALLY_VALIDATED")
                 polls.extend(p)
                 for x in d:
                     x["source_hash"] = digest
