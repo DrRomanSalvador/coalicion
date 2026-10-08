@@ -1,0 +1,46 @@
+name: phase2-product
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/models/**"
+      - "src/pipeline/**"
+      - "src/trailability/**"
+      - "src/reproducibility/**"
+      - "src/telegram_bot.py"
+      - "tests/test_*phase2*.py"
+      - "tests/test_territorial_prediction_2026.py"
+      - "data/surveys/current_2026/**"
+      - "scripts/materialize_phase2_demo.py"
+      - "docs/DEMO_TODAY.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  phase2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install locked dependencies
+        run: pip install -r requirements.lock
+      - name: Materialize demo
+        run: python scripts/materialize_phase2_demo.py
+      - name: Verify Phase 2
+        run: |
+          python -m pytest -q tests/test_trailability.py tests/test_full_pipeline.py tests/test_reproducibility_phase2.py tests/test_territorial_prediction_2026.py
+          python -m pytest -q tests/test_telegram_bot.py tests/test_telegram_integration.py
+      - name: Upload demo evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: coalicion-phase2-demo
+          path: |
+            artifacts/territorial_prediction_20261008.json
+            data/surveys/current_2026/current_national.json
+            ci_evidence/phase2_master_checkpoint.json
+            ci_evidence/phase2_architecture_inventory.json
