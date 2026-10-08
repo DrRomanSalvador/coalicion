@@ -17,6 +17,8 @@ on:
       - "docker-compose.yml"
       - "src/telegram_bot.py"
       - "tests/test_*phase2*.py"
+      - "tests/test_telegram_evidence.py"
+      - "tests/test_territorial_data_collection.py"
       - "tests/test_territorial_prediction_2026.py"
       - "data/surveys/current_2026/**"
       - "data/surveys/october_2026/territorial/**"
