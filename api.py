@@ -108,7 +108,30 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, payload)
         elif path == "/encuestas":
             payload = _json(ROOT / "artifacts/estimation/observations.json")
+            if not payload.get("polls"):
+                current = _json(ROOT / "data/surveys/current_2026/current_national.json")
+                payload = {
+                    "schema": current.get("schema", "CURRENT_NATIONAL_SURVEY_REGISTRY_V1"),
+                    "as_of": current.get("as_of"),
+                    "surveys": current.get("surveys", []),
+                    "evidence_policy": current.get("policy", {}),
+                }
             self._send(200, {"status": "OK", **payload})
+        elif path == "/prediccion-demo":
+            payload = _json(ROOT / "artifacts/territorial_prediction_20261008.json")
+            if not payload:
+                self._send(404, {"status": "NOT_FOUND", "reason": "Demo prediction is not materialized"})
+            else:
+                self._send(200, payload)
+        elif path == "/demo":
+            current = _json(ROOT / "data/surveys/current_2026/current_national.json")
+            prediction = _json(ROOT / "artifacts/territorial_prediction_20261008.json")
+            self._send(200, {
+                "status": "DEMO_NON_OFFICIAL",
+                "surveys": current,
+                "territorial_prediction": prediction,
+                "external_audit_required": True,
+            })
         elif path == "/evidencia":
             payload = {
                 "seec": _json(ROOT / "ci_evidence/seec_production.json"),
