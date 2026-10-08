@@ -24,7 +24,7 @@ EXPECTED_DATES = {
 RESULT_COLUMNS = {
     "election", "fecha_eleccion", "circunscripcion", "partido", "votos", "escaños", "fuente", "nivel_fuente",
 }
-POLL_COLUMNS = {
+EXPECTED_ROWS = 50700\nPOLL_COLUMNS = {
     "fecha_encuesta", "partido", "estimacion_voto", "tipo_encuesta",
     "encuesta", "fuente", "nivel_fuente", "metodo", "codigo_estudio",
     "variable", "sample_size",
@@ -88,7 +88,7 @@ def main() -> None:
     require(elections == set(EXPECTED_DATES), f"election scope mismatch: {elections}")
     require("2023N" not in elections, "invented 2023N election detected")
     require(len(erows) >= 50000, f"official dataset row floor not met: {len(erows)}")
-    require(len(erows) == 50700, f"official dataset must contain exactly 50700 rows: {len(erows)}")
+    require(len(erows) == EXPECTED_ROWS, f"official dataset must contain exactly {EXPECTED_ROWS} rows: {len(erows)}")
     require(len(prows) >= 1000, f"CIS minimum not met: {len(prows)} rows")
 
     require(all(r["nivel_fuente"] in {"PRIMARY_OFFICIAL", "PRIMARY_INTERIOR"} for r in erows), "non-primary official source row")
