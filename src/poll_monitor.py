@@ -59,6 +59,8 @@ class Poll:
     methodology: str | None = None
     territorial: dict[str, dict[str, int]] | None = None
     validation: str = "VALIDATED"
+    captured_at: str | None = None
+    source_content_hash: str | None = None
 
 def normalize_party_name(name: str) -> str:
     key = re.sub(r"\s+", " ", str(name).strip().upper())
@@ -71,6 +73,7 @@ def poll_hash(poll: Poll) -> str:
         "source_url": poll.source_url, "parties": dict(sorted(poll.parties.items())),
         "fieldwork_start": poll.fieldwork_start, "fieldwork_end": poll.fieldwork_end,
         "sample_size": poll.sample_size, "methodology": poll.methodology, "territorial": poll.territorial,
+        "captured_at": poll.captured_at, "source_content_hash": poll.source_content_hash,
     }
     return hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True,
                                      separators=(",", ":")).encode()).hexdigest()
