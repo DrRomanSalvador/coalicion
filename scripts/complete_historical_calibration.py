@@ -122,6 +122,18 @@ def main():
             "nominal": 0.90,
         }
 
+    base_coverage = coverage["BASE"]["mean_coverage"]
+    if base_coverage is None or not math.isfinite(base_coverage) or base_coverage < 0.85:
+        raise RuntimeError(
+            f"OOS 90% interval coverage gate failed: {base_coverage!r} < 0.85"
+        )
+    for model_name, model_metrics in metrics.items():
+        for metric_name, value in model_metrics.items():
+            if not math.isfinite(float(value)):
+                raise RuntimeError(
+                    f"non-finite OOS metric: {model_name}.{metric_name}={value!r}"
+                )
+
     out = {
         "schema": "HISTORICAL_OOS_CALIBRATION_V2",
         "status": "PASS",
