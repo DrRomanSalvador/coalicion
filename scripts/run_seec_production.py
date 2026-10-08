@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Production SEEC compositional-temporal posterior sampler."""
 from __future__ import annotations
-import argparse, json
+import argparse, json, hashlib
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -29,11 +29,20 @@ def main():
         import pymc as pm
     except Exception as exc:
         raise SystemExit(f"BLOCKED: PyMC production dependency unavailable: {exc}")
-    df=pd.read_csv(args.input)
+    input_path=Path(args.input)
+    if not input_path.is_file():
+        raise SystemExit(f"BLOCKED: SEEC input file not found: {input_path}")
+    input_sha256=hashlib.sha256(input_path.read_bytes()).hexdigest()
+    df=pd.read_csv(input_path)
     recent=Path("artifacts/data/cis_recent_2024_2026.csv")
+    recent_sha256=None
     if recent.is_file():
+        recent_sha256=hashlib.sha256(recent.read_bytes()).hexdigest()
         extra=pd.read_csv(recent)
         df=pd.concat([df,extra],ignore_index=True)
+    script_sha256=hashlib.sha256(Path(__file__).resolve().read_bytes()).hexdigest()
+    contract_path=Path(__file__).resolve().parents[1]/"src"/"reproducibility_contract.py"
+    contract_sha256=hashlib.sha256(contract_path.read_bytes()).hexdigest()
     required={"study_id","study_date","party","cis_estimate_pct"}
     missing=required-set(df.columns)
     if missing: raise SystemExit(f"BLOCKED: missing columns: {sorted(missing)}")
@@ -118,8 +127,12 @@ def main():
         "model":"hierarchical_compositional_temporal_dirichlet_logistic_normal",
         "temporal_time_scale":"sqrt(elapsed_days / median_positive_field_date_gap_days)",
         "median_positive_field_date_gap_days":median_gap,
-        "input":args.input,
-        "supplemental_input":"artifacts/data/cis_recent_2024_2026.csv" if recent.is_file() else None,
+        "input":str(input_path),
+        "input_sha256":input_sha256,
+        "supplemental_input":str(recent) if recent.is_file() else None,
+        "supplemental_input_sha256":recent_sha256,
+        "script_sha256":script_sha256,
+        "reproducibility_contract_sha256":contract_sha256,
         "studies":len(studies),
         "parties":len(parties),
         "chains":args.chains,
