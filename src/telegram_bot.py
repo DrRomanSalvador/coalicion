@@ -147,9 +147,9 @@ def _public_text(text: str) -> str:
 
 
 def _answer_callback(callback_id: str) -> None:
-    """Acknowledge an inline-button callback without exposing transport details."""
+    """Acknowledge an inline-button callback and expose a short loading state."""
     try:
-        _api("answerCallbackQuery", json={"callback_query_id": callback_id})
+        _api("answerCallbackQuery", json={"callback_query_id": callback_id, "text": "🔄 Actualizando…", "show_alert": False})
     except TelegramBotError:
         pass
 
