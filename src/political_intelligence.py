@@ -108,6 +108,94 @@ def readiness(*, require_historical: bool = True, require_candidacies: bool = Tr
     }
 
 
+
+COMPONENTS: dict[str, str] = {
+    "source_registry": "config/political_intelligence_sources.json",
+    "canonical_data": "artifacts/data/election_2023_canonical.json",
+    "electoral_engine": "src/electoral.py",
+    "prediction": "src/prediction.py",
+    "oos": "src/oos_pipeline.py",
+    "calibration": "src/probabilistic_calibration.py",
+    "uncertainty": "src/uncertainty.py",
+    "marginality": "src/marginality.py",
+    "coalition": "src/coalition.py",
+    "decision": "src/rapid_decision_center.py",
+    "electoral_intelligence": "src/electoral_intelligence.py",
+    "poll_monitor": "src/poll_monitor.py",
+    "poll_analytics": "src/poll_analytics.py",
+    "evidence_certificate": "src/evidence_certificate.py",
+    "reproducibility": "src/reproducibility_contract.py",
+}
+
+
+def _path_status(relative: str) -> dict[str, Any]:
+    path = ROOT / relative
+    if path.is_file():
+        raw = path.read_bytes()
+        return {"state": "PRESENT", "path": relative, "bytes": len(raw), "sha256": sha256(raw).hexdigest()}
+    if path.is_dir():
+        files = sorted(p for p in path.rglob("*") if p.is_file())
+        return {
+            "state": "PRESENT" if files else "EMPTY",
+            "path": relative,
+            "file_count": len(files),
+            "bytes": sum(p.stat().st_size for p in files),
+        }
+    return {"state": "MISSING", "path": relative}
+
+
+def component_status() -> dict[str, Any]:
+    """Reporta el ensamblaje real del sistema sin ejecutar inferencia ni inventar evidencia."""
+    components = {name: _path_status(path) for name, path in COMPONENTS.items()}
+    return {
+        "schema": "COALICION_INTELLIGENCE_COMPONENT_STATUS_V1",
+        "components": components,
+        "all_code_components_present": all(x["state"] == "PRESENT" for x in components.values()),
+    }
+
+
+def intelligence_snapshot(*, as_of: str | date) -> dict[str, Any]:
+    """Contrato único de estado: fuentes → evidencia → modelos → decisión → auditoría."""
+    if isinstance(as_of, str):
+        as_of = date.fromisoformat(as_of)
+    registry = validate_registry()
+    readiness_state = readiness()
+    graph = build_evidence_graph(as_of=as_of)
+    components = component_status()
+    gates = {
+        "registry": registry["status"] == "PASS",
+        "evidence_materialized": not readiness_state["blockers"],
+        "code_assembly": components["all_code_components_present"],
+        "fail_closed": graph["policy"]["fail_closed"],
+    }
+    status = "READY_FOR_EXECUTION" if all(gates.values()) else "BLOCKED"
+    payload = {
+        "schema": "COALICION_POLITICAL_INTELLIGENCE_SNAPSHOT_V1",
+        "as_of": as_of.isoformat(),
+        "status": status,
+        "gates": gates,
+        "registry": registry,
+        "readiness": readiness_state,
+        "components": components,
+        "evidence_graph_hash": graph["hash"],
+        "pipeline": [
+            "official_sources", "ingestion", "validation", "oos", "calibration",
+            "prediction", "territorialization", "seats", "uncertainty",
+            "marginality", "coalition_counterfactuals", "decision_snapshot",
+            "monitoring", "audit", "reproducibility",
+        ],
+        "policy": {
+            "neutral": True,
+            "descriptive_only": True,
+            "no_persuasion": True,
+            "no_microtargeting": True,
+            "no_hidden_imputation": True,
+            "no_certification_without_evidence": True,
+        },
+    }
+    payload["hash"] = _hash(payload)
+    return payload
+
 def build_evidence_graph(*, as_of: str | date) -> dict[str, Any]:
     if isinstance(as_of, str):
         as_of = date.fromisoformat(as_of)
