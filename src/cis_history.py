@@ -29,6 +29,8 @@ REQUIRED = {
     "vote_direct_pct","cis_estimate_pct","seat_range","source_url","source_type",
 }
 ELECTIONS = ("2004","2008","2011","2015","2016","2019-04","2019-11","2023")
+EXPECTED_ROWS = 110
+EXPECTED_SHA256 = "76ad123fa60eb1b73dd9c4c559d358ad0705f7122cf694c2e5b9bfec11aa16e3"
 
 def load(path: str | Path = DEFAULT_PATH) -> list[CISObservation]:
     p = Path(path)
@@ -64,6 +66,11 @@ def load(path: str | Path = DEFAULT_PATH) -> list[CISObservation]:
             ))
     if not rows:
         raise ValueError("CIS historical dataset is empty")
+    if len(rows) != EXPECTED_ROWS:
+        raise ValueError(f"CIS historical row-count mismatch: {len(rows)}")
+    digest = hashlib.sha256(p.read_bytes()).hexdigest()
+    if digest != EXPECTED_SHA256:
+        raise ValueError(f"CIS historical SHA-256 mismatch: {digest}")
     if set(r.election for r in rows) != set(ELECTIONS):
         raise ValueError("CIS historical election coverage is incomplete")
     return rows
