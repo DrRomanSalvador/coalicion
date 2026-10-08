@@ -1,0 +1,16 @@
+services:
+  api:
+    build: .
+    environment:
+      COALICION_SERVICE: api
+      COALICION_API_HOST: 0.0.0.0
+      COALICION_API_PORT: 8080
+      COALICION_API_KEY: ${COALICION_API_KEY:?set COALICION_API_KEY}
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
