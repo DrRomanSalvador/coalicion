@@ -349,3 +349,12 @@ def test_inline_callback_edits_inline_message(monkeypatch):
     }}
     telegram_bot._handle_update(update, None)
     assert any(method == "editMessageText" and kwargs["json"]["inline_message_id"] == "abc" for method, kwargs in calls)
+
+
+
+def test_export_text_dispatches_document(monkeypatch):
+    calls = []
+    monkeypatch.setattr(telegram_bot, "_export_payload", lambda kind: (b"data", "x.json", "application/json"))
+    monkeypatch.setattr(telegram_bot, "_send_document", lambda *args: calls.append(args))
+    telegram_bot._export_text(123, "polls")
+    assert calls == [(123, b"data", "x.json", "application/json")]
