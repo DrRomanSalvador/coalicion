@@ -17,7 +17,7 @@ def command_for(title: str):
     if "muestreo pymc" in t or "seec producción" in t or "seec producción genuino" in t:
         return [sys.executable, "scripts/run_seec_production.py"], "SEEC_REAL_SAMPLING"
     if "calibración probabilística" in t:
-        candidate = ROOT / "data/encuestas_historicas_2004_2023.csv"
+        candidate = ROOT / "artifacts/data/cis_historical_2004_2023.csv"
         if not candidate.is_file():
             return None, "CALIBRATION_REQUIRES_MATERIALIZED_INPUT"
         return [sys.executable, "scripts/complete_historical_calibration.py", "--input", str(candidate), "--output", "ci_evidence/oos_calibration.json"], "PROBABILISTIC_CALIBRATION"
