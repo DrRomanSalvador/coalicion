@@ -71,7 +71,7 @@ def poll_hash(poll: Poll) -> str:
     payload = {
         "poll_id": poll.poll_id, "publication_date": poll.publication_date,
         "pollster": poll.pollster, "source_id": poll.source_id,
-        "source_url": poll.source_url, "parties": dict(sorted(poll.parties.items())),
+        "source_url": poll.source_url, "source_tier": poll.source_tier, "parties": dict(sorted(poll.parties.items())),
         "fieldwork_start": poll.fieldwork_start, "fieldwork_end": poll.fieldwork_end,
         "sample_size": poll.sample_size, "methodology": poll.methodology, "territorial": poll.territorial,
     }
