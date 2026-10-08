@@ -19,8 +19,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: situation-brief
-  cancel-in-progress: false
+  group: situation-brief-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   generate:
@@ -35,9 +35,13 @@ jobs:
           python-version: "3.12"
 
       - name: Generate situation state
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: python scripts/generate_situation_state.py
 
       - name: Generate review briefing
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: python -m src.email.newsletter
 
       - name: Verify deterministic contracts
