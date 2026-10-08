@@ -13,6 +13,9 @@ on:
       - "tests/test_territorial_prediction_2026.py"
       - "data/surveys/current_2026/**"
       - "scripts/materialize_phase2_demo.py"
+      - "scripts/verify_phase2_priority1.py"
+      - "tests/test_phase2_priority1.py"
+      - "artifacts/phase2_priority1_status.json"
       - "docs/DEMO_TODAY.md"
   workflow_dispatch:
 
@@ -33,7 +36,7 @@ jobs:
         run: python scripts/materialize_phase2_demo.py
       - name: Verify Phase 2
         run: |
-          python -m pytest -q tests/test_trailability.py tests/test_full_pipeline.py tests/test_reproducibility_phase2.py tests/test_territorial_prediction_2026.py
+          python -m pytest -q tests/test_trailability.py tests/test_full_pipeline.py tests/test_reproducibility_phase2.py tests/test_territorial_prediction_2026.py tests/test_phase2_priority1.py
           python -m pytest -q tests/test_telegram_bot.py tests/test_telegram_integration.py
       - name: Upload demo evidence
         uses: actions/upload-artifact@v4
@@ -44,3 +47,4 @@ jobs:
             data/surveys/current_2026/current_national.json
             ci_evidence/phase2_master_checkpoint.json
             ci_evidence/phase2_architecture_inventory.json
+            artifacts/phase2_priority1_status.json
