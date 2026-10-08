@@ -47,7 +47,7 @@ def certify(root="."):
     if posterior.exists():
         try:
             px=json.loads(posterior.read_text(encoding="utf-8"))
-            posterior_ok=px.get("status") in {"PASS","CERTIFIED"} and int(px.get("total_posterior_draws", px.get("draws",0)))>=10000
+            posterior_ok=(px.get("status") in {"PASS","CERTIFIED"} and px.get("schema")=="SEEC_PRODUCTION_POSTERIOR_V2" and px.get("model")=="hierarchical_compositional_temporal_dirichlet_logistic_normal" and int(px.get("total_posterior_draws",0))>=10000)
         except Exception:
             posterior_ok=False
     gates.append(_gate("seec_posterior", posterior_ok,
