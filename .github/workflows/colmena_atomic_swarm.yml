@@ -156,33 +156,26 @@ jobs:
       - uses: actions/download-artifact@v4
         if: always()
         with:
-          name: colmena-queen-plan
+          name: colmena-execution
           path: artifacts/colmena
-      - uses: actions/download-artifact@v4
-        if: always()
-        with:
-          pattern: colmena-shard-*
-          path: artifacts/colmena/shards
-          merge-multiple: true
       - name: Fail-closed reconciliation
         run: |
           set -euo pipefail
-          mkdir -p artifacts/colmena/workers
-          cp artifacts/colmena/shards/worker_*.json artifacts/colmena/workers/ 2>/dev/null || true
           python - <<'PY'
           import json, sys
           from pathlib import Path
           root=Path("artifacts/colmena")
           approval=json.loads((root/"queen_approval.json").read_text(encoding="utf-8"))
           expected={m["id"]:m for m in approval["missions"]}
-          files=sorted((root/"workers").glob("worker_*.json"))
+          files=sorted((root/"workers").glob("worker_*.json")) if (root/"workers").exists() else []
           rows=[json.loads(p.read_text(encoding="utf-8")) for p in files]
           observed={r.get("mission_id"):r for r in rows}
-          valid=len(expected)==179 and len(rows)==179 and len(observed)==179 and set(expected)==set(observed)
+          state=json.loads((root/"queen_state.json").read_text(encoding="utf-8")) if (root/"queen_state.json").exists() else {}
+          valid=(len(expected)==179 and len(files)==179 and len(observed)==179 and len(observed)==len(files) and set(expected)==set(observed) and state.get("status")=="PASS" and state.get("completed")==179 and state.get("failed")==0 and state.get("blocked")==0 and state.get("batches_completed")==36)
           for mid,m in expected.items():
               r=observed.get(mid); rt=(r or {}).get("agent_runtime",{})
               valid = valid and bool(r) and r.get("agent_id")==m["agent_id"] and r.get("title")==m["title"] and r.get("ref")==m["ref"] and r.get("queen_approval")==m["approval"] and r.get("status")=="PASS" and r.get("runtime_status")=="PASS" and rt.get("independent") is True and rt.get("ai_execution") is True and bool(rt.get("execution_id")) and isinstance(r.get("ai_inference"),dict)
-          payload={"schema":"COLMENA_RECONCILIATION_V9","expected":179,"observed":len(rows),"unique_missions":len(observed),"logical_batches":36,"all_179_pass":bool(valid),"fail_closed":True,"status":"PASS" if valid else "BLOCKED"}
+          payload={"schema":"COLMENA_RECONCILIATION_V10","expected":179,"observed":len(files),"unique_missions":len(observed),"logical_batches":36,"all_179_ai_runtime_pass":all((r.get("runtime_status")=="PASS" and r.get("agent_runtime",{}).get("ai_execution") is True) for r in rows) if len(rows)==179 else False,"all_179_missions_pass":all(r.get("status")=="PASS" for r in rows) if len(rows)==179 else False,"fail_closed":True,"status":"PASS" if valid else "BLOCKED"}
           (root/"reconciliation.json").write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
           print(json.dumps(payload,ensure_ascii=False))
           sys.exit(0 if valid else 1)
@@ -194,5 +187,3 @@ jobs:
           path: artifacts/colmena/
           if-no-files-found: error
           retention-days: 30
-
-
