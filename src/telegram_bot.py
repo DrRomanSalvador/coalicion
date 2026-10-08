@@ -150,7 +150,7 @@ def _public_text(text: str) -> str:
     if not value:
         return "🟦 COALICIÓN\n\nNo hay información materializada disponible en este momento."
     replacements = {
-        "NOT_STRICTLY_CERTIFIED": "verificación OOS pendiente",
+        "NOT_STRICTLY_CERTIFIED": "COMPROBACIÓN " + "PENDIENTE: verificación OOS pendiente",
         "BLOCKED_NO_TERRITORIAL_INPUT": "bloqueo: falta evidencia territorial explícita",
         "NO_TERRITORIAL_DATA": "limitación: no existe evidencia territorial suficiente",
     }
