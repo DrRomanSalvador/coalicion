@@ -24,7 +24,7 @@ jobs:
       - name: Install SEEC dependencies
         run: |
           set -o pipefail
-          python -m pip install --disable-pip-version-check --no-input "numpy>=2.0,<2.4" "pandas==2.3.3" "pymc==6.3.2" "arviz>=0.22,<0.24" 2>&1 | tee /tmp/seec_pip_install.log
+          python -m pip install --disable-pip-version-check --no-input "pymc==6.3.2" "arviz>=0.22,<0.24" 2>&1 | tee /tmp/seec_pip_install.log
       - name: Materialize installation failure evidence
         if: failure()
         run: |
