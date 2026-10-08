@@ -1311,7 +1311,7 @@ def _save_alert_state(value: dict[str, Any]) -> None:
 
 
 def _alert_candidates() -> list[dict[str, Any]]:
-    candidates = []
+    candidates: list[dict[str, Any]] = []
     polls = _latest_polls()
     if polls:
         p = polls[0]
@@ -1321,16 +1321,47 @@ def _alert_candidates() -> list[dict[str, Any]]:
             "title": "Nueva observación de sondeo",
             "detail": f"{p.get('publication_date', 'n/d')} · {p.get('pollster', p.get('source_id', 'fuente no indicada'))}",
         })
+        if len(polls) > 1:
+            a = p.get("parties") if isinstance(p.get("parties"), dict) else {}
+            b = polls[1].get("parties") if isinstance(polls[1].get("parties"), dict) else {}
+            deltas = []
+            for party in set(a) | set(b):
+                try:
+                    d = float(a.get(party, 0)) - float(b.get(party, 0))
+                except (TypeError, ValueError):
+                    continue
+                if abs(d) >= 0.5:
+                    deltas.append((abs(d), str(party), d))
+            deltas.sort(reverse=True)
+            if deltas:
+                detail = " · ".join(f"{party} {delta:+.1f} pp" for _, party, delta in deltas[:5])
+                candidates.append({
+                    "key": f"pollchange:{p.get('publication_date')}:{polls[1].get('publication_date')}",
+                    "category": "modificacion_encuesta",
+                    "title": "Cambio entre observaciones comparables",
+                    "detail": detail,
+                })
+    for source in _sources():
+        status = str(source.get("status", source.get("health", ""))).upper()
+        if status in {"OK", "UP", "HEALTHY", "ACTIVE"}:
+            sid = source.get("id", source.get("source_id", "fuente"))
+            candidates.append({
+                "key": f"sourceup:{sid}:{status}",
+                "category": "recuperacion_fuente",
+                "title": "Fuente disponible",
+                "detail": str(sid),
+            })
     for item in build_briefing(as_of=date.today(), polls=polls, sources=_sources(),
-                               observations=_observations(), horizon_days=31)[:4]:
+                               observations=_observations(), horizon_days=31)[:6]:
+        code = str(item.get("code", ""))
+        category = "cambio_plazo_legal" if code.startswith("LEGAL") else "cambio_evidencia"
         candidates.append({
-            "key": f"briefing:{item.get('code', item.get('title'))}:{item.get('due', '')}",
-            "category": "cambio_plazo_legal" if item.get("code", "").startswith("LEGAL") else "cambio_evidencia",
+            "key": f"briefing:{code}:{item.get('title')}:{item.get('due', '')}",
+            "category": category,
             "title": item.get("title", "Novedad"),
             "detail": item.get("detail", ""),
         })
     return candidates
-
 
 def _in_quiet(prefs: dict[str, Any]) -> bool:
     from datetime import datetime
@@ -1355,8 +1386,13 @@ def _send_alerts_to_chat(chat_id: int, *, frequency: str = "immediate") -> None:
     sent = state.get(str(chat_id), [])
     if not isinstance(sent, list):
         sent = []
+    threshold = float(prefs.get("threshold", 0.0) or 0.0)
     pending = [x for x in _alert_candidates()
-               if categories.get(x["category"], True) and x["key"] not in sent]
+               if categories.get(x["category"], True) and x["key"] not in sent
+               and not (x["category"] == "modificacion_encuesta" and threshold > 0 and not any(
+                   abs(float(part.split()[-2])) >= threshold for part in x["detail"].split(" · ")
+                   if len(part.split()) >= 3 and part.split()[-2].replace(".", "", 1).replace("-", "", 1).replace("+", "", 1).isdigit()
+               ))]
     if not pending:
         return
     pending = pending[:10]
