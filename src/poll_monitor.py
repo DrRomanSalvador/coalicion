@@ -85,7 +85,6 @@ def poll_identity(poll: Poll) -> str:
     """Stable study identity independent of mirror/source and published values."""
     payload = {
         "pollster": re.sub(r"\s+", " ", poll.pollster.strip().upper()),
-        "source_tier": poll.source_tier,
         "publication_date": poll.publication_date,
         "fieldwork_start": poll.fieldwork_start,
         "fieldwork_end": poll.fieldwork_end,
@@ -112,12 +111,6 @@ def validate_poll(poll: Poll, *, min_parties: int = 5) -> tuple[bool, str]:
         return False, "MISSING_SOURCE_METADATA"
     if poll.source_tier not in {"PRIMARY_CIS", "PRIMARY_POLLSTER", "SECONDARY_REPLICA"}:
         return False, "INVALID_SOURCE_TIER"
-    if poll.validation == "VALIDATED" and (
-        not poll.fieldwork_start or not poll.fieldwork_end
-        or poll.sample_size is None or poll.sample_size <= 0
-        or not poll.methodology
-    ):
-        return False, "MISSING_METHODOLOGY_OR_FIELDWORK"
     total = sum(values)
     # Primary sources frequently omit minor parties or publish only the
     # principal candidates. Accept incomplete published tables, but only
@@ -126,6 +119,21 @@ def validate_poll(poll: Poll, *, min_parties: int = 5) -> tuple[bool, str]:
         return False, f"PARTY_TOTAL_TOO_LOW:{total:.3f}"
     if total > 105:
         return False, f"PARTY_TOTAL_ABOVE_105:{total:.3f}"
+    return True, "OK"
+
+def validate_poll_for_production(poll: Poll) -> tuple[bool, str]:
+    """Promotion gate: production polls need primary provenance and methodology."""
+    ok, reason = validate_poll(poll)
+    if not ok:
+        return False, reason
+    if poll.source_tier not in {"PRIMARY_CIS", "PRIMARY_POLLSTER"}:
+        return False, "SECONDARY_SOURCE_NOT_PROMOTABLE"
+    if not poll.fieldwork_start or not poll.fieldwork_end:
+        return False, "MISSING_FIELDWORK"
+    if poll.sample_size is None or poll.sample_size <= 0:
+        return False, "MISSING_SAMPLE_SIZE"
+    if not poll.methodology:
+        return False, "MISSING_METHODOLOGY"
     return True, "OK"
 
 def _parse_date(text: str) -> str | None:
