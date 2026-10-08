@@ -91,7 +91,7 @@ def load_official_constituency_matrix(path:str|Path,election_date:str|None=None)
             if current_date==selected: election_rows.append((raw_date,list(row)))
     if constituency_cols is None or selected is None: raise RuntimeError("BLOCKED: no official Congress election rows found")
     if not election_rows: raise ValueError(f"election date not found in official workbook: {selected}")
-    parties={c:{} for c in constituency_cols.values()}; blanks={}; valid={}; seats={c:0 for c in constituency_cols.values()}; electors={}
+    parties={c:{} for c in constituency_cols.values()}; observed_seats={c:{} for c in constituency_cols.values()}; blanks={}; valid={}; seats={c:0 for c in constituency_cols.values()}; electors={}
     for _,row in election_rows:
         description=str(row[3] or "").strip(); votes_match=CANDIDATE_VOTES.match(description); seats_match=CANDIDATE_SEATS.match(description)
         for index,constituency in constituency_cols.items():
@@ -99,7 +99,8 @@ def load_official_constituency_matrix(path:str|Path,election_date:str|None=None)
             value=_integer(row[index],f"{selected}:{description}:{constituency}")
             if votes_match:
                 subject=votes_match.group(1).strip(); parties[constituency][subject]=parties[constituency].get(subject,0)+value
-            elif seats_match: seats[constituency]+=value
+            elif seats_match:
+                subject=seats_match.group(1).strip(); observed_seats[constituency][subject]=observed_seats[constituency].get(subject,0)+value; seats[constituency]+=value
             elif description=="Votos en blanco": blanks[constituency]=value
             elif description=="Votos válidos": valid[constituency]=value
             elif description=="Electores": electors[constituency]=value
@@ -108,7 +109,7 @@ def load_official_constituency_matrix(path:str|Path,election_date:str|None=None)
     if sum(seats.values())!=350: raise ValueError(f"official observed seats do not sum to 350: {sum(seats.values())}")
     for constituency in parties:
         if sum(parties[constituency].values())+blanks[constituency]!=valid[constituency]: raise ValueError(f"{constituency}: candidate votes + blank votes != valid votes")
-    return {"election_date":selected,"constituencies":{c:{"seats":seats[c],"parties":dict(sorted(parties[c].items())),"blank_votes":blanks[c],"valid_votes":valid[c],"electors":electors.get(c)} for c in sorted(parties)},"validation":{"status":"PASS","circunscripciones":52,"escaños":sum(seats.values()),"candidate_votes_total":sum(sum(x.values()) for x in parties.values()),"blank_votes_total":sum(blanks.values()),"valid_votes_total":sum(valid.values())}}
+    return {"election_date":selected,"constituencies":{c:{"seats":seats[c],"observed_seats":{p:s for p,s in sorted(observed_seats[c].items()) if s>0},"parties":dict(sorted(parties[c].items())),"blank_votes":blanks[c],"valid_votes":valid[c],"electors":electors.get(c)} for c in sorted(parties)},"validation":{"status":"PASS","circunscripciones":52,"escaños":sum(seats.values()),"candidate_votes_total":sum(sum(x.values()) for x in parties.values()),"blank_votes_total":sum(blanks.values()),"valid_votes_total":sum(valid.values())}}
 
 def load_rows(path:str|Path,election_date:str|None=None)->list[dict[str,Any]]:
     wb=openpyxl.load_workbook(path,read_only=True,data_only=True); rows_out=[]; seen=set()
