@@ -1,0 +1,44 @@
+name: Unlock verification target
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+permissions: {contents: read}
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12", cache: pip}
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements.txt
+      - name: OOS
+        run: python scripts/complete_historical_calibration.py --input artifacts/data/cis_historical_2004_2023.csv --output /tmp/oos.json
+      - name: OOS gate
+        run: |
+          python - <<'PY'
+          import json, math
+          x=json.load(open("/tmp/oos.json"))
+          assert x["status"]=="PASS"
+          c=x["empirical_90pct_interval_calibration"]["BASE"]["mean_coverage"]
+          assert c is not None and math.isfinite(c) and c>=0.85
+          print("OOS PASS",c)
+          PY
+      - name: MC 10000
+        run: python scripts/run_mc_10000.py --iterations 10000 --seed 20261008
+      - name: SEEC territorial 10000
+        run: python scripts/materialize_seec_posterior.py
+      - name: Verify outputs
+        run: |
+          test -s ci_evidence/mc_10000.json
+          test -s ci_evidence/seec_posterior.json
+          python - <<'PY'
+          import json
+          mc=json.load(open("ci_evidence/mc_10000.json")); seec=json.load(open("ci_evidence/seec_posterior.json"))
+          assert mc["status"]=="PASS" and mc["iterations"]>=10000
+          assert seec["status"]=="PASS" and seec["draws"]>=10000
+          print("MC/SEEC PASS",mc["iterations"],seec["draws"])
+          PY
