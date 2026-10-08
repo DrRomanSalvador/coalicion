@@ -48,6 +48,7 @@ def main():
     for i, title in enumerate(d["missions"], 1):
         missions.append({
             "id": mid(i, title),
+            "agent_id": f"agent-{mid(i, title)}",
             "index": i,
             "title": title,
             "kind": classify(title),
@@ -75,7 +76,7 @@ def main():
     approved = []
     for m in missions:
         token = sha(canon({
-            "mission_id": m["id"], "ref": m["ref"],
+            "mission_id": m["id"], "agent_id": m["agent_id"], "ref": m["ref"],
             "plan_sha256": plan["plan_sha256"],
             "write_authorized": m["write_authorized"], "scope": m["scope"],
         }))
@@ -96,7 +97,7 @@ def main():
     }
     out_path = Path(a.output)
     out_path.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    state = {"schema":"COLMENA_QUEEN_STATE_V1","status":"APPROVED","repository":"DrRomanSalvador/coalicion","branch":"main","ref":a.ref,"plan_sha256":plan["plan_sha256"],"mission_count":len(approved),"batch_count":len(batches),"recoverable":True}
+    state = {"schema":"COLMENA_QUEEN_STATE_V1","status":"APPROVED","repository":"DrRomanSalvador/coalicion","branch":"main","ref":a.ref,"plan_sha256":plan["plan_sha256"],"mission_count":len(approved),"batch_count":len(batches),"recoverable":True,"agent_runtime_required":True,"agent_count":len(approved)}
     out_path.with_name("queen_state.json").write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"status": "QUEEN_GATE_PASS", "missions": len(approved), "batches": len(batches), "plan_sha256": plan["plan_sha256"]}))
 
