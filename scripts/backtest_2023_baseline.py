@@ -173,7 +173,7 @@ for prov in sorted(train_maps):
                        blank_votes=blank)
         if alloc.status!="OK":
             raise RuntimeError(f"simulated allocation blocked: {prov} {alloc.status} {alloc.tie}")
-        for p,s in alloc.items():
+        for p,s in alloc.seats.items():
             if p in sim_seats: sim_seats[p][i]+=s
 
 medians=np.array([float(np.median(sim_seats[p])) for p in parties])
