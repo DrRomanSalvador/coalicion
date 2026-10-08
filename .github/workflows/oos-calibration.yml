@@ -70,3 +70,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add ci_evidence/oos_calibration.json
           git diff --cached --quiet || (git commit -m "ci: materialize expanding-window OOS calibration evidence" && git push origin HEAD:main)
+
+# canonical OOS gate: strict election-code scope validation
