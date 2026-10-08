@@ -47,6 +47,8 @@ COMMANDS = [
     ("hechos", "Solo hechos"),
     ("exportar", "Exportar datos"),
     ("comparar", "Comparar observaciones"),
+    ("admin_alertas", "Administración de alertas"),
+    ("admin_config", "Configuración administrativa"),
     ("radar", "Radar de novedades"),
     ("menu", "Menú completo"),
     ("ayuda", "Ayuda"),
@@ -1275,22 +1277,25 @@ def _maybe_send_scheduled_digest() -> None:
     if now.minute > 5:
         return
     cfg = _config()
-    if now.hour not in {8}:
+    if now.hour not in {8} and now.minute > 5:
         return
-    stamp = now.strftime("%Y-%m-%d")
+    period = "daily" if now.hour == 8 else "hourly"
+    stamp = now.strftime("%Y-%m-%d-%H") if period == "hourly" else now.strftime("%Y-%m-%d")
     marker = ROOT / "artifacts/telegram_digest_state.json"
     state = _safe_json(marker)
-    if state.get("last") == stamp:
+    last = state.get(period)
+    if last == stamp:
         return
     for chat_id, prefs in (cfg.get("chats") or {}).items():
-        if isinstance(prefs, dict) and prefs.get("frequency") == "daily":
+        if isinstance(prefs, dict) and prefs.get("frequency") == period and not _in_quiet(_preferences({"message": {"chat": {"id": chat_id}, "from": {"id": chat_id}}})):
             try:
                 _send(int(chat_id), _digest_text(), _menu_markup())
             except (TelegramBotError, ValueError):
                 continue
     try:
         marker.parent.mkdir(parents=True, exist_ok=True)
-        marker.write_text(json.dumps({"last": stamp}), encoding="utf-8")
+        state[period] = stamp
+        marker.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
     except OSError:
         pass
 
@@ -1465,6 +1470,18 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
                     [{"text": "🏠 Inicio", "callback_data": "home"}],
                 ],
             }
+        elif command in {"/admin_alertas", "/admin_config"}:
+            if not _admin_allowed(update):
+                response, markup = "🛡 Comando reservado a administradores.", _menu_markup()
+            else:
+                response, markup = (
+                    "🛡 ADMINISTRACIÓN\n\n"
+                    f"Chat: {chat_id}\n"
+                    f"Usuarios configurados: {len((_config().get('users') or {}))}\n"
+                    f"Chats configurados: {len((_config().get('chats') or {}))}\n"
+                    "Rate limit: 10/min privado · 100/min grupo.",
+                    _menu_markup(),
+                )
         elif command == "/escenarios":
             response, markup = _scenarios_text(), _scenario_markup()
         elif command == "/territorio":
