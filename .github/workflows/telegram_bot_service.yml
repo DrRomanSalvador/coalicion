@@ -80,7 +80,9 @@ jobs:
           fi
           git config user.name "coalicion-telegram-bot[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add artifacts/telegram_state.json artifacts/telegram_config.json artifacts/telegram_user_state.json artifacts/telegram_alert_state.json artifacts/telegram_digest_state.json artifacts/telegram_audit.jsonl ci_evidence/telegram_integration.json
+          for file in artifacts/telegram_state.json artifacts/telegram_config.json artifacts/telegram_user_state.json artifacts/telegram_alert_state.json artifacts/telegram_digest_state.json artifacts/telegram_audit.jsonl ci_evidence/telegram_integration.json; do
+            if [ -f "$file" ]; then git add "$file"; fi
+          done
           if git diff --cached --quiet; then
             echo "No Telegram state changes."
             exit 0
@@ -93,7 +95,9 @@ jobs:
             fi
             git fetch origin main
             git reset --hard origin/main
-            git add artifacts/telegram_state.json artifacts/telegram_config.json artifacts/telegram_user_state.json artifacts/telegram_alert_state.json artifacts/telegram_digest_state.json artifacts/telegram_audit.jsonl
+            for file in artifacts/telegram_state.json artifacts/telegram_config.json artifacts/telegram_user_state.json artifacts/telegram_alert_state.json artifacts/telegram_digest_state.json artifacts/telegram_audit.jsonl; do
+              if [ -f "$file" ]; then git add "$file"; fi
+            done
             git commit -m "chore: persist Telegram service state" || true
           done
           echo "Unable to persist Telegram state after retries."
