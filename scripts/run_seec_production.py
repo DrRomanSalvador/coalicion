@@ -93,7 +93,8 @@ def main():
     except ImportError: raise SystemExit("BLOCKED: ArviZ required for production diagnostics")
     ess_bulk_min=float(np.nanmin(summ["ess_bulk"].to_numpy()))
     ess_tail_min=float(np.nanmin(summ["ess_tail"].to_numpy()))
-    convergence_passed=bool(np.isfinite(rhat_max) and rhat_max<=1.01 and np.isfinite(ess_bulk_min) and ess_bulk_min>=400 and np.isfinite(ess_tail_min) and ess_tail_min>=400 and div==0)
+    # Match the master certification contract: ESS below 1000 is not production-certified.
+    convergence_passed=bool(np.isfinite(rhat_max) and rhat_max<=1.01 and np.isfinite(ess_bulk_min) and ess_bulk_min>=1000 and np.isfinite(ess_tail_min) and ess_tail_min>=1000 and div==0)
     if not convergence_passed:
         raise SystemExit(f"BLOCKED: convergence diagnostics failed (r_hat={rhat_max!r}, ess_bulk_min={ess_bulk_min!r}, ess_tail_min={ess_tail_min!r}, divergences={div})")
     out={
