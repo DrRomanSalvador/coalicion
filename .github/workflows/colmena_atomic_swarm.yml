@@ -18,53 +18,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  queen:
-    name: "👑 Queen — plan + approvals"
+  swarm:
+    name: "👑 Queen + 179 isolated workers"
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    outputs:
-      matrix: ${{ steps.plan.outputs.matrix }}
-      plan_sha: ${{ steps.plan.outputs.plan_sha }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      # Queen planning is stdlib-only. Do not block the gate on the heavyweight scientific runtime.
-      - id: plan
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p artifacts/colmena
-          python scripts/colmena_queen.py --ref "$GITHUB_SHA" --output artifacts/colmena/queen_approval.json
-          python scripts/queen_dispatcher.py --validate
-          matrix="$(python - <<'PY'
-          import json
-          d=json.load(open("artifacts/colmena/queen_approval.json",encoding="utf-8"))
-          print(json.dumps({"include":d["missions"]},separators=(",",":")))
-          PY
-          )"
-          plan_sha="$(python - <<'PY'
-          import json
-          print(json.load(open("artifacts/colmena/queen_approval.json",encoding="utf-8"))["plan_sha256"])
-          PY
-          )"
-          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
-          echo "plan_sha=$plan_sha" >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: colmena-queen-approval
-          path: artifacts/colmena/queen_approval.json
-
-  workers:
-    name: "🐝 Worker ${{ matrix.id }}"
-    needs: queen
-    strategy:
-      fail-fast: false
-      max-parallel: 20
-      matrix: ${{ fromJSON(needs.queen.outputs.matrix) }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -73,70 +30,61 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - uses: actions/cache/restore@v4
-        with:
-          path: |
-            node_modules
-            .cache
-          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-3.8.1-smollm2
-          fail-on-cache-miss: false
       - name: Prepare local AI runtime
         run: |
-          if [ ! -d node_modules/@huggingface/transformers ]; then
-            npm init -y >/dev/null 2>&1
-            npm install --no-audit --no-fund @huggingface/transformers@3.8.1
-          fi
-      - name: Recreate Queen approval deterministically
+          npm init -y >/dev/null 2>&1
+          npm install --no-audit --no-fund @huggingface/transformers@3.8.1
+      - name: Queen plan and approvals
         run: |
+          set -euo pipefail
           mkdir -p artifacts/colmena
-          python scripts/colmena_queen.py             --ref "$GITHUB_SHA"             --output artifacts/colmena/queen_approval.json
-      - name: Execute Queen-gated worker
+          python scripts/colmena_queen.py --ref "$GITHUB_SHA" --output artifacts/colmena/queen_approval.json
+          python scripts/queen_dispatcher.py --validate
+          test "$(python -c 'import json; print(len(json.load(open("artifacts/colmena/queen_approval.json"))["missions"]))')" = "179"
+      - name: Execute all 179 workers
+        env:
+          COLMENA_AGENT_PROVIDER: "github-actions-local"
+          COLMENA_AGENT_EXECUTION_ID: "${{ github.run_id }}-${{ github.run_attempt }}"
+          COLMENA_AI_AGENT_EXECUTION: "true"
+          COLMENA_AI_DEVICE: "cpu"
         run: |
-          python scripts/colmena_worker.py             --mission-id "${{ matrix.id }}"             --approval artifacts/colmena/queen_approval.json             --ref "$GITHUB_SHA"             --out "artifacts/colmena/worker_${{ matrix.index }}.json"
-      - name: Upload worker evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: colmena-worker-${{ matrix.id }}
-          path: artifacts/colmena/worker_*.json
-          if-no-files-found: error
-
-  aggregate:
-    name: "👑 Queen — aggregate and close cycle"
-    if: ${{ always() }}
-    needs: [queen, workers]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: colmena-worker-*
-          path: artifacts/colmena/workers
-          merge-multiple: true
-      - name: Aggregate evidence
-        shell: python
+          set -uo pipefail
+          mkdir -p artifacts/colmena/workers
+          rc=0
+          python - <<'PY'
+          import json, subprocess, os
+          d=json.load(open("artifacts/colmena/queen_approval.json",encoding="utf-8"))
+          for m in d["missions"]:
+              out=f"artifacts/colmena/workers/worker_{m['index']:04d}.json"
+              p=subprocess.run([
+                  "python","scripts/colmena_worker.py",
+                  "--mission-id",m["id"],
+                  "--approval","artifacts/colmena/queen_approval.json",
+                  "--ref",os.environ["GITHUB_SHA"],
+                  "--out",out
+              ])
+              if p.returncode: globals()["rc"]=1
+          raise SystemExit(rc)
+          PY
+      - name: Reconcile 179 evidences fail-closed
         run: |
-          import json
+          python - <<'PY'
+          import json,sys
           from pathlib import Path
           files=sorted(Path("artifacts/colmena/workers").glob("worker_*.json"))
-          rows=[json.loads(p.read_text(encoding="utf-8")) for p in files]
-          expected=len(json.loads(Path("docs/COLMENA_MISSION_CONTROL.json").read_text(encoding="utf-8"))["missions"])
-          payload={"schema":"COLMENA_SWARM_CYCLE_V1","expected":expected,"observed":len(rows),"statuses":{},"fail_closed":True}
-          for r in rows: payload["statuses"][r["status"]]=payload["statuses"].get(r["status"],0)+1
-          payload["status"]="PASS" if len(rows)==expected and all(r["status"]=="PASS" for r in rows) else "BLOCKED"
-          Path("artifacts/colmena").mkdir(parents=True,exist_ok=True)
-          Path("artifacts/colmena/swarm_cycle.json").write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          rows=[json.loads(p.read_text()) for p in files]
+          ids={r["mission_id"] for r in rows}
+          expected=json.load(open("artifacts/colmena/queen_approval.json"))["missions"]
+          expected_ids={m["id"] for m in expected}
+          ok=len(rows)==179 and ids==expected_ids and all(r.get("status")=="PASS" and r.get("agent_runtime",{}).get("independent") and r.get("runtime_status")=="PASS" and r.get("ai_execution") is not False for r in rows)
+          payload={"schema":"COLMENA_RECONCILIATION_V4","expected":179,"observed":len(rows),"unique_missions":len(ids),"all_179_ai_runtime_pass":ok,"all_179_missions_pass":ok,"fail_closed":True,"status":"PASS" if ok else "BLOCKED"}
+          Path("artifacts/colmena/reconciliation.json").write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n")
           print(json.dumps(payload,ensure_ascii=False))
-          raise SystemExit(0 if payload["status"]=="PASS" else 1)
+          sys.exit(0 if ok else 1)
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: colmena-swarm-cycle
-          path: artifacts/colmena/swarm_cycle.json
-
-# Queen activation cycle: execute 179 logical workers and persist evidence.
-
-# Queen gate fix activation: dispatcher ordinal identity aligned with 179-mission registry.
-
-# Queen worker evidence logging hardened; launch full atomic cycle.
+          name: colmena-swarm-complete
+          path: artifacts/colmena/
+          if-no-files-found: error
