@@ -1,3 +1,7 @@
+# 🐝 COLMENA — REINVOCACIÓN
+
+**Si una nueva conversación dice “Activa la colmena”, “Habla la abeja reina”, “Reinvoca la colmena” o “Continúa donde quedó la colmena”: leer primero `docs/INVOCACION_COLMENA.md` y recuperar el estado desde GitHub. No reconstruir desde el chat.**
+
 # COALICIÓN — PUNTO DE ENTRADA ÚNICO
 
 Este repositorio es la memoria operativa y reproducible del proyecto. Toda IA debe leer primero este README y `CONTRATO_MAESTRO_IA.md`.
