@@ -136,8 +136,13 @@ def supervise(approval, ref, workers_dir, state_path):
     workers.mkdir(parents=True, exist_ok=True)
     state_file = Path(state_path)
     state_file.parent.mkdir(parents=True, exist_ok=True)
+
+    pool_size = int(os.environ.get("COLMENA_AI_SERVER_POOL_SIZE", str(BATCH_SIZE)))
+    if pool_size < 1:
+        raise SystemExit("FAIL_CLOSED: invalid AI server pool size")
+
     state = {
-        "schema": "COLMENA_QUEEN_STATE_V3",
+        "schema": "COLMENA_QUEEN_STATE_V4",
         "status": "RUNNING",
         "repository": "DrRomanSalvador/coalicion",
         "branch": "main",
@@ -151,117 +156,116 @@ def supervise(approval, ref, workers_dir, state_path):
         "batches_completed": 0,
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "recoverable": True,
+        "parallel_workers": pool_size,
+        "execution_mode": "SLIDING_WINDOW_ACROSS_ALL_LOGICAL_BATCHES",
     }
 
-    for start in range(0, len(missions), BATCH_SIZE):
-        batch = missions[start:start + BATCH_SIZE]
-        batch_failed = False
-        state["current_batch"] = (start // BATCH_SIZE) + 1
-        state["current_missions"] = [m["id"] for m in batch]
+    def persist():
         state["updated_at"] = datetime.now(timezone.utc).isoformat()
         state_file.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-        def dispatch_one(m):
-            out = workers / f"worker_{m['index']:04d}.json"
-            evidence = None
-            if out.exists():
-                try:
-                    existing = json.loads(out.read_text(encoding="utf-8"))
-                    if (
-                        existing.get("mission_id") == m["id"]
-                        and existing.get("ref") == ref
-                        and existing.get("queen_approval") == m["approval"]
-                        and existing.get("agent_id") == m["agent_id"]
-                    ):
-                        evidence = existing
-                except Exception:
-                    evidence = None
-
-            if evidence is not None:
-                return evidence
-
-            env = os.environ.copy()
-            pool_size = int(env.get("COLMENA_AI_SERVER_POOL_SIZE", "1"))
-            port_base = int(env.get("COLMENA_AI_SERVER_PORT_BASE", "8765"))
-            if pool_size < 1:
-                raise RuntimeError("FAIL_CLOSED: invalid AI server pool size")
-            server_index = (int(m["index"]) - 1) % pool_size
-            env["COLMENA_AI_SERVER_URL"] = f"http://127.0.0.1:{port_base + server_index}"
-            base_execution_id = env.get("COLMENA_AGENT_EXECUTION_ID", "")
-            env["COLMENA_AGENT_EXECUTION_ID"] = (
-                f"{base_execution_id}-{m['id']}" if base_execution_id else m["id"]
-            )
-            print(f"QUEEN_DISPATCH_START={m["id"]}", flush=True)
+    def dispatch_one(m):
+        out = workers / f"worker_{m['index']:04d}.json"
+        evidence = None
+        if out.exists():
             try:
-                p = subprocess.run(
-                    [
-                        sys.executable, "scripts/colmena_worker.py",
-                        "--mission-id", m["id"], "--approval", approval,
-                        "--ref", ref, "--out", str(out),
-                    ],
-                    cwd=ROOT,
-                    env=env,
-                    text=True,
-                    capture_output=True,
-                    timeout=WORKER_TIMEOUT_SECONDS,
-                )
-            except subprocess.TimeoutExpired as exc:
-                evidence = {
-                    "schema": "COLMENA_WORKER_EVIDENCE_V4", "mission_id": m["id"],
-                    "title": m["title"], "agent_id": m["agent_id"],
-                    "status": "BLOCKED", "adapter": "WORKER_TIMEOUT",
-                    "command": None, "ref": ref, "queen_approval": m["approval"],
-                    "returncode": 124, "stdout": str(exc.stdout or "")[-4000:],
-                    "stderr": f"FAIL_CLOSED: worker exceeded {WORKER_TIMEOUT_SECONDS}s timeout",
-                    "agent_runtime": {"provider": env.get("COLMENA_AGENT_PROVIDER",""), "execution_id": env.get("COLMENA_AGENT_EXECUTION_ID",""), "independent": True, "ai_execution": True},
-                }
-                out.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-                print(f"QUEEN_WORKER_TIMEOUT={m["id"]}", flush=True)
-                return evidence
-            try:
-                evidence = json.loads(out.read_text(encoding="utf-8"))
+                existing = json.loads(out.read_text(encoding="utf-8"))
+                if (
+                    existing.get("mission_id") == m["id"]
+                    and existing.get("ref") == ref
+                    and existing.get("queen_approval") == m["approval"]
+                    and existing.get("agent_id") == m["agent_id"]
+                ):
+                    evidence = existing
             except Exception:
-                evidence = {
-                    "status": "BLOCKED",
-                    "mission_id": m["id"],
-                    "returncode": p.returncode,
-                    "stdout": p.stdout[-4000:],
-                    "stderr": p.stderr[-4000:],
-                }
-            if p.returncode != 0:
-                evidence["_worker_process_returncode"] = p.returncode
+                evidence = None
+        if evidence is not None:
             return evidence
 
-        # Exactly BATCH_SIZE workers are dispatched concurrently. The Queen
-        # waits for the complete batch before advancing, preserving supervision
-        # and fail-closed batch boundaries while removing accidental serialization.
-        with concurrent.futures.ThreadPoolExecutor(max_workers=BATCH_SIZE) as executor:
-            futures = [executor.submit(dispatch_one, m) for m in batch]
-            evidences = [future.result() for future in futures]
-        print(f"QUEEN_BATCH_COMPLETE={(start // BATCH_SIZE) + 1}", flush=True)
+        env = os.environ.copy()
+        server_index = (int(m["index"]) - 1) % pool_size
+        env["COLMENA_AI_SERVER_URL"] = f"http://127.0.0.1:{int(env.get('COLMENA_AI_SERVER_PORT_BASE', '8765')) + server_index}"
+        base_execution_id = env.get("COLMENA_AGENT_EXECUTION_ID", "")
+        env["COLMENA_AGENT_EXECUTION_ID"] = f"{base_execution_id}-{m['id']}" if base_execution_id else m["id"]
+        print(f"QUEEN_DISPATCH_START={m['id']}", flush=True)
+        try:
+            p = subprocess.run(
+                [sys.executable, "scripts/colmena_worker.py", "--mission-id", m["id"], "--approval", approval, "--ref", ref, "--out", str(out)],
+                cwd=ROOT, env=env, text=True, capture_output=True, timeout=WORKER_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired as exc:
+            evidence = {
+                "schema": "COLMENA_WORKER_EVIDENCE_V4", "mission_id": m["id"],
+                "title": m["title"], "agent_id": m["agent_id"], "status": "BLOCKED",
+                "adapter": "WORKER_TIMEOUT", "command": None, "ref": ref,
+                "queen_approval": m["approval"], "returncode": 124,
+                "stdout": str(exc.stdout or "")[-4000:],
+                "stderr": f"FAIL_CLOSED: worker exceeded {WORKER_TIMEOUT_SECONDS}s timeout",
+                "agent_runtime": {
+                    "provider": env.get("COLMENA_AGENT_PROVIDER", ""),
+                    "execution_id": env.get("COLMENA_AGENT_EXECUTION_ID", ""),
+                    "independent": True, "ai_execution": True,
+                },
+            }
+            out.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            print(f"QUEEN_WORKER_TIMEOUT={m['id']}", flush=True)
+            return evidence
+        try:
+            evidence = json.loads(out.read_text(encoding="utf-8"))
+        except Exception:
+            evidence = {"status":"BLOCKED","mission_id":m["id"],"returncode":p.returncode,"stdout":p.stdout[-4000:],"stderr":p.stderr[-4000:]}
+        if p.returncode != 0:
+            evidence["_worker_process_returncode"] = p.returncode
+        return evidence
 
-        for evidence in evidences:
-            state["completed"] += int(evidence.get("status") == "PASS")
-            state["failed"] += int(evidence.get("status") == "FAIL")
-            state["blocked"] += int(evidence.get("status") not in {"PASS", "FAIL"})
-            if evidence.get("status") != "PASS":
-                batch_failed = True
+    persist()
+    batch_pending = {
+        batch_no: set(m["id"] for m in missions[start:start + BATCH_SIZE])
+        for batch_no, start in enumerate(range(0, len(missions), BATCH_SIZE), 1)
+    }
+    batch_done = {k: 0 for k in batch_pending}
+    active = set()
 
-        state["batches_completed"] += 1
-        state["current_batch"] = None
-        state["current_missions"] = []
-        state["updated_at"] = datetime.now(timezone.utc).isoformat()
-        state_file.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        if batch_failed:
-            state["status"] = "BLOCKED"
-            state_file.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-            return 1
+    with concurrent.futures.ThreadPoolExecutor(max_workers=pool_size) as executor:
+        future_to_mission = {}
+        for m in missions:
+            future_to_mission[executor.submit(dispatch_one, m)] = m
+            active.add(m["id"])
+        for future in concurrent.futures.as_completed(future_to_mission):
+            m = future_to_mission[future]
+            active.discard(m["id"])
+            try:
+                evidence = future.result()
+            except Exception as exc:
+                evidence = {
+                    "status": "BLOCKED", "mission_id": m["id"], "title": m["title"],
+                    "agent_id": m["agent_id"], "ref": ref, "queen_approval": m["approval"],
+                    "returncode": 2, "stderr": f"FAIL_CLOSED: worker exception: {exc}",
+                    "agent_runtime": {
+                        "provider": os.environ.get("COLMENA_AGENT_PROVIDER", ""),
+                        "execution_id": f"{os.environ.get('COLMENA_AGENT_EXECUTION_ID', '')}-{m['id']}",
+                        "independent": True, "ai_execution": True,
+                    },
+                }
+                (workers / f"worker_{m['index']:04d}.json").write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            status = evidence.get("status")
+            state["completed"] += int(status == "PASS")
+            state["failed"] += int(status == "FAIL")
+            state["blocked"] += int(status not in {"PASS", "FAIL"})
+            batch_no = (m["index"] - 1) // BATCH_SIZE + 1
+            batch_done[batch_no] += 1
+            if batch_done[batch_no] == len(batch_pending[batch_no]):
+                state["batches_completed"] += 1
+                print(f"QUEEN_BATCH_COMPLETE={batch_no}", flush=True)
+            state["current_batch"] = batch_no
+            state["current_missions"] = sorted(active)
+            persist()
 
-    state["status"] = "PASS"
-    state["updated_at"] = datetime.now(timezone.utc).isoformat()
-    state_file.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return 0
-
+    state["current_batch"] = None
+    state["current_missions"] = []
+    state["status"] = "PASS" if state["completed"] == 179 and state["failed"] == 0 and state["blocked"] == 0 and state["batches_completed"] == 36 else "BLOCKED"
+    persist()
+    return 0 if state["status"] == "PASS" else 1
 
 def main():
     ap = argparse.ArgumentParser()
