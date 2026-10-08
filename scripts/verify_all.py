@@ -12,7 +12,6 @@ def main():
     if invalid: raise SystemExit(f"FAIL_CLOSED: invalid statuses: {len(invalid)}")
     counts={s:sum(f.get("status")==s for f in faults) for s in ("pending","in_progress","completed","failed")}
     report={"schema":"COALICION_REPAIR_VERIFICATION_V1","timestamp":datetime.now(timezone.utc).isoformat(),"total":466,**counts,"verified_completed":0,"status":"BLOCKED" if counts["pending"] or counts["failed"] else "READY_FOR_FINAL_VERIFICATION"}
-    OUT.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"
-",encoding="utf-8")
+    OUT.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(report,ensure_ascii=False,indent=2))
 if __name__=="__main__": main()
