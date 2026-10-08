@@ -151,19 +151,25 @@ jobs:
               counts[r["status"]]=counts.get(r["status"],0)+1
               if r.get("runtime_status") == "PASS" and r.get("agent_runtime",{}).get("independent") is True and r.get("agent_runtime",{}).get("ai_execution") is True and isinstance(r.get("ai_inference"),dict):
                   runtime_pass += 1
+          mission_failures=sorted(r["mission_id"] for r in rows if r.get("status")!="PASS")
           report={
-              "schema":"COLMENA_RECONCILIATION_V2",
+              "schema":"COLMENA_RECONCILIATION_V3",
               "worker_files":len(rows),
               "expected_workers":179,
               "counts":counts,
               "runtime_pass":runtime_pass,
+              "mission_pass":sum(r.get("status")=="PASS" for r in rows),
+              "mission_failures":mission_failures,
               "fail_closed":True,
-              "all_179_ai_runtime_pass":len(rows)==179 and runtime_pass==179 and all(r["status"]=="PASS" for r in rows)
+              "all_179_ai_runtime_pass":len(rows)==179 and runtime_pass==179,
+              "all_179_missions_pass":len(rows)==179 and not mission_failures
           }
           pathlib.Path("reconciliation.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
           print(json.dumps(report,ensure_ascii=False))
           if not report["all_179_ai_runtime_pass"]:
               sys.exit(1)
+          if not report["all_179_missions_pass"]:
+              print("MISSION_CLOSURE_BLOCKED: runtime is real, but unresolved missions remain.")
           PY
       - uses: actions/upload-artifact@v4
         if: always()
