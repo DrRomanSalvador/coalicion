@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "79af646bc5d6cf8f42b0ab3ed9864f7f0768a239",
-  "updated_at": "2026-10-08T13:15:00+02:00",
+  "commit": "478d00e4669c196a91fd66e8214de104a1116cc8",
+  "updated_at": "2026-10-08T13:16:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,7 +24,7 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Inspect latest phase2-product run and materialized artifacts; fix any CI failures before adding new scope.",
+  "resume_from": "Wait for phase2-product triggered by latest workflow commit; inspect job logs and fix only actual failures.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
@@ -136,5 +136,6 @@
     "status": "BLOCKED",
     "reason": "BLOCKED_NO_TERRITORIAL_OBSERVATIONS",
     "fail_closed": true
-  }
+  },
+  "phase2_ci_workflow": "FIXED_CLEAN_PATHS_AND_FULL_TEST_MATRIX"
 }
