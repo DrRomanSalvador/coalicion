@@ -316,6 +316,7 @@ def _natural_query(text: str) -> str | None:
         (("/evidencia", "evidencia", "de donde sale", "fuente del dato"), "/evidencia"),
         (("/escenarios", "escenarios", "supuestos"), "/escenarios"),
         (("/auditoria", "auditoria", "verificacion", "rigor"), "/auditoria"),
+        (("/urgencias", "que requiere atencion", "que requiere atencion ahora", "incidencias"), "/urgencias"),
     ]
     for needles, command in rules:
         if any(needle in normalized for needle in needles):
