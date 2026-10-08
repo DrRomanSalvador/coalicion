@@ -12,7 +12,7 @@ on:
       - ".github/workflows/telegram_bot_service.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: telegram-bot-service
@@ -54,3 +54,32 @@ jobs:
             exit 0
           fi
           exit "$rc"
+
+      - name: Persist Telegram state
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ ! -f artifacts/telegram_state.json ]; then
+            echo "No Telegram state snapshot was produced."
+            exit 0
+          fi
+          git config user.name "coalicion-telegram-bot[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add artifacts/telegram_state.json artifacts/telegram_config.json artifacts/telegram_user_state.json artifacts/telegram_alert_state.json artifacts/telegram_digest_state.json artifacts/telegram_audit.jsonl
+          if git diff --cached --quiet; then
+            echo "No Telegram state changes."
+            exit 0
+          fi
+          git commit -m "chore: persist Telegram service state"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "Telegram state persisted."
+              exit 0
+            fi
+            git fetch origin main
+            git reset --hard origin/main
+            git add artifacts/telegram_state.json artifacts/telegram_config.json artifacts/telegram_user_state.json artifacts/telegram_alert_state.json artifacts/telegram_digest_state.json artifacts/telegram_audit.jsonl
+            git commit -m "chore: persist Telegram service state" || true
+          done
+          echo "Unable to persist Telegram state after retries."
+          exit 1
