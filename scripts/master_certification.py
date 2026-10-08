@@ -83,6 +83,7 @@ def certify(root: str = "."):
         and posterior.get("schema") == "SEEC_PRODUCTION_POSTERIOR_V2"
         and posterior.get("model") == "hierarchical_compositional_temporal_dirichlet_logistic_normal"
         and int(posterior.get("total_draws", 0)) >= 10000
+        and int(posterior.get("studies", 0)) >= 12
         and int(posterior.get("draws_per_chain", 0)) >= 1000
         and bool(posterior.get("convergence", {}).get("passed", False))
     )
