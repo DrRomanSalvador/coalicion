@@ -157,7 +157,8 @@ def _public_text(text: str) -> str:
     for internal, human in replacements.items():
         value = value.replace(internal, human)
     value = re.sub(r"(?i)blocked(?:[_-][a-z0-9_-]+)*", "bloqueo operativo", value)
-    value = re.sub(r"(?i)\bexception\b", "fallo interno", value)
+    value = re.sub(r"(?i)\b(?:error|exception)\b", "fallo interno", value)
+    value = re.sub(r"(?i)\bbloquead[oa]\b", "bloqueo operativo", value)
     return value
 
 
