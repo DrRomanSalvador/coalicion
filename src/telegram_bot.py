@@ -738,6 +738,55 @@ def _send_document(chat_id: int, data: bytes, filename: str, content_type: str) 
     _api("sendDocument", files={"document": (filename, data, content_type)}, data={"chat_id": str(chat_id)})
 
 
+
+def _comparison_text(period: str = "5") -> str:
+    polls = _latest_polls()
+    if len(polls) < 2:
+        return "📊 COMPARACIÓN\n\nNo hay dos observaciones fechadas suficientes para comparar."
+    selected = polls[:5] if period == "5" else polls
+    if period == "30":
+        from datetime import datetime, timedelta
+        cutoff = datetime.now() - timedelta(days=30)
+        selected = [p for p in polls if str(p.get("publication_date", "")) >= cutoff.strftime("%Y-%m-%d")]
+        if len(selected) < 2:
+            selected = polls[:2]
+    if len(selected) < 2:
+        selected = polls[:2]
+    current, reference = selected[0], selected[-1]
+    a = current.get("parties") if isinstance(current.get("parties"), dict) else {}
+    b = reference.get("parties") if isinstance(reference.get("parties"), dict) else {}
+    names = sorted(set(a) | set(b))
+    changes = []
+    for name in names:
+        try:
+            delta = float(a.get(name, 0)) - float(b.get(name, 0))
+        except (TypeError, ValueError):
+            continue
+        changes.append((abs(delta), str(name), delta))
+    changes.sort(key=lambda x: (-x[0], x[1]))
+    lines = [
+        f"📊 COMPARACIÓN · {period} observaciones/ventana",
+        "",
+        f"Actual: {current.get('publication_date', 'n/d')}",
+        f"Referencia: {reference.get('publication_date', 'n/d')}",
+        "",
+    ]
+    lines.extend(f"• {name}: {delta:+.1f} pp" for _, name, delta in changes[:15])
+    lines.append("\nComparación descriptiva; no atribuye causalidad.")
+    return "\n".join(lines)
+
+
+def _comparison_markup() -> dict[str, Any]:
+    return {"inline_keyboard": [
+        [{"text": "Última", "callback_data": "compare:2"},
+         {"text": "5 observaciones", "callback_data": "compare:5"},
+         {"text": "30 días", "callback_data": "compare:30"}],
+        [{"text": "🗳 Ficha actual", "callback_data": "evidence:poll:0"},
+         {"text": "📤 Exportar", "callback_data": "export:txt:changes"}],
+        [{"text": "🏠 Inicio", "callback_data": "home"}],
+    ]}
+
+
 def _facts_text() -> str:
     polls = _latest_polls()
     sources = _sources()
@@ -1182,7 +1231,7 @@ def render_command(command: str) -> str:
         "/alertas": lambda: "🔔 ALERTAS · CONFIGURACIÓN\n\nAbre /alertas para gestionar categorías, frecuencia, silencio y umbral.",
         "/hechos": _facts_text,
         "/exportar": lambda: "📤 EXPORTACIÓN\n\nElige CSV/JSON desde las fichas disponibles.",
-        "/comparar": _changes_text,
+        "/comparar": lambda: _comparison_text("5"),
     }
     renderer = renderers.get(command)
     return renderer() if renderer else "Comando no reconocido. Escribe una pregunta en lenguaje natural o pulsa /menu."
@@ -1403,6 +1452,9 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
                     {"text": "← Ficha", "callback_data": f"evidence:poll:{index}"},
                     {"text": "🏠 Inicio", "callback_data": "home"},
                 ]]}
+            elif data.startswith("compare:"):
+                period = data.split(":", 1)[1]
+                text, markup = _comparison_text(period), _comparison_markup()
             elif data.startswith("scenario:") and data.count(":") == 1:
                 name = data.split(":", 1)[1]
                 text, markup = _scenario_text(name), _scenario_markup()
@@ -1463,13 +1515,7 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
                 ],
             }
         elif command == "/comparar":
-            response, markup = _changes_text(), {
-                "inline_keyboard": [
-                    [{"text": "🗳 Ver ficha actual", "callback_data": "evidence:poll:0"}],
-                    [{"text": "📤 Exportar cambios", "callback_data": "export:txt:changes"}],
-                    [{"text": "🏠 Inicio", "callback_data": "home"}],
-                ],
-            }
+            response, markup = _comparison_text("5"), _comparison_markup()
         elif command in {"/admin_alertas", "/admin_config"}:
             if not _admin_allowed(update):
                 response, markup = "🛡 Comando reservado a administradores.", _menu_markup()
