@@ -31,6 +31,22 @@ class ScenarioOutcome:
     coalition_seats: int
     delta: int
 
+def merge_coalition_votes(votes_by_constituency, coalition):
+    """Merge selected candidacies; seat allocation remains canonical in electoral.allocate."""
+    parties = tuple(dict.fromkeys(coalition))
+    if len(parties) < 2:
+        raise ValueError("La coalición requiere al menos dos candidaturas")
+    name = "+".join(parties)
+    out = {}
+    for constituency, row in votes_by_constituency.items():
+        if any(p not in row for p in parties):
+            raise ValueError(f"{constituency}: candidatura ausente")
+        merged = dict(row)
+        merged[name] = sum(merged.pop(p) for p in parties)
+        out[constituency] = merged
+    return out
+
+
 def coalition_decision(
     votes_by_constituency: Mapping[str, Mapping[str, int]],
     seats_by_constituency: Mapping[str, int],
