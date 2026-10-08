@@ -24,6 +24,8 @@ def load():
         raise SystemExit("FAIL_CLOSED: empty mission registry")
     if any(not isinstance(x, str) or not x.strip() for x in ms):
         raise SystemExit("FAIL_CLOSED: non-atomic/empty mission")
+    if len(ms) != 179:
+        raise SystemExit(f"FAIL_CLOSED: expected exactly 179 missions, got {len(ms)}")
     # Repeated text is allowed: each list position is a distinct user mission.
     # IDs are ordinal-bound, so repeated titles cannot collapse workers.
     return d
@@ -63,6 +65,12 @@ def main():
         "batch_size": BATCH_SIZE,
         "missions": missions,
     }
+    ids = [m["id"] for m in missions]
+    if len(ids) != len(set(ids)):
+        raise SystemExit("FAIL_CLOSED: duplicate mission ids")
+    for m in missions:
+        if m["write_authorized"] and not m["scope"]:
+            raise SystemExit("FAIL_CLOSED: write mission without scope: " + m["id"])
     plan["plan_sha256"] = sha(canon(plan))
     approved = []
     for m in missions:
@@ -86,7 +94,10 @@ def main():
         "batches": batches,
         "missions": approved,
     }
-    Path(a.output).write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    out_path = Path(a.output)
+    out_path.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    state = {"schema":"COLMENA_QUEEN_STATE_V1","status":"APPROVED","repository":"DrRomanSalvador/coalicion","branch":"main","ref":a.ref,"plan_sha256":plan["plan_sha256"],"mission_count":len(approved),"batch_count":len(batches),"recoverable":True}
+    out_path.with_name("queen_state.json").write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"status": "QUEEN_GATE_PASS", "missions": len(approved), "batches": len(batches), "plan_sha256": plan["plan_sha256"]}))
 
 if __name__ == "__main__":
