@@ -1,0 +1,33 @@
+{
+  "schema": "MVP_PRODUCT_CHECKPOINT_V1",
+  "branch": "main",
+  "scope": "WEB_EMAIL_PIPELINE_DATA_SALES",
+  "telegram": "DEFERRED_TO_OTHER_AGENT",
+  "status": "IN_PROGRESS",
+  "implemented": [
+    "Streamlit politician-facing dashboard",
+    "Render free dashboard service definition",
+    "Current 2026 survey registry consumed by product surfaces",
+    "Daily newsletter generator with optional SMTP send",
+    "Hourly GitHub Actions scheduler with 08:00 Europe/Madrid send gate",
+    "Fail-closed end-to-end territorial pipeline",
+    "Current surveys and demo JSON API endpoints",
+    "MVP validation workflow",
+    "Fail-closed MVP E2E tests",
+    "MVP sales definition and product pitch surfaces"
+  ],
+  "blocked_or_unverified": [
+    "2026 territorial observed polling >=3 primary surveys",
+    "2026 calibrated territorial prediction",
+    "Real Render deployment verification",
+    "SMTP production credentials and recipient configuration",
+    "GitHub Actions MVP validation run not yet observed"
+  ],
+  "policy": {
+    "national_to_territorial_inference": false,
+    "secondary_reconciled_demo_allowed": true,
+    "external_audit_required_for_official_validity": true,
+    "telegram_changes": false
+  },
+  "next_resume": "Verify mvp-validation GitHub Actions; fix any failure; then materialize/verify web and newsletter surfaces; do not touch Telegram until other agent completes its work."
+}
