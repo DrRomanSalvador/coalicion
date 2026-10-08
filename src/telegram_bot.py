@@ -6,6 +6,9 @@ import os
 import time
 from pathlib import Path
 from typing import Any
+from datetime import date
+
+from src.election_calendar import critical_window
 
 import requests
 
@@ -23,6 +26,7 @@ MAX_MESSAGE = 4090
 
 COMMANDS = [
     ("hoy", "¿Qué está pasando ahora?"),
+    ("mes", "¿Qué importa este mes?"),
     ("cambios", "¿Qué ha cambiado?"),
     ("encuestas", "¿Qué dicen los sondeos?"),
     ("escanos", "¿Qué implican en escaños?"),
@@ -134,6 +138,55 @@ def send_message(chat_id: int, text: str) -> None:
 
 def _answer_callback(callback_id: str) -> None:
     _api("answerCallbackQuery", json={"callback_query_id": callback_id})
+
+
+def _month_text() -> str:
+    """Executive neutral briefing for the current election month."""
+    today = date.today()
+    events = critical_window(today, horizon_days=31)
+    polls = _latest_polls()
+    sources = _sources()
+    failed = []
+    for source in sources:
+        status = str(source.get("status", source.get("health", ""))).upper()
+        if status in {"DOWN", "FAILED", "ERROR", "DEGRADED", "UNHEALTHY"}:
+            failed.append(str(source.get("id", source.get("source_id", source.get("name", "?")))))
+    lines = [
+        "🗓 OCTUBRE · CENTRO DE SITUACIÓN",
+        "",
+        "ELECCIÓN: 29/11/2026 · 350 escaños · 52 circunscripciones",
+        "",
+        "PRÓXIMOS HITOS LEGALES",
+    ]
+    upcoming = [x for x in events if x["status"] != "past"]
+    for event in upcoming[:8]:
+        d = event["days_remaining"]
+        when = "hoy" if d == 0 else f"en {d} días"
+        lines.append(f"• {event['date']} · {event['title']} · {when}")
+    if not upcoming:
+        lines.append("• Sin hitos próximos en la ventana operativa.")
+    lines.extend([
+        "",
+        "DATOS QUE CAMBIAN",
+        f"• Sondeos validados: {len(polls)}",
+        f"• Fuentes registradas: {len(sources)}",
+        f"• Fuentes con incidencia: {len(failed)}" if failed else "• Fuentes con incidencia: 0",
+        "",
+        "CAPACIDAD ACTUAL",
+        "• Sondeos: seguimiento fechado y comparación entre observaciones.",
+        "• Territorio: distribución provincial solo cuando existe evidencia territorial explícita.",
+        "• Escaños: D’Hondt sobre candidaturas y circunscripciones, sin convertir automáticamente porcentajes nacionales.",
+        "• Mayorías/combinaciones: aritmética descriptiva cuando existe una composición de escaños.",
+        "• Evidencia: trazabilidad de fuente, fecha y registro.",
+    ])
+    if failed:
+        lines.extend(["", "INCIDENCIAS DE FUENTE", "• " + ", ".join(failed[:8])])
+    lines.extend([
+        "",
+        "Preguntas rápidas: ¿qué ha cambiado?, ¿qué sondeos hay?, ¿qué plazos vencen?, "
+        "¿dónde cambia el territorio?, ¿qué evidencia sustenta cada dato?"
+    ])
+    return "\n".join(lines)
 
 
 def _home_text() -> str:
@@ -305,6 +358,7 @@ def _natural_query(text: str) -> str | None:
     normalized = "".join(c for c in normalized if unicodedata.category(c) != "Mn")
     rules = [
         (("/hoy", "que pasa", "que esta pasando", "situacion actual", "panorama", "ahora"), "/hoy"),
+        (("/mes", "este mes", "octubre", "que importa este mes", "que hay este mes"), "/mes"),
         (("/cambios", "que ha cambiado", "novedades", "cambios", "ultimas novedades"), "/cambios"),
         (("/encuestas", "sondeos", "encuestas", "que dicen los sondeos"), "/encuestas"),
         (("/escanos", "escanos", "cuantos escanos", "que implican"), "/escanos"),
@@ -327,6 +381,8 @@ def _menu_markup() -> dict[str, Any]:
     return {
         "inline_keyboard": [
             [{"text": "🟦 ¿Qué pasa ahora?", "callback_data": "cmd:/hoy"},
+             {"text": "🗓 ¿Qué importa este mes?", "callback_data": "cmd:/mes"}],
+            [{"text": "📈 ¿Qué ha cambiado?", "callback_data": "cmd:/cambios"},
              {"text": "📈 ¿Qué ha cambiado?", "callback_data": "cmd:/cambios"}],
             [{"text": "🗳 ¿Qué dicen los sondeos?", "callback_data": "cmd:/encuestas"},
              {"text": "🪑 ¿Qué implica en escaños?", "callback_data": "cmd:/escanos"}],
@@ -575,6 +631,7 @@ def render_command(command: str) -> str:
     command = aliases.get(command, command)
     renderers = {
         "/hoy": _home_text,
+        "/mes": _month_text,
         "/ayuda": _help_text,
         "/cambios": _changes_text,
         "/encuestas": _polls_text,
