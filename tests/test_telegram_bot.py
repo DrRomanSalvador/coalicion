@@ -14,8 +14,9 @@ def test_render_prediction_fails_closed_without_snapshot(tmp_path, monkeypatch):
     monkeypatch.setattr(telegram_bot, "SNAPSHOT", tmp_path / "missing.json")
     monkeypatch.setattr(telegram_bot, "ESTIMATION", tmp_path / "missing-estimation.json")
     text = telegram_bot.render_command("/prediccion")
-    assert "BLOQUEADA" in text
-    assert "inferencia" in text
+    assert "SITUACIÓN ACTUAL" in text
+    assert "No se publica una cifra de escaños" in text
+    assert "BLOQUEADA" not in text
 
 
 def test_render_polls_uses_materialized_state(tmp_path, monkeypatch):
@@ -66,8 +67,8 @@ def test_render_changes_and_territory_are_fail_closed(tmp_path, monkeypatch):
     text = telegram_bot.render_command("/cambios")
     assert "PSOE: -2.0 pp" in text
     territory = telegram_bot.render_command("/territorio")
-    assert "BLOQUEADO" in territory
-    assert "nacional→territorial" in territory
+    assert "distribución territorial explícita" in territory
+    assert "BLOQUEADO" not in territory
 
 
 def test_audit_exposes_real_blockers(tmp_path, monkeypatch):
