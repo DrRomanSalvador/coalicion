@@ -9,9 +9,9 @@ def test_calendar_contains_all_operational_milestones():
 
 def test_calendar_known_dates():
     rows={x["code"]:x["date"] for x in official_2026_timeline()}
-    assert rows["COALICIONES"]=="2026-10-15"
-    assert rows["CANDIDATURAS_INICIO"]=="2026-10-20"
-    assert rows["CANDIDATURAS_FIN"]=="2026-10-25"
+    assert rows["COALICIONES"]=="2026-10-16"
+    assert rows["CANDIDATURAS_INICIO"]=="2026-10-21"
+    assert rows["CANDIDATURAS_FIN"]=="2026-10-26"
     assert rows["CAMPAÑA_INICIO"]=="2026-11-13"
     assert rows["ELECCION"]=="2026-11-29"
 
