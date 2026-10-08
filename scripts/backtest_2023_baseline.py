@@ -525,8 +525,13 @@ result={
    "mae_seats_median":seat_mae,
    "rmse_seats_median":seat_rmse,
    "coverage_actual_seats_in_mc_p10_p90_winners":float(np.mean([
-       np.percentile(sim_seats[p],[10])[0] <= actual_seats[p] <=
-       np.percentile(sim_seats[p],[90])[0] for p in winners
+       np.percentile(
+           np.sum([sim_seats[p] for p in parties if party_family(p)==family], axis=0),
+           10
+       ) <= actual_family_seats[family] <= np.percentile(
+           np.sum([sim_seats[p] for p in parties if party_family(p)==family], axis=0),
+           90
+       ) for family in winners
    ])) if winners else float("nan"),
    "coverage_actual_seats_in_calibrated_interval_winners":coverage,
    "coverage_unit":"NATIONAL_PARTY_FAMILY",
