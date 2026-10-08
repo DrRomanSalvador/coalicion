@@ -22,12 +22,14 @@ Estas frases son equivalentes:
 2. Leer `docs/COLMENA_STATE.json`.
 3. Leer `docs/COLMENA_MISSION_CONTROL.json`.
 4. Recuperar `artifacts/colmena/queen_state.json`, `queen_approval.json` y evidencias.
-5. Continuar desde la primera misión no-PASS.
-6. No repetir trabajo ya probado.
-7. Solo `DrRomanSalvador/coalicion`, solo `main`.
-8. Fail-closed: sin evidencia persistente, no PASS.
-9. Cada aprendizaje estructural se codifica en GitHub antes de continuar.
-10. **No prueba final hasta resolver las 179 limitaciones.**
+5. Verificar el runtime y la evidencia de los **179 agentes independientes**.
+6. Continuar desde la primera misión no-PASS; si falta evidencia de instanciación o ejecución, esa misión no está cerrada.
+7. No repetir trabajo ya probado.
+8. Solo `DrRomanSalvador/coalicion`, solo `main`.
+9. Fail-closed: sin evidencia persistente, no PASS.
+10. No confundir workers lógicos con agentes IA reales.
+11. Cada aprendizaje estructural se codifica en GitHub antes de continuar.
+12. **No prueba final hasta resolver las 179 limitaciones y verificar los 179 agentes.**
 
 ## MAPA EJECUTABLE
 
@@ -56,9 +58,15 @@ Si este chat desaparece, no reconstruirlo desde conversación: leer GitHub, recu
 **PAUSADO PARA COORDINACIÓN.**  
 Los workflows automáticos no deben avanzar la misión mientras la Reina termina de coordinar las 179 limitaciones. La prueba final será única, coherente y posterior al cierre completo.
 
-## NO CONFUNDIR
+## CONTRATO REAL DE LOS 179 AGENTES
 
-Las **179** son el contrato de misiones/slots lógicos gobernados por la Reina. Solo se llamarán “agentes IA autónomos” cuando exista evidencia real de ejecución autónoma; el código no inventa esa evidencia.
+Las **179 misiones** son 179 unidades de trabajo distintas, identificadas `M0001`–`M0179`. La arquitectura objetivo es **179 agentes IA/workers independientes**, uno por misión, coordinados por la Reina.
+
+Cada agente debe tener identidad única, contexto y alcance propios, aprobación de la Reina, ejecución independiente verificable, evidencia persistente propia y checkpoint recuperable.
+
+El runtime es **agnóstico de proveedor**: puede ser GitHub Actions, Hugging Face u otro runtime autorizado. Lo obligatorio es la evidencia de que los 179 agentes/workers realmente fueron instanciados y ejecutados.
+
+**Corrección crítica:** 179 slots lógicos no equivalen a 179 agentes IA reales. Si el runtime no demuestra los 179 agentes independientes, la Reina mantiene **BLOCKED** y no declara la colmena completada.
 ## GATE DE CONTINUIDAD
 
 - **Modo persistente:** `PAUSED_FOR_COORDINATION`.
