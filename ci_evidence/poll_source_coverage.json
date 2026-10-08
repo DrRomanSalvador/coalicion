@@ -1,7 +1,7 @@
 {
   "schema": "POLL_SOURCE_COVERAGE_V1",
-  "status": "PASS",
-  "claim": "TRANSPORT_COVERAGE_VERIFIED",
+  "status": "STALE",
+  "claim": "COVERAGE_EVIDENCE_REQUIRES_RUNTIME_REFRESH",
   "scope": "configured_national_poll_universe",
   "known_pollsters": 27,
   "configured_sources": 16,
@@ -11,14 +11,16 @@
   "disabled_without_reason": [],
   "registry_contract": "PASS",
   "last_runtime_coverage": {
-    "claim": "COBERTURA_TOTAL_VERIFICADA",
+    "claim": "COBERTURA_TOTAL_NO_VERIFICADA",
     "scope": "configured_national_poll_universe",
-    "total": true,
+    "total": false,
     "sources_checked": 16,
     "primary_sources": 7,
     "discovery_sources": 9,
-    "blockers": []
+    "blockers": [
+      "stale_materialized_evidence"
+    ]
   },
-  "evidence_limit": "Does not assert that every known pollster has a validated poll; discovery coverage is not primary evidence.",
+  "evidence_limit": "This artifact is intentionally non-certifying until a fresh runtime monitor execution and weekly audit PASS. Registry/discovery coverage is not primary evidence.",
   "fail_closed": true
 }
