@@ -3,6 +3,8 @@
 from __future__ import annotations
 import argparse, hashlib, json
 import sys
+import unicodedata
+from difflib import get_close_matches
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np
@@ -21,8 +23,24 @@ def main():
     d["votos"]=pd.to_numeric(d["votos"],errors="raise").astype(int)
     s=pd.read_csv(SEATS); s["escanos_2023"]=pd.to_numeric(s["escanos_2023"],errors="raise").astype(int)
     if len(s)!=52 or int(s["escanos_2023"].sum())!=350: raise SystemExit("BLOCKED: seat structure must be 52/350")
-    def norm(x): return {"Alicante/Alacant":"Alicante","Balears, Illes":"Illes Balears","Castellón/Castelló":"Castellón"}.get(str(x),str(x))
-    d["prov"]=d["circunscripcion"].map(norm); s["prov"]=s["circunscripcion"].map(norm)
+    s["prov"]=s["circunscripcion"].astype(str)
+    seat_by_key={}
+    for name in s["prov"]:
+        key=" ".join(unicodedata.normalize("NFKD",name).encode("ascii","ignore").decode().lower().replace("/"," ").replace(","," ").split())
+        seat_by_key[key]=name
+    aliases={"alicante alacant":"Alicante","balears illes":"Illes Balears","castellon castello":"Castellón","la coruna":"A Coruña","coruna":"A Coruña"}
+    def norm(x):
+        raw=str(x)
+        key=" ".join(unicodedata.normalize("NFKD",raw).encode("ascii","ignore").decode().lower().replace("/"," ").replace(","," ").split())
+        if key in aliases:
+            return aliases[key]
+        if key in seat_by_key:
+            return seat_by_key[key]
+        matches=get_close_matches(key, list(seat_by_key), n=2, cutoff=0.82)
+        if len(matches)==1:
+            return seat_by_key[matches[0]]
+        raise SystemExit(f"BLOCKED: ambiguous constituency mapping: {raw!r}")
+    d["prov"]=d["circunscripcion"].map(norm)
     groups={}
     for prov,g in d.groupby("prov"):
         parties=sorted(g["partido"].astype(str)); votes={p:int(v) for p,v in zip(g["partido"].astype(str),g["votos"])}; blank=0
