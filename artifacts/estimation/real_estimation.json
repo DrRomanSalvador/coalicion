@@ -59,7 +59,8 @@
       "territory": "NO_EXPLICIT_TERRITORIAL_OBSERVATION",
       "model_status": "BLOCKED",
       "methodology_status": "NOT_PROMOTED",
-      "methodology_promotion_allowed": false
+      "methodology_promotion_allowed": false,
+      "baseline": null
     },
     "integration": {
       "source": "src.rapid_decision_center.decision_snapshot",
