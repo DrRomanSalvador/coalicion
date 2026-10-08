@@ -168,7 +168,7 @@ def certify(root: str = "."):
     coverage_ok = (
         isinstance(coverage, dict)
         and coverage.get("status") == "PASS"
-        and bool(coverage.get("coverage", {}).get("total", coverage.get("total", False)))
+        and bool(coverage.get("coverage", {}).get("total", coverage.get("last_runtime_coverage", {}).get("total", coverage.get("total", False))))
     )
     gates.append(_gate(
         "poll_source_coverage",
