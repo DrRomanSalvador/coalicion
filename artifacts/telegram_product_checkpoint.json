@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "a1c5779f0751492d164781d57198f11c3a6a63b3",
-  "updated_at": "2026-10-08T15:34:00+02:00",
+  "commit": "c048a09e0dafd563b7bd9ecc6eeb3047deb5cf60",
+  "updated_at": "2026-10-08T15:38:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,7 +24,7 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Inspect newest phase2-product run. If failure, fix exact failing test; if success, materialize CI evidence and continue only with remaining P1/P3 blockers.",
+  "resume_from": "Inspect newest queued phase2-product run; do not release until CI PASS and P1/P3 blockers are genuinely resolved.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
@@ -165,7 +165,10 @@
   },
   "phase2_priority3": {
     "status": "BLOCKED",
-    "reason": "territorial observations are autonomous-election studies, not a 52-circumscription general-election matrix"
+    "reason": "territorial observations are autonomous-election studies, not a 52-circumscription general-election matrix",
+    "artifact": "artifacts/territorial_prediction_20261008.json",
+    "current_evidence": 3,
+    "policy": "No 52-circumscription general-election prediction until explicit current territorial input and calibration exist."
   },
   "phase2_priority7": {
     "status": "BLOCKED_RELEASE_PREPARED",
