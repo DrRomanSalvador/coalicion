@@ -37,7 +37,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Instalar pytest
-        run: python -m pip install --upgrade pip pytest beautifulsoup4
+        run: python -m pip install --upgrade pip pytest beautifulsoup4 requests
       - name: Comprobar scripts
         run: python -m py_compile scripts/neutral_coalition_cli.py scripts/survey_watch.py scripts/build_poll_report.py scripts/notify_webhook.py
       - name: Ejecutar tests
