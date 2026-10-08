@@ -17,7 +17,7 @@ EXECUTION = ROOT / "artifacts/execution_state.json"
 OOS = ROOT / "artifacts/oos_historical_2004_2023.json"
 SNAPSHOT = ROOT / "artifacts/decision_snapshot.json"
 SCENARIO_DIR = ROOT / "artifacts"
-API_TIMEOUT = 20
+API_TIMEOUT = 40
 API_RETRIES = 4
 MAX_MESSAGE = 4090
 
@@ -515,6 +515,10 @@ def poll_once(offset: int | None = None) -> int | None:
 
 def run_polling(*, poll_timeout: int = 25, sleep_seconds: float = 1.0) -> None:
     _token()
+    try:
+        _api("deleteWebhook", json={"drop_pending_updates": False})
+    except TelegramBotError:
+        pass
     _set_commands()
     offset = None
     while True:
