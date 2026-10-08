@@ -41,31 +41,22 @@ jobs:
           python scripts/colmena_queen.py --ref "$GITHUB_SHA" --output artifacts/colmena/queen_approval.json
           python scripts/queen_dispatcher.py --validate
           test "$(python -c 'import json; print(len(json.load(open("artifacts/colmena/queen_approval.json"))["missions"]))')" = "179"
-      - name: Execute all 179 workers
+      - name: Queen supervises all 179 workers
         env:
           COLMENA_AGENT_PROVIDER: "github-actions-local"
-          COLMENA_AGENT_EXECUTION_ID: "${{ github.run_id }}-${{ github.run_attempt }}"
+          COLMENA_AGENT_EXECUTION_ID: "\${{ github.run_id }}-\${{ github.run_attempt }}"
           COLMENA_AI_AGENT_EXECUTION: "true"
           COLMENA_AI_DEVICE: "cpu"
         run: |
           set -uo pipefail
           mkdir -p artifacts/colmena/workers
-          rc=0
-          python - <<'PY'
-          import json, subprocess, os
-          d=json.load(open("artifacts/colmena/queen_approval.json",encoding="utf-8"))
-          for m in d["missions"]:
-              out=f"artifacts/colmena/workers/worker_{m['index']:04d}.json"
-              p=subprocess.run([
-                  "python","scripts/colmena_worker.py",
-                  "--mission-id",m["id"],
-                  "--approval","artifacts/colmena/queen_approval.json",
-                  "--ref",os.environ["GITHUB_SHA"],
-                  "--out",out
-              ])
-              if p.returncode: globals()["rc"]=1
-          raise SystemExit(rc)
-          PY
+          python scripts/colmena_queen.py \
+            --ref "$GITHUB_SHA" \
+            --output artifacts/colmena/queen_approval.json \
+            --supervise \
+            --workers-dir artifacts/colmena/workers \
+            --state artifacts/colmena/queen_runtime_state.json
+
       - name: Reconcile 179 evidences fail-closed
         run: |
           python - <<'PY'
