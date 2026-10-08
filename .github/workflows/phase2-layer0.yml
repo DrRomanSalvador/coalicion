@@ -8,6 +8,8 @@ on:
       - "src/pipeline/**"
       - "tests/test_trailability.py"
       - "tests/test_full_pipeline.py"
+      - "src/reproducibility/**"
+      - "tests/test_reproducibility_phase2.py"
       - "ci_evidence/phase2_layer0_checkpoint.json"
   workflow_dispatch:
 
@@ -26,7 +28,7 @@ jobs:
         run: pip install -r requirements.txt pytest
       - name: Verify Phase 2 contracts
         run: |
-          python -m pytest -q tests/test_trailability.py tests/test_full_pipeline.py
+          python -m pytest -q tests/test_trailability.py tests/test_full_pipeline.py tests/test_reproducibility_phase2.py
           python - <<'PY'
           import json
           from pathlib import Path
