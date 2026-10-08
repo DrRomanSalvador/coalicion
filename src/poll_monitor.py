@@ -448,6 +448,10 @@ class PollMonitor:
                     "checked_at": datetime.now(timezone.utc).isoformat(),
                 }
                 p, d = monitor.parse(body)
+                captured_at = datetime.now(timezone.utc).isoformat()
+                for poll in p:
+                    object.__setattr__(poll, "captured_at", captured_at)
+                    object.__setattr__(poll, "source_content_hash", digest)
                 polls.extend(p)
                 for x in d:
                     x["source_hash"] = digest
