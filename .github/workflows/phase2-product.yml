@@ -7,6 +7,7 @@ on:
       - "src/models/**"
       - "src/pipeline/**"
       - "src/trailability/**"
+      - "src/data.py"
       - "src/alerts/**"
       - "src/recovery/**"
       - "src/reproducibility/**"
@@ -18,6 +19,7 @@ on:
       - "src/telegram_bot.py"
       - "tests/test_*phase2*.py"
       - "tests/test_telegram_evidence.py"
+      - "tests/test_official_interior_workbook.py"
       - "tests/test_territorial_data_collection.py"
       - "tests/test_territorial_prediction_2026.py"
       - "data/surveys/current_2026/**"
@@ -39,6 +41,9 @@ on:
       - "artifacts/phase2_priority1_status.json"
       - "artifacts/phase2_priority4_status.json"
       - "artifacts/phase2_priority6_status.json"
+      - "data/manifests/official_interior_congreso.json"
+      - "data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_UNIFIED.json"
+      - "scripts/materialize_official_interior_dataset.py"
       - "docs/DEMO_TODAY.md"
   workflow_dispatch:
 
@@ -66,7 +71,7 @@ jobs:
         run: python scripts/materialize_reproducibility_checkpoint.py
       - name: Verify Phase 2
         run: |
-          python -m pytest -q tests/test_trailability.py tests/test_territorial_data_collection.py tests/test_telegram_evidence.py tests/test_full_pipeline.py tests/test_reproducibility_phase2.py tests/test_territorial_prediction_2026.py tests/test_phase2_priority1.py tests/test_phase2_priority2.py tests/test_alerts.py tests/test_recovery.py tests/test_reproducibility_product.py tests/test_security.py tests/test_docker.py tests/test_monitoring_backup.py
+          python -m pytest -q tests/test_official_interior_workbook.py tests/test_trailability.py tests/test_territorial_data_collection.py tests/test_telegram_evidence.py tests/test_full_pipeline.py tests/test_reproducibility_phase2.py tests/test_territorial_prediction_2026.py tests/test_phase2_priority1.py tests/test_phase2_priority2.py tests/test_alerts.py tests/test_recovery.py tests/test_reproducibility_product.py tests/test_security.py tests/test_docker.py tests/test_monitoring_backup.py
           python -m pytest -q tests/test_telegram_bot.py tests/test_telegram_integration.py
       - name: Upload demo evidence
         uses: actions/upload-artifact@v4
