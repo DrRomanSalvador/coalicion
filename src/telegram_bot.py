@@ -18,6 +18,7 @@ from src.operational_briefing import build_briefing
 from src.situation_room import situation, trends, uncertainty
 from src.telegram_timezone import now_madrid, today_madrid
 from src.telegram_persistence import restore as restore_telegram_state, snapshot as snapshot_telegram_state
+from src.situation_state import SituationStateBlocked, build_situation_state
 
 import requests
 
@@ -330,6 +331,60 @@ def _month_text() -> str:
         "• Evidencia: fuente + fecha + registro.",
     ])
     return "\n".join(lines)
+
+def _canonical_situation_text() -> str:
+    try:
+        state = build_situation_state(as_of=now_madrid())
+    except SituationStateBlocked as exc:
+        return (
+            "🧭 SALA DE SITUACIÓN\n\n"
+            "⚫ INCERTIDUMBRE / BLOQUEO\n"
+            "No existe evidencia suficiente para materializar el estado canónico.\n\n"
+            f"Motivo operativo: {exc}"
+        )
+    changed = state.get("headline", {}).get("changed", [])
+    questions = state.get("headline", {}).get("questions", [])
+    uncertainties = state.get("headline", {}).get("uncertainties", [])
+    lines = [
+        "🧭 COALICIÓN · SALA DE SITUACIÓN",
+        "",
+        f"RADAR: {state.get('radar', 'UNKNOWN')}",
+        f"Corte: {state.get('as_of', 'n/d')}",
+        "",
+        "QUÉ HA CAMBIADO",
+    ]
+    if changed:
+        for item in changed[:3]:
+            party = item.get("party") or item.get("code") or "Cambio"
+            delta = item.get("delta_pp")
+            summary = item.get("summary")
+            if delta is not None:
+                detail = f"{float(delta):+.1f} pp"
+            else:
+                detail = str(summary or "")
+            lines.append(f"• {party}: {detail}".rstrip(": "))
+    else:
+        lines.append("• No hay cambios materializados que puedan afirmarse.")
+    lines.extend(["", "QUÉ TODAVÍA NO SABEMOS"])
+    if uncertainties:
+        for item in uncertainties[:1]:
+            lines.append(f"• {item.get('statement', 'Incertidumbre materializada.')}")
+    else:
+        lines.append("• No se ha materializado una incertidumbre adicional.")
+    lines.extend(["", "QUÉ MERECE ATENCIÓN"])
+    for item in questions[:3]:
+        lines.append(f"• {item.get('question', 'Pregunta no disponible.')}")
+    lines.extend([
+        "",
+        "EVIDENCIA",
+        f"• Encuestas nacionales: {state.get('counts', {}).get('national_polls', 0)}",
+        f"• Observaciones territoriales 2026: {state.get('counts', {}).get('territorial_polls', 0)}",
+        f"• Última publicación: {state.get('counts', {}).get('latest_poll_date') or 'NO DISPONIBLE'}",
+        "",
+        "Límite: no se transforma evidencia nacional en evidencia provincial/autonómica.",
+    ])
+    return "\n".join(lines)
+
 
 def _home_text() -> str:
     polls = _latest_polls()
@@ -1421,7 +1476,7 @@ def render_command(command: str) -> str:
     renderers = {
         "/hoy": _home_text,
         "/briefing": _briefing_text,
-        "/situacion": lambda: situation(_safe_json(STATE), _latest_polls(), _sources()),
+        "/situacion": _canonical_situation_text,
         "/tendencias": lambda: trends(_latest_polls()),
         "/incertidumbre": lambda: uncertainty(_safe_json(ESTIMATION)),
         "/mes": _month_text,
