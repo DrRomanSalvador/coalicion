@@ -194,9 +194,9 @@ class CoalitionDecisionEngine:
         waste_coal = self._threshold_waste(central, parties, True)
         return {
             "coalition": list(parties),
-            "separate_seats": outcomes[0].separate_seats,
-            "coalition_seats": outcomes[0].coalition_seats,
-            "benefit": outcomes[0].delta,
+            "separate_seats": next(o for o in outcomes if o.name == "central").separate_seats,
+            "coalition_seats": next(o for o in outcomes if o.name == "central").coalition_seats,
+            "benefit": next(o for o in outcomes if o.name == "central").delta,
             "price": {
                 "vote_contribution": {p: sum(central.votes[c].get(p, 0) for c in central.votes) for p in parties},
                 "threshold_wasted_votes_separate": waste_sep,
