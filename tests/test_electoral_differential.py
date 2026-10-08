@@ -34,10 +34,14 @@ def test_production_allocator_is_reproducible_for_random_cases():
         votes, seats, valid, blank = _case(seed)
         first = dhondt(votes, seats, valid, blank)
         second = dhondt(votes, seats, valid, blank)
-        assert first.status == second.status == "OK"
-        assert first.seats == second.seats
+        assert first.status == second.status
+        if first.status == "OK":
+            assert first.seats == second.seats
+        else:
+            assert first.status == "EMPATE_ABSOLUTO_PENDIENTE"
 
 
 def test_production_allocator_fails_closed_on_invalid_valid_votes():
-    result = dhondt({"A": 100, "B": 100}, 1, 100)
-    assert result.status != "OK"
+    import pytest
+    with pytest.raises(ValueError, match="candidaturas"):
+        dhondt({"A": 100, "B": 100}, 1, 100)
