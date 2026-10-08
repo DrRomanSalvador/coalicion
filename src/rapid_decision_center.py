@@ -12,6 +12,7 @@ import hashlib
 import json
 
 from .projection_suite import project, compare_projections, uncertainty_summary
+from .electoral import official_2026_seats
 from .marginality import rank_marginality
 from .coalition import coalition_decision
 from .methodology_registry import production_methodology_status
@@ -39,15 +40,16 @@ def _validate_matrix(votes, seats, blank):
     extra_seats = sorted(set(seats) - set(votes))
     if missing or extra_seats:
         raise ValueError(f"BLOCKED: claves territoriales incompatibles; faltan={missing}; sobran_escaños={extra_seats}")
+    missing_blank = sorted(set(votes) - set(blank))
     extra_blank = sorted(set(blank) - set(votes))
-    if extra_blank:
-        raise ValueError(f"BLOCKED: votos en blanco para circunscripciones inexistentes: {extra_blank}")
+    if missing_blank or extra_blank:
+        raise ValueError(f"BLOCKED: votos en blanco deben cubrir exactamente la matriz; faltan={missing_blank}; sobran={extra_blank}")
     for constituency, row in votes.items():
         if not row or any(not isinstance(v, int) or isinstance(v, bool) or v < 0 for v in row.values()):
             raise ValueError(f"BLOCKED: votos inválidos en {constituency}")
         if not isinstance(seats[constituency], int) or isinstance(seats[constituency], bool) or seats[constituency] <= 0:
             raise ValueError(f"BLOCKED: magnitud inválida en {constituency}")
-        if not isinstance(blank.get(constituency, 0), int) or isinstance(blank.get(constituency, 0), bool) or blank.get(constituency, 0) < 0:
+        if not isinstance(blank[constituency], int) or isinstance(blank.get(constituency, 0), bool) or blank.get(constituency, 0) < 0:
             raise ValueError(f"BLOCKED: votos en blanco inválidos en {constituency}")
 
 
@@ -101,20 +103,31 @@ def decision_snapshot(
     Coalition results are electoral counterfactuals only; no political feasibility
     or negotiation probability is inferred.
     """
-    blank = dict(blank_votes_by_constituency or {})
+    if blank_votes_by_constituency is None:
+        raise ValueError("BLOCKED: votos en blanco explícitos requeridos")
+    blank = dict(blank_votes_by_constituency)
     special = dict(special_by_constituency or {})
     _validate_matrix(votes_by_constituency, seats_by_constituency, blank)
+    if set(special) - set(votes_by_constituency):
+        raise ValueError("BLOCKED: regla especial para circunscripción inexistente")
+    for constituency, rule in special.items():
+        if rule not in {"Ceuta", "Melilla"} or constituency != rule:
+            raise ValueError(f"BLOCKED: regla especial inválida para {constituency}")
     if strict_territory:
         if len(votes_by_constituency) != EXPECTED_CONSTITUENCIES:
             raise ValueError(
                 f"BLOCKED: se esperan {EXPECTED_CONSTITUENCIES} circunscripciones; "
                 f"recibidas {len(votes_by_constituency)}"
             )
-        if sum(int(v) for v in seats_by_constituency.values()) != EXPECTED_SEATS:
+        official_seats = official_2026_seats()
+        if dict(seats_by_constituency) != official_seats:
             raise ValueError(
-                f"BLOCKED: se esperan {EXPECTED_SEATS} escaños; "
-                f"recibidos {sum(int(v) for v in seats_by_constituency.values())}"
+                "BLOCKED: nombres y magnitudes deben coincidir exactamente con BOE-A-2026-20742; "
+                "la matriz oficial debe sumar 350 escaños"
             )
+        for constituency in ("Ceuta", "Melilla"):
+            if special.get(constituency) != constituency:
+                raise ValueError(f"BLOCKED: falta la regla legal de {constituency}")
 
     projection = project(
         votes_by_constituency,
@@ -134,7 +147,7 @@ def decision_snapshot(
         if any(len(c) < 2 or len(set(c)) != len(c) for c in normalized):
             raise ValueError("BLOCKED: coalición inválida")
         valid_votes = {
-            c: sum(votes_by_constituency[c].values()) + blank.get(c, 0)
+            c: sum(votes_by_constituency[c].values()) + blank[c]
             for c in votes_by_constituency
         }
         coalition_result = {
