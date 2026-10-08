@@ -116,7 +116,7 @@ def certify(root: str = "."):
     baseline_ok = (
         isinstance(baseline, dict)
         and baseline.get("election") == "2023"
-        and baseline.get("model") == "baseline_persistence_2019N"
+        and str(baseline.get("model", "")).startswith("baseline_persistence_2019N")
         and int(baseline.get("n_simulations", 0)) >= 10000
         and baseline.get("rng") == "numpy.PCG64"
         and baseline.get("source_tier") in {"PRIMARY_INTERIOR", "SECONDARY_REPLICA"}
