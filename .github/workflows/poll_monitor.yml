@@ -41,10 +41,12 @@ jobs:
         run: |
           set -euo pipefail
           python -m src.poll_monitor
+          python scripts/materialize_poll_source_coverage.py
           rm -rf /tmp/poll-monitor-snapshot
           mkdir -p /tmp/poll-monitor-snapshot/surveys
           cp artifacts/poll_monitor_state.json /tmp/poll-monitor-snapshot/
           cp artifacts/survey_history.jsonl /tmp/poll-monitor-snapshot/
+          cp ci_evidence/poll_source_coverage.json /tmp/poll-monitor-snapshot/
           cp -a artifacts/surveys/. /tmp/poll-monitor-snapshot/surveys/
 
       - name: Persistir estado con autocuración de carreras
@@ -60,11 +62,12 @@ jobs:
             # Reaplicar el snapshot ya validado. Nunca hacemos rebase de JSON/JSONL.
             cp /tmp/poll-monitor-snapshot/poll_monitor_state.json artifacts/poll_monitor_state.json
             cp /tmp/poll-monitor-snapshot/survey_history.jsonl artifacts/survey_history.jsonl
+            cp /tmp/poll-monitor-snapshot/poll_source_coverage.json ci_evidence/poll_source_coverage.json
             rm -rf artifacts/surveys
             mkdir -p artifacts/surveys
             cp -a /tmp/poll-monitor-snapshot/surveys/. artifacts/surveys/
 
-            git add artifacts/poll_monitor_state.json artifacts/surveys artifacts/survey_history.jsonl
+            git add artifacts/poll_monitor_state.json artifacts/surveys artifacts/survey_history.jsonl ci_evidence/poll_source_coverage.json
             if git diff --cached --quiet; then
               echo "Sin cambios persistibles."
               exit 0
