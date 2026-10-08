@@ -18,9 +18,9 @@
     "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH"
   },
   "blocking_errors": [],
-  "last_action": "Integrar bibliografía oficial y de contraste en el registro máquina y conectarla al stack canónico de decisión",
-  "last_action_result": "POLITICAL_INTELLIGENCE_SOURCE_REGISTRY_AND_EVIDENCE_GRAPH_IMPLEMENTED",
-  "next_single_action": "Ejecutar CI de integración y materializar/validar las evidencias físicas pendientes sin elevar certificación",
+  "last_action": "Ensamblar la capa única de inteligencia política sobre los motores canónicos",
+  "last_action_result": "POLITICAL_INTELLIGENCE_SYSTEM_CONTRACT_AND_MANIFEST_GATE_IMPLEMENTED",
+  "next_single_action": "Ejecutar el workflow de inteligencia y materializar/validar la evidencia pendiente sin elevar certificación",
   "certification": "PARTIAL",
   "data_source": "PRIMARY_INTERIOR_SUPPLIED_VALIDATED",
   "primary_binary": "SUPPLIED_NOT_PINNED",
@@ -33,7 +33,10 @@
     "Las coaliciones son contrafactuales matemáticos: nunca suman escaños publicados.",
     "Registro máquina de bibliografía integrado en config/political_intelligence_sources.json.",
     "Capa puente neutral integrada en src/political_intelligence.py; no duplica D'Hondt, predicción ni coaliciones.",
-    "La integración estructural no implica materialización de los 16 paquetes históricos ni de la matriz de candidaturas."
+    "La integración estructural no implica materialización de los 16 paquetes históricos ni de la matriz de candidaturas.",
+    "Contrato único de inteligencia añadido en src/political_intelligence.py; no duplica predicción, D'Hondt, incertidumbre ni coaliciones.",
+    "Manifest reproducible generado por CI con hashes de componentes presentes y estado de gates.",
+    "CI no observado todavía para el último conjunto de commits; no se declara PASS hasta disponer de ejecución real."
   ],
   "product_mode": "PREDICTION_FIRST",
   "audit_mode": "INACTIVE",
