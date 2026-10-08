@@ -1,6 +1,6 @@
 {
   "schema": "POLL_MONITOR_V3",
-  "checked_at": "2026-10-08T01:21:23.183178+00:00",
+  "checked_at": "2026-10-08T01:20:18.255672+00:00",
   "coverage": {
     "claim": "COBERTURA_TOTAL_VERIFICADA",
     "scope": "configured_national_poll_universe",
@@ -41,7 +41,7 @@
       "methodology": null,
       "territorial": null,
       "validation": "VALIDATED",
-      "captured_at": "2026-10-08T01:21:29.101262+00:00",
+      "captured_at": "2026-10-08T01:20:21.623245+00:00",
       "source_content_hash": "55a4adcddd53ed78049d44f3a2a502a50a7c795b009085b4366bf67c83483dd1"
     },
     {
@@ -72,7 +72,7 @@
       "methodology": null,
       "territorial": null,
       "validation": "VALIDATED",
-      "captured_at": "2026-10-08T01:21:29.101262+00:00",
+      "captured_at": "2026-10-08T01:20:21.623245+00:00",
       "source_content_hash": "55a4adcddd53ed78049d44f3a2a502a50a7c795b009085b4366bf67c83483dd1"
     },
     {
@@ -103,7 +103,7 @@
       "methodology": null,
       "territorial": null,
       "validation": "VALIDATED",
-      "captured_at": "2026-10-08T01:21:29.101262+00:00",
+      "captured_at": "2026-10-08T01:20:21.623245+00:00",
       "source_content_hash": "55a4adcddd53ed78049d44f3a2a502a50a7c795b009085b4366bf67c83483dd1"
     }
   ],
@@ -138,10 +138,10 @@
         "methodology": null,
         "territorial": null,
         "validation": "VALIDATED",
-        "captured_at": "2026-10-08T01:21:29.101262+00:00",
+        "captured_at": "2026-10-08T01:20:21.623245+00:00",
         "source_content_hash": "55a4adcddd53ed78049d44f3a2a502a50a7c795b009085b4366bf67c83483dd1"
       },
-      "poll_hash": "862784880742bd87b34dcae26aada8cadb9cd4cfef0c4607453d28c7583c77d7",
+      "poll_hash": "227cca1d8418f05824c2c8759c46710085ca2a60ded45aea0787c261c082938c",
       "previous_poll_hash": "b7f7959c0bba12abefbe9c7f3a19406c7472d63e553d03b3d9fd11a3801e5b0c",
       "poll_identity": "0f88c0b2f4ed3b911032bedce58de1b95c3df7da7eb347d8b5596b7c353ada26",
       "event_type": "CORRECTION_OR_REPUBLICATION"
@@ -175,10 +175,10 @@
         "methodology": null,
         "territorial": null,
         "validation": "VALIDATED",
-        "captured_at": "2026-10-08T01:21:29.101262+00:00",
+        "captured_at": "2026-10-08T01:20:21.623245+00:00",
         "source_content_hash": "55a4adcddd53ed78049d44f3a2a502a50a7c795b009085b4366bf67c83483dd1"
       },
-      "poll_hash": "a24f80db1bef445a396d09cca3839f404d368142b20e969c271cca316f194e20",
+      "poll_hash": "62027113e1e5a31bd310882aa67bfa29184e253d870d82f49f1e7b1766d99dad",
       "previous_poll_hash": "4ec89e947ee10fe37e31ca8570d5ef9583bbaac4d8d5bfd3c72f6928d2c344eb",
       "poll_identity": "21d50c521a18d5fac414c653e3fe57edc648e9b4cbf5fd389258f16bd1abde97",
       "event_type": "CORRECTION_OR_REPUBLICATION"
@@ -212,10 +212,10 @@
         "methodology": null,
         "territorial": null,
         "validation": "VALIDATED",
-        "captured_at": "2026-10-08T01:21:29.101262+00:00",
+        "captured_at": "2026-10-08T01:20:21.623245+00:00",
         "source_content_hash": "55a4adcddd53ed78049d44f3a2a502a50a7c795b009085b4366bf67c83483dd1"
       },
-      "poll_hash": "ff134287bb79917e6625de5759262c2d7541f5855716e928d352adfaa81c4165",
+      "poll_hash": "247028a92f9520b9e927fd7bb2fddcb7b4dcd143275552ffe1fe4acdaff87857",
       "previous_poll_hash": "10bf50dd851790754520e9b3f4ca048eb6320c7a61705b7c259d9ef37279b38e",
       "poll_identity": "1ed5ab9a68271c8bb0482092729819c934a1c5587121fc32928c2d1d16128405",
       "event_type": "CORRECTION_OR_REPUBLICATION"
@@ -223,10 +223,6 @@
   ],
   "discoveries": [],
   "failures": [
-    {
-      "source_id": "elpais_40db",
-      "error": "RuntimeError:SOURCE_FETCH_FAILED; https://elpais.com/noticias/barometro-el-pais/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/barometro-el-pais/ | https://elpais.com/noticias/barometro-el-pais/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/barometro-el-pais/ | https://elpais.com/noticias/encuestas/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/encuestas/ | https://elpais.com/noticias/encuestas/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/encuestas/"
-    },
     {
       "source_id": "invymark",
       "error": "RuntimeError:SOURCE_FETCH_FAILED; https://invymark.es/ => SSLError:HTTPSConnectionPool(host='invymark.es', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1010)'))) | https://invymark.es/ => SSLError:HTTPSConnectionPool(host='invymark.es', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1010)')))"
