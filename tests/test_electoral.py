@@ -23,3 +23,16 @@ def test_incomplete_matrix():
     with pytest.raises(ValueError): dhondt({"A":60},1,100)
 def test_merge_before_allocation():
     assert merge_candidacies({"A":40},{"A":30,"B":20})=={"A":70,"B":20}
+
+def test_ceuta_rejects_invalid_blank_votes_without_total():
+    with pytest.raises(ValueError, match="blank_votes"):
+        ceuta_melilla({"A": 10}, blank_votes=-1)
+    with pytest.raises(ValueError, match="blank_votes"):
+        ceuta_melilla({"A": 10}, blank_votes=True)
+
+
+def test_special_seat_count_must_be_integer_one():
+    with pytest.raises(ValueError, match="1 escaño"):
+        allocate({"A": 10}, True, 10, "Ceuta")
+    with pytest.raises(ValueError, match="1 escaño"):
+        allocate({"A": 10}, 1.0, 10, "Melilla")

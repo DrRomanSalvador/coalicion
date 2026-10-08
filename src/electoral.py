@@ -65,6 +65,8 @@ def dhondt(votes:Mapping[str,int], seats:int, valid_votes_total:int, blank_votes
 def ceuta_melilla(votes:Mapping[str,int], valid_votes_total:Optional[int]=None, blank_votes:int=0, tie_breaker:Optional[Callable[[tuple[str,...]], str]]=None)->Allocation:
     _validate_common(votes)
     if not votes: raise ValueError("sin candidaturas")
+    if isinstance(blank_votes,bool) or not isinstance(blank_votes,int) or blank_votes<0:
+        raise ValueError("blank_votes inválido")
     if valid_votes_total is not None: _validate_matrix(votes,valid_votes_total,blank_votes)
     winners=[p for p,v in votes.items() if v==max(votes.values())]
     if len(winners)>1:
@@ -79,7 +81,8 @@ def ceuta_melilla(votes:Mapping[str,int], valid_votes_total:Optional[int]=None, 
 
 def allocate(votes,seats,valid_votes_total,special="",blank_votes=0,tie_breaker=None):
     if special in {"Ceuta","Melilla"}:
-        if seats!=1: raise ValueError("Ceuta/Melilla: 1 escaño")
+        if isinstance(seats,bool) or not isinstance(seats,int) or seats!=1:
+            raise ValueError("Ceuta/Melilla: 1 escaño entero obligatorio")
         return ceuta_melilla(votes,valid_votes_total,blank_votes,tie_breaker=tie_breaker)
     return dhondt(votes,seats,valid_votes_total,blank_votes,tie_breaker=tie_breaker)
 
