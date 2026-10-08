@@ -21,6 +21,7 @@ def main() -> int:
         "telegram_sources_nonempty": bool(sources),
         "madrid_timezone": now_madrid().tzinfo is not None,
         "allowed_chats_configured": bool(os.environ.get("TELEGRAM_ALLOWED_CHATS", "").strip()),
+        "allowed_chat_check_is_fail_closed": not _chat_allowed("__unauthorized_test_chat__"),
         "persistence_snapshot_present": SNAPSHOT.exists(),
     }
     command_results = {}
@@ -34,6 +35,7 @@ def main() -> int:
         except Exception:
             command_results[command] = False
     checks["all_public_commands_return"] = all(command_results.values())
+    checks["no_internal_certification_masking"] = "COMPROBACIÓN PENDIENTE" not in render_command("/situacion")
     checks["sources_command_exposes_materialized_sources"] = (
         any(str(s.get("id")) in render_command("/fuentes") for s in sources)
         if sources else False
