@@ -33,7 +33,7 @@ jobs:
       - name: Verify evidence
         run: |
           python - <<'PY'
-          import json
+          import json, os
           x=json.load(open("ci_evidence/mc_10000.json"))
           assert x["status"]=="PASS"
           assert x["iterations"]>=10000
