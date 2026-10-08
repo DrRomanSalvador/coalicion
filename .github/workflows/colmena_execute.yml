@@ -70,8 +70,10 @@ jobs:
         shell: bash
         env:
           MISSION_ID: ${{ matrix.mission_id }}
-          COLMENA_AGENT_PROVIDER: ${{ vars.COLMENA_AGENT_PROVIDER }}
-          COLMENA_AI_AGENT_EXECUTION: ${{ vars.COLMENA_AI_AGENT_EXECUTION }}
+          COLMENA_AGENT_PROVIDER: huggingface-inference-providers
+          COLMENA_AI_AGENT_EXECUTION: "true"
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          COLMENA_AGENT_MODEL: openai/gpt-oss-120b:fastest
           COLMENA_AGENT_EXECUTION_ID: ${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.mission_id }}
         run: |
           set +e
@@ -100,7 +102,7 @@ jobs:
           name: colmena-queen-approval
       - uses: actions/download-artifact@v4
         with:
-          pattern: worker-evidence-batch-*
+          pattern: worker-evidence-*
           path: worker_evidence
           merge-multiple: true
       - name: Validate complete closure
@@ -186,6 +188,6 @@ jobs:
 # Invocation marker: Queen + full colmena requested on main.
 # Activation checkpoint: 2026-10-08 — execute full atomic worker matrix.
 
-# Queen live activation checkpoint: 2026-10-08T17:00Z — activate colmena now.
+# Queen live activation checkpoint: 2026-10-08T17:00Z — runtime-backed activation requires HF_TOKEN.
 
 # Queen activation dispatch checkpoint: requested by operator; trigger via main push.
