@@ -6,9 +6,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from src.electoral import allocate
-ROOT=Path(__file__).resolve().parents[1]; SOURCE=ROOT/"data/resultados_oficiales_2004_2023.csv"; SEATS=ROOT/"data/2023_circunscripciones_oficiales.csv"; OUT=ROOT/"ci_evidence/mc_10000.json"; SEED=20261008; N=10000
+from src.reproducibility_contract import ExecutionContract
+ROOT=Path(__file__).resolve().parents[1]; SOURCE=ROOT/"data/resultados_oficiales_2004_2023.csv"; SEATS=ROOT/"data/2023_circunscripciones_oficiales.csv"; OUT=ROOT/"ci_evidence/mc_10000.json"; SEED=ExecutionContract.seed; N=10000
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--iterations",type=int,default=N); ap.add_argument("--seed",type=int,default=SEED); args=ap.parse_args()
+    if args.seed != SEED: raise SystemExit(f"BLOCKED: seed {args.seed} does not match canonical seed {SEED}")
     if not SOURCE.is_file() or not SEATS.is_file(): raise SystemExit("BLOCKED: canonical electoral inputs missing")
     df=pd.read_csv(SOURCE); required={"fecha_eleccion","circunscripcion","partido","votos","escaños"}
     if not required.issubset(df.columns): raise SystemExit("BLOCKED: historical source schema incomplete")
@@ -39,6 +41,6 @@ def main():
             total_seats+=sum(a.seats.values())
         seat_sums[i]=total_seats
     if not np.all(seat_sums==350): raise SystemExit("BLOCKED: a draw did not allocate exactly 350 seats")
-    result={"schema":"ELECTORAL_MONTE_CARLO_10000_V2","status":"PASS","iterations":N,"seed":seed,"rng":"numpy.PCG64","constituencies":52,"seats":350,"source_sha256":hashlib.sha256(SOURCE.read_bytes()).hexdigest(),"seat_structure_sha256":hashlib.sha256(SEATS.read_bytes()).hexdigest(),"invariants":{"every_draw_seat_sum_350":True,"all_allocations_status_OK":True},"allocation_calls":N*52,"status_counts":status_counts,"sampler":"Dirichlet-multinomial territorial stress sampler","predictive_claim":False}
+    result={"schema":"ELECTORAL_MONTE_CARLO_10000_V2","status":"PASS","iterations":N,"seed":seed,"canonical_seed":SEED,"rng":"numpy.PCG64","constituencies":52,"seats":350,"source_sha256":hashlib.sha256(SOURCE.read_bytes()).hexdigest(),"seat_structure_sha256":hashlib.sha256(SEATS.read_bytes()).hexdigest(),"invariants":{"every_draw_seat_sum_350":True,"all_allocations_status_OK":True},"allocation_calls":N*52,"status_counts":status_counts,"sampler":"Dirichlet-multinomial territorial stress sampler","predictive_claim":False}
     OUT.parent.mkdir(parents=True,exist_ok=True); OUT.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8"); print(json.dumps(result,ensure_ascii=False,indent=2))
 if __name__=="__main__": main()
