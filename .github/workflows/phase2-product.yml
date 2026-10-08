@@ -10,6 +10,11 @@ on:
       - "src/alerts/**"
       - "src/recovery/**"
       - "src/reproducibility/**"
+      - "src/security/**"
+      - "src/monitoring/**"
+      - "src/backup/**"
+      - "Dockerfile"
+      - "docker-compose.yml"
       - "src/reproducibility/**"
       - "src/telegram_bot.py"
       - "tests/test_*phase2*.py"
@@ -17,11 +22,14 @@ on:
       - "data/surveys/current_2026/**"
       - "scripts/materialize_phase2_demo.py"
       - "scripts/verify_phase2_priority1.py"
-      - "tests/test_phase2_priority1.py tests/test_phase2_priority2.py tests/test_alerts.py tests/test_recovery.py tests/test_reproducibility_product.py"
+      - "tests/test_phase2_priority1.py tests/test_phase2_priority2.py tests/test_alerts.py tests/test_recovery.py tests/test_reproducibility_product.py tests/test_security.py tests/test_docker.py tests/test_monitoring_backup.py"
       - "tests/test_phase2_priority2.py"
       - "tests/test_alerts.py"
       - "tests/test_recovery.py"
       - "tests/test_reproducibility_product.py"
+      - "tests/test_security.py"
+      - "tests/test_docker.py"
+      - "tests/test_monitoring_backup.py"
       - "scripts/materialize_reproducibility_checkpoint.py"
       - "artifacts/phase2_reproducibility_status.json"
       - "scripts/materialize_priority2_checkpoint.py"
@@ -66,3 +74,4 @@ jobs:
             artifacts/phase2_priority2_status.json
             artifacts/phase2_priority4_status.json
             artifacts/phase2_reproducibility_status.json
+            artifacts/phase2_priority6_status.json
