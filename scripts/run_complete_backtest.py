@@ -112,6 +112,9 @@ def main() -> int:
         and baseline["contracts"].get("historical_conformal_calibration") is True
         and baseline["contracts"].get("calibration_before_target_election") is True
         and baseline["contracts"].get("family_level_calibration") is True
+        and baseline["contracts"].get("target_election_excluded_from_calibration") is True
+        and baseline["contracts"].get("conformal_nominal_coverage_95") is True
+        and baseline.get("source_tier") == "PRIMARY_OFFICIAL"
         and isinstance(oos, dict)
         and oos.get("status") == "PASS"
         and isinstance(calibration, dict)
