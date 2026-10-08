@@ -9,6 +9,7 @@ from pathlib import Path
 from .bias_filter import Observation, select_best
 from .context_corrections import predict as predict_context, select
 from .poll_error import PollObservation
+from .cis_history import REQUIRED as CIS_REQUIRED, as_oos_rows
 
 ELECTIONS = (
     ("2004-03-14", "2004"),
@@ -150,6 +151,8 @@ def load_poll_observations(path: str | Path) -> list[PollObservation]:
     if not rows:
         raise ValueError(f"dataset OOS vacío: {p}")
     cols = set(rows[0])
+    if CIS_REQUIRED.issubset(cols):
+        return _canonical(as_oos_rows(p), p.with_name("resultados_oficiales_2004_2023.csv"))
     if CANONICAL.issubset(cols):
         return _canonical(rows, p.with_name("resultados_oficiales_2004_2023.csv"))
     if LEGACY.issubset(cols):
