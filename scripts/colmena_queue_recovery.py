@@ -6,3 +6,5 @@
 # recovery revision 3
 
 # recovery revision 4 — atomic swarm stale-run cancellation enabled
+
+# stale purge revision 5
