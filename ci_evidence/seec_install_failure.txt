@@ -1,0 +1,26 @@
+SEEC_INSTALL_FAILURE
+sha: a2b512e18fb4c5681da32f5fd4cb9df447c27583
+python:
+Python 3.13.16
+pip:
+pip 26.2.1 from /opt/hostedtoolcache/Python/3.13.16/x64/lib/python3.13/site-packages/pip (python 3.13)
+log:
+Collecting pymc==6.3.2
+  Downloading pymc-6.3.2-py3-none-any.whl.metadata (17 kB)
+Collecting arviz<0.24,>=0.22
+  Downloading arviz-0.23.4-py3-none-any.whl.metadata (9.1 kB)
+INFO: pip is looking at multiple versions of pymc to determine which version is compatible with other requirements. This could take a while.
+ERROR: Cannot install arviz<0.24 and >=0.22 and pymc==6.3.2 because these package versions have conflicting dependencies.
+
+The conflict is caused by:
+    The user requested arviz<0.24 and >=0.22
+    pymc 6.3.2 depends on arviz<2.0 and >=1.1.0
+
+Additionally, some packages in these conflicts have no matching distributions available for your environment:
+    arviz
+
+To fix this you could try to:
+1. loosen the range of package versions you've specified
+2. remove package versions to allow pip to attempt to solve the dependency conflict
+
+ERROR: ResolutionImpossible: for help visit https://pip.pypa.io/en/latest/topics/dependency-resolution/#dealing-with-dependency-conflicts
