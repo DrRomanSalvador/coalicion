@@ -6,8 +6,8 @@ from src.operational_briefing import build_briefing
 def test_briefing_prioritizes_imminent_legal_deadline():
     items = build_briefing(as_of=date(2026, 10, 8), polls=[], sources=[], observations={})
     assert items[0]["priority"] == "HIGH"
-    assert items[0]["code"] == "LEGAL_COALICIONES"
-    assert items[0]["due"] == "2026-10-16"
+    assert items[0]["code"] == "LEGAL_CENSO_CONSULTA_INICIO"
+    assert items[0]["due"] == "2026-10-12"
 
 
 def test_briefing_detects_stale_polls():
