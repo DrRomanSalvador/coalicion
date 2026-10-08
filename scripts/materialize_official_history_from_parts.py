@@ -9,6 +9,8 @@ PARTS=ROOT/"data/official_materialization_parts"
 OUT=ROOT/"data/resultados_oficiales_2004_2023.csv"
 MAN=ROOT/"data/manifests/INTERIOR_ACQUISITION.json"
 SOURCE_SHA256="dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2"
+EXPECTED_DERIVED_SHA256="fe438253477b0b5d6976161baf1ea17879e8ad8e25691e0320752fdd642409fe"
+EXPECTED_DERIVED_BYTES=7721910
 DATES={"2004":"2004-03-14","2008":"2008-03-09","2011":"2011-11-20","2015":"2015-12-20","2016":"2016-06-26","2019A":"2019-04-28","2019N":"2019-11-10","2023J":"2023-07-23"}
 
 def main():
@@ -43,7 +45,10 @@ def main():
     OUT.parent.mkdir(parents=True,exist_ok=True)
     with OUT.open("w",encoding="utf-8",newline="") as fh:
         w=csv.writer(fh); w.writerow(header); w.writerows(rows)
+    derived_bytes=OUT.stat().st_size
     sha=hashlib.sha256(OUT.read_bytes()).hexdigest()
+    if derived_bytes != EXPECTED_DERIVED_BYTES or sha != EXPECTED_DERIVED_SHA256:
+        raise RuntimeError(f"FAIL-CLOSED: canonical historical CSV fingerprint mismatch: bytes={derived_bytes}, sha256={sha}")
     manifest={"schema":"INTERIOR_OFFICIAL_ACQUISITION_V4","status":"PASS","source_tier":"PRIMARY_INTERIOR","source_kind":"OFFICIAL_XLSX_SUPPLIED_BY_USER","source_sha256":SOURCE_SHA256,"source_page":"https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/index.html","derived_csv_sha256":sha,"derived_csv_bytes":OUT.stat().st_size,"n_rows":len(rows),"elections":DATES,"n_constituencies_per_election":52,"seats_per_election":350,"official_results":{"rows":len(rows),"elections":list(DATES.values()),"constituencies_per_election":52,"seats_per_election":350,"derived_csv_sha256":sha},"binary_repository_copy":False,"binary_reason":"The supplied official XLSX is retained as source evidence in the conversation; the repository stores its cryptographic fingerprint and deterministic derived CSV.","fail_closed":True}
     MAN.parent.mkdir(parents=True,exist_ok=True)
     MAN.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
