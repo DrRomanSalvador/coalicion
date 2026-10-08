@@ -4,5 +4,72 @@
   "reason": "BLOCKED_NO_TERRITORIAL_INPUT",
   "observation_status": "BLOCKED_NO_TERRITORIAL_OBSERVATION",
   "national_poll_count": 3,
-  "territorial_poll_count": 0
+  "territorial_poll_count": 0,
+  "radar": {
+    "version": "1.0",
+    "status": "OK",
+    "as_of": "2026-10-08",
+    "election_date": "2026-11-29",
+    "alert_count": 2,
+    "alerts": [
+      {
+        "code": "DEADLINE_CANDIDATURES_OPEN",
+        "severity": "ALERT",
+        "title": "Inicio de presentación de candidaturas",
+        "facts": {
+          "date": "2026-10-21",
+          "days_remaining": 13
+        },
+        "evidence": [],
+        "reason": "Hito electoral dentro de los próximos 14 días.",
+        "priority": "P4"
+      },
+      {
+        "code": "DEADLINE_COALITION_DEADLINE",
+        "severity": "ALERT",
+        "title": "Cierre de comunicación de coaliciones",
+        "facts": {
+          "date": "2026-10-16",
+          "days_remaining": 8
+        },
+        "evidence": [],
+        "reason": "Hito electoral dentro de los próximos 14 días.",
+        "priority": "P4"
+      }
+    ],
+    "evidence_refs": [
+      "37e8850bed8c70fd752dc835f55859c7b53e8f9f0ec6f697a42cd1e8155279e7"
+    ],
+    "traceability": {
+      "input_hash": "6f3bfbf7459a3b6251d99d313a23f74191f03c2c8a74de25e54c49a6f5e8bf93",
+      "output_hash": "e203deee86a9821b443337b5730a17ed492c331d7f1c2913812a70bebd14a170"
+    },
+    "policy": {
+      "descriptive_only": true,
+      "no_recommendations": true,
+      "no_rankings": true,
+      "no_vote_transfer_inference": true,
+      "no_national_to_territorial_inference": true,
+      "no_outcome_probability_claim": true
+    },
+    "decision_snapshot": {
+      "current_input_hash": "37e8850bed8c70fd752dc835f55859c7b53e8f9f0ec6f697a42cd1e8155279e7",
+      "current_output_hash": null,
+      "previous_output_hash": null,
+      "territory": "NO_EXPLICIT_TERRITORIAL_OBSERVATION",
+      "model_status": "BLOCKED",
+      "methodology_status": "NOT_PROMOTED",
+      "methodology_promotion_allowed": false
+    },
+    "integration": {
+      "source": "src.rapid_decision_center.decision_snapshot",
+      "territorial_math": "src.projection_suite",
+      "electoral_law": "src.electoral",
+      "marginality": "src.marginality",
+      "coalition": "src.coalition",
+      "uncertainty": "src.uncertainty",
+      "transport": "scripts.notify_webhook",
+      "descriptive_only": true
+    }
+  }
 }
