@@ -56,7 +56,7 @@ jobs:
       - name: Run real SEEC posterior
         run: |
           set -o pipefail
-          python scripts/run_seec_production.py --draws 2500 --tune 1000 --seed 20261008 2>&1 | tee /tmp/seec_run.log
+          python scripts/run_seec_production.py --draws 2500 --tune 3000 --seed 20261008 2>&1 | tee /tmp/seec_run.log
       - name: Materialize SEEC execution failure evidence
         if: failure()
         continue-on-error: true
