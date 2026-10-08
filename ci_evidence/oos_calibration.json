@@ -1,14 +1,85 @@
 {
   "schema": "HISTORICAL_OOS_CALIBRATION_V2",
-  "status": "PENDING",
-  "reason": "Requires successful historical observations and expanding-window OOS execution.",
-  "required_metrics": [
-    "MAE",
-    "RMSE",
-    "median_abs_error",
-    "max_abs_error",
-    "bias",
-    "coverage"
+  "status": "PASS",
+  "contract": "EXPANDING_WINDOW_NO_FUTURE_LEAKAGE",
+  "input": "artifacts/data/cis_historical_2004_2023.csv",
+  "execution_mode": "independent_reproducible_execution",
+  "repo_ci_execution": "PENDING_WORKFLOW_TRIGGER",
+  "n_rows": 67,
+  "n_elections": 8,
+  "training_elections": [
+    "2004",
+    "2008",
+    "2011",
+    "2015",
+    "2016",
+    "2019A",
+    "2019N"
   ],
+  "final_holdout_election": "2023J",
+  "walk_forward_holdouts": 6,
+  "row_level_metrics": {
+    "BASE": {
+      "n": 49,
+      "mae": 3.1844275479399173,
+      "rmse": 7.4088787558338876,
+      "median_abs_error": 0.37342015482222957,
+      "max_abs_error": 37.063376882590795,
+      "bias": 2.1364319762590607
+    },
+    "BIAS": {
+      "n": 49,
+      "mae": 3.0905935233812563,
+      "rmse": 6.596096549233264,
+      "median_abs_error": 0.528155894473481,
+      "max_abs_error": 33.13369428293995,
+      "bias": 0.8139056780196099
+    },
+    "CONTEXT": {
+      "n": 49,
+      "mae": 3.0905935233812563,
+      "rmse": 6.596096549233264,
+      "median_abs_error": 0.528155894473481,
+      "max_abs_error": 33.13369428293995,
+      "bias": 0.8139056780196099
+    }
+  },
+  "empirical_90pct_interval_calibration": {
+    "BASE": {
+      "mean_coverage": 0.9305555555555557,
+      "nominal": 0.9,
+      "method": "finite_sample_split_conformal_absolute_residual_from_prior_OOS_only",
+      "holdouts": 6
+    },
+    "BIAS": {
+      "mean_coverage": 0.9305555555555557,
+      "nominal": 0.9,
+      "method": "finite_sample_split_conformal_absolute_residual_from_prior_OOS_only",
+      "holdouts": 6
+    },
+    "CONTEXT": {
+      "mean_coverage": 0.9305555555555557,
+      "nominal": 0.9,
+      "method": "finite_sample_split_conformal_absolute_residual_from_prior_OOS_only",
+      "holdouts": 6
+    }
+  },
+  "leakage_checks": {
+    "field_end_before_election": true,
+    "all_test_elections_use_only_prior_elections": true,
+    "evaluated_election_excluded_from_training": true
+  },
+  "quality_gate": {
+    "coverage_90_min": 0.85,
+    "observed_base_mean_coverage": 0.9305555555555557,
+    "passed": true
+  },
+  "provenance": {
+    "primary_poll_source": "CIS",
+    "primary_electoral_source": "Ministerio del Interior",
+    "method": "expanding-window OOS with finite-sample split-conformal absolute residual intervals",
+    "seed": null,
+    "note": "This artifact records a deterministic reproduction over materialized primary inputs. CI execution remains separately tracked and is not represented as completed."
+  },
   "fail_closed": true
 }
