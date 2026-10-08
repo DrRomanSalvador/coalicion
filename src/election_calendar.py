@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from typing import Any
 
 CONVOCATION_DATE = date(2026, 10, 5)
+CONVOCATION_PUBLICATION_DATE = date(2026, 10, 6)
 ELECTION_DATE = date(2026, 11, 29)
 CAMPAIGN_START = date(2026, 11, 13)
 CAMPAIGN_END = date(2026, 11, 27)
@@ -13,19 +14,20 @@ def _event(code: str, title: str, when: date, source: str, kind: str="legal") ->
 
 def official_2026_timeline() -> list[dict[str, Any]]:
     source = "BOE-A-2026-20742 + LOREG"
+    census_source = "INE/OCE + LOREG"
     return sorted([
-        _event("CONVOCATORIA", "Publicación de la convocatoria", CONVOCATION_DATE + timedelta(days=1), source),
-        _event("COALICIONES", "Fin del plazo para comunicar coaliciones", CONVOCATION_DATE + timedelta(days=10), source),
-        _event("CENSO_CONSULTA_INICIO", "Inicio del periodo de consulta del censo", CONVOCATION_DATE + timedelta(days=6), source),
-        _event("CENSO_CONSULTA_FIN", "Fin del periodo de consulta del censo", CONVOCATION_DATE + timedelta(days=13), source),
-        _event("CENSO_RECLAMACIONES", "Fin ordinario para reclamaciones al censo", CONVOCATION_DATE + timedelta(days=14), source),
-        _event("CANDIDATURAS_INICIO", "Inicio de presentación de candidaturas", CONVOCATION_DATE + timedelta(days=15), source),
-        _event("CANDIDATURAS_FIN", "Fin de presentación de candidaturas", CONVOCATION_DATE + timedelta(days=20), source),
-        _event("CANDIDATURAS_PUBLICACION", "Publicación de candidaturas presentadas", CONVOCATION_DATE + timedelta(days=22), source),
-        _event("IRREGULARIDADES", "Comunicación de irregularidades de candidaturas", CONVOCATION_DATE + timedelta(days=24), source),
-        _event("SUBSANACION_FIN", "Fin del plazo de subsanación de candidaturas", CONVOCATION_DATE + timedelta(days=26), source),
-        _event("PROCLAMACION", "Proclamación de candidaturas", CONVOCATION_DATE + timedelta(days=27), source),
-        _event("PROCLAMACION_PUBLICACION", "Publicación de candidaturas proclamadas", CONVOCATION_DATE + timedelta(days=28), source),
+        _event("CONVOCATORIA", "Publicación de la convocatoria", CONVOCATION_PUBLICATION_DATE, "BOE-A-2026-20742"),
+        _event("COALICIONES", "Fin del plazo para comunicar coaliciones", CONVOCATION_PUBLICATION_DATE + timedelta(days=10), "LOREG art. 44.2"),
+        _event("CENSO_CONSULTA_INICIO", "Inicio del periodo de consulta del censo", CONVOCATION_PUBLICATION_DATE + timedelta(days=6), census_source),
+        _event("CENSO_CONSULTA_FIN", "Fin del periodo de consulta del censo", CONVOCATION_PUBLICATION_DATE + timedelta(days=13), census_source),
+        _event("CENSO_RECLAMACIONES", "Fin ordinario para reclamaciones al censo", CONVOCATION_PUBLICATION_DATE + timedelta(days=14), census_source),
+        _event("CANDIDATURAS_INICIO", "Inicio de presentación de candidaturas", CONVOCATION_PUBLICATION_DATE + timedelta(days=15), "LOREG art. 45"),
+        _event("CANDIDATURAS_FIN", "Fin de presentación de candidaturas", CONVOCATION_PUBLICATION_DATE + timedelta(days=20), "LOREG art. 45"),
+        _event("CANDIDATURAS_PUBLICACION", "Publicación de candidaturas presentadas", CONVOCATION_PUBLICATION_DATE + timedelta(days=22), "LOREG art. 47"),
+        _event("IRREGULARIDADES", "Comunicación de irregularidades de candidaturas", CONVOCATION_PUBLICATION_DATE + timedelta(days=24), "LOREG art. 47"),
+        _event("SUBSANACION_FIN", "Fin del plazo de subsanación de candidaturas", CONVOCATION_PUBLICATION_DATE + timedelta(days=26), "LOREG art. 47"),
+        _event("PROCLAMACION", "Proclamación de candidaturas", CONVOCATION_PUBLICATION_DATE + timedelta(days=27), "LOREG art. 47"),
+        _event("PROCLAMACION_PUBLICACION", "Publicación de candidaturas proclamadas", CONVOCATION_PUBLICATION_DATE + timedelta(days=28), "LOREG art. 47"),
         _event("CAMPAÑA_INICIO", "Inicio de campaña electoral", CAMPAIGN_START, source),
         _event("CAMPAÑA_FIN", "Fin de campaña electoral", CAMPAIGN_END, source),
         _event("ELECCION", "Jornada electoral", ELECTION_DATE, source),
