@@ -2,15 +2,8 @@ name: COALICION — Queen Atomic Swarm
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "docs/COLMENA_MISSION_CONTROL.json"
-      - "scripts/colmena_queen.py"
-      - "scripts/colmena_worker.py"
-      - "scripts/colmena_local_ai.mjs"
-      - "scripts/audit_2023.py"
-      - ".github/workflows/colmena_atomic_swarm.yml"
+  schedule:
+    - cron: "*/5 * * * *"
 
 permissions:
   contents: read
