@@ -1165,73 +1165,297 @@ def _set_commands() -> None:
         pass
 
 
+
+def _alert_state() -> dict[str, Any]:
+    return _safe_json(ROOT / "artifacts/telegram_alert_state.json")
+
+
+def _save_alert_state(value: dict[str, Any]) -> None:
+    path = ROOT / "artifacts/telegram_alert_state.json"
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+        tmp.replace(path)
+    except OSError:
+        pass
+
+
+def _alert_candidates() -> list[dict[str, Any]]:
+    candidates = []
+    polls = _latest_polls()
+    if polls:
+        p = polls[0]
+        key = f"poll:{p.get('publication_date')}:{p.get('pollster', p.get('source_id', ''))}"
+        candidates.append({
+            "key": key, "category": "nueva_encuesta",
+            "title": "Nueva observación de sondeo",
+            "detail": f"{p.get('publication_date', 'n/d')} · {p.get('pollster', p.get('source_id', 'fuente no indicada'))}",
+        })
+    for item in build_briefing(as_of=date.today(), polls=polls, sources=_sources(),
+                               observations=_observations(), horizon_days=31)[:4]:
+        candidates.append({
+            "key": f"briefing:{item.get('code', item.get('title'))}:{item.get('due', '')}",
+            "category": "cambio_plazo_legal" if item.get("code", "").startswith("LEGAL") else "cambio_evidencia",
+            "title": item.get("title", "Novedad"),
+            "detail": item.get("detail", ""),
+        })
+    return candidates
+
+
+def _in_quiet(prefs: dict[str, Any]) -> bool:
+    from datetime import datetime
+    now = datetime.now().strftime("%H:%M")
+    start, end = prefs["quiet_start"], prefs["quiet_end"]
+    if start == end:
+        return False
+    if start < end:
+        return start <= now < end
+    return now >= start or now < end
+
+
+def _send_alerts_to_chat(chat_id: int, *, frequency: str = "immediate") -> None:
+    cfg = _config()
+    prefs = cfg.get("chats", {}).get(str(chat_id), {})
+    if not isinstance(prefs, dict):
+        prefs = {"categories": {k: True for k in ALERT_CATEGORIES}, "frequency": "immediate"}
+    categories = prefs.get("categories") if isinstance(prefs.get("categories"), dict) else {}
+    if str(prefs.get("frequency", "immediate")) != frequency or _in_quiet(_preferences({"message": {"chat": {"id": chat_id}, "from": {"id": chat_id}}})):
+        return
+    state = _alert_state()
+    sent = state.get(str(chat_id), [])
+    if not isinstance(sent, list):
+        sent = []
+    pending = [x for x in _alert_candidates()
+               if categories.get(x["category"], True) and x["key"] not in sent]
+    if not pending:
+        return
+    pending = pending[:10]
+    lines = ["🔔 COALICIÓN · NOVEDADES", ""]
+    for item in pending:
+        lines += [f"• {ALERT_CATEGORIES[item['category']]} · {item['title']}", f"  {item['detail']}"]
+    lines.append("\n🔎 Datos fechados y trazables.")
+    _send(chat_id, "\n".join(lines), _menu_markup())
+    state[str(chat_id)] = (sent + [x["key"] for x in pending])[-100:]
+    _save_alert_state(state)
+
+
+def _maybe_send_scheduled_digest() -> None:
+    from datetime import datetime
+    now = datetime.now()
+    if now.minute > 5:
+        return
+    cfg = _config()
+    if now.hour not in {8}:
+        return
+    stamp = now.strftime("%Y-%m-%d")
+    marker = ROOT / "artifacts/telegram_digest_state.json"
+    state = _safe_json(marker)
+    if state.get("last") == stamp:
+        return
+    for chat_id, prefs in (cfg.get("chats") or {}).items():
+        if isinstance(prefs, dict) and prefs.get("frequency") == "daily":
+            try:
+                _send(int(chat_id), _digest_text(), _menu_markup())
+            except (TelegramBotError, ValueError):
+                continue
+    try:
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        marker.write_text(json.dumps({"last": stamp}), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def _inline_query(update: dict[str, Any]) -> None:
+    query = str((update.get("inline_query") or {}).get("query") or "").strip()
+    inline_id = str((update.get("inline_query") or {}).get("id") or "")
+    if not inline_id:
+        return
+    command = _natural_query(query) or "/briefing"
+    text = render_command(command)
+    results = [{
+        "type": "article",
+        "id": "briefing",
+        "title": "COALICIÓN · Sala de Situación",
+        "description": "Datos, cambios, plazos y evidencia verificable",
+        "input_message_content": {"message_text": _public_text(text)},
+        "reply_markup": {"inline_keyboard": [[
+            {"text": "🧭 Abrir Sala", "callback_data": "cmd:/briefing"}
+        ]]},
+    }]
+    _api("answerInlineQuery", json={"inline_query_id": inline_id, "results": results, "cache_time": 0, "is_personal": True})
+
+
 def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
     update_id = update.get("update_id")
     next_offset = update_id + 1 if isinstance(update_id, int) else offset
 
+    if "inline_query" in update:
+        if _rate_allowed(update):
+            try:
+                _inline_query(update)
+            except TelegramBotError:
+                pass
+        return next_offset
+
+    chat_id = _chat_id(update)
+    if chat_id and not _chat_allowed(chat_id):
+        callback = update.get("callback_query")
+        if callback and callback.get("id"):
+            _answer_callback(str(callback["id"]))
+        elif (update.get("message") or {}).get("chat"):
+            _send(int(chat_id), "🛡 Este chat no está autorizado para utilizar COALICIÓN.")
+        return next_offset
+
+    if not _rate_allowed(update):
+        if (update.get("message") or {}).get("chat"):
+            _send(int(chat_id), "⏳ Límite temporal alcanzado. Inténtalo de nuevo en un momento.")
+        return next_offset
+
     callback = update.get("callback_query")
     if isinstance(callback, dict):
         data = str(callback.get("data", ""))
-        callback_id = callback.get("id")
-        if callback_id:
-            _answer_callback(str(callback_id))
+        if callback.get("id"):
+            _answer_callback(str(callback["id"]))
         message = callback.get("message") or {}
-        chat_id = (message.get("chat") or {}).get("id")
         message_id = message.get("message_id")
-        key = _state_key(update)
-        if chat_id is not None and isinstance(message_id, int):
+        if chat_id and isinstance(message_id, int):
+            key = _state_key(update)
             state = _get_user_navigation(key)
             current = state["current"]
+            target = None
+            markup = None
+            text = None
             if data == "home":
                 target = "/briefing"
-                _set_user_navigation(key, target)
             elif data == "back":
                 stack = list(state["stack"])
                 target = stack.pop() if stack else "/briefing"
                 users = _load_user_state()
                 users[key] = {"current": target, "stack": stack[-20:]}
                 _save_user_state(users)
-            elif data.startswith("refresh:"):
-                target = data[8:].split("@", 1)[0].strip().lower()
-                if target != current:
-                    target = current
+            elif data.startswith("alert:toggle:"):
+                category = data.rsplit(":", 1)[-1]
+                prefs = _preferences(update)
+                cats = dict(prefs["categories"])
+                if category in cats:
+                    cats[category] = not cats[category]
+                    _set_preferences(update, categories=cats)
+                text, markup = _alerts_text(update), _alerts_markup(update)
+            elif data == "alert:frequency":
+                order = ["immediate", "hourly", "daily"]
+                current_freq = _preferences(update)["frequency"]
+                nxt = order[(order.index(current_freq) + 1) % len(order)] if current_freq in order else "immediate"
+                _set_preferences(update, frequency=nxt)
+                text, markup = _alerts_text(update), _alerts_markup(update)
+            elif data == "alert:quiet":
+                prefs = _preferences(update)
+                off = prefs["quiet_start"] == prefs["quiet_end"]
+                _set_preferences(update, quiet_start="22:00" if off else "00:00",
+                                 quiet_end="08:00" if off else "00:00")
+                text, markup = _alerts_text(update), _alerts_markup(update)
+            elif data == "alert:threshold":
+                values = [0.0, 0.5, 1.0, 2.0]
+                old = _preferences(update)["threshold"]
+                idx = values.index(old) if old in values else 0
+                _set_preferences(update, threshold=values[(idx + 1) % len(values)])
+                text, markup = _alerts_text(update), _alerts_markup(update)
+            elif data.startswith("evidence:poll:"):
+                index = int(data.rsplit(":", 1)[-1])
+                text, markup = _poll_card(index), _poll_card_markup(index)
+            elif data.startswith("evidence:detail:"):
+                index = int(data.rsplit(":", 1)[-1])
+                text, markup = _evidence_detail(index), {"inline_keyboard": [[
+                    {"text": "← Ficha", "callback_data": f"evidence:poll:{index}"},
+                    {"text": "🏠 Inicio", "callback_data": "home"},
+                ]]}
+            elif data.startswith("scenario:") and data.count(":") == 1:
+                name = data.split(":", 1)[1]
+                text, markup = _scenario_text(name), _scenario_markup()
+            elif data.startswith("scenario:view:"):
+                view = data.split(":", 2)[2]
+                text = _scenario_text("central") + f"\n\nVista solicitada: {view}."
+                markup = _scenario_markup()
+            elif data.startswith("territory:"):
+                text = _territory_text()
+                markup = _territory_markup()
+            elif data.startswith("export:"):
+                kind = data.split(":")[-1]
+                _export_text(int(chat_id), "polls" if kind == "polls" else kind)
+                text, markup = "📤 EXPORTACIÓN\n\nArchivo enviado al chat.", _menu_markup()
             else:
                 target = _callback_command(data)
-                if target:
-                    target = target.split("@", 1)[0].strip().lower()
-                    _set_user_navigation(key, target, previous=current)
             if target:
+                target = target.split("@", 1)[0].strip().lower()
+                _set_user_navigation(key, target, previous=current)
+                text = render_command(target)
+                markup = _navigation_markup(target)
+            if text is not None:
                 try:
-                    _edit(int(chat_id), message_id, render_command(target), _navigation_markup(target))
+                    _edit(int(chat_id), int(message_id), text, markup)
                 except TelegramBotError:
-                    _send(int(chat_id), render_command(target), _navigation_markup(target))
+                    _send(int(chat_id), text, markup)
+                _audit(update, "callback", data, text)
         return next_offset
 
     message = update.get("message") or {}
-    chat_id = (message.get("chat") or {}).get("id")
-    text = str(message.get("text") or "").strip()
-    user_id = (message.get("from") or {}).get("id")
-    if chat_id is not None and text:
-        command = text.split()[0] if text.startswith("/") else _natural_query(text)
-        if command:
-            command = command.split("@", 1)[0].strip().lower()
-            key = str(user_id if user_id is not None else chat_id)
-            previous = _get_user_navigation(key)["current"]
-            _set_user_navigation(key, command, previous=previous)
-            _send(int(chat_id), render_command(command), _navigation_markup(command))
+    text_in = str(message.get("text") or "").strip()
+    if not text_in or not chat_id:
+        return next_offset
+    chat_type = str((message.get("chat") or {}).get("type", "private"))
+    bot_username = os.environ.get("TELEGRAM_BOT_USERNAME", "").strip().lstrip("@").lower()
+    if chat_type in {"group", "supergroup"} and not text_in.startswith("/"):
+        if not bot_username or f"@{bot_username}" not in text_in.lower():
+            return next_offset
+        text_in = re.sub(rf"@{re.escape(bot_username)}", "", text_in, flags=re.IGNORECASE).strip()
+
+    command = text_in.split()[0] if text_in.startswith("/") else _natural_query(text_in)
+    key = str(_user_id(update) or chat_id)
+    if command:
+        command = command.split("@", 1)[0].strip().lower()
+        if command == "/alertas":
+            response, markup = _alerts_text(update), _alerts_markup(update)
+        elif command == "/hechos":
+            response, markup = _facts_text(), _navigation_markup("/hechos")
+        elif command == "/exportar":
+            response, markup = "📤 EXPORTACIÓN\n\nSelecciona el conjunto de datos:", {
+                "inline_keyboard": [
+                    [{"text": "🗳 Sondeos JSON", "callback_data": "export:json:polls"}],
+                    [{"text": "🔎 Evidencia JSON", "callback_data": "export:json:evidence"}],
+                    [{"text": "📈 Cambios", "callback_data": "export:txt:changes"}],
+                    [{"text": "🏠 Inicio", "callback_data": "home"}],
+                ],
+            }
+        elif command == "/comparar":
+            response, markup = _changes_text(), {
+                "inline_keyboard": [
+                    [{"text": "🗳 Ver ficha actual", "callback_data": "evidence:poll:0"}],
+                    [{"text": "📤 Exportar cambios", "callback_data": "export:txt:changes"}],
+                    [{"text": "🏠 Inicio", "callback_data": "home"}],
+                ],
+            }
+        elif command == "/escenarios":
+            response, markup = _scenarios_text(), _scenario_markup()
+        elif command == "/territorio":
+            response, markup = _territory_text(), _territory_markup()
         else:
-            _send(
-                int(chat_id),
-                "🟦 Puedo responder preguntas como:\n"
-                "• ¿Qué está pasando ahora?\n"
-                "• ¿Qué ha cambiado?\n"
-                "• ¿Qué dicen los sondeos?\n"
-                "• ¿Qué implica en escaños?\n"
-                "• ¿Qué mayorías son posibles?\n"
-                "• ¿Qué plazos importan?\n"
-                "• ¿De dónde sale cada dato?",
-                _menu_markup(),
-            )
+            response, markup = render_command(command), _navigation_markup(command)
+        _set_user_navigation(key, command, previous=_get_user_navigation(key)["current"])
+        _send(int(chat_id), response, markup)
+        _audit(update, command, text_in, response)
+        if _preferences(update)["frequency"] == "immediate":
+            try:
+                _send_alerts_to_chat(int(chat_id), frequency="immediate")
+            except TelegramBotError:
+                pass
+    else:
+        response = (
+            "🟦 No he identificado la pregunta.\n\n"
+            "Prueba: «ponme al día», «qué ha cambiado», «qué dicen los sondeos», "
+            "«qué vence esta semana» o «de dónde sale este dato»."
+        )
+        _send(int(chat_id), response, _menu_markup())
+        _audit(update, "natural_language_fallback", text_in, response)
     return next_offset
 
 def poll_once(offset: int | None = None) -> int | None:
@@ -1252,12 +1476,12 @@ def run_polling(*, poll_timeout: int = 25, sleep_seconds: float = 1.0) -> None:
         _api("deleteWebhook", json={"drop_pending_updates": False})
     except TelegramBotError:
         pass
-    _set_commands()
+    _configure_bot_ui()
     offset = None
     while True:
         params: dict[str, Any] = {
             "timeout": poll_timeout,
-            "allowed_updates": ["message", "callback_query"],
+            "allowed_updates": ["message", "callback_query", "inline_query"],
         }
         if offset is not None:
             params["offset"] = offset
@@ -1265,6 +1489,7 @@ def run_polling(*, poll_timeout: int = 25, sleep_seconds: float = 1.0) -> None:
         for update in payload.get("result") or []:
             if isinstance(update, dict):
                 offset = _handle_update(update, offset)
+        _maybe_send_scheduled_digest()
         if sleep_seconds:
             time.sleep(sleep_seconds)
 
