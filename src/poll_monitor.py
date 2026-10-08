@@ -73,7 +73,6 @@ def poll_hash(poll: Poll) -> str:
         "source_url": poll.source_url, "parties": dict(sorted(poll.parties.items())),
         "fieldwork_start": poll.fieldwork_start, "fieldwork_end": poll.fieldwork_end,
         "sample_size": poll.sample_size, "methodology": poll.methodology, "territorial": poll.territorial,
-        "source_content_hash": poll.source_content_hash,
     }
     return hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True,
                                      separators=(",", ":")).encode()).hexdigest()
@@ -432,6 +431,14 @@ class PollMonitor:
                 monitor = TwitterMonitor(source, self.session) if source.get("format") == "twitter" else SourceMonitor(source, self.session)
                 body = monitor.fetch()
                 digest = self._save_raw(source["id"], body)
+                previous_source_hash = self.state.setdefault("source_hashes", {}).get(source["id"])
+                if previous_source_hash and previous_source_hash != digest:
+                    self.state.setdefault("source_changes", []).append({
+                        "source_id": source["id"],
+                        "previous_hash": previous_source_hash,
+                        "current_hash": digest,
+                        "detected_at": datetime.now(timezone.utc).isoformat(),
+                    })
                 self.state["source_hashes"][source["id"]] = digest
                 previous_streak = int(self.state.setdefault("failure_streaks", {}).get(source["id"], 0))
                 if previous_streak >= 3 and self.state.setdefault("failure_reported", {}).get(source["id"]):
