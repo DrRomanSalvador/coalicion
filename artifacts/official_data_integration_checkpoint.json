@@ -1,7 +1,7 @@
 {
   "schema": "OFFICIAL_DATA_INTEGRATION_CHECKPOINT_V1",
   "branch": "main",
-  "updated_at": "2026-10-08T16:45:00+02:00",
+  "updated_at": "2026-10-08T13:56:57Z",
   "source": "Ministerio del Interior / Infoelectoral",
   "official_workbook_sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
   "historical_elections": 16,
@@ -31,5 +31,18 @@
     "adapter": "src.prediction.py::official_matrix_to_prediction_inputs",
     "zero_swing_reproduction_test": "tests/test_official_interior_workbook.py::test_official_matrix_connects_to_prediction_without_inference",
     "semantics": "pure structural adapter; no national-to-territorial inference"
+  },
+  "head_commit": "58a8bfcfab7dabc189ef97f574fb6c097cee0e25",
+  "ci_run": {
+    "id": 37788440099,
+    "status": "queued",
+    "conclusion": null
+  },
+  "integration_tests": {
+    "parser_to_matrix": "IMPLEMENTED",
+    "matrix_to_prediction": "IMPLEMENTED",
+    "zero_swing_reproduction": "IMPLEMENTED",
+    "observed_dhondt_52_constituencies": "IMPLEMENTED",
+    "current_ci_validation": "PENDING"
   }
 }
