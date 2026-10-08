@@ -55,7 +55,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install -r requirements.txt
-      - run: python scripts/run_seec_production.py
+      - run: PYTHONPATH=. python scripts/run_seec_production.py
 
   gate:
     if: always()
