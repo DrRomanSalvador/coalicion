@@ -52,6 +52,7 @@ jobs:
           cp -a artifacts/surveys/. /tmp/poll-monitor-snapshot/surveys/
 
       - name: Persistir estado con autocuración de carreras
+        id: persist
         run: |
           set -euo pipefail
           git config user.name "coalicion-poll-monitor[bot]"
@@ -72,6 +73,7 @@ jobs:
 
             git add artifacts/poll_monitor_state.json artifacts/surveys artifacts/survey_history.jsonl artifacts/estimation/observations.json ci_evidence/poll_source_coverage.json
             if git diff --cached --quiet; then
+              echo "changed=false" >> "$GITHUB_OUTPUT"
               echo "Sin cambios persistibles."
               exit 0
             fi
@@ -79,6 +81,7 @@ jobs:
             git commit -m "chore: persist poll monitor state"
 
             if git push origin HEAD:main; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"
               echo "Persistencia publicada en main (intento $attempt)."
               exit 0
             fi
@@ -88,3 +91,16 @@ jobs:
 
           echo "ERROR: no se pudo publicar el estado después de 5 intentos."
           exit 1
+
+      - name: Despertar COALMENA automáticamente
+        if: steps.persist.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh api --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${GITHUB_REPOSITORY}/dispatches" \
+            -f event_type="poll_monitor_completed" \
+            -f client_payload[commit]="${GITHUB_SHA}" \
+            -f client_payload[source]="poll_monitor"
