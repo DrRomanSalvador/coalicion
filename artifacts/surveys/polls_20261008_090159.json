@@ -1,6 +1,6 @@
 {
   "schema": "POLL_MONITOR_V3",
-  "checked_at": "2026-10-08T09:03:08.968496+00:00",
+  "checked_at": "2026-10-08T09:01:42.260988+00:00",
   "coverage": {
     "claim": "COBERTURA_TOTAL_VERIFICADA",
     "scope": "configured_national_poll_universe",
@@ -41,7 +41,7 @@
       "methodology": null,
       "territorial": null,
       "validation": "VALIDATED",
-      "captured_at": "2026-10-08T09:03:14.182497+00:00",
+      "captured_at": "2026-10-08T09:01:50.886493+00:00",
       "source_content_hash": "55a4adcddd53ed78049d44f3a2a502a50a7c795b009085b4366bf67c83483dd1"
     },
     {
@@ -72,7 +72,7 @@
       "methodology": null,
       "territorial": null,
       "validation": "VALIDATED",
-      "captured_at": "2026-10-08T09:03:14.182497+00:00",
+      "captured_at": "2026-10-08T09:01:50.886493+00:00",
       "source_content_hash": "55a4adcddd53ed78049d44f3a2a502a50a7c795b009085b4366bf67c83483dd1"
     },
     {
@@ -103,7 +103,7 @@
       "methodology": null,
       "territorial": null,
       "validation": "VALIDATED",
-      "captured_at": "2026-10-08T09:03:14.182497+00:00",
+      "captured_at": "2026-10-08T09:01:50.886493+00:00",
       "source_content_hash": "55a4adcddd53ed78049d44f3a2a502a50a7c795b009085b4366bf67c83483dd1"
     }
   ],
@@ -111,6 +111,10 @@
   "changed_polls": [],
   "discoveries": [],
   "failures": [
+    {
+      "source_id": "elpais_40db",
+      "error": "RuntimeError:SOURCE_FETCH_FAILED; https://elpais.com/noticias/barometro-el-pais/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/barometro-el-pais/ | https://elpais.com/noticias/barometro-el-pais/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/barometro-el-pais/ | https://elpais.com/noticias/encuestas/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/encuestas/ | https://elpais.com/noticias/encuestas/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/encuestas/"
+    },
     {
       "source_id": "invymark",
       "error": "RuntimeError:SOURCE_FETCH_FAILED; https://invymark.es/ => SSLError:HTTPSConnectionPool(host='invymark.es', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1010)'))) | https://invymark.es/ => SSLError:HTTPSConnectionPool(host='invymark.es', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1010)')))"
