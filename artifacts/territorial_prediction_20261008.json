@@ -1,0 +1,22 @@
+{
+  "schema": "TERRITORIAL_PREDICTION_2026_V2",
+  "status": "BLOCKED",
+  "mode": "OBSERVED_TERRITORIAL_ONLY",
+  "as_of": "2026-10-08",
+  "current_survey_count": 10,
+  "observed_territorial_polls": 0,
+  "territorial_input": "NONE",
+  "calibration_status": "NOT_2026_CALIBRATED",
+  "policy": {
+    "national_to_territorial_inference": false,
+    "synthetic_territorial_values": false,
+    "fail_closed": true
+  },
+  "blockers": [
+    "BLOCKED_NO_TERRITORIAL_OBSERVATIONS",
+    "BLOCKED_NO_2026_TERRITORIAL_CALIBRATION"
+  ],
+  "constituencies": {},
+  "national_seats": {},
+  "seat_total": 0
+}
