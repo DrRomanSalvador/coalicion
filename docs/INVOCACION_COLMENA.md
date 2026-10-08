@@ -21,8 +21,9 @@ Estas frases son equivalentes:
 1. Leer este archivo.
 2. Leer `docs/COLMENA_STATE.json`.
 3. Leer `docs/COLMENA_MISSION_CONTROL.json`.
-4. Recuperar `artifacts/colmena/queen_state.json`, `queen_approval.json` y evidencias.
-5. Verificar el runtime y la evidencia de los **179 agentes independientes**.
+4. Leer `docs/COLMENA_AGENT_RUNTIME.md` y verificar el runtime requerido para los 179 agentes.
+5. Recuperar `artifacts/colmena/queen_state.json`, `queen_approval.json` y evidencias.
+6. Verificar el runtime y la evidencia de los **179 agentes independientes**.
 6. Continuar desde la primera misión no-PASS; si falta evidencia de instanciación o ejecución, esa misión no está cerrada.
 7. No repetir trabajo ya probado.
 8. Solo `DrRomanSalvador/coalicion`, solo `main`.
