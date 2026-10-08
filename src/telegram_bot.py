@@ -698,6 +698,35 @@ def _export_payload(kind: str) -> tuple[bytes, str, str]:
     if kind == "evidence":
         data = [{"index": i, "poll": p} for i, p in enumerate(_latest_polls()[:20])]
         return json.dumps(data, ensure_ascii=False, indent=2).encode(), "coalicion_evidencia.json", "application/json"
+    if kind == "csv":
+        import csv
+        from io import StringIO
+        rows = []
+        for p in _latest_polls():
+            parties = p.get("parties") if isinstance(p.get("parties"), dict) else {}
+            row = {"publication_date": p.get("publication_date"), "pollster": p.get("pollster", p.get("source_id"))}
+            row.update({str(k): v for k, v in parties.items()})
+            rows.append(row)
+        fields = sorted({k for row in rows for k in row})
+        out = StringIO()
+        writer = csv.DictWriter(out, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
+        return out.getvalue().encode("utf-8"), "coalicion_encuestas.csv", "text/csv"
+    if kind == "pdf":
+        from io import BytesIO
+        from reportlab.lib.pagesizes import A4
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        styles = getSampleStyleSheet()
+        story = [Paragraph("COALICIÓN · Informe de situación", styles["Title"]), Spacer(1, 12)]
+        for line in _briefing_text().splitlines():
+            if line.strip():
+                story.append(Paragraph(line.replace("&", "&amp;"), styles["BodyText"]))
+        doc.build(story)
+        return buffer.getvalue(), "coalicion_informe.pdf", "application/pdf"
     if kind == "changes":
         return _changes_text().encode(), "coalicion_cambios.txt", "text/plain"
     return json.dumps({"briefing": _briefing_text()}, ensure_ascii=False, indent=2).encode(), "coalicion_briefing.json", "application/json"
@@ -1381,7 +1410,7 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
                 markup = _territory_markup()
             elif data.startswith("export:"):
                 kind = data.split(":")[-1]
-                _export_text(int(chat_id), "polls" if kind == "polls" else kind)
+                _export_text(int(chat_id), "csv" if kind == "csv" else ("pdf" if kind == "pdf" else ("polls" if kind == "polls" else kind)))
                 text, markup = "📤 EXPORTACIÓN\n\nArchivo enviado al chat.", _menu_markup()
             else:
                 target = _callback_command(data)
@@ -1420,8 +1449,10 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
         elif command == "/exportar":
             response, markup = "📤 EXPORTACIÓN\n\nSelecciona el conjunto de datos:", {
                 "inline_keyboard": [
+                    [{"text": "🗳 Sondeos CSV", "callback_data": "export:csv:csv"}],
                     [{"text": "🗳 Sondeos JSON", "callback_data": "export:json:polls"}],
                     [{"text": "🔎 Evidencia JSON", "callback_data": "export:json:evidence"}],
+                    [{"text": "📄 Informe PDF", "callback_data": "export:pdf:pdf"}],
                     [{"text": "📈 Cambios", "callback_data": "export:txt:changes"}],
                     [{"text": "🏠 Inicio", "callback_data": "home"}],
                 ],
