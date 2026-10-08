@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies
-        run: python -m pip install -r requirements.txt
+        run: python -m pip install --disable-pip-version-check --no-input "numpy>=2.0,<2.4" "pandas==2.3.3"
       - name: Execute complete backtest
         run: |
           set +e
