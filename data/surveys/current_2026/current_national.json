@@ -1,0 +1,181 @@
+{
+  "schema": "CURRENT_NATIONAL_SURVEY_REGISTRY_V1",
+  "as_of": "2026-10-08",
+  "status": "READY_FOR_DEMO_MODEL",
+  "count": 10,
+  "parties": [
+    "PP",
+    "PSOE",
+    "Vox",
+    "Sumar"
+  ],
+  "policy": {
+    "no_future_data": true,
+    "primary_required_for_official_claims": true,
+    "secondary_reconciled_allowed_for_demo": true,
+    "fail_closed": true
+  },
+  "evidence_note": "Values marked SECONDARY_RECONCILED are current observations reconciled from public survey indexes and must not be represented as primary-source verified.",
+  "surveys": [
+    {
+      "id": "em_analytics_2026-10-03",
+      "pollster": "EM-Analytics",
+      "publication_date": "2026-10-03",
+      "field_start": "2026-10-02",
+      "field_end": "2026-10-03",
+      "sample_size": 8171,
+      "shares": {
+        "PP": 31.3,
+        "PSOE": 26.9,
+        "Vox": 19.4,
+        "Sumar": 6.3
+      },
+      "evidence_level": "SECONDARY_RECONCILED",
+      "source_url": "https://www.electomania.es/"
+    },
+    {
+      "id": "sociometrica_2026-10-03",
+      "pollster": "SocioMétrica",
+      "publication_date": "2026-10-03",
+      "field_start": null,
+      "field_end": null,
+      "sample_size": null,
+      "shares": {
+        "PP": 33.4,
+        "PSOE": 26.5,
+        "Vox": 18.1,
+        "Sumar": 5.3
+      },
+      "evidence_level": "SECONDARY_RECONCILED",
+      "source_url": "https://sociometrica.es/"
+    },
+    {
+      "id": "data10_2026-10-02",
+      "pollster": "Data10",
+      "publication_date": "2026-10-02",
+      "field_start": "2026-10-02",
+      "field_end": "2026-10-02",
+      "sample_size": 1000,
+      "shares": {
+        "PP": 34,
+        "PSOE": 26.1,
+        "Vox": 18.6,
+        "Sumar": 5.2
+      },
+      "evidence_level": "SECONDARY_RECONCILED",
+      "source_url": "https://okdiario.com/"
+    },
+    {
+      "id": "winston_2026-10-01",
+      "pollster": "Winston",
+      "publication_date": "2026-10-01",
+      "field_start": "2026-09-29",
+      "field_end": "2026-10-01",
+      "sample_size": 1201,
+      "shares": {
+        "PP": 31.3,
+        "PSOE": 24.9,
+        "Vox": 19.1,
+        "Sumar": 6.8
+      },
+      "evidence_level": "SECONDARY_RECONCILED",
+      "source_url": "https://www.articulo14.es/"
+    },
+    {
+      "id": "ateneo_2026-10-01",
+      "pollster": "Ateneo del Dato",
+      "publication_date": "2026-10-01",
+      "field_start": "2026-09-29",
+      "field_end": "2026-10-01",
+      "sample_size": 1500,
+      "shares": {
+        "PP": 33.2,
+        "PSOE": 27.5,
+        "Vox": 19.2,
+        "Sumar": 7
+      },
+      "evidence_level": "SECONDARY_RECONCILED",
+      "source_url": "https://www.eldiario.es/"
+    },
+    {
+      "id": "sigma_dos_2026-10-01",
+      "pollster": "Sigma Dos",
+      "publication_date": "2026-10-05",
+      "field_start": "2026-09-22",
+      "field_end": "2026-10-01",
+      "sample_size": 2116,
+      "shares": {
+        "PP": 32.6,
+        "PSOE": 25.6,
+        "Vox": 18.3,
+        "Sumar": 6.6
+      },
+      "evidence_level": "PRIMARY_VERIFIED",
+      "source_url": "https://www.sigmados.com/barometro-de-octubre-estimacion-de-voto-para-las-elecciones-generales/"
+    },
+    {
+      "id": "40db_2026-09-28",
+      "pollster": "40dB",
+      "publication_date": "2026-10-05",
+      "field_start": "2026-09-25",
+      "field_end": "2026-09-28",
+      "sample_size": 2000,
+      "shares": {
+        "PP": 31.6,
+        "PSOE": 27.4,
+        "Vox": 18.4,
+        "Sumar": 5.6
+      },
+      "evidence_level": "PRIMARY_PAGE_VERIFIED",
+      "source_url": "https://elpais.com/espana/2026-10-05/el-tiron-de-vox-mantiene-al-bloque-de-la-derecha-en-el-50-en-plena-conmocion-por-maricarmen.html"
+    },
+    {
+      "id": "celeste_tel_2026-09-21",
+      "pollster": "Celeste-Tel",
+      "publication_date": "2026-09-22",
+      "field_start": "2026-09-16",
+      "field_end": "2026-09-21",
+      "sample_size": 1100,
+      "shares": {
+        "PP": 33.9,
+        "PSOE": 25.4,
+        "Vox": 17.8,
+        "Sumar": 6.4
+      },
+      "evidence_level": "SECONDARY_RECONCILED",
+      "source_url": "https://www.celeste-tel.es/"
+    },
+    {
+      "id": "dym_2026-09-21",
+      "pollster": "DYM",
+      "publication_date": "2026-09-21",
+      "field_start": "2026-09-16",
+      "field_end": "2026-09-21",
+      "sample_size": 1017,
+      "shares": {
+        "PP": 34.7,
+        "PSOE": 26.3,
+        "Vox": 17.3,
+        "Sumar": 4.5
+      },
+      "evidence_level": "SECONDARY_RECONCILED",
+      "source_url": "https://www.dym.es/"
+    },
+    {
+      "id": "invymark_2026-09-11",
+      "pollster": "InvyMark",
+      "publication_date": "2026-09-13",
+      "field_start": "2026-09-07",
+      "field_end": "2026-09-11",
+      "sample_size": 1200,
+      "shares": {
+        "PP": 33.7,
+        "PSOE": 26.8,
+        "Vox": 18.6,
+        "Sumar": 6.1
+      },
+      "evidence_level": "SECONDARY_RECONCILED",
+      "source_url": "https://www.lasexta.com/"
+    }
+  ]
+}
