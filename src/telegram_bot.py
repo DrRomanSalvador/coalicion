@@ -28,6 +28,7 @@ MAX_MESSAGE = 4090
 
 COMMANDS = [
     ("hoy", "¿Qué está pasando ahora?"),
+    ("briefing", "¿Qué debo saber ahora mismo?"),
     ("mes", "¿Qué importa este mes?"),
     ("cambios", "¿Qué ha cambiado?"),
     ("encuestas", "¿Qué dicen los sondeos?"),
@@ -166,6 +167,85 @@ def _send(chat_id: int, text: str, markup: dict[str, Any] | None = None) -> None
         if markup and index == 0:
             payload["reply_markup"] = markup
         _api("sendMessage", json=payload)
+
+def _briefing_text() -> str:
+    """Single-screen factual situation room for current electoral operations."""
+    today = date.today()
+    polls = _latest_polls()
+    sources = _sources()
+    observations = _observations()
+    briefing = build_briefing(
+        as_of=today,
+        polls=polls,
+        sources=sources,
+        observations=observations,
+        horizon_days=14,
+    )
+    latest = polls[0] if polls else {}
+    source_ok = 0
+    source_attention = 0
+    for source in sources:
+        status = str(source.get("status", source.get("health", "UNKNOWN"))).upper()
+        if status in {"OK", "UP", "HEALTHY", "ACTIVE"}:
+            source_ok += 1
+        elif status in {"DOWN", "FAILED", "ERROR", "DEGRADED", "UNHEALTHY"}:
+            source_attention += 1
+
+    lines = [
+        "🧭 COALICIÓN · SALA DE SITUACIÓN",
+        "",
+        "HOY",
+        f"• Elecciones: 29/11/2026 · 350 escaños · 52 circunscripciones",
+        f"• Sondeos validados: {len(polls)}",
+        f"• Fuentes registradas: {len(sources)} · activas: {source_ok} · con seguimiento: {source_attention}",
+    ]
+    if latest:
+        lines.extend([
+            "",
+            "ÚLTIMA OBSERVACIÓN",
+            f"• {latest.get('publication_date', 'n/d')} · {latest.get('pollster', latest.get('source', 'fuente no indicada'))}",
+        ])
+        parties = latest.get("parties")
+        if isinstance(parties, dict):
+            values = []
+            for party, value in parties.items():
+                try:
+                    values.append((str(party), float(value)))
+                except (TypeError, ValueError):
+                    pass
+            values.sort(key=lambda x: (-x[1], x[0]))
+            if values:
+                lines.append("• " + " · ".join(f"{p} {v:.1f}%" for p, v in values[:6]))
+    else:
+        lines.extend(["", "ÚLTIMA OBSERVACIÓN", "• No hay un sondeo validado reciente que publicar."])
+
+    lines.extend(["", "PRÓXIMO HITO"])
+    upcoming = [x for x in critical_window(today, horizon_days=14) if x["status"] != "past"]
+    if upcoming:
+        e = upcoming[0]
+        lines.append(f"• {e['date']} · {e['title']} · {e['days_remaining']} días")
+    else:
+        lines.append("• No hay un hito legal dentro de los próximos 14 días.")
+
+    lines.extend(["", "LO QUE REQUIERE ATENCIÓN"])
+    if briefing:
+        for item in briefing[:4]:
+            lines.append(f"• {item['priority']} · {item['title']}")
+            lines.append(f"  {item['detail']}")
+    else:
+        lines.append("• No se ha detectado una novedad operativa materializada.")
+
+    lines.extend([
+        "",
+        "LÍMITES DE LECTURA",
+        "• Los porcentajes nacionales no se convierten automáticamente en escaños provinciales.",
+        "• Las combinaciones parlamentarias se calculan solo sobre composiciones explícitas.",
+        "• Cada observación se interpreta con su fecha y fuente.",
+        "",
+        "Pregunta siguiente: «¿qué ha cambiado?», «¿qué vence?», «¿de dónde sale este dato?» o «¿qué implican los sondeos en escaños?»",
+    ])
+    return "\n".join(lines)
+
 
 def _month_text() -> str:
     """Executive neutral briefing for the current election month."""
@@ -366,6 +446,7 @@ def _natural_query(text: str) -> str | None:
     normalized = unicodedata.normalize("NFD", text.lower())
     normalized = "".join(c for c in normalized if unicodedata.category(c) != "Mn")
     rules = [
+        (("/briefing", "que debo saber", "que debo saber ahora", "sala de situacion", "resumen ejecutivo"), "/briefing"),
         (("/hoy", "que pasa", "que esta pasando", "situacion actual", "panorama", "ahora"), "/hoy"),
         (("/mes", "este mes", "octubre", "que importa este mes", "que hay este mes"), "/mes"),
         (("/cambios", "que ha cambiado", "novedades", "cambios", "ultimas novedades"), "/cambios"),
@@ -389,8 +470,9 @@ def _natural_query(text: str) -> str | None:
 def _menu_markup() -> dict[str, Any]:
     return {
         "inline_keyboard": [
-            [{"text": "🟦 ¿Qué pasa ahora?", "callback_data": "cmd:/hoy"},
-             {"text": "🗓 ¿Qué importa este mes?", "callback_data": "cmd:/mes"}],
+            [{"text": "🧭 ¿Qué debo saber ahora?", "callback_data": "cmd:/briefing"},
+             {"text": "🟦 ¿Qué pasa ahora?", "callback_data": "cmd:/hoy"}],
+            [{"text": "🗓 ¿Qué importa este mes?", "callback_data": "cmd:/mes"}],
             [{"text": "📈 ¿Qué ha cambiado?", "callback_data": "cmd:/cambios"},
              {"text": "🚨 ¿Qué requiere atención?", "callback_data": "cmd:/urgencias"}],
             [{"text": "🗳 ¿Qué dicen los sondeos?", "callback_data": "cmd:/encuestas"},
