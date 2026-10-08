@@ -45,3 +45,9 @@ def test_projection_requires_legal_special_rule_for_ceuta():
     votes={"Ceuta":{"X":60,"Y":40}}
     with pytest.raises(ValueError, match="Ceuta"):
         project(votes, {"Ceuta": 1}, {"Ceuta": 0})
+
+def test_projection_rejects_misapplied_special_rule():
+    import pytest
+    votes={"A":{"X":60,"Y":40}}
+    with pytest.raises(ValueError, match="regla especial"):
+        project(votes, {"A": 1}, {"A": 0}, special_by_constituency={"A": "Ceuta"})

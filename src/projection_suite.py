@@ -37,6 +37,9 @@ def project(votes_by_constituency, seats_by_constituency, blank_votes_by_constit
         raise ValueError("los votos en blanco deben estar materializados para cada circunscripción")
     if set(special_by_constituency) - set(votes_by_constituency):
         raise ValueError("hay circunscripciones especiales fuera de la matriz")
+    for constituency, rule in special_by_constituency.items():
+        if rule not in {"Ceuta", "Melilla"} or constituency != rule:
+            raise ValueError(f"regla especial inválida para {constituency}")
     for special in ("Ceuta", "Melilla"):
         if special in votes_by_constituency and special_by_constituency.get(special) != special:
             raise ValueError(f"{special} debe usar su regla legal de mayoría simple")
