@@ -92,8 +92,10 @@ def _official(path: Path) -> dict[tuple[str, str], float]:
                 continue
             totals[(election, party)] = totals.get((election, party), 0.0) + votes
             national[election] = national.get(election, 0.0) + votes
-    if set(national) != set(ELECTION_DATES):
+    expected_elections = {code for _raw, code in ELECTIONS}
+    if set(national) != expected_elections:
         raise ValueError(f"official OOS scope mismatch: {sorted(national)}")
+
     return {
         key: 100.0 * votes / national[key[0]]
         for key, votes in totals.items()
