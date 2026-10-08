@@ -528,7 +528,7 @@ result={
        (
            (
                lambda samples: (
-                   np.percentile(samples, 10) <= actual_family_seats[family] <=
+                   np.percentile(samples, 10) <= actual_family_seats.get(family, 0) <=
                    np.percentile(samples, 90)
                )
            )(
