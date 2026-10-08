@@ -17,7 +17,7 @@ def test_calendar_known_dates():
 
 def test_timeline_is_deterministic_and_signed():
     by={x["code"]:x for x in timeline(date(2026,10,8))}
-    assert by["COALICIONES"]["days_remaining"]==7
+    assert by["COALICIONES"]["days_remaining"]==8
     assert by["ELECCION"]["days_remaining"]==52
     assert by["COALICIONES"]["status"]=="upcoming"
 
@@ -38,8 +38,8 @@ def test_operational_briefing_prioritizes_imminent_deadline():
         sources=[],
         observations={},
     )
-    assert items[0]["code"] == "LEGAL_COALICIONES"
-    assert items[0]["due"] == "2026-10-16"
+    assert items[0]["code"] == "LEGAL_CENSO_CONSULTA_INICIO"
+    assert items[0]["due"] == "2026-10-12"
 
 
 def test_operational_briefing_detects_stale_polls_and_source_incident():
