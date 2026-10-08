@@ -41,7 +41,7 @@ def test_negative_absolute_shift_preserves_vote_mass():
 
 
 def test_neutral_coalition_treats_missing_candidate_as_zero():
-    votes = {"X": {"A": 100, "B": 100}}
+    votes = {"X": {"A": 120, "B": 80}}
     result = calculate_coalition(votes, {"X": 2}, {"X": 200}, ("A", "C"))
     assert result.separate_seats >= 0
     assert result.coalition_seats >= 0
