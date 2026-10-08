@@ -25,14 +25,18 @@ jobs:
           python-version: "3.12"
       - name: Install test dependencies
         run: python -m pip install -r requirements.txt
+      - name: Materialize primary evidence
+        run: python scripts/materialize_primary_evidence.py
       - name: Compile integration layer
-        run: python -m py_compile src/political_intelligence.py scripts/build_political_intelligence_manifest.py
+        run: python -m py_compile src/political_intelligence.py src/data.py scripts/build_political_intelligence_manifest.py scripts/materialize_primary_evidence.py
       - name: Validate political intelligence
         run: python -m pytest tests/test_political_intelligence.py tests/test_political_intelligence_system.py -q
       - name: Build reproducibility manifest
         run: python scripts/build_political_intelligence_manifest.py
-      - name: Publish manifest
+      - name: Publish manifests and primary evidence
         uses: actions/upload-artifact@v4
         with:
-          name: political-intelligence-manifest
-          path: artifacts/political_intelligence_manifest.json
+          name: political-intelligence-evidence
+          path: |
+            artifacts/political_intelligence_manifest.json
+            artifacts/primary_evidence/
