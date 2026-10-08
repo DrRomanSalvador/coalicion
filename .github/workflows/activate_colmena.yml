@@ -2,16 +2,6 @@ name: Activar Colmena
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "scripts/queen_bee*.py"
-      - "scripts/worker_bee.py"
-      - "scripts/product_status.py"
-      - "src/neutral_coalition.py"
-      - "tests/test_neutral_coalition.py"
-      - ".github/workflows/activate_colmena.yml"
-
 permissions:
   contents: read
 
