@@ -320,6 +320,7 @@ historical_new_party_residuals = []
 historical_party_residuals = {}
 historical_family_residuals = []
 historical_new_family_residuals = []
+historical_family_residuals_by_name = {}
 historical_pair_count = 0
 
 for previous_date, current_date in zip(historical_dates, historical_dates[1:]):
@@ -352,6 +353,7 @@ for previous_date, current_date in zip(historical_dates, historical_dates[1:]):
         av = int(actual_family.get(family, 0))
         residual = abs(av - pv)
         historical_family_residuals.append(residual)
+        historical_family_residuals_by_name.setdefault(family, []).append(residual)
         if pv == 0 and av > 0:
             historical_new_family_residuals.append(residual)
 
@@ -384,6 +386,14 @@ Q90_NEW_FAMILY_SEATS = (
     if historical_new_family_residuals
     else Q90_FAMILY_SEATS
 )
+
+def family_q90(family: str, predicted: int) -> tuple[float, str, int]:
+    vals = historical_family_residuals_by_name.get(family, [])
+    if len(vals) >= 3:
+        return conformal_quantile(vals, 0.90), "FAMILY", len(vals)
+    if predicted == 0 and historical_new_family_residuals:
+        return Q90_NEW_FAMILY_SEATS, "NEW_FAMILY", len(historical_new_family_residuals)
+    return Q90_FAMILY_SEATS, "GLOBAL_FAMILY_FALLBACK", len(historical_family_residuals)
 
 # Party-specific finite-sample conformal calibration.
 Q90_PARTY = {}
@@ -494,6 +504,11 @@ result={
    "historical_new_family_residuals":len(historical_new_family_residuals),
    "conformal_q90_family_seats":Q90_FAMILY_SEATS,
    "conformal_q90_new_family_seats":Q90_NEW_FAMILY_SEATS,
+   "family_specific_calibrations": {
+       family: {"n": len(vals), "q90": conformal_quantile(vals, 0.90)}
+       for family, vals in sorted(historical_family_residuals_by_name.items())
+       if len(vals) >= 3
+   },
    "conformal_nominal_coverage":0.90,
    "conformal_q90_seats":Q90_SEATS,
    "conformal_q90_new_party_seats":Q90_NEW_PARTY_SEATS
