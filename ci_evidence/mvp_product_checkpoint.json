@@ -14,7 +14,10 @@
     "Current surveys and demo JSON API endpoints",
     "MVP validation workflow",
     "Fail-closed MVP E2E tests",
-    "MVP sales definition and product pitch surfaces"
+    "MVP sales definition and product pitch surfaces",
+    "fail-closed current survey normalizer with source and normalized hashes",
+    "normalized survey materialization workflow",
+    "politician-facing design guidelines"
   ],
   "blocked_or_unverified": [
     "2026 territorial observed polling >=3 primary surveys",
@@ -29,8 +32,8 @@
     "external_audit_required_for_official_validity": true,
     "telegram_changes": false
   },
-  "next_resume": "Verify mvp-validation GitHub Actions; fix any failure; then materialize/verify web and newsletter surfaces; do not touch Telegram until other agent completes its work.",
-  "last_commit": "40fcddd19dca75619cbff2a085c25d7ee3e39a4d",
+  "next_resume": "Observe/obtain MVP CI execution evidence; fix any CI failure; then verify Render deployment configuration and current territorial evidence. Telegram remains deferred.",
+  "last_commit": "447f3a7ff039d961121ef03e25d94c4877694a58",
   "latest_changes": [
     "dashboard",
     "newsletter",
