@@ -22,8 +22,8 @@ def main():
     args=ap.parse_args()
     if args.seed != CANONICAL_SEED:
         raise SystemExit(f"BLOCKED: seed {args.seed} does not match canonical seed {CANONICAL_SEED}")
-    if args.chains < 2: raise SystemExit("BLOCKED: production posterior requires at least 2 chains")
-    if args.draws*args.chains<MIN_DRAWS: raise SystemExit(f"BLOCKED: four-chain posterior requires >= {MIN_DRAWS} total draws")
+    if args.chains != 4: raise SystemExit("BLOCKED: production posterior requires exactly chains=4")
+    if args.draws*args.chains<10000: raise SystemExit("BLOCKED: total_draws<10000")
     try:
         import pandas as pd
         import pymc as pm
