@@ -1,0 +1,89 @@
+{
+  "schema": "COALICION_POLITICAL_INTELLIGENCE_SOURCES_V1",
+  "status": "REGISTRY_ONLY_UNTIL_MATERIALIZED",
+  "policy": {
+    "primary_source_precedence": true,
+    "fail_closed": true,
+    "no_synthetic_values": true,
+    "no_national_to_territorial_conversion": true,
+    "no_seat_to_vote_backcalculation": true,
+    "secondary_sources_are_discovery_or_crosscheck": true,
+    "oos_requires_field_date_or_explicit_pre_election_date": true
+  },
+  "official_election_results": {
+    "provider": "Ministerio del Interior",
+    "url": "https://www.resultados-electorales.gob.es/",
+    "data_open": "https://www.resultados-electorales.gob.es/datos-abiertos.html",
+    "elections": [
+      {"id":"1977","date":"1977-06-15","url":"https://www.resultados-electorales.gob.es/elecciones/1977/congreso.html"},
+      {"id":"1979","date":"1979-03-01","url":"https://www.resultados-electorales.gob.es/elecciones/1979/congreso.html"},
+      {"id":"1982","date":"1982-10-28","url":"https://www.resultados-electorales.gob.es/elecciones/1982/congreso.html"},
+      {"id":"1986","date":"1986-06-22","url":"https://www.resultados-electorales.gob.es/elecciones/1986/congreso.html"},
+      {"id":"1989","date":"1989-10-29","url":"https://www.resultados-electorales.gob.es/elecciones/1989/congreso.html"},
+      {"id":"1993","date":"1993-06-06","url":"https://www.resultados-electorales.gob.es/elecciones/1993/congreso.html"},
+      {"id":"1996","date":"1996-03-03","url":"https://www.resultados-electorales.gob.es/elecciones/1996/congreso.html"},
+      {"id":"2000","date":"2000-03-12","url":"https://www.resultados-electorales.gob.es/elecciones/2000/congreso.html"},
+      {"id":"2004","date":"2004-03-14","url":"https://www.resultados-electorales.gob.es/elecciones/2004/congreso.html"},
+      {"id":"2008","date":"2008-03-09","url":"https://www.resultados-electorales.gob.es/elecciones/2008/congreso.html"},
+      {"id":"2011","date":"2011-11-20","url":"https://www.resultados-electorales.gob.es/elecciones/2011/congreso.html"},
+      {"id":"2015","date":"2015-12-20","url":"https://www.resultados-electorales.gob.es/elecciones/2015/congreso.html"},
+      {"id":"2016","date":"2016-06-26","url":"https://www.resultados-electorales.gob.es/elecciones/2016/congreso.html"},
+      {"id":"2019A","date":"2019-04-28","url":"https://www.resultados-electorales.gob.es/elecciones/2019-04/congreso.html"},
+      {"id":"2019N","date":"2019-11-10","url":"https://www.resultados-electorales.gob.es/elecciones/2019-11/congreso.html"},
+      {"id":"2023J","date":"2023-07-23","url":"https://www.resultados-electorales.gob.es/elecciones/2023/congreso.html"}
+    ]
+  },
+  "official_candidacies_2023": {
+    "provider": "Ministerio del Interior / Junta Electoral Central / BOE",
+    "results_portal": "https://www.resultados-electorales.gob.es/elecciones/2023/congreso/candidaturas.html",
+    "data_open": "https://www.resultados-electorales.gob.es/datos-abiertos.html",
+    "jec": "https://www.juntaelectoralcentral.es/",
+    "boe": "https://www.boe.es/",
+    "target": "data/official/candidacies/OFFICIAL_2023_CANDIDACY_MATRIX.csv",
+    "required_fields": ["circunscripcion_id","circunscripcion_nombre","partido_id","partido_nombre","lista_posicion","candidato_nombre","candidato_apellidos","fecha_proclamacion","boe_referencia","hash"]
+  },
+  "demographics": {
+    "provider": "INE",
+    "url": "https://www.ine.es/",
+    "target": "data/demographics/",
+    "uses": ["population","age","sex","territorial_structure","electoral_census_when_officially_available"]
+  },
+  "official_surveys": {
+    "provider": "CIS",
+    "url": "https://www.cis.es/",
+    "catalog": "https://www.cis.es/es/estudios/catalogo",
+    "microdata": "https://www.cis.es/cis/opencm/ES/1_encuestas/estudios/formularioMicrodatos.jsp",
+    "role": "primary_official_survey_evidence"
+  },
+  "private_surveys": [
+    {"id":"myf","name":"MyF Data","url":"https://www.myfdata.com/","role":"primary_private","historical_or_current":true},
+    {"id":"sigma_dos","name":"Sigma Dos","url":"https://www.sigmados.com/","role":"primary_private","historical_or_current":true},
+    {"id":"nc_report","name":"NC Report","url":"https://ncreport.es/","role":"primary_private","historical_or_current":true},
+    {"id":"electomania","name":"Electomanía","url":"https://electomania.es/","role":"discovery_aggregator","historical_or_current":true},
+    {"id":"elpais_surveys","name":"El País / 40dB","url":"https://elpais.com/espana/encuestas/","role":"secondary_publication"},
+    {"id":"elmundo_surveys","name":"EL MUNDO / Sigma Dos","url":"https://www.elmundo.es/espana/encuestas.html","role":"secondary_publication"},
+    {"id":"larazon_surveys","name":"La Razón / NC Report","url":"https://www.larazon.es/espana/encuestas/","role":"secondary_publication"}
+  ],
+  "legal": [
+    {"id":"LOREG","name":"Ley Orgánica 5/1985, de 19 de junio, del Régimen Electoral General","url":"https://www.boe.es/buscar/act.php?id=BOE-A-1985-11672","role":"primary_legal"},
+    {"id":"BOE","name":"Boletín Oficial del Estado","url":"https://www.boe.es/","role":"primary_legal"}
+  ],
+  "decision_layers": {
+    "source_registry": "config/political_intelligence_sources.json",
+    "survey_monitor": "config/poll_monitor.json",
+    "electoral_engine": "src/electoral.py",
+    "prediction": "src/prediction.py",
+    "oos": "src/oos_pipeline.py",
+    "probabilistic_calibration": "src/probabilistic_calibration.py",
+    "uncertainty": "src/uncertainty.py",
+    "marginality": "src/marginality.py",
+    "coalition_counterfactuals": "src/coalition.py",
+    "decision_snapshot": "src/rapid_decision_center.py",
+    "descriptive_radar": "src/electoral_intelligence.py",
+    "evidence_certificate": "src/evidence_certificate.py",
+    "reproducibility_contract": "src/reproducibility_contract.py"
+  },
+  "invalid_source_claims_rejected": [
+    {"claim":"2023-11-23 Spanish general election","reason":"The 2023 Spanish general election was held on 2023-07-23; no 2023-11-23 general election is added to the canonical election registry."}
+  ]
+}
