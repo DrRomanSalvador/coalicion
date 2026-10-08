@@ -1,0 +1,23 @@
+{
+  "schema": "OFFICIAL_DATA_INTEGRATION_CI_EVIDENCE_V1",
+  "status": "PASS",
+  "branch": "main",
+  "commit": "d3caa49c6251638f72c8d08dc8ea3c420bb0f1b4",
+  "workflow": "phase2-product",
+  "run_id": 37786254065,
+  "job_id": 113341642784,
+  "official_workbook_sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
+  "validations": {
+    "historical_elections": 16,
+    "constituencies": 52,
+    "records": 322556,
+    "election_2023_candidate_votes": 24487414,
+    "election_2023_blank_votes": 200673,
+    "election_2023_valid_votes": 24688087,
+    "election_2023_seats": 350,
+    "election_2023_seat_reconciliation": "PASS"
+  },
+  "artifact_id": 11554342673,
+  "artifact_sha256": "c97ba572af64ddd4fbb01b6834260c9f710a816dc8f1e87721482a966a238641",
+  "note": "Historical official results are now a primary input. This does not create a 2026 forecast without current general-election territorial observations."
+}
