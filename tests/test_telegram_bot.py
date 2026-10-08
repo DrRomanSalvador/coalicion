@@ -241,3 +241,64 @@ def test_home_navigation_markup_has_refresh_and_drilldown():
     assert "🔄 Actualizar" in labels
     assert "🧭 Inicio" in labels
     assert "📈 Cambios" in labels
+
+
+
+def test_alert_preferences_toggle_and_frequency(tmp_path, monkeypatch):
+    monkeypatch.setattr(telegram_bot, "TELEGRAM_CONFIG", tmp_path / "telegram_config.json")
+    update = {"message": {"chat": {"id": 123, "type": "private"}, "from": {"id": 42}}}
+    prefs = telegram_bot._preferences(update)
+    assert prefs["categories"]["nueva_encuesta"] is True
+    telegram_bot._set_preferences(update, categories={**prefs["categories"], "nueva_encuesta": False}, frequency="daily")
+    saved = telegram_bot._preferences(update)
+    assert saved["categories"]["nueva_encuesta"] is False
+    assert saved["frequency"] == "daily"
+
+
+def test_public_inline_query_returns_article(monkeypatch):
+    calls = []
+    monkeypatch.setattr(telegram_bot, "_api", lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True})
+    update = {"update_id": 1, "inline_query": {"id": "iq1", "query": "ponme al día", "from": {"id": 42}}}
+    telegram_bot._handle_update(update, None)
+    payloads = [kwargs["json"] for method, kwargs in calls if method == "answerInlineQuery"]
+    assert payloads
+    assert payloads[0]["results"][0]["type"] == "article"
+
+
+def test_poll_card_has_evidence_and_pagination(tmp_path, monkeypatch):
+    observations = tmp_path / "observations.json"
+    observations.write_text(json.dumps({
+        "polls": [
+            {"publication_date": "2026-10-08", "pollster": "CIS", "parties": {"PP": 33.0}},
+            {"publication_date": "2026-10-01", "pollster": "CIS", "parties": {"PP": 32.0}},
+        ]
+    }), encoding="utf-8")
+    monkeypatch.setattr(telegram_bot, "OBSERVATIONS", observations)
+    monkeypatch.setattr(telegram_bot, "STATE", tmp_path / "state.json")
+    markup = telegram_bot._poll_card_markup(0)
+    data = [b["callback_data"] for row in markup["inline_keyboard"] for b in row]
+    assert "evidence:poll:1" in data
+    assert "evidence:detail:0" in data
+
+
+def test_export_payload_supports_csv_json_pdf(tmp_path, monkeypatch):
+    observations = tmp_path / "observations.json"
+    observations.write_text(json.dumps({
+        "polls": [{"publication_date": "2026-10-08", "pollster": "CIS", "parties": {"PP": 33.0}}]
+    }), encoding="utf-8")
+    monkeypatch.setattr(telegram_bot, "OBSERVATIONS", observations)
+    monkeypatch.setattr(telegram_bot, "STATE", tmp_path / "state.json")
+    csv_data, csv_name, _ = telegram_bot._export_payload("csv")
+    assert csv_name.endswith(".csv")
+    assert b"publication_date" in csv_data
+    pdf_data, pdf_name, _ = telegram_bot._export_payload("pdf")
+    assert pdf_name.endswith(".pdf")
+    assert pdf_data.startswith(b"%PDF")
+
+
+def test_rate_limit_private_is_fail_closed(monkeypatch):
+    telegram_bot._RATE.clear()
+    update = {"message": {"chat": {"id": 123, "type": "private"}, "from": {"id": 42}}}
+    for _ in range(10):
+        assert telegram_bot._rate_allowed(update) is True
+    assert telegram_bot._rate_allowed(update) is False
