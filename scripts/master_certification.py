@@ -121,6 +121,7 @@ def certify(root: str = "."):
     baseline = _read_json(baseline_path)
     baseline_ok = (
         isinstance(baseline, dict)
+        and baseline.get("schema") == "BACKTEST_2023_BASELINE_V3"
         and baseline.get("election") == "2023"
         and str(baseline.get("model", "")).startswith("baseline_persistence_2019N")
         and int(baseline.get("n_simulations", 0)) >= 10000
