@@ -1,0 +1,35 @@
+{
+  "schema": "PHASE2_ARCHITECTURE_INVENTORY_V1",
+  "as_of": "2026-10-08",
+  "repository": "DrRomanSalvador/coalicion",
+  "branch": "main",
+  "duplicate_check": {
+    "legacy_electoral_reference": "ABSENT",
+    "legacy_coalition_value": "ABSENT",
+    "legacy_scenarios": "ABSENT",
+    "legacy_decision_engine_module": "ABSENT",
+    "full_election_pipeline": ["src/pipeline/full_election.py"],
+    "territorial_prediction_2026": ["src/models/territorial_prediction_2026.py"],
+    "evidence_layer": ["src/trailability/evidence.py"],
+    "reproducibility_layer": ["src/reproducibility/hasher.py","src/reproducibility/verifier.py"],
+    "poll_hash_adapter": ["src/poll_hasher.py"],
+    "poll_hash_adapter_is_separate_domain_adapter": true
+  },
+  "layers": {
+    "0_current_data_traceability": "PARTIAL_BLOCKED",
+    "1_full_pipeline": "IMPLEMENTED_FAIL_CLOSED",
+    "2_territorial_prediction_2026": "IMPLEMENTED_DEMO_NON_OFFICIAL",
+    "3_realtime_monitor_telegram_recovery": "PARTIAL_EXISTING",
+    "4_reproducibility": "IMPLEMENTED",
+    "5_security_operation": "PARTIAL_EXISTING",
+    "6_release_package": "PARTIAL_EXISTING",
+    "7_demo_end_to_end": "IN_PROGRESS"
+  },
+  "declaration_policy": {
+    "completed_layer_requires_materialized_evidence_and_verified_execution": true,
+    "no_full_phase2_declaration": true,
+    "external_audit_not_a_demo_blocker": true,
+    "official_validity_requires_independent_external_audit": true,
+    "fail_closed": true
+  }
+}
