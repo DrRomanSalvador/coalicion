@@ -24,38 +24,40 @@ def _constituency_columns(headers):
     return out
 
 def normalize_workbook(path:Path,destination:Path)->dict:
-    wb=openpyxl.load_workbook(path,read_only=True,data_only=True); records=0; elections=set()
+    wb=openpyxl.load_workbook(path,read_only=True,data_only=True)
+    records=0; elections=set()
     destination.parent.mkdir(parents=True,exist_ok=True)
-    # Never leave a truncated "official" dataset at the canonical path if a
-    # workbook validation fails midway through materialization.
+    # Publish only a fully validated dataset; failures never replace canonical output.
     temporary=destination.with_name(destination.name+".tmp")
-    with temporary.open("w",encoding="utf-8",newline="") as fh:
-        writer=csv.writer(fh)
-        writer.writerow(["election_date","election_code","election_type","metric","subject","constituency_code","constituency","value","national_total"])
-        for ws in wb.worksheets:
-            header=next(ws.iter_rows(min_row=4,max_row=4,values_only=True),())
-            cols=_constituency_columns(list(header))
-            for row in ws.iter_rows(min_row=5,values_only=True):
-                if not row or row[0] is None: continue
-                if not hasattr(row[0],"date"): raise ValueError("Fecha de elección inválida.")
-                election_date=row[0].date().isoformat(); elections.add(election_date)
-                description=str(row[3] or "").strip()
-                if description.startswith("Votos (") and description.endswith(")"): metric,subject="votes",description[7:-1]
-                elif description.startswith("Escaños (") and description.endswith(")"): metric,subject="seats",description[9:-1]
-                else: metric,subject=description.lower().replace(" ","_"),""
-                national_total="" if row[56] is None else int(row[56])
-                for index,(code,constituency) in cols.items():
-                    value=row[index] if index<len(row) else None
-                    if value is None: continue
-                    if isinstance(value,bool) or not isinstance(value,(int,float)) or not float(value).is_integer() or value<0:
-                        raise ValueError(f"Valor inválido: {election_date}:{constituency}:{description}")
-                    writer.writerow([election_date,int(row[1]),str(row[2]),metric,subject,code,constituency,int(value),national_total]); records+=1
-    if len(elections)!=16:
+    try:
+        with temporary.open("w",encoding="utf-8",newline="") as fh:
+            writer=csv.writer(fh)
+            writer.writerow(["election_date","election_code","election_type","metric","subject","constituency_code","constituency","value","national_total"])
+            for ws in wb.worksheets:
+                header=next(ws.iter_rows(min_row=4,max_row=4,values_only=True),())
+                cols=_constituency_columns(list(header))
+                for row in ws.iter_rows(min_row=5,values_only=True):
+                    if not row or row[0] is None: continue
+                    if not hasattr(row[0],"date"): raise ValueError("Fecha de elección inválida.")
+                    election_date=row[0].date().isoformat(); elections.add(election_date)
+                    description=str(row[3] or "").strip()
+                    if description.startswith("Votos (") and description.endswith(")"): metric,subject="votes",description[7:-1]
+                    elif description.startswith("Escaños (") and description.endswith(")"): metric,subject="seats",description[9:-1]
+                    else: metric,subject=description.lower().replace(" ","_"),""
+                    national_total="" if row[56] is None else int(row[56])
+                    for index,(code,constituency) in cols.items():
+                        value=row[index] if index<len(row) else None
+                        if value is None: continue
+                        if isinstance(value,bool) or not isinstance(value,(int,float)) or not float(value).is_integer() or value<0:
+                            raise ValueError(f"Valor inválido: {election_date}:{constituency}:{description}")
+                        writer.writerow([election_date,int(row[1]),str(row[2]),metric,subject,code,constituency,int(value),national_total]); records+=1
+        if len(elections)!=16:
+            raise ValueError(f"Se esperaban 16 elecciones históricas; recibidas {len(elections)}.")
+        temporary.replace(destination)
+        return {"records":records,"elections":sorted(elections)}
+    finally:
+        wb.close()
         temporary.unlink(missing_ok=True)
-        raise ValueError(f"Se esperaban 16 elecciones históricas; recibidas {len(elections)}.")
-    temporary.replace(destination)
-    wb.close()
-    return {"records":records,"elections":sorted(elections)}
 
 def main():
     parser=argparse.ArgumentParser()
