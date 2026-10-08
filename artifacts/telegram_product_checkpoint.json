@@ -1,0 +1,28 @@
+{
+  "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
+  "branch": "main",
+  "commit": "74d989cd2893cbba166f0590fad919ef3502c8da",
+  "updated_at": "2026-10-08T12:42:00+02:00",
+  "completed": [
+    "source_status real del monitor",
+    "Madrid timezone",
+    "durable Telegram state snapshot/restore",
+    "fail-closed authorization",
+    "evidence traceability",
+    "interactive navigation",
+    "morning 08:00 digest",
+    "nightly 22:00 digest",
+    "scheduled digest idempotence",
+    "source recovery alerts require explicit previous failure",
+    "public internal-status sanitization"
+  ],
+  "real_monitor_snapshot": {
+    "sources": 17,
+    "ok": 13,
+    "failed": 3,
+    "skipped_optional": 1,
+    "national_observations": 3,
+    "territorial_observations": 0
+  },
+  "resume_from": "run Telegram validation for commit 74d989cd2893cbba166f0590fad919ef3502c8da; inspect jobs/logs; correct every failing check; repeat until green."
+}
