@@ -9,8 +9,8 @@ PARTS=ROOT/"data/official_materialization_parts"
 OUT=ROOT/"data/resultados_oficiales_2004_2023.csv"
 MAN=ROOT/"data/manifests/INTERIOR_ACQUISITION.json"
 SOURCE_SHA256="dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2"
-EXPECTED_DERIVED_SHA256="fe438253477b0b5d6976161baf1ea17879e8ad8e25691e0320752fdd642409fe"
-EXPECTED_DERIVED_BYTES=7721910
+EXPECTED_DERIVED_SHA256="0b83f9b60e017982c97a702ce24518d5c4432ec90b8e0659210c3db3c9d7634b"
+EXPECTED_DERIVED_BYTES=7772611
 DATES={"2004":"2004-03-14","2008":"2008-03-09","2011":"2011-11-20","2015":"2015-12-20","2016":"2016-06-26","2019A":"2019-04-28","2019N":"2019-11-10","2023J":"2023-07-23"}
 
 def main():
@@ -42,12 +42,13 @@ def main():
     for e,rows_e in by_e.items():
         if len({r[2] for r in rows_e})!=52: raise RuntimeError(f"{e}: expected 52 constituencies")
         if sum(int(r[5]) for r in rows_e)!=350: raise RuntimeError(f"{e}: expected 350 seats")
-    # Preserve the supplied official partition bytes exactly. Re-serializing
-    # parsed CSV rows can change quoting/line endings and therefore the
-    # cryptographic fingerprint even when the logical rows are identical.
-    with OUT.open("wb") as fh:
-        for p in parts:
-            fh.write(p.read_bytes())
+    # Re-materialize the canonical CSV deterministically from logical rows.
+    # This removes partition-specific line-ending boundaries while preserving
+    # every primary row and the canonical schema.
+    with OUT.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.writer(fh, lineterminator="\r\n")
+        writer.writerow(header)
+        writer.writerows(rows)
     derived_bytes=OUT.stat().st_size
     sha=hashlib.sha256(OUT.read_bytes()).hexdigest()
     if derived_bytes != EXPECTED_DERIVED_BYTES or sha != EXPECTED_DERIVED_SHA256:
