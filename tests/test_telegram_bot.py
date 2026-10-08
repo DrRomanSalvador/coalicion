@@ -133,3 +133,9 @@ def test_month_situation_centre_is_available():
     assert "CENTRO DE SITUACIÓN" in text
     assert "29/11/2026" in text
     assert "PRÓXIMOS HITOS LEGALES" in text
+
+
+def test_calendar_uses_official_timeline():
+    text = telegram_bot.render_command("/calendario")
+    assert "PRÓXIMOS HITOS" in text
+    assert "2026-10-15" in text
