@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "be98f8a3c0e82563a2b814ad39c139f48b789e8c",
-  "updated_at": "2026-10-08T13:14:00+02:00",
+  "commit": "79af646bc5d6cf8f42b0ab3ed9864f7f0768a239",
+  "updated_at": "2026-10-08T13:15:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,7 +24,7 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Run latest phase2-product; require materialization of blocked territorial artifact, Priority 2 gate, alerts/recovery, reproducibility, security/backup tests.",
+  "resume_from": "Inspect latest phase2-product run and materialized artifacts; fix any CI failures before adding new scope.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
@@ -122,5 +122,19 @@
       "script import order",
       "explicit PYTHONPATH in phase2 workflow"
     ]
+  },
+  "phase2_release": {
+    "status": "BLOCKED",
+    "tag": "v1.0.0",
+    "blockers": [
+      "current evidence traceability",
+      "territorial observations",
+      "latest CI validation"
+    ]
+  },
+  "phase2_demo": {
+    "status": "BLOCKED",
+    "reason": "BLOCKED_NO_TERRITORIAL_OBSERVATIONS",
+    "fail_closed": true
   }
 }
