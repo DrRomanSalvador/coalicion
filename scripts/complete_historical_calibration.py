@@ -53,7 +53,12 @@ def _fold_predictions(training, holdout, name):
 
 
 def _interval_coverage(training, holdout, predictor_name, alpha=0.10):
-    """Two-sided empirical residual interval from training only."""
+    """Finite-sample split-conformal interval from prior OOS residuals only.
+
+    The calibration scores are absolute residuals from elections strictly
+    earlier than the holdout. The quantile uses the finite-sample conformal
+    rank ceil((n+1)*(1-alpha)); no future observation enters calibration.
+    """
     pairs = []
     train_elections = _election_order(training)
     for idx in range(1, len(train_elections)):
@@ -65,23 +70,22 @@ def _interval_coverage(training, holdout, predictor_name, alpha=0.10):
         pairs.extend(_fold_predictions(tr, te, predictor_name))
     if not pairs:
         return {"coverage": None, "interval_width": None, "n": 0}
-    residuals = sorted(actual - pred for _, _, pred, actual in pairs)
-    lo_i = max(0, int(math.floor((alpha/2) * len(residuals))) - 1)
-    hi_i = min(len(residuals)-1, int(math.ceil((1-alpha/2) * len(residuals))) - 1)
-    lo, hi = residuals[lo_i], residuals[hi_i]
+    scores = sorted(abs(actual - pred) for _, _, pred, actual in pairs)
+    rank = min(len(scores), max(1, math.ceil((len(scores) + 1) * (1 - alpha))))
+    radius = scores[rank - 1]
     test = _fold_predictions(training, holdout, predictor_name)
-    covered = sum(lo <= actual-pred <= hi for _,_,pred,actual in test)
+    covered = sum(abs(actual - pred) <= radius for _, _, pred, actual in test)
     return {
         "coverage": covered / len(test),
-        "interval_width": hi - lo,
-        "residual_lower": lo,
-        "residual_upper": hi,
+        "interval_width": 2.0 * radius,
+        "residual_lower": -radius,
+        "residual_upper": radius,
         "n": len(test),
-        "nominal": 1-alpha,
-        "method": "empirical_residual_interval_from_prior_OOS_only",
+        "nominal": 1 - alpha,
+        "method": "finite_sample_split_conformal_absolute_residual_from_prior_OOS_only",
+        "calibration_scores": len(scores),
+        "conformal_rank": rank,
     }
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", default="data/encuestas_historicas_2004_2023.csv")
