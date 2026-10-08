@@ -66,10 +66,8 @@ def main():
     matrix=load_official_constituency_matrix(source,"2023-07-23")
     if matrix["validation"]["status"]!="PASS": raise SystemExit("BLOCKED: matriz oficial 2023 inválida")
     result={"schema":"ELECTION_2023_CONSTITUENCY_MATRIX_V2","election":2023,"type":"general","source_tier":"OFFICIAL_PRIMARY","source":{"provider":"Ministerio del Interior / Infoelectoral","url":OFFICIAL_URL,"sha256":sha256,"hash_scope":"workbook_bytes"},"data":{"constituencies":matrix["constituencies"]},"validation":matrix["validation"]}
-    out=root/args.canonical_2023; out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"
-",encoding="utf-8")
+    out=root/args.canonical_2023; out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     manifest={"schema":"OFFICIAL_INTERIOR_CONGRESS_DATASET_V1","status":"READY","provider":"Ministerio del Interior / Infoelectoral","source_url":OFFICIAL_URL,"input":str(args.input),"sha256":sha256,"hash_scope":"workbook_bytes","bytes":len(payload),"normalized_csv":str(args.output_csv),"canonical_2023":str(args.canonical_2023),"records":normalized["records"],"elections":normalized["elections"],"constituencies":52,"validated_2023":matrix["validation"]}
-    mp=root/args.manifest; mp.parent.mkdir(parents=True,exist_ok=True); mp.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"
-",encoding="utf-8")
+    mp=root/args.manifest; mp.parent.mkdir(parents=True,exist_ok=True); mp.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(manifest,ensure_ascii=False))
 if __name__=="__main__": main()
