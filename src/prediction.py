@@ -189,3 +189,43 @@ def predict(
         raise AssertionError("Los escaños previstos no suman la magnitud electoral")
     return {"votes": adjusted, "seats_by_constituency": by_constituency,
             "national_seats": national}
+
+
+def official_matrix_to_prediction_inputs(
+    matrix: Mapping[str, object],
+) -> tuple[dict[str, dict[str, int]], dict[str, int], dict[str, int], dict[str, str]]:
+    """Adapt a canonical official election matrix to the prediction API.
+
+    This is a pure structural adapter: it performs no territorial inference,
+    no party-share estimation and no forecast transformation.
+    """
+    constituencies = matrix.get("constituencies")
+    if not isinstance(constituencies, Mapping) or not constituencies:
+        raise ValueError("Matriz oficial vacía o inválida")
+    votes: dict[str, dict[str, int]] = {}
+    seats: dict[str, int] = {}
+    blanks: dict[str, int] = {}
+    special: dict[str, str] = {}
+    for constituency, item in constituencies.items():
+        if not isinstance(item, Mapping):
+            raise ValueError(f"{constituency}: fila oficial inválida")
+        parties = item.get("parties")
+        if not isinstance(parties, Mapping) or not parties:
+            raise ValueError(f"{constituency}: candidaturas oficiales ausentes")
+        row = {str(p): int(v) for p, v in parties.items()}
+        if any(v < 0 for v in row.values()):
+            raise ValueError(f"{constituency}: votos negativos")
+        seat_count = int(item.get("seats", 0))
+        blank_count = int(item.get("blank_votes", -1))
+        if seat_count < 1 or blank_count < 0:
+            raise ValueError(f"{constituency}: magnitud/votos blancos inválidos")
+        votes[str(constituency)] = row
+        seats[str(constituency)] = seat_count
+        blanks[str(constituency)] = blank_count
+        if constituency in {"Ceuta", "Melilla"}:
+            special[str(constituency)] = str(constituency)
+    if len(votes) != 52:
+        raise ValueError(f"La matriz oficial debe contener 52 circunscripciones: {len(votes)}")
+    if sum(seats.values()) != 350:
+        raise ValueError(f"La matriz oficial debe sumar 350 escaños: {sum(seats.values())}")
+    return votes, seats, blanks, special
