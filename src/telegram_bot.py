@@ -504,9 +504,9 @@ def _chat_id(update: dict[str, Any]) -> str:
 
 def _user_id(update: dict[str, Any]) -> str:
     callback = update.get("callback_query") or {}
-    user = callback.get("from") or update.get("message", {}).get("from") or {}
+    inline = update.get("inline_query") or {}
+    user = callback.get("from") or update.get("message", {}).get("from") or inline.get("from") or {}
     return str(user.get("id", ""))
-
 
 def _allowed_ids() -> set[str]:
     raw = os.environ.get("TELEGRAM_ALLOWED_CHATS", "").strip()
