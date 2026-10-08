@@ -1,0 +1,47 @@
+name: MC 10000 evidence
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/run_mc_10000.py"
+      - "src/electoral.py"
+      - "artifacts/data/election_2023_canonical.json"
+      - ".github/workflows/mc-10000.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mc-10000-main
+  cancel-in-progress: false
+
+jobs:
+  mc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: python -m pip install --disable-pip-version-check --no-input "numpy>=2.0,<2.4"
+      - run: python scripts/run_mc_10000.py --iterations 10000 --seed 20261008
+      - name: Verify evidence
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("ci_evidence/mc_10000.json"))
+          assert x["status"]=="PASS"
+          assert x["iterations"]>=10000
+          assert x["constituencies"]==52 and x["seats"]==350
+          assert x["invariants"]["every_draw_seat_sum_350"]
+          assert x["invariants"]["all_allocations_status_OK"]
+          assert x["sampler"].startswith("Dirichlet-multinomial")
+          PY
+      - name: Commit evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ci_evidence/mc_10000.json
+          git diff --cached --quiet || (git commit -m "ci: materialize reproducible 10k Monte Carlo evidence" && git push origin HEAD:main)
