@@ -1,0 +1,20 @@
+{
+  "schema": "PHASE2_PRIORITY4_STATUS_V1",
+  "status": "PARTIAL",
+  "implemented": [
+    "src/alerts/realtime_notifier.py",
+    "src/recovery/retry_fallback.py",
+    "tests/test_alerts.py",
+    "tests/test_recovery.py"
+  ],
+  "blocked": [
+    "17-source runtime execution must be verified by GitHub Actions",
+    "fallback source data must remain explicitly labelled",
+    "Telegram delivery still depends on deployment credentials"
+  ],
+  "policy": {
+    "no_invented_events": true,
+    "source_recovery_requires_previous_failure": true,
+    "fail_closed": true
+  }
+}
