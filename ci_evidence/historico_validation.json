@@ -1,8 +1,9 @@
 {
   "status": "BLOCKED",
   "source_tier": "PRIMARY_INTERIOR_USER_PROVIDED",
-  "rows": 10700,
-  "elections": [
+  "materialized_rows": 10700,
+  "expected_rows": 50700,
+  "elections_detected": [
     "2004",
     "2008",
     "2011",
@@ -13,26 +14,6 @@
     "2023J"
   ],
   "province_election_cells": 100,
-  "province_count_by_election": {
-    "2004": 16,
-    "2008": 12,
-    "2011": 13,
-    "2015": 14,
-    "2016": 13,
-    "2019A": 11,
-    "2019N": 12,
-    "2023J": 9
-  },
-  "seats_total_by_election": {
-    "2004": 92,
-    "2008": 49,
-    "2011": 85,
-    "2015": 74,
-    "2016": 97,
-    "2019A": 74,
-    "2019N": 52,
-    "2023J": 64
-  },
-  "expected_provinces_per_election": 52,
-  "expected_seats_per_election": 350
+  "expected_province_election_cells": 416,
+  "reason": "Las 11 partes actualmente presentes en main están truncadas respecto al paquete original de 50.700 filas."
 }
