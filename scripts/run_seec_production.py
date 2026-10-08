@@ -39,13 +39,14 @@ def main():
     with pm.Model(coords=coords) as model:
         sigma=pm.HalfNormal("temporal_sigma",sigma=0.25)
         eta0=pm.Normal("eta0",mu=0.0,sigma=2.0,dims="party_minus_one")
-        innovations=pm.Normal("innovations",0.0,sigma,dims=("study","party_minus_one"))
+        innovation_z=pm.Normal("innovation_z",0.0,1.0,dims=("study","party_minus_one"))
+        innovations=pm.Deterministic("innovations",innovation_z*sigma,dims=("study","party_minus_one"))
         eta=pm.Deterministic("eta",eta0[None,:]+pm.math.cumsum(innovations,axis=0),dims=("study","party_minus_one"))
         logits=pm.math.concatenate([eta,pm.math.zeros((len(studies),1))],axis=1)
         support=pm.Deterministic("support",pm.math.softmax(logits,axis=1),dims=("study","party"))
         concentration=pm.Exponential("concentration",1/50.0)
         pm.Dirichlet("observed_composition",a=support*concentration+1e-6,observed=y,dims=("study","party"))
-        idata=pm.sample(draws=args.draws,tune=args.tune,chains=4,cores=2,random_seed=[args.seed,args.seed+1,args.seed+2,args.seed+3],target_accept=0.95,progressbar=False,return_inferencedata=True)
+        idata=pm.sample(draws=args.draws,tune=args.tune,chains=4,cores=2,random_seed=[args.seed,args.seed+1,args.seed+2,args.seed+3],target_accept=0.99,init="jitter+adapt_diag",progressbar=False,return_inferencedata=True)
     posterior=idata.posterior
     total_draws=int(posterior.sizes["chain"]*posterior.sizes["draw"])
     if total_draws<10000: raise SystemExit(f"BLOCKED: posterior has only {total_draws} draws")
