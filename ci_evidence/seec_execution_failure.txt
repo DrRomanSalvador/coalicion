@@ -1,9 +1,6 @@
 SEEC_EXECUTION_FAILURE
-sha: 44940e0ed202261dd387deaf505ab1f099ebebba
-Initializing NUTS using jitter+adapt_diag...
-Multiprocess sampling (4 chains in 2 jobs)
-NUTS: [temporal_sigma, eta0, innovations, concentration]
-Sampling 4 chains for 1_000 tune and 2_500 draw iterations (4_000 + 10_000 draws total) took 22 seconds.
-The rhat statistic is larger than 1.01 for some parameters. This indicates problems during sampling. See https://arxiv.org/abs/1903.08008 for details
-The effective sample size per chain is smaller than 100 for some parameters.  A higher number is needed for reliable rhat and ess computation. See https://arxiv.org/abs/1903.08008 for details
-BLOCKED: R-hat diagnostic 1.2 > 1.01
+sha: 150a33682332646ba06e13e4ed84e31257b493cb
+Traceback (most recent call last):
+  File "/home/runner/work/coalicion/coalicion/scripts/run_seec_production.py", line 7, in <module>
+    from src.reproducibility_contract import ExecutionContract
+ModuleNotFoundError: No module named 'src'
