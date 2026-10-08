@@ -1,0 +1,31 @@
+{
+  "schema": "PHASE2_LAYER0_CHECKPOINT_V1",
+  "as_of": "2026-10-08",
+  "status": "BLOCKED",
+  "mode": "DEMO_OPERATIONAL_NON_OFFICIAL",
+  "requirements": {
+    "current_date_data": "PARTIAL",
+    "minimum_10_current_national_surveys": "BLOCKED",
+    "minimum_3_current_territorial_surveys": "BLOCKED",
+    "primary_url_fieldwork_sample_methodology_hash": "PARTIAL",
+    "official_2023_canonical_data": "EXISTING_IN_REPOSITORY",
+    "traceability_contract": "IMPLEMENTED"
+  },
+  "verified_current_sources": [
+    {"pollster":"Sigma Dos","publication_date":"2026-10-05","url":"https://www.sigmados.com/barometro-de-octubre-estimacion-de-voto-para-las-elecciones-generales/","tier":"PRIMARY_OFFICIAL"},
+    {"pollster":"GAD3","publication_date":"2026-09-07","url":"https://www.gad3.com/politica/","tier":"PRIMARY_OFFICIAL"},
+    {"pollster":"Sociométrica","publication_date":"2026-10-04","url":"https://sociometrica.es/","tier":"PRIMARY_OFFICIAL"},
+    {"pollster":"40dB","publication_date":"2026-10-05","url":"https://40db.es/","tier":"PRIMARY_OFFICIAL_PAGE_ONLY"}
+  ],
+  "policy": {
+    "future_november_data_fabrication": false,
+    "national_to_territorial_inference": false,
+    "unverified_values": false,
+    "fail_closed": true
+  },
+  "blockers": [
+    "No hay 10 encuestas nacionales actuales canonizadas con ficha primaria completa en el artefacto de entrada.",
+    "No hay 3 encuestas territoriales actuales explícitas por circunscripción canonizadas.",
+    "La fecha 2026-11 es futura respecto al corte 2026-10-08; no se inventan datos futuros."
+  ]
+}
