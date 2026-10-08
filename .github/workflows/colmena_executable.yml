@@ -1,0 +1,117 @@
+name: COALMENA — Queen + Atomic Workers
+
+on:
+  push:
+    branches: [main, "feat/**"]
+    paths:
+      - "docs/COLMENA_MISSION_CONTROL.json"
+      - "scripts/colmena_*.py"
+      - ".github/workflows/colmena_executable.yml"
+  pull_request:
+    paths:
+      - "docs/COLMENA_MISSION_CONTROL.json"
+      - "scripts/colmena_*.py"
+      - ".github/workflows/colmena_executable.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: colmena-executable-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  queen-gate:
+    name: Queen Gate
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - id: gate
+        run: python scripts/colmena_queen.py
+      - id: matrix
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          p=json.load(open("artifacts/colmena/worker_matrix.json",encoding="utf-8"))
+          print("matrix="+json.dumps(p,separators=(",",":")))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: colmena-queen-gate
+          path: artifacts/colmena
+          if-no-files-found: error
+          retention-days: 14
+
+  worker:
+    name: "Worker ${{ matrix.ordinal }} — ${{ matrix.title }}"
+    needs: queen-gate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 32
+      matrix: ${{ fromJSON(needs.queen-gate.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          name: colmena-queen-gate
+          path: artifacts/colmena
+      - name: Execute Queen-approved atomic worker
+        env:
+          MISSION_ID: ${{ matrix.mission_id }}
+        run: python scripts/colmena_worker.py --mission-id "$MISSION_ID"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: "colmena-worker-${{ matrix.mission_id }}"
+          path: artifacts/colmena/workers/${{ matrix.mission_id }}.json
+          if-no-files-found: error
+          retention-days: 14
+
+  queen-summary:
+    name: Queen Final Reconciliation
+    if: always()
+    needs: [queen-gate, worker]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: colmena-worker-*
+          path: artifacts/colmena/workers
+          merge-multiple: true
+      - name: Reconcile
+        run: |
+          python - <<'PY'
+          import json, pathlib, sys
+          files=sorted(pathlib.Path("artifacts/colmena/workers").glob("M*.json"))
+          rows=[json.loads(p.read_text()) for p in files]
+          counts={}
+          for r in rows: counts[r["status"]]=counts.get(r["status"],0)+1
+          report={"schema":"COLMENA_RECONCILIATION_V1","worker_files":len(rows),"counts":counts,
+                  "fail_closed":True,"all_pass":bool(rows) and all(r["status"]=="PASS" for r in rows)}
+          pathlib.Path("artifacts/colmena/reconciliation.json").write_text(
+              json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          print(json.dumps(report,ensure_ascii=False))
+          if not report["all_pass"]:
+              sys.exit(1)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: colmena-reconciliation
+          path: artifacts/colmena/reconciliation.json
+          if-no-files-found: error
+          retention-days: 30
