@@ -5,10 +5,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "docs/COLMENA_MISSION_CONTROL.json"
-      - "scripts/colmena_queen.py"
-      - "scripts/colmena_worker.py"
-      - "scripts/colmena_local_ai.mjs"
+      - "scripts/colmena_activate.trigger"
       - "scripts/audit_2023.py"
       - ".github/workflows/colmena_atomic_swarm.yml"
 
