@@ -5,8 +5,8 @@ from src import telegram_bot
 
 def test_start_is_operational_menu():
     text = telegram_bot.render_command("/start")
-    assert "PANEL DE HOY" in text
-    assert "Último sondeo validado" in text
+    assert "SALA DE SITUACIÓN" in text
+    assert "29/11/2026" in text
     assert "/menu" not in text
 
 
@@ -15,7 +15,7 @@ def test_render_prediction_fails_closed_without_snapshot(tmp_path, monkeypatch):
     monkeypatch.setattr(telegram_bot, "ESTIMATION", tmp_path / "missing-estimation.json")
     text = telegram_bot.render_command("/prediccion")
     assert "SITUACIÓN ACTUAL" in text
-    assert "No se publica una cifra de escaños" in text
+    assert "requiere evidencia provincial explícita" in text
     assert "BLOQUEADA" not in text
 
 
@@ -109,8 +109,16 @@ def test_callback_menu_sends_keyboard(monkeypatch):
     assert any(method == "sendMessage" for method, _ in calls)
 
 
+def test_briefing_is_the_executive_start_screen():
+    text = telegram_bot.render_command("/briefing")
+    assert "SALA DE SITUACIÓN" in text
+    assert "PRÓXIMO HITO" in text
+    assert "LO QUE REQUIERE ATENCIÓN" in text
+
+
 def test_natural_questions_route_to_useful_answers():
     assert "PANEL DE HOY" in telegram_bot.render_command(telegram_bot._natural_query("¿Qué está pasando ahora?"))
+    assert "SALA DE SITUACIÓN" in telegram_bot.render_command(telegram_bot._natural_query("¿Qué debo saber ahora mismo?"))
     assert "CAMBIOS" in telegram_bot.render_command(telegram_bot._natural_query("¿Qué ha cambiado?"))
     assert "ENCUESTAS" in telegram_bot.render_command(telegram_bot._natural_query("¿Qué dicen los sondeos?"))
     assert "MAYORÍAS" in telegram_bot.render_command(telegram_bot._natural_query("¿Qué mayorías son posibles?"))
