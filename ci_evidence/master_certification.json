@@ -1,8 +1,8 @@
 {
   "schema": "MASTER_CERTIFICATION_V1",
-  "status": "BLOCKED",
-  "certification": "BLOCKED",
-  "reason": "OOS execution is now real and reproducible but fails the configured empirical 90% coverage gate; SEEC production >=10,000 posterior draws and independent external audit remain pending.",
+  "status": "READY_FOR_EXTERNAL_AUDIT",
+  "certification": "READY_FOR_EXTERNAL_AUDIT",
+  "reason": "All internally resolvable gates now have executed PASS evidence: primary Interior materialization/reconciliation, OOS expanding-window calibration, OOS walk-forward, 10,000-draw Monte Carlo, and 10,000-draw SEEC territorial posterior predictive. Independent external audit remains the sole certification gate.",
   "required_gates": [
     "source_manifest",
     "primary_interior",
@@ -19,9 +19,9 @@
     "source_manifest": "PASS",
     "primary_interior": "PASS",
     "reconciliation": "PASS",
-    "seec_posterior": "PENDING",
-    "mc_10000": "PENDING",
-    "oos_calibration": "FAIL",
+    "seec_posterior": "PASS",
+    "mc_10000": "PASS",
+    "oos_calibration": "PASS",
     "oos_walk_forward": "PASS",
     "poll_source_coverage": "PASS",
     "external_audit": "PENDING"
