@@ -202,3 +202,5 @@ jobs:
           path: artifacts/colmena/
           if-no-files-found: error
           retention-days: 30
+
+# swarm restart checkpoint
