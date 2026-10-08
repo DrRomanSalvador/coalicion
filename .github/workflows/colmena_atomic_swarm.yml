@@ -5,7 +5,10 @@ on:
   push:
     branches: [main]
     paths:
-      - "scripts/colmena_activate.trigger"
+      - "docs/COLMENA_MISSION_CONTROL.json"
+      - "scripts/colmena_queen.py"
+      - "scripts/colmena_worker.py"
+      - "scripts/colmena_local_ai.mjs"
       - "scripts/audit_2023.py"
       - ".github/workflows/colmena_atomic_swarm.yml"
 
@@ -13,12 +16,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: colmena-atomic-${{ github.run_id }}
-  cancel-in-progress: false
+  group: colmena-atomic-main
+  cancel-in-progress: true
 
 jobs:
   plan:
-    name: "👑 Queen — plan 179 missions / 36 batches"
+    name: "Queen — plan 179 missions / 36 logical batches"
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
@@ -26,7 +29,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: 👑 Create and validate Queen plan
+      - name: Create and validate Queen plan
         run: |
           set -euo pipefail
           mkdir -p artifacts/colmena
@@ -36,9 +39,8 @@ jobs:
           p=json.load(open("artifacts/colmena/queen_approval.json",encoding="utf-8"))
           assert len(p["missions"]) == 179
           assert len(p["batches"]) == 36
-          assert all(len(b["mission_ids"]) == 5 for b in p["batches"][:-1])
-          assert len(p["batches"][-1]["mission_ids"]) == 4
-          print("QUEEN_PLAN=PASS missions=179 batches=36")
+          assert [len(x["mission_ids"]) for x in p["batches"]] == [5]*35+[4]
+          print("QUEEN_PLAN=PASS missions=179 logical_batches=36")
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -47,21 +49,23 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  batch:
-    name: "🐝 Batch ${{ matrix.batch }} — 5 independent workers"
+  shard:
+    name: "🐝 Shard ${{ matrix.shard }} — 4 logical batches max / 20 missions max"
     needs: plan
     runs-on: ubuntu-22.04
-    timeout-minutes: 25
+    timeout-minutes: 30
     strategy:
       fail-fast: false
-      max-parallel: 36
+      max-parallel: 10
       matrix:
-        batch: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35]
+        shard: [0,1,2,3,4,5,6,7,8,9]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.lock
       - name: Install pinned Python runtime dependencies
         run: python -m pip install --disable-pip-version-check -r requirements.lock
       - uses: actions/setup-node@v4
@@ -84,71 +88,67 @@ jobs:
           node scripts/colmena_local_ai.mjs --warm
       - name: Validate local AI runtime
         if: steps.cache.outputs.cache-hit == 'true'
-        run: |
-          set -euo pipefail
-          node scripts/colmena_local_ai.mjs --warm
-      - name: Save local AI cache
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            node_modules
-            .cache
-          key: ${{ runner.os }}-colmena-local-ai-v5-transformersjs-3.8.1-qwen3
+        run: node scripts/colmena_local_ai.mjs --warm
       - name: Download Queen approval
         uses: actions/download-artifact@v4
         with:
           name: colmena-queen-plan
           path: artifacts/colmena
-      - name: 🐝 Execute exactly the five missions of this batch concurrently
+      - name: Execute logical batches in this shard
         env:
+          SHARD: ${{ matrix.shard }}
           COLMENA_AGENT_PROVIDER: github-actions-local-transformers-js
           COLMENA_AI_AGENT_EXECUTION: "true"
           COLMENA_AI_DEVICE: "cpu"
           COLMENA_AGENT_MODEL: onnx-community/Qwen3-0.6B-ONNX:q4f16
-          COLMENA_AGENT_EXECUTION_ID: ${{ github.run_id }}-${{ github.run_attempt }}-batch-${{ matrix.batch }}
+          COLMENA_AGENT_EXECUTION_ID: ${{ github.run_id }}-${{ github.run_attempt }}-shard-${{ matrix.shard }}
           COLMENA_COMMAND_TIMEOUT_SECONDS: "300"
-          BATCH: ${{ matrix.batch }}
-          EXPECTED_COUNT: ${{ matrix.batch < 35 && 5 || 4 }}
         run: |
           set -euo pipefail
           mkdir -p artifacts/colmena/workers
-          python - <<'PY' > /tmp/mission_ids
+          python - <<'PY'
           import json, os
           p=json.load(open("artifacts/colmena/queen_approval.json",encoding="utf-8"))
-          b=p["batches"][int(os.environ["BATCH"])]
-          print("\n".join(b["mission_ids"]))
-          PY
-          pids=""
+          shard=int(os.environ["SHARD"])
+          for batch_no in range(shard, len(p["batches"]), 10):
+              print(batch_no, *p["batches"][batch_no]["mission_ids"])
+          PY > /tmp/shard_batches
           rc=0
-          while IFS= read -r mid; do
-            [ -z "$mid" ] && continue
-            python scripts/colmena_worker.py \
-              --mission-id "$mid" \
-              --approval artifacts/colmena/queen_approval.json \
-              --ref "$GITHUB_SHA" \
-              --out "artifacts/colmena/workers/worker_${mid}.json" \
-              > "artifacts/colmena/workers/${mid}.log" 2>&1 &
-            pids="$pids $!"
-          done < /tmp/mission_ids
-          for pid in $pids; do
-            wait "$pid" || rc=1
-          done
-          test "$(find artifacts/colmena/workers -name 'worker_M*.json' | wc -l)" -eq "${EXPECTED_COUNT}"
+          while read -r batch mid1 mid2 mid3 mid4 mid5; do
+            [ -z "${batch:-}" ] && continue
+            ids="$mid1 $mid2 $mid3 $mid4 $mid5"
+            pids=""
+            for mid in $ids; do
+              [ -z "$mid" ] && continue
+              python scripts/colmena_worker.py --mission-id "$mid" --approval artifacts/colmena/queen_approval.json --ref "$GITHUB_SHA" --out "artifacts/colmena/workers/worker_${mid}.json" > "artifacts/colmena/workers/${mid}.log" 2>&1 &
+              pids="$pids $!"
+            done
+            for pid in $pids; do wait "$pid" || rc=1; done
+            echo "BATCH=$batch DONE"
+          done < /tmp/shard_batches
+          expected=$(python - <<'PY'
+          import json, os
+          p=json.load(open("artifacts/colmena/queen_approval.json",encoding="utf-8"))
+          print(sum(len(p["batches"][i]["mission_ids"]) for i in range(int(os.environ["SHARD"]),len(p["batches"]),10)))
+          PY
+          )
+          actual=$(find artifacts/colmena/workers -name 'worker_M*.json' | wc -l)
+          echo "SHARD=$SHARD EVIDENCE=$actual EXPECTED=$expected"
+          test "$actual" -eq "$expected"
           exit "$rc"
-      - name: Upload batch evidence
+      - name: Upload shard evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: colmena-batch-${{ matrix.batch }}
+          name: colmena-shard-${{ matrix.shard }}
           path: artifacts/colmena/workers/
           if-no-files-found: error
           retention-days: 1
 
   reconcile:
-    name: "👑 Queen — reconcile 179/179"
+    name: "Queen — reconcile 179/179"
     if: always()
-    needs: [plan, batch]
+    needs: [plan, shard]
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
@@ -156,72 +156,42 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Download Queen plan
+      - uses: actions/download-artifact@v4
         if: always()
-        uses: actions/download-artifact@v4
         with:
           name: colmena-queen-plan
           path: artifacts/colmena
-      - name: Download all batch evidence
+      - uses: actions/download-artifact@v4
         if: always()
-        uses: actions/download-artifact@v4
         with:
-          pattern: colmena-batch-*
-          path: artifacts/colmena/batches
+          pattern: colmena-shard-*
+          path: artifacts/colmena/shards
           merge-multiple: true
-      - name: 👑 Fail-closed reconciliation
+      - name: Fail-closed reconciliation
         run: |
           set -euo pipefail
           mkdir -p artifacts/colmena/workers
-          cp artifacts/colmena/batches/worker_*.json artifacts/colmena/workers/ 2>/dev/null || true
+          cp artifacts/colmena/shards/worker_*.json artifacts/colmena/workers/ 2>/dev/null || true
           python - <<'PY'
           import json, sys
           from pathlib import Path
           root=Path("artifacts/colmena")
-          approval_path=root/"queen_approval.json"
-          approval=json.loads(approval_path.read_text(encoding="utf-8")) if approval_path.exists() else {}
-          expected={m["id"]:m for m in approval.get("missions",[])}
+          approval=json.loads((root/"queen_approval.json").read_text(encoding="utf-8"))
+          expected={m["id"]:m for m in approval["missions"]}
           files=sorted((root/"workers").glob("worker_*.json"))
           rows=[json.loads(p.read_text(encoding="utf-8")) for p in files]
           observed={r.get("mission_id"):r for r in rows}
-          exact=(len(expected)==179 and len(rows)==179 and len(observed)==179 and set(expected)==set(observed))
-          valid=exact
+          valid=len(expected)==179 and len(rows)==179 and len(observed)==179 and set(expected)==set(observed)
           for mid,m in expected.items():
-              r=observed.get(mid)
-              if not r:
-                  valid=False
-                  continue
-              rt=r.get("agent_runtime",{})
-              valid = valid and (
-                  r.get("agent_id")==m["agent_id"] and
-                  r.get("title")==m["title"] and
-                  r.get("ref")==m["ref"] and
-                  r.get("queen_approval")==m["approval"] and
-                  r.get("status")=="PASS" and
-                  r.get("runtime_status")=="PASS" and
-                  rt.get("independent") is True and
-                  rt.get("ai_execution") is True and
-                  bool(rt.get("execution_id")) and
-                  isinstance(r.get("ai_inference"),dict)
-              )
-          payload={
-              "schema":"COLMENA_RECONCILIATION_V7",
-              "expected":179,
-              "observed":len(rows),
-              "unique_missions":len(observed),
-              "batches":36,
-              "all_179_ai_runtime_pass":bool(valid),
-              "all_179_missions_pass":bool(valid),
-              "fail_closed":True,
-              "status":"PASS" if valid else "BLOCKED",
-          }
+              r=observed.get(mid); rt=(r or {}).get("agent_runtime",{})
+              valid = valid and bool(r) and r.get("agent_id")==m["agent_id"] and r.get("title")==m["title"] and r.get("ref")==m["ref"] and r.get("queen_approval")==m["approval"] and r.get("status")=="PASS" and r.get("runtime_status")=="PASS" and rt.get("independent") is True and rt.get("ai_execution") is True and bool(rt.get("execution_id")) and isinstance(r.get("ai_inference"),dict)
+          payload={"schema":"COLMENA_RECONCILIATION_V9","expected":179,"observed":len(rows),"unique_missions":len(observed),"logical_batches":36,"all_179_pass":bool(valid),"fail_closed":True,"status":"PASS" if valid else "BLOCKED"}
           (root/"reconciliation.json").write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
           print(json.dumps(payload,ensure_ascii=False))
           sys.exit(0 if valid else 1)
           PY
-      - name: Upload final Queen evidence
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
           name: colmena-swarm-final
           path: artifacts/colmena/
