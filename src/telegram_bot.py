@@ -9,6 +9,7 @@ from typing import Any
 from datetime import date
 
 from src.election_calendar import critical_window
+from src.operational_briefing import build_briefing
 
 import requests
 
