@@ -9,9 +9,9 @@ import numpy as np
 import pandas as pd
 from src.electoral import allocate
 from src.reproducibility_contract import ExecutionContract
-ROOT=Path(__file__).resolve().parents[1]; SOURCE=ROOT/"data/resultados_oficiales_2004_2023.csv"; SEATS=ROOT/"data/2023_circunscripciones_oficiales.csv"; OUT=ROOT/"ci_evidence/mc_10000.json"; SEED=ExecutionContract.seed; N=10000
+ROOT=Path(__file__).resolve().parents[1]; SOURCE=ROOT/"data/resultados_oficiales_2004_2023.csv"; SEATS=ROOT/"data/2023_circunscripciones_oficiales.csv"; OUT=ROOT/"ci_evidence/mc_10000.json"; SEED=ExecutionContract.seed; N_ITER=10000
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument("--iterations",type=int,default=N); ap.add_argument("--seed",type=int,default=SEED); args=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("--iterations",type=int,default=N_ITER); ap.add_argument("--seed",type=int,default=SEED); args=ap.parse_args()
     if args.seed != SEED: raise SystemExit(f"BLOCKED: seed {args.seed} does not match canonical seed {SEED}")
     if not SOURCE.is_file() or not SEATS.is_file(): raise SystemExit("BLOCKED: canonical electoral inputs missing")
     df=pd.read_csv(SOURCE); required={"fecha_eleccion","circunscripcion","partido","votos","escaños"}
@@ -28,8 +28,8 @@ def main():
         parties=sorted(g["partido"].astype(str)); votes={p:int(v) for p,v in zip(g["partido"].astype(str),g["votos"])}; blank=0
         groups[prov]=(parties,votes,blank)
     if set(groups)!=set(s["prov"]): raise SystemExit("BLOCKED: 2019N/seat constituency mismatch")
-    n=int(args.iterations); seed=int(args.seed); rng=np.random.Generator(np.random.PCG64(seed)); seat_sums=np.empty(n,dtype=np.int16); status_counts={}
-    N=n
+    seed=int(args.seed); rng=np.random.Generator(np.random.PCG64(seed)); seat_sums=np.empty(n,dtype=np.int16); status_counts={}
+    n=int(args.iterations)
     for i in range(N):
         total_seats=0
         for prov,(parties,votes,blank) in groups.items():
