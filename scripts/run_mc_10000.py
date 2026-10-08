@@ -28,9 +28,8 @@ def main():
         parties=sorted(g["partido"].astype(str)); votes={p:int(v) for p,v in zip(g["partido"].astype(str),g["votos"])}; blank=0
         groups[prov]=(parties,votes,blank)
     if set(groups)!=set(s["prov"]): raise SystemExit("BLOCKED: 2019N/seat constituency mismatch")
-    seed=int(args.seed); rng=np.random.Generator(np.random.PCG64(seed)); seat_sums=np.empty(n,dtype=np.int16); status_counts={}
-    n=int(args.iterations)
-    for i in range(N):
+    n=int(args.iterations); seed=int(args.seed); rng=np.random.Generator(np.random.PCG64(seed)); seat_sums=np.empty(n,dtype=np.int16); status_counts={}
+    for i in range(n):
         total_seats=0
         for prov,(parties,votes,blank) in groups.items():
             total=max(sum(votes.values()),1); p=np.array([v/total for v in votes.values()],dtype=float); draw=rng.dirichlet(np.maximum(p*80.0,0.05))
@@ -43,6 +42,6 @@ def main():
             total_seats+=sum(a.seats.values())
         seat_sums[i]=total_seats
     if not np.all(seat_sums==350): raise SystemExit("BLOCKED: a draw did not allocate exactly 350 seats")
-    result={"schema":"ELECTORAL_MONTE_CARLO_10000_V2","status":"PASS","iterations":N,"seed":seed,"canonical_seed":SEED,"rng":"numpy.PCG64","constituencies":52,"seats":350,"source_sha256":hashlib.sha256(SOURCE.read_bytes()).hexdigest(),"seat_structure_sha256":hashlib.sha256(SEATS.read_bytes()).hexdigest(),"invariants":{"every_draw_seat_sum_350":True,"all_allocations_status_OK":True},"allocation_calls":N*52,"status_counts":status_counts,"sampler":"Dirichlet-multinomial territorial stress sampler","predictive_claim":False}
+    result={"schema":"ELECTORAL_MONTE_CARLO_10000_V2","status":"PASS","iterations":n,"seed":seed,"canonical_seed":SEED,"rng":"numpy.PCG64","constituencies":52,"seats":350,"source_sha256":hashlib.sha256(SOURCE.read_bytes()).hexdigest(),"seat_structure_sha256":hashlib.sha256(SEATS.read_bytes()).hexdigest(),"invariants":{"every_draw_seat_sum_350":True,"all_allocations_status_OK":True},"allocation_calls":n*52,"status_counts":status_counts,"sampler":"Dirichlet-multinomial territorial stress sampler","predictive_claim":False}
     OUT.parent.mkdir(parents=True,exist_ok=True); OUT.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8"); print(json.dumps(result,ensure_ascii=False,indent=2))
 if __name__=="__main__": main()
