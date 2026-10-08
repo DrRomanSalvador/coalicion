@@ -141,10 +141,11 @@ def main():
         }
 
     base_coverage = coverage["BASE"]["mean_coverage"]
-    if base_coverage is None or not math.isfinite(base_coverage) or base_coverage < 0.85:
-        raise RuntimeError(
-            f"OOS 90% interval coverage gate failed: {base_coverage!r} < 0.85"
-        )
+    coverage_gate = (
+        base_coverage is not None
+        and math.isfinite(base_coverage)
+        and base_coverage >= 0.85
+    )
     for model_name, model_metrics in metrics.items():
         for metric_name, value in model_metrics.items():
             if not math.isfinite(float(value)):
@@ -166,6 +167,11 @@ def main():
         "row_level_metrics": metrics,
         "empirical_90pct_interval_calibration": coverage,
         "selection_rule": "candidate correction cannot use the holdout; BASE remains admissible fallback",
+        "coverage_gate": {
+            "threshold": 0.85,
+            "observed_base_mean_coverage": base_coverage,
+            "passed": coverage_gate
+        },
         "leakage_checks": {
             "field_end_before_election": True,
             "all_test_elections_use_only_prior_elections": True,
@@ -176,6 +182,10 @@ def main():
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(out, ensure_ascii=False, indent=2))
+    if not coverage_gate:
+        raise RuntimeError(
+            f"OOS 90% interval coverage gate failed: {base_coverage!r} < 0.85"
+        )
 
 
 if __name__ == "__main__":
