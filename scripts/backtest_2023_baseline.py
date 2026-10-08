@@ -186,7 +186,7 @@ for prov in sorted(train_maps):
         alloc=allocate({p:int(v) for p,v in dv.items()},seat_n,valid,
                        special=prov if prov in {"Ceuta","Melilla"} else "",
                        blank_votes=blank,
-                       tie_breaker=lottery_tie_breaker(prov)
+                       tie_breaker=lottery_tie_breaker(prov))
         if alloc.status!="OK":
             raise RuntimeError(f"simulated allocation blocked: {prov} {alloc.status} {alloc.tie}")
         for p,s in alloc.seats.items():
