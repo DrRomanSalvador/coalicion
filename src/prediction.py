@@ -125,20 +125,26 @@ def apply_share_swing(
         if base_total <= 0:
             raise ValueError(f"{c}: votos base inválidos")
         changes = share_changes.get(c, {})
-        raw_shares = {p: row[p] / base_total + changes.get(p, 0.0) for p in row}
+        if any(not isinstance(v, (int, float)) or not float("-inf") < float(v) < float("inf")
+               for v in changes.values()):
+            raise ValueError(f"{c}: cambio de cuota no finito")
+        change_sum = sum(float(changes.get(p, 0.0)) for p in row)
+        if abs(change_sum) > 1e-12:
+            raise ValueError(f"{c}: los cambios de cuota deben sumar cero")
+        raw_shares = {p: row[p] / base_total + float(changes.get(p, 0.0)) for p in row}
         if any(v < -1e-12 or v > 1 + 1e-12 for v in raw_shares.values()):
             raise ValueError(f"{c}: cuota prevista fuera de [0,1]")
+        raw_shares = {p: max(0.0, v) for p, v in raw_shares.items()}
         share_total = sum(raw_shares.values())
-        if share_total <= 0:
-            raise ValueError(f"{c}: cuotas previstas inválidas")
-        raw_shares = {p: max(0.0, v / share_total) for p, v in raw_shares.items()}
+        if abs(share_total - 1.0) > 1e-10:
+            raise ValueError(f"{c}: cuotas previstas no conservan la suma unitaria")
         target_total = base_total * float(turnout_targets.get(c, 1.0))
         if target_total < 0:
             raise ValueError(f"{c}: participación objetivo inválida")
         raw = {p: raw_shares[p] * target_total for p in row}
         floors = {p: int(v) for p, v in raw.items()}
         remainder = int(round(target_total)) - sum(floors.values())
-        order = sorted(raw, key=lambda p: (raw[p] - floors[p], p), reverse=True)
+        order = sorted(raw, key=lambda p: (-(raw[p] - floors[p]), p))
         for p in order[:max(0, remainder)]:
             floors[p] += 1
         out[c] = floors
