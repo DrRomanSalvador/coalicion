@@ -288,24 +288,17 @@ def _coalitions_text() -> str:
 
 
 def _calendar_text() -> str:
-    radar = _safe_json(ESTIMATION).get("radar") or {}
-    alerts = _list_records(radar.get("alerts"))
-    dated = []
-    for alert in alerts:
-        facts = alert.get("facts") or {}
-        if facts.get("date"):
-            dated.append((str(facts.get("date")), alert))
-    dated.sort(key=lambda x: x[0])
-    if not dated:
-        return "📅 CALENDARIO\n\nNo hay hitos fechados materializados en el radar."
+    events = critical_window(date.today(), horizon_days=31)
+    upcoming = [x for x in events if x["status"] != "past"]
+    if not upcoming:
+        return "📅 CALENDARIO · PRÓXIMOS HITOS\n\nNo hay hitos próximos en la ventana de 31 días."
     lines = ["📅 CALENDARIO · PRÓXIMOS HITOS", ""]
-    for date, alert in dated[:12]:
-        facts = alert.get("facts") or {}
-        remaining = facts.get("days_remaining")
-        extra = f" · {remaining} días" if remaining is not None else ""
-        lines.append(f"• {date}{extra} · {alert.get('title', alert.get('code', 'hito'))}")
+    for event in upcoming[:14]:
+        d = event["days_remaining"]
+        when = "hoy" if d == 0 else f"en {d} días"
+        lines.append(f"• {event['date']} · {event['title']} · {when}")
+    lines.extend(["", "Base: calendario legal derivado de la convocatoria oficial y LOREG."])
     return "\n".join(lines)
-
 
 def _evidence_text() -> str:
     polls = _latest_polls()
