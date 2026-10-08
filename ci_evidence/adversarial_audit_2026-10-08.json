@@ -1,0 +1,13 @@
+{
+  "schema":"COALICION_ADVERSARIAL_AUDIT_V1",
+  "date":"2026-10-08",
+  "status":"NOT_CERTIFIED",
+  "critical":1,
+  "high":2,
+  "medium":3,
+  "low":1,
+  "findings":["A-001","A-002","A-003","A-004","A-005","A-006","A-007"],
+  "materialized_report":"ci_evidence/adversarial_audit_2026-10-08.md",
+  "closing_rule":"No certification until every material finding has code, reproducible test, and evidence.",
+  "commit":"5ca202cfbc0a6b19cb69e27543f903e4bbe7ddbf"
+}
