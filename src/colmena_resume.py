@@ -31,7 +31,7 @@ def load_state(root: Path = Path(".")):
         raise RuntimeError("SEED_MISMATCH")
     if state.get("colmena_mode") != COLMENA_MODE:
         raise RuntimeError("COLMENA_MODE_MISMATCH")
-    if state.get("execution_gate") != "NO_NEW_WORKFLOW_ACTIVATION":
+    if state.get("execution_gate") != "ALLOW_SINGLE_RUNTIME_VALIDATION":
         raise RuntimeError("EXECUTION_GATE_MISMATCH")
     if state.get("final_test_gate") != "BLOCKED_UNTIL_179_MISSIONS_RESOLVED":
         raise RuntimeError("FINAL_TEST_GATE_MISMATCH")
