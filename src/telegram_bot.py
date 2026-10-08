@@ -884,17 +884,15 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
                 users = _load_user_state()
                 users[key] = {"current": target, "stack": stack[-20:]}
                 _save_user_state(users)
+            elif data.startswith("refresh:"):
+                target = data[8:].split("@", 1)[0].strip().lower()
+                if target != current:
+                    target = current
             else:
                 target = _callback_command(data)
                 if target:
                     target = target.split("@", 1)[0].strip().lower()
                     _set_user_navigation(key, target, previous=current)
-            if data == "refresh:" + current:
-                target = current
-            elif data == "home":
-                target = "/briefing"
-            elif data == "back":
-                target = _get_user_navigation(key)["current"]
             if target:
                 try:
                     _edit(int(chat_id), message_id, render_command(target), _navigation_markup(target))
