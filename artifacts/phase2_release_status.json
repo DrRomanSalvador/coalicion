@@ -1,0 +1,13 @@
+{
+  "schema":"PHASE2_RELEASE_STATUS_V1",
+  "status":"BLOCKED",
+  "release_tag":"v1.0.0",
+  "reason":"BLOCKED_PHASE2_EVIDENCE_INCOMPLETE",
+  "blockers":[
+    "Priority 1 current evidence traceability incomplete",
+    "0 current territorial observations",
+    "Priority 3 2026 territorial prediction blocked",
+    "GitHub Actions validation of latest phase2 changes pending"
+  ],
+  "policy":{"fail_closed":true,"no_certification_claim":true}
+}
