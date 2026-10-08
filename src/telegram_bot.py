@@ -13,6 +13,8 @@ from zoneinfo import ZoneInfo
 from src.election_calendar import critical_window
 from src.operational_briefing import build_briefing
 from src.situation_room import situation, trends, uncertainty
+from src.telegram_timezone import now_madrid, today_madrid
+from src.telegram_persistence import restore as restore_telegram_state, snapshot as snapshot_telegram_state
 
 import requests
 
@@ -27,7 +29,6 @@ SCENARIO_DIR = ROOT / "artifacts"
 API_TIMEOUT = 40
 API_RETRIES = 4
 MAX_MESSAGE = 4090
-MADRID_TZ = ZoneInfo('Europe/Madrid')
 
 COMMANDS = [
     ("hoy", "¿Qué está pasando ahora?"),
@@ -142,14 +143,19 @@ def _delta(current: dict[str, Any], previous: dict[str, Any], party: str) -> str
 
 
 def _public_text(text: str) -> str:
-    """Sanitize internal vocabulary without hiding substantive factual content."""
+    """Expose operational limitations in human language without leaking internals."""
     value = str(text or "").strip()
     if not value:
-        return "🟦 COALICIÓN\n\nEstado verificable disponible en /hoy."
-    value = re.sub(r"(?i)blocked(?:[_-][a-z0-9_-]+)*", "COMPROBACIÓN PENDIENTE", value)
-    value = re.sub(r"(?i)\bbloquead[oa]?\b|\bbloqueo\b", "COMPROBACIÓN PENDIENTE", value)
-    value = re.sub(r"(?i)\berror\b|\bexception\b", "COMPROBACIÓN PENDIENTE", value)
-    value = re.sub(r"(?i)not[_-]strictly[_-]certified", "VERIFICACIÓN OOS PENDIENTE", value)
+        return "🟦 COALICIÓN\n\nNo hay información materializada disponible en este momento."
+    replacements = {
+        "NOT_STRICTLY_CERTIFIED": "verificación OOS pendiente",
+        "BLOCKED_NO_TERRITORIAL_INPUT": "bloqueo: falta evidencia territorial explícita",
+        "NO_TERRITORIAL_DATA": "limitación: no existe evidencia territorial suficiente",
+    }
+    for internal, human in replacements.items():
+        value = value.replace(internal, human)
+    value = re.sub(r"(?i)blocked(?:[_-][a-z0-9_-]+)*", "bloqueo operativo", value)
+    value = re.sub(r"(?i)\bexception\b", "fallo interno", value)
     return value
 
 
@@ -191,7 +197,7 @@ def _send(chat_id: int, text: str, markup: dict[str, Any] | None = None) -> None
 
 def _briefing_text() -> str:
     """Single-screen factual situation room for current electoral operations."""
-    today = datetime.now(MADRID_TZ).date()
+    today = today_madrid()
     polls = _latest_polls()
     sources = _sources()
     observations = _observations()
@@ -270,7 +276,7 @@ def _briefing_text() -> str:
 
 def _month_text() -> str:
     """Executive neutral briefing for the current election month."""
-    today = date.today()
+    today = today_madrid()
     polls = _latest_polls()
     sources = _sources()
     briefing = build_briefing(
@@ -405,7 +411,7 @@ def _coalitions_text() -> str:
 
 
 def _calendar_text() -> str:
-    events = critical_window(date.today(), horizon_days=31)
+    events = critical_window(today_madrid(), horizon_days=31)
     upcoming = [x for x in events if x["status"] != "past"]
     if not upcoming:
         return "📅 CALENDARIO · PRÓXIMOS HITOS\n\nNo hay hitos próximos en la ventana de 31 días."
@@ -499,6 +505,7 @@ def _save_config(value: dict[str, Any]) -> None:
     try:
         tmp.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8")
         tmp.replace(TELEGRAM_CONFIG)
+        snapshot_telegram_state()
     except OSError as exc:
         raise TelegramBotError(f"telegram config persistence failed: {exc}") from exc
 
@@ -547,21 +554,23 @@ def _rate_allowed(update: dict[str, Any]) -> bool:
     return True
 
 
-def _audit(update: dict[str, Any], command: str, query: str = "", response: str = "") -> None:
+def _audit(update: dict[str, Any], command: str, query: str = "", response: str = "") -> bool:
     import hashlib
-    from datetime import datetime, timezone
     record = {
         "user_id": _user_id(update), "chat_id": _chat_id(update), "command": command,
         "query": query[:500],
         "response_hash": hashlib.sha256(response.encode("utf-8")).hexdigest(),
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": now_madrid().isoformat(),
     }
     try:
         AUDIT_LOG.parent.mkdir(parents=True, exist_ok=True)
         with AUDIT_LOG.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
+        snapshot_telegram_state()
+        return True
     except OSError as exc:
-        raise TelegramBotError(f"telegram audit persistence failed: {exc}") from exc
+        print(f"Telegram audit persistence failed: {exc}", file=sys.stderr)
+        return False
 
 
 def _preferences(update: dict[str, Any]) -> dict[str, Any]:
@@ -810,7 +819,7 @@ def _comparison_text(period: str = "5") -> str:
     selected = polls[:5] if period == "5" else polls
     if period == "30":
         from datetime import datetime, timedelta
-        cutoff = datetime.now() - timedelta(days=30)
+        cutoff = now_madrid() - timedelta(days=30)
         selected = [p for p in polls if str(p.get("publication_date", "")) >= cutoff.strftime("%Y-%m-%d")]
         if len(selected) < 2:
             selected = polls[:2]
@@ -872,7 +881,7 @@ def _facts_text() -> str:
 
 
 def _digest_text() -> str:
-    briefing = build_briefing(as_of=date.today(), polls=_latest_polls(), sources=_sources(), observations=_observations(), horizon_days=31)
+    briefing = build_briefing(as_of=today_madrid(), polls=_latest_polls(), sources=_sources(), observations=_observations(), horizon_days=31)
     lines = ["🧭 PARTE ELECTORAL · 08:00", ""]
     for item in briefing[:6]:
         lines += [f"• {item['title']}", f"  {item['detail']}"]
@@ -952,9 +961,9 @@ def _save_user_state(users: dict[str, Any]) -> None:
         tmp = USER_STATE.with_suffix(".tmp")
         tmp.write_text(json.dumps({"users": trimmed}, ensure_ascii=False, sort_keys=True), encoding="utf-8")
         tmp.replace(USER_STATE)
-    except OSError:
-        # Navigation remains functional if persistence is temporarily unavailable.
-        pass
+        snapshot_telegram_state()
+    except OSError as exc:
+        print(f"Telegram user-state persistence failed: {exc}", file=sys.stderr)
 
 
 def _get_user_navigation(key: str) -> dict[str, Any]:
@@ -1055,7 +1064,7 @@ def _help_text() -> str:
 
 def _urgencies_text() -> str:
     briefing = build_briefing(
-        as_of=date.today(),
+        as_of=today_madrid(),
         polls=_latest_polls(),
         sources=_sources(),
         observations=_observations(),
@@ -1307,7 +1316,17 @@ def render_command(command: str) -> str:
         "/comparar": lambda: _comparison_text("5"),
     }
     renderer = renderers.get(command)
-    return renderer() if renderer else "Comando no reconocido. Escribe una pregunta en lenguaje natural o pulsa /menu."
+    if not renderer:
+        return "Comando no reconocido. Escribe una pregunta en lenguaje natural o pulsa /menu."
+    try:
+        return renderer()
+    except Exception as exc:
+        print(f"Telegram command failed: {command}: {type(exc).__name__}", file=sys.stderr)
+        return (
+            "⚠️ No disponible actualmente.\n\n"
+            f"El comando {command} no pudo completar la consulta con la evidencia materializada. "
+            "La limitación queda registrada y no se sustituye el resultado por datos inventados."
+        )
 
 def _set_commands() -> None:
     commands = [{"command": name, "description": description[:256]} for name, description in COMMANDS]
@@ -1330,8 +1349,9 @@ def _save_alert_state(value: dict[str, Any]) -> None:
         tmp = path.with_suffix(".tmp")
         tmp.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8")
         tmp.replace(path)
-    except OSError:
-        pass
+        snapshot_telegram_state()
+    except OSError as exc:
+        print(f"Telegram alert-state persistence failed: {exc}", file=sys.stderr)
 
 
 def _alert_candidates() -> list[dict[str, Any]]:
@@ -1375,7 +1395,7 @@ def _alert_candidates() -> list[dict[str, Any]]:
                 "title": "Fuente disponible",
                 "detail": str(sid),
             })
-    for item in build_briefing(as_of=date.today(), polls=polls, sources=_sources(),
+    for item in build_briefing(as_of=today_madrid(), polls=polls, sources=_sources(),
                                observations=_observations(), horizon_days=31)[:6]:
         code = str(item.get("code", ""))
         category = "cambio_plazo_legal" if code.startswith("LEGAL") else "cambio_evidencia"
@@ -1389,7 +1409,7 @@ def _alert_candidates() -> list[dict[str, Any]]:
 
 def _in_quiet(prefs: dict[str, Any]) -> bool:
     from datetime import datetime
-    now = datetime.now().strftime("%H:%M")
+    now = now_madrid().strftime("%H:%M")
     start, end = prefs["quiet_start"], prefs["quiet_end"]
     if start == end:
         return False
@@ -1431,7 +1451,7 @@ def _send_alerts_to_chat(chat_id: int, *, frequency: str = "immediate") -> None:
 
 def _maybe_send_scheduled_digest() -> None:
     from datetime import datetime
-    now = datetime.now()
+    now = now_madrid()
     if now.minute > 5:
         return
     cfg = _config()
@@ -1494,7 +1514,12 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
         return next_offset
 
     chat_id = _chat_id(update)
-    if chat_id and not _chat_allowed(chat_id):
+    if chat_id:
+        allowed = _chat_allowed(chat_id)
+        print(f"Telegram authorization: allowed={allowed}", file=sys.stderr)
+    else:
+        allowed = False
+    if chat_id and not allowed:
         callback = update.get("callback_query")
         if callback and callback.get("id"):
             _answer_callback(str(callback["id"]))
@@ -1703,6 +1728,7 @@ def poll_once(offset: int | None = None) -> int | None:
 
 
 def run_polling(*, poll_timeout: int = 25, sleep_seconds: float = 1.0) -> None:
+    restore_telegram_state()
     _token()
     try:
         _api("deleteWebhook", json={"drop_pending_updates": False})
