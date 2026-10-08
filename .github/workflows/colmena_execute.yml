@@ -17,7 +17,7 @@ permissions:
 jobs:
   queen:
     name: Queen Gate
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     outputs:
       batch_numbers: ${{ steps.plan.outputs.batch_numbers }}
       mission_ids: ${{ steps.plan.outputs.mission_ids }}
@@ -53,7 +53,7 @@ jobs:
       max-parallel: 20
       matrix:
         mission_id: ${{ fromJSON(needs.queen.outputs.mission_ids) }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -87,7 +87,7 @@ jobs:
     name: Queen Closure Gate
     needs: [queen, workers]
     if: always() && needs.queen.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -119,7 +119,7 @@ jobs:
       contents: write
     needs: [queen, workers, closure]
     if: always() && needs.queen.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
