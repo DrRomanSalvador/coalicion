@@ -102,7 +102,7 @@ def _interval_coverage(training, holdout, predictor_name, alpha=0.10):
     }
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--input", default="data/encuestas_historicas_2004_2023.csv")
+    ap.add_argument("--input", default="artifacts/data/cis_historical_2004_2023.csv")
     ap.add_argument("--output", default="ci_evidence/oos_calibration.json")
     args = ap.parse_args()
 
