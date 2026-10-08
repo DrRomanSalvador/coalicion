@@ -25,3 +25,34 @@ def test_critical_window_is_bounded():
     rows=critical_window(date(2026,10,8),31)
     assert rows
     assert all(-2 <= x["days_remaining"] <= 31 for x in rows)
+
+
+
+def test_operational_briefing_prioritizes_imminent_deadline():
+    from src.operational_briefing import build_briefing
+    from datetime import date
+
+    items = build_briefing(
+        as_of=date(2026, 10, 8),
+        polls=[],
+        sources=[],
+        observations={},
+    )
+    assert items[0]["code"] == "LEGAL_COALICIONES"
+    assert items[0]["due"] == "2026-10-16"
+
+
+def test_operational_briefing_detects_stale_polls_and_source_incident():
+    from src.operational_briefing import build_briefing
+    from datetime import date
+
+    items = build_briefing(
+        as_of=date(2026, 10, 8),
+        polls=[{"publication_date": "2026-10-01"}],
+        sources=[{"id": "source_x", "status": "DOWN"}],
+        observations={"territorial_poll_count": 0},
+    )
+    codes = {item["code"] for item in items}
+    assert "POLL_STALENESS" in codes
+    assert "SOURCE_HEALTH" in codes
+    assert "TERRITORIAL_INPUT" in codes
