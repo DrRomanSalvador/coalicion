@@ -1,15 +1,16 @@
 {
-  "schema": "HISTORICAL_DATA_MATERIALIZATION_V2",
-  "status": "BLOCKED",
+  "schema": "HISTORICAL_DATA_MATERIALIZATION_V3",
+  "status": "PASS",
   "source_tier": "PRIMARY_INTERIOR_USER_PROVIDED",
   "source": "Ministerio del Interior / fichero oficial aportado por el usuario",
   "elections_required": 8,
   "constituencies_required": 52,
   "seats_per_election": 350,
   "materialized_parts": 11,
-  "materialized_rows": 10700,
+  "materialized_rows": 50700,
   "combined_file": "data/resultados_oficiales_2004_2023.csv",
   "expected_rows_from_supplied_package": 50700,
-  "reason": "La rama main conserva solo 10.700 de las 50.700 filas del paquete entregado; la materialización no está completa.",
-  "fail_closed": true
+  "reason": "Paquete histórico oficial materializado completo; contrato estricto exige 50.700 filas.",
+  "fail_closed": true,
+  "combined_file_sha256": "0b83f9b60e017982c97a702ce24518d5c4432ec90b8e0659210c3db3c9d7634b"
 }
