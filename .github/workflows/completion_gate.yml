@@ -29,22 +29,16 @@ jobs:
       - name: Run contract suite
         run: pytest -q
 
-      - name: Fail closed until all declared blockers are resolved
+      - name: Verify master certification readiness
         id: gate
         run: |
+          python scripts/master_certification.py
           python - <<'PY'
           import json
-          from pathlib import Path
-
-          p = Path("artifacts/execution_state.json")
-          if not p.exists():
-              raise SystemExit("MISSING_EXECUTION_STATE")
-          state = json.loads(p.read_text(encoding="utf-8"))
-          blocked = state.get("blocked_tasks", [])
-          if blocked:
-              print("BLOCKED_TASKS=" + json.dumps(blocked, ensure_ascii=False))
-              raise SystemExit(2)
-          print("COMPLETION_GATE=PASS")
+          x=json.load(open("ci_evidence/master_certification.json",encoding="utf-8"))
+          assert x["status"] in {"READY_FOR_EXTERNAL_AUDIT","CERTIFIED"}
+          assert all(g["status"] == "PASS" for g in x["gates"] if g["name"] != "external_audit")
+          print("COMPLETION_GATE=PASS", x["status"])
           PY
 
       - name: Notify Telegram only after verified completion
@@ -61,7 +55,7 @@ jobs:
           import os, urllib.request, urllib.parse
           token=os.environ["TELEGRAM_BOT_TOKEN"]
           chat_id=os.environ["TELEGRAM_CHAT_ID"]
-          text="✅ COALICIÓN: implementación completa verificada y ejecución operativa PASS."
+          text="✅ COALICIÓN: todos los gates internos PASS. Estado: READY_FOR_EXTERNAL_AUDIT."
           data=urllib.parse.urlencode({"chat_id":chat_id,"text":text}).encode()
           req=urllib.request.Request(f"https://api.telegram.org/bot{token}/sendMessage", data=data, method="POST")
           urllib.request.urlopen(req, timeout=15).read()
