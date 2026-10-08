@@ -176,6 +176,12 @@ def supervise(approval, ref, workers_dir, state_path):
                 return evidence
 
             env = os.environ.copy()
+            pool_size = int(env.get("COLMENA_AI_SERVER_POOL_SIZE", "1"))
+            port_base = int(env.get("COLMENA_AI_SERVER_PORT_BASE", "8765"))
+            if pool_size < 1:
+                raise RuntimeError("FAIL_CLOSED: invalid AI server pool size")
+            server_index = (int(m["index"]) - 1) % pool_size
+            env["COLMENA_AI_SERVER_URL"] = f"http://127.0.0.1:{port_base + server_index}"
             base_execution_id = env.get("COLMENA_AGENT_EXECUTION_ID", "")
             env["COLMENA_AGENT_EXECUTION_ID"] = (
                 f"{base_execution_id}-{m['id']}" if base_execution_id else m["id"]
