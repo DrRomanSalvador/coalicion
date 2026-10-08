@@ -85,7 +85,7 @@ def invoke_ai_agent(m, agent_id):
     content = str(data.get("content", "")).strip()
     if not content:
         raise RuntimeError("FAIL_CLOSED: empty local AI runtime content")
-    return {"backend":"transformers.js-local","model":model,"response_sha256":sha(content),"response_excerpt":content[:2000]}
+    return {"backend":"transformers.js-local","model":str(data.get("model") or model),"response_sha256":sha(content),"response_excerpt":content[:2000]}
 
 def run(m, ref, agent_id, runtime):
     started = datetime.now(timezone.utc).isoformat()
