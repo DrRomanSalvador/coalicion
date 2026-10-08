@@ -1,0 +1,26 @@
+{
+  "schema": "PRODUCT_RELEASE_GATE_V1",
+  "status": "SELLABLE_BETA",
+  "certification": "READY_FOR_EXTERNAL_AUDIT",
+  "external_audit": "OPEN",
+  "checks": {
+    "seec_pass": true,
+    "seec_seed_canonical": true,
+    "mc_pass": true,
+    "mc_seed_canonical": true,
+    "oos_pass": true,
+    "oos_contract_valid": true,
+    "poll_coverage_pass": true,
+    "internal_master_gates_pass": true,
+    "external_audit_not_claimed": true,
+    "fail_closed": true
+  },
+  "product_surfaces": [
+    "API",
+    "dashboard",
+    "Telegram",
+    "full_election_pipeline",
+    "evidence_exports"
+  ],
+  "claim_boundary": "Sellable operational beta; not externally audited and not predictive-certification."
+}
