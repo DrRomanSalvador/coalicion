@@ -43,6 +43,11 @@ jobs:
           test -n "$TELEGRAM_BOT_TOKEN"
           test "$TELEGRAM_BOT_TOKEN" != "TU_TOKEN_AQUI"
 
+      - name: Validate Telegram integration
+        run: |
+          python -m py_compile src/telegram_bot.py src/telegram_timezone.py src/telegram_persistence.py
+          python -m pytest -q tests/test_telegram_bot.py tests/test_telegram_integration.py tests/test_telegram_source_status.py
+
       - name: Run Telegram bot
         shell: bash
         run: |
