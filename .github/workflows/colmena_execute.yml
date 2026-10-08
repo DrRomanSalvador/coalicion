@@ -14,14 +14,10 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: colmena-execution-main
-  cancel-in-progress: true
-
 jobs:
   queen:
     name: Queen Gate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       batch_numbers: ${{ steps.plan.outputs.batch_numbers }}
       mission_ids: ${{ steps.plan.outputs.mission_ids }}
@@ -54,7 +50,7 @@ jobs:
     if: needs.queen.result == 'success'
     strategy:
       fail-fast: false
-      max-parallel: 179
+      max-parallel: 20
       matrix:
         mission_id: ${{ fromJSON(needs.queen.outputs.mission_ids) }}
     runs-on: ubuntu-latest
