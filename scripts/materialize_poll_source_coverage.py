@@ -2,6 +2,7 @@
 """Materialize truthful poll-source coverage evidence from runtime state."""
 from __future__ import annotations
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,7 +25,24 @@ def main():
     ]
     registry_ok = bool(registry.get("known_pollsters")) and bool(registry.get("reference_sources"))
     runtime_total = bool(state.get("last_coverage", {}).get("total"))
-    total_ok = runtime_total and not unhealthy and not disabled_without_reason and registry_ok
+    # A cached "total=true" is not live coverage evidence. Every active primary
+    # source must have a recent successful check in the persisted runtime state.
+    now = datetime.now(timezone.utc)
+    stale_primary = []
+    for source in primary:
+        sid = source["id"]
+        status = statuses.get(sid, {})
+        checked = status.get("checked_at")
+        try:
+            checked_at = datetime.fromisoformat(str(checked).replace("Z", "+00:00"))
+            if checked_at.tzinfo is None:
+                checked_at = checked_at.replace(tzinfo=timezone.utc)
+            age_seconds = (now - checked_at.astimezone(timezone.utc)).total_seconds()
+            if age_seconds < -300 or age_seconds > 900 or status.get("status") != "OK":
+                stale_primary.append(sid)
+        except (TypeError, ValueError):
+            stale_primary.append(sid)
+    total_ok = runtime_total and not unhealthy and not stale_primary and not disabled_without_reason and registry_ok
     result = {
         "schema": "POLL_SOURCE_COVERAGE_V1",
         "status": "PASS" if total_ok else "BLOCKED",
@@ -35,6 +53,8 @@ def main():
         "primary_sources": len(primary),
         "healthy_primary_sources": len(primary) - len(unhealthy),
         "unhealthy_primary_sources": unhealthy,
+        "stale_or_unverified_primary_sources": stale_primary,
+        "freshness_window_seconds": 900,
         "disabled_without_reason": disabled_without_reason,
         "registry_contract": "PASS" if registry_ok else "FAIL",
         "last_runtime_coverage": state.get("last_coverage", {}),
