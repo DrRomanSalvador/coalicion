@@ -28,7 +28,7 @@ permissions:
 
 concurrency:
   group: colmena-executable-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   queen-gate:
