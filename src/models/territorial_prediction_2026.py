@@ -33,7 +33,7 @@ def load_seats(path:Path)->dict[str,int]:
     return out
 
 def _norm(name:str)->str:
-    aliases={"Coruña (A)":"A Coruña","Balears (Illes)":"Balears, Illes"}
+    aliases={"Coruña (A)":"A Coruña","Balears (Illes)":"Balears, Illes","Palmas (Las)":"Las Palmas","Rioja (La)":"La Rioja"}
     return aliases.get(name,name)
 
 def load_2023(path:Path)->dict[str,dict[str,Any]]:
