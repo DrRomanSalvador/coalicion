@@ -15,7 +15,12 @@ def main():
         raise SystemExit("BLOCKED_NO_POLL_REPORTS")
     latest=json.loads(reports[-1].read_text(encoding="utf-8"))
     polls=latest.get("validated_polls", [])
-    payload=materialize_observations(polls, OUT)
+    if not polls:
+        payload={"schema":"REAL_ESTIMATION_OBSERVATIONS_V1","status":"BLOCKED_NO_OBSERVED_POLL_RECORDS","national_poll_count":0,"territorial_poll_count":0,"polls":[],"policy":{"observed_only":True,"national_to_territorial_inference":False},"input_hash":None}
+        OUT.parent.mkdir(parents=True,exist_ok=True)
+        OUT.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+    else:
+        payload=materialize_observations(polls, OUT)
     print(json.dumps({
         "status":payload["status"],
         "national_poll_count":payload["national_poll_count"],
