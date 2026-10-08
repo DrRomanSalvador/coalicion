@@ -305,5 +305,10 @@
     "field_end_before_election": true,
     "all_test_elections_use_only_prior_elections": true,
     "evaluated_election_excluded_from_training": true
+  },
+  "certification_gate": {
+    "coverage_passed": true,
+    "leakage_checks_passed": true,
+    "passed": true
   }
 }
