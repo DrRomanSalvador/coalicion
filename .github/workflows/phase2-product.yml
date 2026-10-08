@@ -63,7 +63,7 @@ jobs:
         run: python scripts/materialize_reproducibility_checkpoint.py
       - name: Verify Phase 2
         run: |
-          python -m pytest -q tests/test_trailability.py tests/test_full_pipeline.py tests/test_reproducibility_phase2.py tests/test_territorial_prediction_2026.py tests/test_phase2_priority1.py tests/test_phase2_priority2.py tests/test_alerts.py tests/test_recovery.py tests/test_reproducibility_product.py tests/test_security.py tests/test_docker.py tests/test_monitoring_backup.py
+          python -m pytest -q tests/test_trailability.py tests/test_territorial_data_collection.py tests/test_telegram_evidence.py tests/test_full_pipeline.py tests/test_reproducibility_phase2.py tests/test_territorial_prediction_2026.py tests/test_phase2_priority1.py tests/test_phase2_priority2.py tests/test_alerts.py tests/test_recovery.py tests/test_reproducibility_product.py tests/test_security.py tests/test_docker.py tests/test_monitoring_backup.py
           python -m pytest -q tests/test_telegram_bot.py tests/test_telegram_integration.py
       - name: Upload demo evidence
         uses: actions/upload-artifact@v4
