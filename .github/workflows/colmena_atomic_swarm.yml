@@ -203,4 +203,4 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-# swarm restart checkpoint
+# swarm restart checkpoint — bounded workers / single authoritative executor
