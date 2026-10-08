@@ -23,7 +23,7 @@ jobs:
     name: Queen Gate
     runs-on: ubuntu-latest
     outputs:
-      batches: \${{ steps.plan.outputs.batches }}
+      batch_numbers: \${{ steps.plan.outputs.batch_numbers }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -37,7 +37,7 @@ jobs:
           python - <<'PY' >> "\$GITHUB_OUTPUT"
           import json
           p=json.load(open("queen_approval.json",encoding="utf-8"))
-          print("batches="+json.dumps({"include":[{"number":b["batch"],"mission_ids":json.dumps(b["mission_ids"],ensure_ascii=False)} for b in p["batches"]]},separators=(",",":")))
+          print("batch_numbers="+json.dumps([b["batch"] for b in p["batches"]],separators=(",",":")))
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -51,7 +51,8 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 32
-      matrix: \${{ fromJSON(needs.queen.outputs.batches) }}
+      matrix:
+        batch_number: \${{ fromJSON(needs.queen.outputs.batch_numbers) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -64,21 +65,27 @@ jobs:
       - name: Execute logical atomic workers
         shell: bash
         env:
-          MISSION_IDS: \${{ matrix.mission_ids }}
+          BATCH_NUMBER: \${{ matrix.batch_number }}
         run: |
           set +e
           mkdir -p worker_evidence
           overall=0
-          while IFS= read -r id; do
-            python scripts/colmena_worker.py \
-              --mission-id "\$id" \
-              --approval queen_approval.json \
-              --ref "\${GITHUB_SHA}" \
-              --out "worker_evidence/\${id}.json"
-            rc=\$?
-            if [ "\$rc" -ne 0 ]; then overall=1; fi
-          done < <(python -c 'import json,os; print("\\n".join(json.loads(os.environ["MISSION_IDS"])))')
-          exit "\$overall"
+          python - <<'PY'
+          import json, os, subprocess, sys
+          p=json.load(open("queen_approval.json",encoding="utf-8"))
+          batch=int(os.environ["BATCH_NUMBER"])
+          ids=next(b["mission_ids"] for b in p["batches"] if int(b["batch"])==batch)
+          overall=0
+          for mission_id in ids:
+              rc=subprocess.run([
+                  sys.executable,"scripts/colmena_worker.py",
+                  "--mission-id",mission_id,"--approval","queen_approval.json",
+                  "--ref",os.environ["GITHUB_SHA"],"--out",f"worker_evidence/{mission_id}.json"
+              ]).returncode
+              if rc: overall=1
+          json.dump({"schema":"COLMENA_BATCH_CHECKPOINT_V1","batch":batch,"status":"COMPLETADA" if overall==0 else "BLOQUEADA","mission_ids":ids},open(f"worker_evidence/checkpoint_batch_{batch}.json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
+          raise SystemExit(overall)
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
