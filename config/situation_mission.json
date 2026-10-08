@@ -1,0 +1,13 @@
+{
+  "schema": "COALICION_SITUATION_MISSION_V1",
+  "fail_closed": true,
+  "id": "situacion-electoral",
+  "label": "Situación electoral",
+  "focus": [
+    "cambios",
+    "evidencia",
+    "territorio",
+    "incertidumbre"
+  ],
+  "editorial_rule": "La misión define el foco de observación; no autoriza recomendaciones políticas."
+}
