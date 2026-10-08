@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fail-closed executable atomic worker for the COALICION Queen."""
 from __future__ import annotations
-import argparse, hashlib, json, re, subprocess, sys, time, os, json as _json
+import argparse, hashlib, json, re, subprocess, sys, time, os
 from datetime import datetime, timezone
 from pathlib import Path
 
