@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+WORK_COMMAND_TIMEOUT_SECONDS = int(os.environ.get("COLMENA_COMMAND_TIMEOUT_SECONDS", "600"))
 
 def canon(x): return json.dumps(x, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 def sha(s): return hashlib.sha256(s.encode()).hexdigest()
@@ -100,7 +101,7 @@ def run(m, ref, agent_id, runtime):
     elif command is None:
         status, rc, out, err = "BLOCKED", 2, "", adapter
     else:
-        p = subprocess.run(command, cwd=ROOT, text=True, capture_output=True)
+        p = subprocess.run(command, cwd=ROOT, text=True, capture_output=True, timeout=WORK_COMMAND_TIMEOUT_SECONDS)
         rc, out, err = p.returncode, p.stdout[-12000:], p.stderr[-12000:]
         if rc != 0 and "run_complete_backtest.py" in command:
             diagnostic = ROOT / "ci_evidence/backtest_complete_2004_2023.json"
