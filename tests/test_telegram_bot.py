@@ -325,3 +325,27 @@ def test_interactive_comparison_periods(tmp_path, monkeypatch):
     labels = [b["text"] for row in telegram_bot._comparison_markup()["inline_keyboard"] for b in row]
     assert "5 observaciones" in labels
     assert "30 días" in labels
+
+
+
+def test_territory_navigation_is_hierarchical(tmp_path, monkeypatch):
+    matrix = tmp_path / "election_2023_canonical.json"
+    matrix.write_text(json.dumps({"data": {"constituencies": {
+        "Madrid": {"seats": 37, "valid_votes": 1000, "parties": {"PP": 500, "PSOE": 400}}
+    }}}), encoding="utf-8")
+    monkeypatch.setattr(telegram_bot, "ROOT", tmp_path)
+    root_markup = telegram_bot._territory_markup("ES")
+    assert any("territory:region:" in b["callback_data"] for row in root_markup["inline_keyboard"] for b in row)
+    detail = telegram_bot._territory_detail("Madrid")
+    assert "Madrid" in detail and "Escaños: 37" in detail
+
+
+def test_inline_callback_edits_inline_message(monkeypatch):
+    calls = []
+    monkeypatch.setattr(telegram_bot, "_api", lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True})
+    update = {"update_id": 9, "callback_query": {
+        "id": "cb", "from": {"id": 42}, "inline_message_id": "abc",
+        "data": "cmd:/briefing"
+    }}
+    telegram_bot._handle_update(update, None)
+    assert any(method == "editMessageText" and kwargs["json"]["inline_message_id"] == "abc" for method, kwargs in calls)
