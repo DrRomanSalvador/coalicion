@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT))
 import argparse
 import json
 import math
+from datetime import date
 from pathlib import Path
 
 from src.oos_pipeline import load_poll_observations, run_oos, _election_order, _score_holdout
@@ -146,6 +147,28 @@ def main():
         and math.isfinite(base_coverage)
         and base_coverage >= 0.85
     )
+    election_order = _election_order(rows)
+    leakage_checks = {
+        "field_end_before_election": all(
+            date.fromisoformat(r.field_end) < date.fromisoformat(r.election_date)
+            for r in rows
+        ),
+        "all_test_elections_use_only_prior_elections": (
+            len(folds) == len(election_order) - 2
+            and all(
+                fold.get("election") == election_order[index]
+                and fold.get("training_elections") == election_order[:index]
+                for index, fold in enumerate(folds, start=2)
+            )
+        ),
+        "evaluated_election_excluded_from_training": (
+            result["holdout_election"] not in result["training_elections"]
+            and all(fold.get("election") not in fold.get("training_elections", [])
+                    for fold in folds)
+        ),
+    }
+    leakage_gate = all(leakage_checks.values())
+    certification_gate = coverage_gate and leakage_gate
     for model_name, model_metrics in metrics.items():
         for metric_name, value in model_metrics.items():
             if not math.isfinite(float(value)):
@@ -155,7 +178,7 @@ def main():
 
     out = {
         "schema": "HISTORICAL_OOS_CALIBRATION_V2",
-        "status": "PASS" if coverage_gate else "NOT_CERTIFIED",
+        "status": "PASS" if certification_gate else "NOT_CERTIFIED",
         "contract": "EXPANDING_WINDOW_NO_FUTURE_LEAKAGE",
         "input": args.input,
         "n_rows": result["n_rows"],
@@ -172,17 +195,18 @@ def main():
             "observed_base_mean_coverage": base_coverage,
             "passed": coverage_gate
         },
-        "leakage_checks": {
-            "field_end_before_election": True,
-            "all_test_elections_use_only_prior_elections": True,
-            "evaluated_election_excluded_from_training": True
+        "leakage_checks": leakage_checks,
+        "certification_gate": {
+            "coverage_passed": coverage_gate,
+            "leakage_checks_passed": leakage_gate,
+            "passed": certification_gate
         }
     }
     p = Path(args.output)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(out, ensure_ascii=False, indent=2))
-    if not coverage_gate:
+    if not certification_gate:
         return 2
     return 0
 
