@@ -74,7 +74,7 @@ def _election_key(row):
     raise ValueError(f"official row has unknown election/date: {row}")
 
 
-def _official(path: Path) -> dict[tuple[str, str], float]:
+def _official(path: Path, *, require_all_elections: bool = False) -> dict[tuple[str, str], float]:
     if not path.exists():
         raise FileNotFoundError(f"official results required for canonical OOS: {path}")
     totals: dict[tuple[str, str], float] = {}
@@ -103,7 +103,7 @@ def _official(path: Path) -> dict[tuple[str, str], float]:
             totals[(election, party)] = totals.get((election, party), 0.0) + votes
             national[election] = national.get(election, 0.0) + votes
     expected_elections = {code for _raw, code in ELECTIONS}
-    if set(national) != expected_elections:
+    if require_all_elections and set(national) != expected_elections:
         raise ValueError(f"official OOS scope mismatch: {sorted(national)}")
 
     return {
@@ -114,7 +114,7 @@ def _official(path: Path) -> dict[tuple[str, str], float]:
 
 
 def _canonical(rows, actual_path: Path) -> list[PollObservation]:
-    actuals = _official(actual_path)
+    actuals = _official(actual_path, require_all_elections=True)
     out: list[PollObservation] = []
     for row in rows:
         try:
