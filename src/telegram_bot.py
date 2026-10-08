@@ -633,7 +633,7 @@ def _audit_text() -> str:
         f"Estado OOS: {_human_oos_status(oos.get('status'))}",
         f"Elecciones OOS registradas: {oos.get('elections', 'n/d')}",
         f"Observaciones OOS: {oos.get('poll_observations', 'n/d')}",
-        f"Predicción actual: {estimation.get('status', 'n/d')}",
+        f"Estado de estimación: {_human_oos_status(estimation.get('status'))}",
         "",
         "CONTROL DE CALIDAD",
     ]
@@ -650,7 +650,7 @@ def _radar_text() -> str:
     if not radar:
         return "📡 RADAR\nSin radar materializado."
     lines = [
-        f"📡 RADAR · {radar.get('as_of', 'n/d')} · {radar.get('status', 'UNKNOWN')}",
+        f"📡 RADAR · {radar.get('as_of', 'n/d')} · {_human_oos_status(radar.get('status'))}",
         f"Alertas materializadas: {len(alerts)}",
         "",
     ]
@@ -659,7 +659,7 @@ def _radar_text() -> str:
             f"[{alert.get('priority', 'P4')}] {alert.get('title', '')} · "
             f"{alert.get('reason', '')}"
         )
-    if _safe_json(ESTIMATION).get("status") == "BLOCKED":
+    if str(_safe_json(ESTIMATION).get("status", "")).upper() in {"BLOCKED", "NOT_PROMOTED"}:
         lines.extend(["", "ℹ️ ALCANCE PREDICTIVO", "Los escaños solo se publican cuando existe distribución territorial explícita; mientras tanto se mantienen los datos verificables disponibles."])
     return "\n".join(lines)
 
@@ -709,21 +709,22 @@ def _status_text() -> str:
         f"Última publicación: {polls[0].get('publication_date', 'n/d') if polls else 'n/d'}\n"
         f"Fuentes registradas: {len(sources)}\n"
         f"Territoriales explícitas: {obs.get('territorial_poll_count', 0)}\n"
-        f"Predicción: {estimation.get('status', 'SIN_EJECUCIÓN')}\n"
-        "Metodología: NOT_PROMOTED hasta OOS + calibración reales\n"
-        "Modo: fail-closed · sin datos sintéticos · sin inferencia nacional→territorial"
+        f"Estado de estimación: {_human_oos_status(estimation.get('status'))}\n"
+        "Verificación: OOS y calibración se muestran solo cuando están respaldados.\n"
+        "Cobertura: sin datos sintéticos · sin inferencia nacional→territorial"
     )
 
 
 def render_command(command: str) -> str:
     command = command.split("@", 1)[0].strip().lower()
     aliases = {
-        "/start": "/hoy", "/menu": "/hoy", "/help": "/ayuda",
+        "/start": "/briefing", "/menu": "/briefing", "/help": "/ayuda",
         "/prediccion": "/escanos", "/agenda": "/calendario",
     }
     command = aliases.get(command, command)
     renderers = {
         "/hoy": _home_text,
+        "/briefing": _briefing_text,
         "/mes": _month_text,
         "/ayuda": _help_text,
         "/cambios": _changes_text,
