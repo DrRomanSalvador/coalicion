@@ -1,0 +1,38 @@
+name: Complete historical backtest
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Execute complete backtest
+        run: |
+          set +e
+          PYTHONPATH=. python scripts/run_complete_backtest.py             --input artifacts/data/cis_historical_2004_2023.csv             --output ci_evidence/backtest_complete_2004_2023.json
+          rc=$?
+          test -s ci_evidence/backtest_complete_2004_2023.json
+          exit $rc
+      - name: Upload backtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: complete-backtest-2004-2023
+          path: |
+            ci_evidence/backtest_complete_2004_2023.json
+            ci_evidence/backtest_2023_baseline.json
+            ci_evidence/oos_full_backtest.json
+            ci_evidence/oos_calibration.json
