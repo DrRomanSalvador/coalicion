@@ -1,70 +1,89 @@
 #!/usr/bin/env python3
 """Independent 10,000-draw electoral Monte Carlo engine gate."""
 from __future__ import annotations
-import argparse, hashlib, json
-import sys
-import unicodedata
-import re
-from difflib import get_close_matches
+import argparse, hashlib, json, sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np
-import pandas as pd
+
+ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT))
 from src.electoral import allocate
 from src.reproducibility_contract import ExecutionContract
-ROOT=Path(__file__).resolve().parents[1]; SOURCE=ROOT/"data/resultados_oficiales_2004_2023.csv"; SEATS=ROOT/"data/2023_circunscripciones_oficiales.csv"; OUT=ROOT/"ci_evidence/mc_10000.json"; SEED=ExecutionContract.seed; N_ITER=10000
+
+SOURCE=ROOT/"artifacts/data/election_2023_canonical.json"
+OUT=ROOT/"ci_evidence/mc_10000.json"
+SEED=ExecutionContract.seed
+N_ITER=10000
+CONCENTRATION=200.0
+
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument("--iterations",type=int,default=N_ITER); ap.add_argument("--seed",type=int,default=SEED); args=ap.parse_args()
-    if args.seed != SEED: raise SystemExit(f"BLOCKED: seed {args.seed} does not match canonical seed {SEED}")
-    if not SOURCE.is_file() or not SEATS.is_file(): raise SystemExit("BLOCKED: canonical electoral inputs missing")
-    df=pd.read_csv(SOURCE); required={"fecha_eleccion","circunscripcion","partido","votos","escaños"}
-    if not required.issubset(df.columns): raise SystemExit("BLOCKED: historical source schema incomplete")
-    d=df[df["fecha_eleccion"].astype(str).str[:10].eq("2019-11-10")].copy()
-    if d.empty: raise SystemExit("BLOCKED: 2019N election missing")
-    d["votos"]=pd.to_numeric(d["votos"],errors="raise").astype(int)
-    s=pd.read_csv(SEATS); s["escanos_2023"]=pd.to_numeric(s["escanos_2023"],errors="raise").astype(int)
-    if len(s)!=52 or int(s["escanos_2023"].sum())!=350: raise SystemExit("BLOCKED: seat structure must be 52/350")
-    s["prov"]=s["circunscripcion"].astype(str)
-    seat_by_key={}
-    for name in s["prov"]:
-        key=" ".join(unicodedata.normalize("NFKD",name).encode("ascii","ignore").decode().lower().replace("/"," ").replace(","," ").split())
-        seat_by_key[key]=name
-    aliases={"alicante alacant":"Alicante","balears illes":"Illes Balears","castellon castello":"Castellón","la coruna":"A Coruña","coruna":"A Coruña"}
-    def norm(x):
-        raw=str(x)
-        key=" ".join(unicodedata.normalize("NFKD",raw).encode("ascii","ignore").decode().lower().replace("/"," ").replace(","," ").split())
-        key=re.sub(r"^\d+\s*[-–—:]?\s*", "", key)
-        if key in aliases:
-            return aliases[key]
-        if key in seat_by_key:
-            return seat_by_key[key]
-        contained=[name for candidate,name in seat_by_key.items() if candidate in key or key in candidate]
-        if len(set(contained))==1:
-            return contained[0]
-        matches=get_close_matches(key, list(seat_by_key), n=2, cutoff=0.82)
-        if len(matches)==1:
-            return seat_by_key[matches[0]]
-        raise SystemExit(f"BLOCKED: ambiguous constituency mapping: {raw!r}")
-    d["prov"]=d["circunscripcion"].map(norm)
-    groups={}
-    for prov,g in d.groupby("prov"):
-        parties=sorted(g["partido"].astype(str)); votes={p:int(v) for p,v in zip(g["partido"].astype(str),g["votos"])}; blank=0
-        groups[prov]=(parties,votes,blank)
-    if set(groups)!=set(s["prov"]): raise SystemExit("BLOCKED: 2019N/seat constituency mismatch")
-    n=int(args.iterations); seed=int(args.seed); rng=np.random.Generator(np.random.PCG64(seed)); seat_sums=np.empty(n,dtype=np.int16); status_counts={}
+    ap=argparse.ArgumentParser()
+    ap.add_argument("--iterations",type=int,default=N_ITER)
+    ap.add_argument("--seed",type=int,default=SEED)
+    args=ap.parse_args()
+    if args.seed != SEED:
+        raise SystemExit(f"BLOCKED: seed {args.seed} does not match canonical seed {SEED}")
+    if not SOURCE.is_file():
+        raise SystemExit("BLOCKED: canonical 2023 matrix missing")
+    data=json.loads(SOURCE.read_text(encoding="utf-8"))
+    constituencies=((data.get("data") or {}).get("constituencies") or {})
+    if len(constituencies)!=52:
+        raise SystemExit("BLOCKED: canonical matrix must contain 52 constituencies")
+    seats_total=sum(int(row.get("seats",0)) for row in constituencies.values())
+    if seats_total!=350:
+        raise SystemExit("BLOCKED: canonical matrix must contain 350 seats")
+    n=int(args.iterations)
+    if n<10000:
+        raise SystemExit("BLOCKED: Monte Carlo requires at least 10,000 draws")
+    rng=np.random.Generator(np.random.PCG64(int(args.seed)))
+    seat_sums=np.empty(n,dtype=np.int16)
+    status_counts={}
     for i in range(n):
         total_seats=0
-        for prov,(parties,votes,blank) in groups.items():
-            total=max(sum(votes.values()),1); p=np.array([v/total for v in votes.values()],dtype=float); draw=rng.dirichlet(np.maximum(p*80.0,0.05))
-            dv={party:int(round(float(frac)*total)) for party,frac in zip(parties,draw)}; diff=total-sum(dv.values())
-            if diff: dv[max(dv,key=dv.get)]+=diff
-            valid=sum(dv.values())+blank; seat_n=int(s.loc[s["prov"].eq(prov),"escanos_2023"].iloc[0])
-            a=allocate(dv,seat_n,valid,special=prov if prov in {"Ceuta","Melilla"} else "",blank_votes=blank)
-            status_counts[a.status]=status_counts.get(a.status,0)+1
-            if a.status!="OK": raise SystemExit(f"BLOCKED: allocation {prov} {a.status}")
-            total_seats+=sum(a.seats.values())
+        for name,row in constituencies.items():
+            votes={str(p):int(v) for p,v in (row.get("parties") or {}).items()}
+            blank=int(row.get("blank_votes",0))
+            seat_n=int(row["seats"])
+            total=max(sum(votes.values()),1)
+            probs=np.array([v/total for v in votes.values()],dtype=float)
+            draw=rng.dirichlet(np.maximum(probs*CONCENTRATION,0.05))
+            simulated={party:int(round(float(frac)*total)) for party,frac in zip(votes,draw)}
+            diff=total-sum(simulated.values())
+            if diff:
+                simulated[max(simulated,key=simulated.get)]+=diff
+            valid=sum(simulated.values())+blank
+            special=name if name in {"Ceuta","Melilla"} else ""
+            allocation=allocate(simulated,seat_n,valid,special=special,blank_votes=blank)
+            status_counts[allocation.status]=status_counts.get(allocation.status,0)+1
+            if allocation.status!="OK":
+                raise SystemExit(f"BLOCKED: allocation {name} {allocation.status}")
+            total_seats+=sum(allocation.seats.values())
         seat_sums[i]=total_seats
-    if not np.all(seat_sums==350): raise SystemExit("BLOCKED: a draw did not allocate exactly 350 seats")
-    result={"schema":"ELECTORAL_MONTE_CARLO_10000_V2","status":"PASS","iterations":n,"seed":seed,"canonical_seed":SEED,"rng":"numpy.PCG64","constituencies":52,"seats":350,"source_sha256":hashlib.sha256(SOURCE.read_bytes()).hexdigest(),"seat_structure_sha256":hashlib.sha256(SEATS.read_bytes()).hexdigest(),"invariants":{"every_draw_seat_sum_350":True,"all_allocations_status_OK":True},"allocation_calls":n*52,"status_counts":status_counts,"sampler":"Dirichlet-multinomial territorial stress sampler","predictive_claim":False}
-    OUT.parent.mkdir(parents=True,exist_ok=True); OUT.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8"); print(json.dumps(result,ensure_ascii=False,indent=2))
-if __name__=="__main__": main()
+    if not np.all(seat_sums==350):
+        raise SystemExit("BLOCKED: a draw did not allocate exactly 350 seats")
+    source_hash=hashlib.sha256(SOURCE.read_bytes()).hexdigest()
+    result={
+        "schema":"ELECTORAL_MONTE_CARLO_10000_V2",
+        "status":"PASS",
+        "iterations":n,
+        "seed":int(args.seed),
+        "canonical_seed":SEED,
+        "rng":"numpy.PCG64",
+        "input":"artifacts/data/election_2023_canonical.json",
+        "input_sha256":source_hash,
+        "constituencies":52,
+        "seats":350,
+        "sampler":"Dirichlet-multinomial composition with concentration=200; canonical 2023 territorial matrix; simulation prior, not posterior",
+        "concentration":CONCENTRATION,
+        "invariants":{"every_draw_seat_sum_350":True,"all_allocations_status_OK":True},
+        "allocation_calls":n*52,
+        "status_counts":status_counts,
+        "predictive_claim":False,
+        "fail_closed":True,
+    }
+    OUT.parent.mkdir(parents=True,exist_ok=True)
+    OUT.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    print(json.dumps(result,ensure_ascii=False,indent=2))
+
+if __name__=="__main__":
+    main()
