@@ -102,11 +102,21 @@ if target_provs != seat_provs:
 train_maps={p:dict(zip(g["party"],g["votos"])) for p,g in train_p.groupby("prov")}
 target_maps={p:dict(zip(g["party"],g["votos"])) for p,g in target_p.groupby("prov")}
 
-# Actual seats are official certified results, not reconstructed prediction.
-actual_rows=df[(df["election"].astype(str).eq("2023")) & (df["kind"].eq("PARTY"))]
-actual_seats=actual_rows.groupby("party")["escaños"].sum().astype(int).to_dict()
+# Actual 2023 seats are deterministically reconstructed from primary
+# official votes with the canonical electoral engine. This avoids relying on
+# an unpopulated seat column while preserving the legal allocation contract.
+actual_seats={}
+for prov,votes in target_maps.items():
+    seat_n=int(seats.loc[seats["prov"].eq(prov),"escanos_2023"].iloc[0])
+    valid=int(target_valid[prov])
+    alloc=allocate({p:int(v) for p,v in votes.items()},seat_n,valid,
+                   special=prov if prov in {"Ceuta","Melilla"} else "")
+    if alloc.status!="OK":
+        raise RuntimeError(f"actual 2023 allocation blocked: {prov} {alloc.status} {alloc.tie}")
+    for party,s in alloc.seats.items():
+        actual_seats[party]=actual_seats.get(party,0)+int(s)
 if sum(actual_seats.values()) != 350:
-    raise SystemExit(f"official 2023 seats do not sum to 350: {sum(actual_seats.values())}")
+    raise SystemExit(f"reconstructed official 2023 seats do not sum to 350: {sum(actual_seats.values())}")
 
 # Persistence national vote-share baseline: only 2019N observations.
 parties=sorted(set(target_p["party"]))
