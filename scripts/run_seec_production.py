@@ -27,13 +27,10 @@ SEED = 20261006
 DRAWS_PER_CHAIN = 5000
 CHAINS = 2
 
-SURVEY = {
-    "PP": 31.4, "PSOE": 31.2, "SUMAR": 16.4, "VOX": 10.6,
-    "ERC": 1.6, "EH_BILDU": 1.2, "JUNTS": 1.1, "PNV": 1.0,
-    "BNG": 1.0, "CC": 0.3, "CUP": 0.6, "TERUEL_EXISTE": 0.1,
-    "EN_BLANCO": 1.1, "OTROS": 2.4,
-}
-PARTIES = tuple(SURVEY)
+CIS_STUDY_ID = "3411"
+CIS_SAMPLE_SIZE = 29201
+
+PARTIES = ()
 ALIASES = {
     "pp":"PP","partido popular":"PP",
     "psoe":"PSOE","partido socialista obrero español":"PSOE",
