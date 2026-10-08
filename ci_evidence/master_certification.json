@@ -2,7 +2,7 @@
   "schema": "MASTER_CERTIFICATION_V1",
   "status": "BLOCKED",
   "certification": "BLOCKED",
-  "reason": "Historical Interior source/materialization and exact reconciliation are PASS. Remaining certification gates are actual OOS calibration, production SEEC >=10,000 posterior draws, and independent external audit.",
+  "reason": "OOS execution is now real and reproducible but fails the configured empirical 90% coverage gate; SEEC production >=10,000 posterior draws and independent external audit remain pending.",
   "required_gates": [
     "source_manifest",
     "primary_interior",
@@ -21,8 +21,8 @@
     "reconciliation": "PASS",
     "seec_posterior": "PENDING",
     "mc_10000": "PENDING",
-    "oos_calibration": "PENDING",
-    "oos_walk_forward": "PENDING",
+    "oos_calibration": "FAIL",
+    "oos_walk_forward": "PASS",
     "poll_source_coverage": "PASS",
     "external_audit": "PENDING"
   }
