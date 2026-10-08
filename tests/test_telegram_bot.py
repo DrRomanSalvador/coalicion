@@ -138,4 +138,4 @@ def test_month_situation_centre_is_available():
 def test_calendar_uses_official_timeline():
     text = telegram_bot.render_command("/calendario")
     assert "PRÓXIMOS HITOS" in text
-    assert "2026-10-15" in text
+    assert "2026-10-16" in text
