@@ -27,7 +27,7 @@ def command_for(title: str):
     if "mc 10000" in t or "10.000" in t or "10000" in t:
         return [sys.executable, "scripts/run_mc_10000.py"], "MC_10000"
     if "temporal" in t and "decaimiento" in t:
-        return [sys.executable, "scripts/add_temporal_decay.py"], "TEMPORAL_DECAY"
+        return [sys.executable, "scripts/add_temporal_decay.py", "--dates", "2019-11-10", "2023-07-23", "--reference-date", "2023-07-23"], "TEMPORAL_DECAY"
     if "contratos" in t and "históric" in t:
         return [sys.executable, "scripts/verify_historical_contracts.py"], "HISTORICAL_CONTRACTS"
     if "canonical" in t or "canónica" in t:
