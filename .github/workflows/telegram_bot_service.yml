@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - "src/telegram_bot.py"
+      - "requirements.txt"
       - ".github/workflows/telegram_bot_service.yml"
 
 permissions:
@@ -23,6 +24,10 @@ jobs:
     timeout-minutes: 295
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_ALLOWED_CHATS: ${{ secrets.TELEGRAM_ALLOWED_CHATS }}
+      TELEGRAM_ADMIN_IDS: ${{ secrets.TELEGRAM_ADMIN_IDS }}
+      TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
+      TELEGRAM_WEBAPP_URL: ${{ secrets.TELEGRAM_WEBAPP_URL }}
     steps:
       - uses: actions/checkout@v4
 
