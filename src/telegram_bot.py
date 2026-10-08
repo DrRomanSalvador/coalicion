@@ -22,19 +22,21 @@ API_RETRIES = 4
 MAX_MESSAGE = 4090
 
 COMMANDS = [
-    ("menu", "Menú operativo"),
-    ("briefing", "Briefing ejecutivo"),
-    ("urgencias", "Urgencias y bloqueos"),
-    ("cambios", "Cambios materiales"),
-    ("encuestas", "Sondeos validados"),
-    ("prediccion", "Proyección y límites"),
-    ("territorio", "Cobertura territorial"),
-    ("escenarios", "Escenarios materializados"),
-    ("fuentes", "Salud de fuentes"),
-    ("auditoria", "Auditoría y evidencia"),
-    ("agenda", "Hitos materializados"),
-    ("estado", "Estado del sistema"),
-    ("radar", "Radar operativo"),
+    ("hoy", "¿Qué está pasando ahora?"),
+    ("cambios", "¿Qué ha cambiado?"),
+    ("encuestas", "¿Qué dicen los sondeos?"),
+    ("escanos", "¿Qué implican en escaños?"),
+    ("mayorias", "¿Qué mayorías son aritméticamente posibles?"),
+    ("coaliciones", "¿Qué combinaciones son aritméticamente posibles?"),
+    ("territorio", "¿Dónde están los cambios?"),
+    ("calendario", "¿Qué plazos importan?"),
+    ("fuentes", "¿Qué fuentes están activas?"),
+    ("evidencia", "¿De dónde sale cada dato?"),
+    ("escenarios", "¿Qué escenarios están calculados?"),
+    ("auditoria", "¿Qué nivel de verificación tiene?"),
+    ("estado", "Estado operativo"),
+    ("radar", "Radar de novedades"),
+    ("menu", "Menú completo"),
     ("ayuda", "Ayuda"),
 ]
 
@@ -133,35 +135,217 @@ def _answer_callback(callback_id: str) -> None:
     _api("answerCallbackQuery", json={"callback_query_id": callback_id})
 
 
+def _home_text() -> str:
+    polls = _latest_polls()
+    estimation = _safe_json(ESTIMATION)
+    radar = estimation.get("radar") or {}
+    alerts = _list_records(radar.get("alerts"))
+    latest = polls[0] if polls else {}
+    parties = latest.get("parties") if isinstance(latest.get("parties"), dict) else {}
+    parsed = []
+    for party, value in parties.items():
+        try:
+            parsed.append((str(party), float(value)))
+        except (TypeError, ValueError):
+            continue
+    parsed.sort(key=lambda x: (-x[1], x[0]))
+    top = " · ".join(f"{p} {v:.1f}%" for p, v in parsed[:6])
+    lines = [
+        "🟦 COALICIÓN · PANEL DE HOY",
+        "",
+        f"Último sondeo validado: {latest.get('publication_date', 'n/d')} · {latest.get('pollster', '?')}" if latest else "Último sondeo validado: n/d",
+        top or "Sin estimaciones publicadas en los registros disponibles.",
+        "",
+        f"Novedades relevantes: {len(alerts)}",
+    ]
+    for alert in alerts[:4]:
+        lines.append(f"• {alert.get('title', alert.get('code', 'Novedad'))}")
+    lines.extend([
+        "",
+        "Elige una pregunta. El sistema responde con el dato más reciente y verificable disponible.",
+        "Los controles internos de calidad no se muestran como errores al usuario.",
+    ])
+    return "\n".join(lines)
+
+
+def _majorities_text() -> str:
+    snapshot = _safe_json(SNAPSHOT)
+    projection = snapshot.get("projection")
+    if not isinstance(projection, dict):
+        return (
+            "🏛 MAYORÍAS · ARITMÉTICA\n\n"
+            "Referencia parlamentaria: 350 escaños.\n"
+            "Mayoría absoluta: 176.\n\n"
+            "No hay una composición territorial vigente publicada en el sistema; "
+            "por rigor no se atribuyen mayorías actuales a partidos."
+        )
+    seats = projection.get("national_seats") or projection.get("party") or {}
+    rows = []
+    for party, value in seats.items():
+        try:
+            rows.append((str(party), int(value)))
+        except (TypeError, ValueError):
+            continue
+    rows.sort(key=lambda x: (-x[1], x[0]))
+    total = sum(v for _, v in rows)
+    if not rows:
+        return "🏛 MAYORÍAS · ARITMÉTICA\n\nNo hay composición de escaños materializada."
+    return (
+        "🏛 MAYORÍAS · ARITMÉTICA\n\n"
+        + "\n".join(f"{p}: {s}" for p, s in rows)
+        + f"\n\nTotal representado: {total}/350.\n"
+        "Las combinaciones se tratan como aritmética descriptiva, no como recomendación política."
+    )
+
+
+def _coalitions_text() -> str:
+    snapshot = _safe_json(SNAPSHOT)
+    projection = snapshot.get("projection")
+    seats = projection.get("national_seats") if isinstance(projection, dict) else None
+    if not isinstance(seats, dict) or not seats:
+        return (
+            "🤝 COMBINACIONES · ARITMÉTICA\n\n"
+            "El sistema está preparado para calcular combinaciones sobre una composición "
+            "de escaños explícita. No convierte porcentajes nacionales en escaños."
+        )
+    rows = []
+    for party, value in seats.items():
+        try:
+            rows.append((str(party), int(value)))
+        except (TypeError, ValueError):
+            continue
+    rows.sort(key=lambda x: (-x[1], x[0]))
+    combinations = []
+    from itertools import combinations
+    for size in range(2, min(4, len(rows)) + 1):
+        for combo in combinations(rows, size):
+            total = sum(v for _, v in combo)
+            if total >= 176:
+                combinations.append((size, total, combo))
+    combinations.sort(key=lambda x: (x[0], x[1], tuple(p for p, _ in x[2])))
+    if not combinations:
+        return "🤝 COMBINACIONES · ARITMÉTICA\n\nNo hay combinación de 2–4 grupos que alcance 176 en la composición materializada."
+    lines = ["🤝 COMBINACIONES · ARITMÉTICA", ""]
+    for _, total, combo in combinations[:12]:
+        lines.append(" + ".join(p for p, _ in combo) + f" = {total}")
+    lines.append("")
+    lines.append("Listado descriptivo, sin ordenar por conveniencia política.")
+    return "\n".join(lines)
+
+
+def _calendar_text() -> str:
+    radar = _safe_json(ESTIMATION).get("radar") or {}
+    alerts = _list_records(radar.get("alerts"))
+    dated = []
+    for alert in alerts:
+        facts = alert.get("facts") or {}
+        if facts.get("date"):
+            dated.append((str(facts.get("date")), alert))
+    dated.sort(key=lambda x: x[0])
+    if not dated:
+        return "📅 CALENDARIO\n\nNo hay hitos fechados materializados en el radar."
+    lines = ["📅 CALENDARIO · PRÓXIMOS HITOS", ""]
+    for date, alert in dated[:12]:
+        facts = alert.get("facts") or {}
+        remaining = facts.get("days_remaining")
+        extra = f" · {remaining} días" if remaining is not None else ""
+        lines.append(f"• {date}{extra} · {alert.get('title', alert.get('code', 'hito'))}")
+    return "\n".join(lines)
+
+
+def _evidence_text() -> str:
+    polls = _latest_polls()
+    sources = _sources()
+    source_ids = []
+    for poll in polls[:5]:
+        sid = poll.get("source_id") or poll.get("source") or poll.get("pollster")
+        if sid and str(sid) not in source_ids:
+            source_ids.append(str(sid))
+    lines = [
+        "🔎 EVIDENCIA · TRAZABILIDAD",
+        "",
+        f"Sondeos validados disponibles: {len(polls)}",
+        f"Fuentes registradas por el monitor: {len(sources)}",
+        "",
+        "Fuentes de las observaciones recientes:",
+    ]
+    lines.extend(f"• {sid}" for sid in source_ids[:8]) if source_ids else lines.append("• no identificado en el registro")
+    lines.extend([
+        "",
+        "Los datos se presentan como observación fechada; la fuente y el registro prevalecen sobre cualquier inferencia del bot.",
+    ])
+    return "\n".join(lines)
+
+
+def _escanos_text() -> str:
+    snapshot = _safe_json(SNAPSHOT)
+    projection = snapshot.get("projection")
+    if isinstance(projection, dict):
+        seats = projection.get("national_seats") or projection.get("party") or {}
+        rows = []
+        for party, value in seats.items():
+            try:
+                rows.append((str(party), int(value)))
+            except (TypeError, ValueError):
+                continue
+        rows.sort(key=lambda x: (-x[1], x[0]))
+        if rows:
+            return "🪑 ESCAÑOS · COMPOSICIÓN MATERIALIZADA\n\n" + "\n".join(f"{p}: {s}" for p, s in rows)
+    return (
+        "🪑 ESCAÑOS · SITUACIÓN ACTUAL\n\n"
+        "No se publica una cifra de escaños actual a partir de porcentajes nacionales. "
+        "El sistema conserva la aritmética electoral preparada para ejecutarse cuando exista una entrada territorial explícita."
+    )
+
+
+def _natural_query(text: str) -> str | None:
+    import unicodedata
+    normalized = unicodedata.normalize("NFD", text.lower())
+    normalized = "".join(c for c in normalized if unicodedata.category(c) != "Mn")
+    rules = [
+        (("/hoy", "que pasa", "que esta pasando", "situacion actual", "panorama", "ahora"), "/hoy"),
+        (("/cambios", "que ha cambiado", "novedades", "cambios", "ultimas novedades"), "/cambios"),
+        (("/encuestas", "sondeos", "encuestas", "que dicen los sondeos"), "/encuestas"),
+        (("/escanos", "escanos", "cuantos escanos", "que implican"), "/escanos"),
+        (("/mayorias", "mayoria", "mayorias", "176"), "/mayorias"),
+        (("/coaliciones", "coalicion", "combinaciones", "pactos aritmeticos"), "/coaliciones"),
+        (("/territorio", "donde", "territorio", "provincias", "circunscripciones"), "/territorio"),
+        (("/calendario", "plazos", "fechas", "que plazos", "agenda"), "/calendario"),
+        (("/fuentes", "fuentes", "que fuentes"), "/fuentes"),
+        (("/evidencia", "evidencia", "de donde sale", "fuente del dato"), "/evidencia"),
+        (("/escenarios", "escenarios", "supuestos"), "/escenarios"),
+        (("/auditoria", "auditoria", "verificacion", "rigor"), "/auditoria"),
+    ]
+    for needles, command in rules:
+        if any(needle in normalized for needle in needles):
+            return command
+    return None
+
 def _menu_markup() -> dict[str, Any]:
     return {
         "inline_keyboard": [
-            [{"text": "🚨 Urgencias", "callback_data": "cmd:/urgencias"},
-             {"text": "📋 Briefing", "callback_data": "cmd:/briefing"}],
-            [{"text": "📈 Cambios", "callback_data": "cmd:/cambios"},
-             {"text": "🗳 Encuestas", "callback_data": "cmd:/encuestas"}],
-            [{"text": "🧮 Predicción", "callback_data": "cmd:/prediccion"},
-             {"text": "🗺 Territorio", "callback_data": "cmd:/territorio"}],
-            [{"text": "🧪 Escenarios", "callback_data": "cmd:/escenarios"},
-             {"text": "🔎 Auditoría", "callback_data": "cmd:/auditoria"}],
-            [{"text": "📡 Fuentes", "callback_data": "cmd:/fuentes"},
-             {"text": "📅 Agenda", "callback_data": "cmd:/agenda"}],
-            [{"text": "🟢 Estado", "callback_data": "cmd:/estado"},
+            [{"text": "🟦 ¿Qué pasa ahora?", "callback_data": "cmd:/hoy"},
+             {"text": "📈 ¿Qué ha cambiado?", "callback_data": "cmd:/cambios"}],
+            [{"text": "🗳 ¿Qué dicen los sondeos?", "callback_data": "cmd:/encuestas"},
+             {"text": "🪑 ¿Qué implica en escaños?", "callback_data": "cmd:/escanos"}],
+            [{"text": "🏛 ¿Qué mayorías son posibles?", "callback_data": "cmd:/mayorias"},
+             {"text": "🤝 ¿Qué combinaciones hay?", "callback_data": "cmd:/coaliciones"}],
+            [{"text": "🗺 ¿Dónde están los cambios?", "callback_data": "cmd:/territorio"},
+             {"text": "📅 ¿Qué plazos importan?", "callback_data": "cmd:/calendario"}],
+            [{"text": "🔎 ¿De dónde sale cada dato?", "callback_data": "cmd:/evidencia"},
+             {"text": "🧪 ¿Qué escenarios hay?", "callback_data": "cmd:/escenarios"}],
+            [{"text": "🛡 ¿Qué nivel de verificación tiene?", "callback_data": "cmd:/auditoria"},
              {"text": "📡 Radar", "callback_data": "cmd:/radar"}],
         ]
     }
 
-
 def _help_text() -> str:
     return (
-        "COALICIÓN · CONSOLA OPERATIVA NEUTRAL\n\n"
-        "Usa el menú o estos comandos:\n\n"
+        "🟦 COALICIÓN · PREGUNTAS OPERATIVAS\n\n"
+        "Puedes pulsar una pregunta o escribirla directamente.\n\n"
         + "\n".join(f"/{name} — {description}" for name, description in COMMANDS)
-        + "\n\nLa consola solo presenta evidencia materializada. "
-          "Si falta un dato esencial, bloquea en lugar de inferirlo. "
-          "No realiza persuasión, segmentación electoral ni recomendaciones políticas."
+        + "\n\nRespuestas breves, fechadas y trazables. Los controles de calidad se ejecutan internamente."
     )
-
 
 def _urgencies_text() -> str:
     state = _safe_json(STATE)
@@ -441,27 +625,30 @@ def _briefing_text() -> str:
 
 def render_command(command: str) -> str:
     command = command.split("@", 1)[0].strip().lower()
-    aliases = {"/help": "/ayuda", "/start": "/menu"}
+    aliases = {
+        "/start": "/hoy", "/menu": "/hoy", "/help": "/ayuda",
+        "/prediccion": "/escanos", "/agenda": "/calendario",
+    }
     command = aliases.get(command, command)
     renderers = {
-        "/menu": _help_text,
+        "/hoy": _home_text,
         "/ayuda": _help_text,
-        "/briefing": _briefing_text,
-        "/urgencias": _urgencies_text,
         "/cambios": _changes_text,
         "/encuestas": _polls_text,
-        "/prediccion": _prediction_text,
+        "/escanos": _escanos_text,
+        "/mayorias": _majorities_text,
+        "/coaliciones": _coalitions_text,
         "/territorio": _territory_text,
-        "/escenarios": _scenarios_text,
+        "/calendario": _calendar_text,
         "/fuentes": _sources_text,
+        "/evidencia": _evidence_text,
+        "/escenarios": _scenarios_text,
         "/auditoria": _audit_text,
-        "/agenda": _agenda_text,
         "/estado": _status_text,
         "/radar": _radar_text,
     }
     renderer = renderers.get(command)
-    return renderer() if renderer else "Comando no reconocido. Usa /menu."
-
+    return renderer() if renderer else "Escribe una pregunta o pulsa /menu."
 
 def _set_commands() -> None:
     commands = [{"command": name, "description": description[:256]} for name, description in COMMANDS]
@@ -488,18 +675,30 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
         message = callback.get("message") or {}
         chat_id = (message.get("chat") or {}).get("id")
         if chat_id is not None and data.startswith("cmd:"):
-            command = data[4:]
-            _send(int(chat_id), render_command(command), _menu_markup())
+            _send(int(chat_id), render_command(data[4:]), _menu_markup())
         return next_offset
 
     message = update.get("message") or {}
     chat_id = (message.get("chat") or {}).get("id")
     text = str(message.get("text") or "").strip()
-    if chat_id is not None and text.startswith("/"):
-        command = text.split()[0]
-        _send(int(chat_id), render_command(command), _menu_markup())
+    if chat_id is not None and text:
+        command = text.split()[0] if text.startswith("/") else _natural_query(text)
+        if command:
+            _send(int(chat_id), render_command(command), _menu_markup())
+        else:
+            _send(
+                int(chat_id),
+                "🟦 Puedo responder preguntas como:\n"
+                "• ¿Qué está pasando ahora?\n"
+                "• ¿Qué ha cambiado?\n"
+                "• ¿Qué dicen los sondeos?\n"
+                "• ¿Qué implica en escaños?\n"
+                "• ¿Qué mayorías son posibles?\n"
+                "• ¿Qué plazos importan?\n"
+                "• ¿De dónde sale cada dato?",
+                _menu_markup(),
+            )
     return next_offset
-
 
 def poll_once(offset: int | None = None) -> int | None:
     params: dict[str, Any] = {"timeout": 0, "allowed_updates": ["message", "callback_query"]}
