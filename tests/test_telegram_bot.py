@@ -139,3 +139,20 @@ def test_calendar_uses_official_timeline():
     text = telegram_bot.render_command("/calendario")
     assert "PRÓXIMOS HITOS" in text
     assert "2026-10-16" in text
+
+
+
+def test_public_text_never_leaks_internal_failure_terms():
+    from src.telegram_bot import _public_text
+
+    text = _public_text("BLOCKED: ERROR Exception BLOQUEADO")
+    assert "BLOCKED" not in text
+    assert "ERROR" not in text
+    assert "Exception" not in text
+    assert "BLOQUEADO" not in text
+
+
+def test_public_text_has_nonempty_fallback():
+    from src.telegram_bot import _public_text
+
+    assert _public_text("").startswith("🟦 COALICIÓN")
