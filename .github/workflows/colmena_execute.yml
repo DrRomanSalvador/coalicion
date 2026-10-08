@@ -1,0 +1,71 @@
+name: COLMENA — Queen Gate + Atomic Workers
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "docs/COLMENA_MISSION_CONTROL.json"
+      - "scripts/colmena_queen.py"
+      - "scripts/colmena_worker.py"
+      - ".github/workflows/colmena_execute.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: colmena-execution-main
+  cancel-in-progress: false
+
+jobs:
+  queen:
+    name: Queen Gate
+    runs-on: ubuntu-latest
+    outputs:
+      plan: ${{ steps.plan.outputs.plan }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - id: plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/colmena_queen.py --ref "${GITHUB_SHA}" --output queen_approval.json
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          p=json.load(open("queen_approval.json",encoding="utf-8"))
+          print("plan="+json.dumps({"include":[{"id":m["id"],"title":m["title"]} for m in p["missions"]]}))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: colmena-queen-approval
+          path: queen_approval.json
+
+  workers:
+    name: Worker ${{ matrix.id }}
+    needs: queen
+    if: needs.queen.result == 'success'
+    strategy:
+      fail-fast: false
+      max-parallel: 32
+      matrix: ${{ fromJSON(needs.queen.outputs.plan) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          name: colmena-queen-approval
+      - name: Execute atomic worker
+        run: |
+          mkdir -p worker_evidence
+          python scripts/colmena_worker.py             --mission-id "${{ matrix.id }}"             --approval queen_approval.json             --ref "${GITHUB_SHA}"             --out "worker_evidence/${{ matrix.id }}.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: worker-evidence-${{ matrix.id }}
+          path: worker_evidence/${{ matrix.id }}.json
