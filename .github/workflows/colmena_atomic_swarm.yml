@@ -30,6 +30,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install pinned Python runtime dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.lock
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
