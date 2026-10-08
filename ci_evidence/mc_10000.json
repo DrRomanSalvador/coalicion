@@ -2,25 +2,24 @@
   "schema": "ELECTORAL_MONTE_CARLO_10000_V2",
   "status": "PASS",
   "iterations": 10000,
-  "seed": 20261008,
+  "seed": 20261006,
+  "canonical_seed": 20261006,
   "rng": "numpy.PCG64",
   "input": "artifacts/data/election_2023_canonical.json",
+  "input_sha256": "db2c720fda68ee0be898c874c5aef016dcd6bb02c3593ee6c7ac96bbbf7983bf",
   "constituencies": 52,
   "seats": 350,
-  "sampler": "Dirichlet-multinomial composition with explicit 1,000,000,000-vote simulation scale; concentration=200; includes blank-vote category; simulation prior, not posterior; exact discrete ties rejected and resampled; canonical allocator remains fail-closed",
-  "legal_tie_lots": 0,
+  "sampler": "Dirichlet-multinomial composition with concentration=200; canonical 2023 territorial matrix; simulation prior, not posterior",
+  "concentration": 200.0,
   "invariants": {
     "every_draw_seat_sum_350": true,
     "all_allocations_status_OK": true
   },
-  "execution": {
-    "workflow": "Unlock verification",
-    "workflow_run_id": 37757439392,
-    "verification_commit": "e040b26ba577e47be45da25d0e217b6ce8bdcee4",
-    "artifact_id": 11540976595,
-    "artifact_sha256": "b7beaa6cd5ae0a0c723074126f9d4cf50053d0d85ed5e9e443019eab7351b98d",
-    "evidence_sha256": "2237c5c39b61e2459055d4b79e3933a38e2f6032b3367454092be66cf8284bfe",
-    "evidence_bytes": 16368
+  "allocation_calls": 520000,
+  "status_counts": {
+    "OK": 520000
   },
+  "resampled_absolute_ties": 17,
+  "predictive_claim": false,
   "fail_closed": true
 }
