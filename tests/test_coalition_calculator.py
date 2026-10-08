@@ -49,3 +49,9 @@ def test_engine_requires_legal_ceuta_rule():
 def test_engine_rejects_blank_votes_with_missing_constituency():
     with pytest.raises(ValueError, match="exactamente"):
         CoalitionDecisionEngine({"A": 3, "B": 3}, {"A": 0})
+
+def test_engine_rejects_nonofficial_52_constituency_structure():
+    seats = {f"C{i}": 1 for i in range(52)}
+    blank = {c: 0 for c in seats}
+    with pytest.raises(ValueError, match="BOE-A-2026-20742"):
+        CoalitionDecisionEngine(seats, blank)

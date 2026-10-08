@@ -253,6 +253,10 @@ def shock_scenario(
     for constituency in ("Ceuta", "Melilla"):
         if constituency in input_votes and special.get(constituency) != constituency:
             raise ValueError(f"BLOCKED: falta la regla legal de {constituency}")
+    if len(input_votes) == 52 or {"Ceuta", "Melilla"} & set(input_votes):
+        from .electoral import official_2026_seats
+        if dict(seats_by_constituency) != official_2026_seats():
+            raise ValueError("BLOCKED: nombres y magnitudes deben coincidir con BOE-A-2026-20742")
     shifted = apply_absolute_shift(input_votes, party, shift, distribution)
     for c, row in input_votes.items():
         a = allocate(row, seats_by_constituency[c],

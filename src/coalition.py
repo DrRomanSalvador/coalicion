@@ -94,6 +94,10 @@ class CoalitionDecisionEngine:
         for constituency, special in self.special.items():
             if special not in {"Ceuta", "Melilla"} or constituency != special:
                 raise ValueError(f"BLOCKED: regla especial inválida para {constituency}")
+        if len(self.seats) == 52 or {"Ceuta", "Melilla"} & set(self.seats):
+            from .electoral import official_2026_seats
+            if self.seats != official_2026_seats():
+                raise ValueError("BLOCKED: nombres y magnitudes deben coincidir con BOE-A-2026-20742")
 
     @staticmethod
     def generate_all_coalitions(parties: Sequence[str], min_size=2,

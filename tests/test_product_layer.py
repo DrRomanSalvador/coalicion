@@ -64,3 +64,10 @@ class ProductLayerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+    def test_shock_rejects_nonofficial_52_constituency_structure(self):
+        votes = {f"C{i}": {"P1": 60, "P2": 40} for i in range(52)}
+        seats = {c: 1 for c in votes}
+        blank = {c: 0 for c in votes}
+        with self.assertRaisesRegex(ValueError, "BOE-A-2026-20742"):
+            shock_scenario(votes, seats, "P1", 1, blank_votes_by_constituency=blank)
