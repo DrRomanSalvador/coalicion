@@ -80,15 +80,81 @@ def coalition_result(
     }
 
 def apply_absolute_shift(votes_by_constituency, party, shift_points: float, territorial_distribution: str) -> dict:
-    if territorial_distribution == "unspecified": raise ValueError("AMBIGUOUS_SCENARIO")
-    if territorial_distribution != "uniform_by_province": raise ValueError("Solo uniform_by_province está implementado")
-    out={}
-    for c,row0 in votes_by_constituency.items():
-        row=dict(row0); total=sum(row.values())
-        if party not in row: raise ValueError(f"{c}: candidatura ausente")
-        delta=Fraction(str(shift_points))*total/Fraction(100)
-        if delta.denominator != 1: raise ValueError("El shock produce votos no enteros; defina un redondeo explícito")
-        row[party]+=int(delta)
-        if row[party]<0: raise ValueError("El shock produciría votos negativos")
-        out[c]=row
+    """Transfer percentage points between existing candidatures, preserving vote mass.
+
+    A positive shock gives the target party a share of the existing valid vote
+    total and removes exactly that mass from the other candidatures. A negative
+    shock performs the inverse transfer. Integer votes are allocated by largest
+    remainder with party-name tie ordering, so the transformation is exact and
+    reproducible.
+    """
+    if territorial_distribution == "unspecified":
+        raise ValueError("AMBIGUOUS_SCENARIO")
+    if territorial_distribution != "uniform_by_province":
+        raise ValueError("Solo uniform_by_province está implementado")
+    shift = Fraction(str(shift_points))
+    if not shift:
+        return {c: dict(row) for c, row in votes_by_constituency.items()}
+    if not -100 < shift < 100:
+        raise ValueError("El shock debe estar estrictamente entre -100 y 100 puntos")
+    out = {}
+    for c, row0 in votes_by_constituency.items():
+        row = dict(row0)
+        if party not in row:
+            raise ValueError(f"{c}: candidatura ausente")
+        total = sum(row.values())
+        if total <= 0:
+            raise ValueError(f"{c}: masa electoral no positiva")
+        if shift > 0:
+            transfer = shift * total / 100
+            max_transfer = total - row[party]
+            if transfer > max_transfer:
+                raise ValueError(f"{c}: shock positivo superior a los votos transferibles")
+            source = {p: v for p, v in row.items() if p != party and v > 0}
+            target = party
+            sign = 1
+        else:
+            transfer = -shift * total / 100
+            if transfer > row[party]:
+                raise ValueError(f"{c}: shock negativo superior a los votos de {party}")
+            source = {party: row[party]}
+            target = None
+            sign = -1
+        if transfer.denominator != 1:
+            raise ValueError(f"{c}: el shock produce una transferencia fraccionaria; defina un redondeo explícito")
+        amount = int(transfer)
+        if amount == 0:
+            out[c] = row
+            continue
+        def distribute(pool, amount):
+            pool_total = sum(pool.values())
+            if pool_total < amount:
+                raise ValueError(f"{c}: masa transferible insuficiente")
+            base = {}
+            remainders = []
+            assigned = 0
+            for p, votes in sorted(pool.items()):
+                q = Fraction(amount * votes, pool_total)
+                n = q.numerator // q.denominator
+                base[p] = n
+                assigned += n
+                remainders.append((q - n, p))
+            for _, p in sorted(remainders, key=lambda x: (-x[0], x[1]))[:amount - assigned]:
+                base[p] += 1
+            return base
+        if sign == 1:
+            cuts = distribute(source, amount)
+            for p, n in cuts.items():
+                row[p] -= n
+            row[party] += amount
+        else:
+            row[party] -= amount
+            gains = {p: v for p, v in row.items() if p != party and v >= 0}
+            adds = distribute(gains, amount)
+            for p, n in adds.items():
+                row[p] += n
+        if sum(row.values()) != total or any(v < 0 for v in row.values()):
+            raise AssertionError(f"{c}: el shock no conserva la masa electoral")
+        out[c] = row
     return out
+
