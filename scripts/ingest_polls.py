@@ -23,7 +23,9 @@ def main():
     state=load(STATE,{"seen_sources":{},"seen_polls":{},"baseline_completed":False})
     state.setdefault("seen_sources",{})
     state.setdefault("seen_polls",{})
-    baseline=not state.get("baseline_completed",False) and not state["seen_polls"]
+    # Keep baseline mode until every configured source has completed one
+    # successful scan; a partial first run must not turn old polls into alerts.
+    baseline=not state.get("baseline_completed",False)
     events=[]
     discovered_only=0
     for source in cfg.get("sources",[]):
@@ -54,9 +56,13 @@ def main():
             state["seen_sources"][sid]=digest
         except Exception as exc:
             events.append({"status":"BLOCKED_SOURCE","source_id":sid,"error":str(exc)})
-    state["baseline_completed"]=True
-    status="ALERT" if any(e["status"] in {"NEW_POLL","CHANGED_POLL"} for e in events) else (
-        "BLOCKED" if any(e["status"]=="BLOCKED_SOURCE" for e in events) else "READY"
+    source_failures=any(e["status"]=="BLOCKED_SOURCE" for e in events)
+    if baseline:
+        state["baseline_completed"]=not source_failures
+    # A partial source failure takes precedence over ALERT/READY; alerts remain
+    # in the event list but the overall monitor state cannot claim completeness.
+    status="BLOCKED" if source_failures else (
+        "ALERT" if any(e["status"] in {"NEW_POLL","CHANGED_POLL"} for e in events) else "READY"
     )
     payload={
         "schema":"POLL_VIGILANCE_V2",
