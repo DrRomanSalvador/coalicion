@@ -13,8 +13,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
-      - run: python -m pip install --disable-pip-version-check --no-input "numpy>=2.0,<2.4" "pandas==2.3.3" "pymc==6.3.2" "pytensor>=3.2.2,<3.4" "arviz>=0.22,<0.24"
-      - run: python scripts/run_seec_production.py --draws 5000 --tune 1000 --seed 20261008
+      - run: python -m pip install --disable-pip-version-check --no-input "numpy>=2.0,<2.4" "pandas==2.3.3" "pymc==6.3.2" "pytensor>=3.2.2,<3.4" "arviz>=1.1.0,<2.0"
+      - name: Resolve canonical seed
+        run: echo "COALICION_SEED=$(python -c 'from src.reproducibility_contract import ExecutionContract; print(ExecutionContract.seed)')" >> "$GITHUB_ENV"
+      - run: python scripts/run_seec_production.py --draws 2500 --tune 3000 --chains 4 --seed "$COALICION_SEED"
       - run: |
           python - <<'PY'
           import json, math
