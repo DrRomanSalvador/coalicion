@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "c048a09e0dafd563b7bd9ecc6eeb3047deb5cf60",
-  "updated_at": "2026-10-08T15:38:00+02:00",
+  "commit": "720233fb61ffe46ed7d9014fded7ba4eb1d360a1",
+  "updated_at": "2026-10-08T15:40:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,7 +24,7 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Inspect newest queued phase2-product run; do not release until CI PASS and P1/P3 blockers are genuinely resolved.",
+  "resume_from": "Await newest Phase 2 run on latest main; inspect logs and artifacts. Current release remains blocked.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
@@ -141,7 +141,7 @@
     "reason": "BLOCKED_NO_TERRITORIAL_OBSERVATIONS",
     "fail_closed": true
   },
-  "phase2_ci_workflow": "FIXED_CLEAN_PATHS_AND_FULL_TEST_MATRIX",
+  "phase2_ci_workflow": "TEST_TRIGGER_PATHS_HARDENED",
   "phase2_ci_execution": {
     "status": "QUEUED_AFTER_REAL_FAILURE_FIX",
     "previous_failure": "territory renderer wording contract",
