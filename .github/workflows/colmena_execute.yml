@@ -10,6 +10,7 @@ on:
       - "scripts/colmena_worker.py"
       - "scripts/colmena_closure.py"
       - ".github/workflows/colmena_execute.yml"
+      - "src/colmena_resume.py"
 
 permissions:
   contents: read
