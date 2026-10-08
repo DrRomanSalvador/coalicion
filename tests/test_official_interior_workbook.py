@@ -3,7 +3,8 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from src.data import available_elections, download_workbook, load_official_constituency_matrix, load_rows\nfrom src.electoral import allocate
+from src.data import available_elections, download_workbook, load_official_constituency_matrix, load_rows
+from src.electoral import allocate
 
 ROOT=Path(__file__).resolve().parents[1]
 WORKBOOK=ROOT/"data"/"raw"/"Elecciones-Congreso.xlsx"
