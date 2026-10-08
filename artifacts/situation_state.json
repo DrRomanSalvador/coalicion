@@ -1,0 +1,116 @@
+{
+  "schema": "COALICION_SITUATION_STATE_V1",
+  "version": "1.0",
+  "as_of": "2026-10-08T16:00:00+02:00",
+  "mission": {
+    "schema": "COALICION_SITUATION_MISSION_V1",
+    "fail_closed": true,
+    "id": "situacion-electoral",
+    "label": "Situación electoral",
+    "focus": [
+      "cambios",
+      "evidencia",
+      "territorio",
+      "incertidumbre"
+    ],
+    "editorial_rule": "La misión define el foco de observación; no autoriza recomendaciones políticas."
+  },
+  "radar": "UNCERTAINTY",
+  "headline": {
+    "changed": [
+      {
+        "type": "poll_observation_change",
+        "party": "PSOE",
+        "delta_pp": -2,
+        "latest_poll_date": "2026-09-23",
+        "previous_poll_date": "2026-09-07",
+        "latest_poll_id": "datoelectoral::2026-09-23::Barómetro de septiembre 2026 (estudio 3577 del CIS)",
+        "previous_poll_id": "datoelectoral::2026-09-07::Barómetro de julio 2026 (estudio 3571 del CIS)",
+        "evidence": [
+          "https://www.datoelectoral.es/encuestas",
+          "https://www.datoelectoral.es/encuestas"
+        ]
+      },
+      {
+        "type": "poll_observation_change",
+        "party": "VOX",
+        "delta_pp": 1.3,
+        "latest_poll_date": "2026-09-23",
+        "previous_poll_date": "2026-09-07",
+        "latest_poll_id": "datoelectoral::2026-09-23::Barómetro de septiembre 2026 (estudio 3577 del CIS)",
+        "previous_poll_id": "datoelectoral::2026-09-07::Barómetro de julio 2026 (estudio 3571 del CIS)",
+        "evidence": [
+          "https://www.datoelectoral.es/encuestas",
+          "https://www.datoelectoral.es/encuestas"
+        ]
+      },
+      {
+        "type": "poll_observation_change",
+        "party": "PODEMOS",
+        "delta_pp": 1.2,
+        "latest_poll_date": "2026-09-23",
+        "previous_poll_date": "2026-09-07",
+        "latest_poll_id": "datoelectoral::2026-09-23::Barómetro de septiembre 2026 (estudio 3577 del CIS)",
+        "previous_poll_id": "datoelectoral::2026-09-07::Barómetro de julio 2026 (estudio 3571 del CIS)",
+        "evidence": [
+          "https://www.datoelectoral.es/encuestas",
+          "https://www.datoelectoral.es/encuestas"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "id": "Q_EVIDENCE_FRESHNESS",
+        "question": "¿Cuál es la evidencia electoral más reciente y qué antigüedad tiene?",
+        "reason": "La frescura de la evidencia condiciona cualquier lectura actual."
+      },
+      {
+        "id": "Q_TERRITORY",
+        "question": "¿Qué evidencia territorial explícita existe realmente?",
+        "reason": "No se permite convertir porcentajes nacionales en observaciones territoriales."
+      },
+      {
+        "id": "Q_SOURCE_HEALTH",
+        "question": "¿Qué fuentes están operativas y cuáles tienen incidencias?",
+        "reason": "Una incidencia de fuente no debe convertirse silenciosamente en ausencia de evidencia."
+      }
+    ],
+    "uncertainties": [
+      {
+        "code": "TERRITORIAL_UNCERTAINTY",
+        "statement": "No puede inferirse una situación territorial 2026 a partir de las observaciones nacionales disponibles.",
+        "severity": "HIGH",
+        "evidence": [
+          "artifacts/estimation/observations.json"
+        ]
+      }
+    ]
+  },
+  "counts": {
+    "national_polls": 3,
+    "territorial_polls": 0,
+    "latest_poll_date": "2026-09-23"
+  },
+  "source_health": {
+    "configured": 16,
+    "primary": 7,
+    "healthy_primary": 7,
+    "unhealthy_primary": [],
+    "status": "PASS"
+  },
+  "evidence": {
+    "observations_path": "artifacts/estimation/observations.json",
+    "source_coverage_path": "ci_evidence/poll_source_coverage.json",
+    "input_hash": "e7edda4f03f7df7df7f99a5102bba2612cd4fa75c990e258f2c6494d79a84a01"
+  },
+  "policy": {
+    "fail_closed": true,
+    "descriptive_only": true,
+    "no_persuasion": true,
+    "no_microtargeting": true,
+    "no_hidden_imputation": true,
+    "no_national_to_territorial_inference": true,
+    "no_outcome_probability_claim": true
+  },
+  "state_hash": "7e560c76c759ea124b1658535396e1065b0fef252c14dbd2949cfb6bf54f3cf4"
+}
