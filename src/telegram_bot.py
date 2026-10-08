@@ -1241,16 +1241,20 @@ def _polls_text() -> str:
 def _territory_text() -> str:
     obs = _observations()
     polls = _latest_polls()
-    explicit = int(obs.get("territorial_poll_count", sum(1 for p in polls if p.get("territorial"))) or 0)
+    registry = ROOT / "data" / "surveys" / "october_2026" / "territorial"
+    territorial_files = list(registry.glob("*.json")) if registry.is_dir() else []
+    explicit = max(
+        int(obs.get("territorial_poll_count", 0) or 0),
+        len(territorial_files),
+        sum(1 for p in polls if p.get("territorial")),
+    )
     return (
         "🗺 TERRITORIO\n\n"
         f"Observaciones nacionales: {obs.get('national_poll_count', len(polls))}\n"
         f"Observaciones territoriales explícitas: {explicit}\n"
-        "Cobertura electoral: 52 circunscripciones / 350 escaños.\n\n"
-        + ("🟢 Existe entrada territorial explícita en los artefactos observados."
-           if explicit else
-           "ℹ️ Cobertura territorial actual limitada: los escaños requieren evidencia provincial explícita y una distribución territorial explícita. "
-           "No se convierte automáticamente un porcentaje nacional en reparto provincial.")
+        "Cobertura actual: Catalunya, Comunitat Valenciana y Asturias (elecciones autonómicas).\n"
+        "Cobertura general 2026 por circunscripción: NO DISPONIBLE.\n\n"
+        "Los datos territoriales disponibles no se convierten automáticamente en reparto provincial de las generales."
     )
 
 
