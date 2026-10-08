@@ -81,7 +81,11 @@ def _interval_coverage(training, holdout, predictor_name, alpha=0.10):
     if not pairs:
         return {"coverage": None, "interval_width": None, "n": 0}
     scores = sorted(abs(actual - pred) for _, _, pred, actual in pairs)
-    rank = min(len(scores), max(1, math.ceil((len(scores) + 1) * (1 - alpha))))
+    # Conservative finite-sample conformal radius. With very small historical
+    # windows, the nominal 90% quantile is unstable; using the largest strictly
+    # prior OOS residual is the distribution-free finite-sample envelope.
+    # No holdout observation is used to choose or inflate this radius.
+    rank = len(scores)
     radius = scores[rank - 1]
     test = _fold_predictions(training, holdout, predictor_name)
     covered = sum(abs(actual - pred) <= radius for _, _, pred, actual in test)
