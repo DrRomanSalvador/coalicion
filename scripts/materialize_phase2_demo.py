@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Materialize the reproducible Phase 2 demonstration package."""
 from pathlib import Path
+import sys
 from src.models.territorial_prediction_2026 import predict
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 def main() -> int:
     result = predict(
