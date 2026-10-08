@@ -71,9 +71,10 @@ def main():
     payload=source.read_bytes()
     if not payload: raise SystemExit("BLOCKED: workbook oficial vacío")
     sha256=hashlib.sha256(payload).hexdigest()
-    normalized=normalize_workbook(source,root/args.output_csv)
+    # Validate the canonical 2023 matrix before publishing any derived CSV.
     matrix=load_official_constituency_matrix(source,"2023-07-23")
     if matrix["validation"]["status"]!="PASS": raise SystemExit("BLOCKED: matriz oficial 2023 inválida")
+    normalized=normalize_workbook(source,root/args.output_csv)
     result={"schema":"ELECTION_2023_CONSTITUENCY_MATRIX_V2","election":2023,"type":"general","source_tier":"OFFICIAL_PRIMARY","source":{"provider":"Ministerio del Interior / Infoelectoral","url":OFFICIAL_URL,"sha256":sha256,"hash_scope":"workbook_bytes"},"data":{"constituencies":matrix["constituencies"]},"validation":matrix["validation"]}
     out=root/args.canonical_2023; out.parent.mkdir(parents=True,exist_ok=True)
     out_tmp=out.with_name(out.name+".tmp")
