@@ -49,7 +49,7 @@ jobs:
             queen_state.json
 
   workers:
-    name: Worker batch ${{ matrix.batch_number }}
+    name: Agent ${{ matrix.mission_id }}
     needs: queen
     if: needs.queen.result == 'success'
     strategy:
@@ -66,7 +66,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: colmena-queen-approval
-      - name: Execute logical atomic workers
+      - name: Execute independent AI agent worker
         shell: bash
         env:
           MISSION_ID: ${{ matrix.mission_id }}
@@ -76,14 +76,12 @@ jobs:
         run: |
           set +e
           mkdir -p worker_evidence
-          python - <<'PY'
-          mid=os.environ["MISSION_ID"]
-          rc=subprocess.run([sys.executable,"scripts/colmena_worker.py","--mission-id",mid,"--approval","queen_approval.json","--ref",os.environ["GITHUB_SHA"],"--out","worker_evidence/"+mid+".json"]).returncode
-          raise SystemExit(rc)
+          python scripts/colmena_worker.py --mission-id "$MISSION_ID" --approval queen_approval.json --ref "$GITHUB_SHA" --out "worker_evidence/$MISSION_ID.json"
+          exit $?
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: worker-evidence-batch-${{ matrix.batch_number }}
+          name: worker-evidence-${{ matrix.mission_id }}
           path: worker_evidence/*.json
           if-no-files-found: error
 
