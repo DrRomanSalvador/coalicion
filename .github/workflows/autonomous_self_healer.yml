@@ -2,12 +2,6 @@ name: Autonomous repository self-healer
 
 on:
   workflow_dispatch:
-    inputs:
-      failed_run_id:
-        description: "GitHub Actions run ID or failed job ID to retry"
-        required: true
-        type: string
-
 permissions:
   actions: write
   contents: read
