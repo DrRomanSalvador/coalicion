@@ -25,8 +25,8 @@ def test_decision_snapshot_is_complete_and_traced():
 
 
 def test_decision_snapshot_compares_previous_projection():
-    votes, seats, blank = _matrix()
-    first = decision_snapshot(votes, seats, blank)
+    votes, seats, blank, special = _matrix()
+    first = decision_snapshot(votes, seats, blank, special_by_constituency=special)
     changed = {k: dict(v) for k, v in votes.items()}
     changed["Madrid"]["A"] += 100
     second = decision_snapshot(
@@ -42,7 +42,7 @@ def test_decision_snapshot_rejects_non_52_in_strict_mode():
     seats = {"A": 1}
     blank = {"A": 0}
     try:
-        decision_snapshot(votes, seats, blank, special_by_constituency=special)
+        decision_snapshot(votes, seats, blank, special_by_constituency={})
     except ValueError as exc:
         assert "52" in str(exc)
     else:
@@ -57,10 +57,10 @@ def test_decision_snapshot_requires_explicit_blank_votes():
 
 
 def test_decision_snapshot_rejects_wrong_seat_total():
-    votes, seats, blank = _matrix()
+    votes, seats, blank, special = _matrix()
     seats["Madrid"] -= 1
     try:
-        decision_snapshot(votes, seats, blank)
+        decision_snapshot(votes, seats, blank, special_by_constituency=special)
     except ValueError as exc:
         assert "350" in str(exc)
     else:
@@ -68,7 +68,7 @@ def test_decision_snapshot_rejects_wrong_seat_total():
 
 
 def test_decision_snapshot_exposes_methodology_gate():
-    votes, seats, blank = _matrix()
-    out = decision_snapshot(votes, seats, blank)
+    votes, seats, blank, special = _matrix()
+    out = decision_snapshot(votes, seats, blank, special_by_constituency=special)
     assert out["methodology"]["status"] == "NOT_PROMOTED"
     assert out["methodology"]["promotion_allowed"] is False
