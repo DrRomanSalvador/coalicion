@@ -225,7 +225,7 @@ def _briefing_text() -> str:
         "",
         "HOY",
         f"• Elecciones: 29/11/2026 · 350 escaños · 52 circunscripciones",
-        f"• Sondeos validados: {len(polls)}",
+        f"• Observaciones registradas: {len(polls)}",
         f"• Fuentes registradas: {len(sources)} · activas: {source_ok} · con seguimiento: {source_attention}",
     ]
     if latest:
@@ -246,7 +246,7 @@ def _briefing_text() -> str:
             if values:
                 lines.append("• " + " · ".join(f"{p} {v:.1f}%" for p, v in values[:6]))
     else:
-        lines.extend(["", "ÚLTIMA OBSERVACIÓN", "• No hay un sondeo validado reciente que publicar."])
+        lines.extend(["", "ÚLTIMA OBSERVACIÓN", "• No hay una observación reciente con evidencia suficiente para publicar."])
 
     lines.extend(["", "PRÓXIMO HITO"])
     upcoming = [x for x in critical_window(today, horizon_days=14) if x["status"] != "past"]
@@ -302,7 +302,7 @@ def _month_text() -> str:
     lines.extend([
         "",
         "DATOS DE COBERTURA",
-        f"• Sondeos validados: {len(polls)}",
+        f"• Observaciones registradas: {len(polls)}",
         f"• Fuentes registradas: {len(sources)}",
         "",
         "CAPACIDADES",
@@ -332,7 +332,7 @@ def _home_text() -> str:
     lines = [
         "🟦 COALICIÓN · PANEL DE HOY",
         "",
-        f"Último sondeo validado: {latest.get('publication_date', 'n/d')} · {latest.get('pollster', '?')}" if latest else "Último sondeo validado: n/d",
+        f"Última observación: {latest.get('publication_date', 'n/d')} · {latest.get('pollster', '?')}" if latest else "Última observación: n/d",
         top or "Sin estimaciones publicadas en los registros disponibles.",
         "",
         f"Novedades relevantes: {len(alerts)}",
@@ -342,7 +342,7 @@ def _home_text() -> str:
     lines.extend([
         "",
         "Elige una pregunta. El sistema responde con el dato más reciente y verificable disponible.",
-        "Los controles internos de calidad no se muestran como errores al usuario.",
+        "Las limitaciones que afectan a la interpretación sí se muestran de forma explícita.",
     ])
     return "\n".join(lines)
 
