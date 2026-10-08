@@ -26,6 +26,8 @@ def test_territorial_records_cannot_be_used_as_general_constituency_data():
 def test_territorial_records_pass_evidence_contract():
     records=[]
     for path in ROOT.glob("*.json"):
+        if path.name == "index.json":
+            continue
         data=json.loads(path.read_text(encoding="utf-8"))
         records.append(build_record(data, content_sha256=data["content_sha256"]))
     result=validate_records(records, require_primary=True)
