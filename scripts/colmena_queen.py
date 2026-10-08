@@ -16,6 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CONTROL = ROOT / "docs/COLMENA_MISSION_CONTROL.json"
 BATCH_SIZE = 5  # verified swarm cycle
+WORKER_TIMEOUT_SECONDS = int(os.environ.get("COLMENA_WORKER_TIMEOUT_SECONDS", "600"))
 WRITE_WORDS = ("integración física", "conexión", "eliminación", "actualización", "crear", "release", "corregir", "materializar")
 
 
@@ -155,6 +156,10 @@ def supervise(approval, ref, workers_dir, state_path):
     for start in range(0, len(missions), BATCH_SIZE):
         batch = missions[start:start + BATCH_SIZE]
         batch_failed = False
+        state["current_batch"] = (start // BATCH_SIZE) + 1
+        state["current_missions"] = [m["id"] for m in batch]
+        state["updated_at"] = datetime.now(timezone.utc).isoformat()
+        state_file.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
         def dispatch_one(m):
             out = workers / f"worker_{m['index']:04d}.json"
@@ -186,17 +191,33 @@ def supervise(approval, ref, workers_dir, state_path):
             env["COLMENA_AGENT_EXECUTION_ID"] = (
                 f"{base_execution_id}-{m['id']}" if base_execution_id else m["id"]
             )
-            p = subprocess.run(
-                [
-                    sys.executable, "scripts/colmena_worker.py",
-                    "--mission-id", m["id"], "--approval", approval,
-                    "--ref", ref, "--out", str(out),
-                ],
-                cwd=ROOT,
-                env=env,
-                text=True,
-                capture_output=True,
-            )
+            print(f"QUEEN_DISPATCH_START={m["id"]}", flush=True)
+            try:
+                p = subprocess.run(
+                    [
+                        sys.executable, "scripts/colmena_worker.py",
+                        "--mission-id", m["id"], "--approval", approval,
+                        "--ref", ref, "--out", str(out),
+                    ],
+                    cwd=ROOT,
+                    env=env,
+                    text=True,
+                    capture_output=True,
+                    timeout=WORKER_TIMEOUT_SECONDS,
+                )
+            except subprocess.TimeoutExpired as exc:
+                evidence = {
+                    "schema": "COLMENA_WORKER_EVIDENCE_V4", "mission_id": m["id"],
+                    "title": m["title"], "agent_id": m["agent_id"],
+                    "status": "BLOCKED", "adapter": "WORKER_TIMEOUT",
+                    "command": None, "ref": ref, "queen_approval": m["approval"],
+                    "returncode": 124, "stdout": str(exc.stdout or "")[-4000:],
+                    "stderr": f"FAIL_CLOSED: worker exceeded {WORKER_TIMEOUT_SECONDS}s timeout",
+                    "agent_runtime": {"provider": env.get("COLMENA_AGENT_PROVIDER",""), "execution_id": env.get("COLMENA_AGENT_EXECUTION_ID",""), "independent": True, "ai_execution": True},
+                }
+                out.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                print(f"QUEEN_WORKER_TIMEOUT={m["id"]}", flush=True)
+                return evidence
             try:
                 evidence = json.loads(out.read_text(encoding="utf-8"))
             except Exception:
@@ -217,6 +238,7 @@ def supervise(approval, ref, workers_dir, state_path):
         with concurrent.futures.ThreadPoolExecutor(max_workers=BATCH_SIZE) as executor:
             futures = [executor.submit(dispatch_one, m) for m in batch]
             evidences = [future.result() for future in futures]
+        print(f"QUEEN_BATCH_COMPLETE={(start // BATCH_SIZE) + 1}", flush=True)
 
         for evidence in evidences:
             state["completed"] += int(evidence.get("status") == "PASS")
@@ -226,6 +248,8 @@ def supervise(approval, ref, workers_dir, state_path):
                 batch_failed = True
 
         state["batches_completed"] += 1
+        state["current_batch"] = None
+        state["current_missions"] = []
         state["updated_at"] = datetime.now(timezone.utc).isoformat()
         state_file.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         if batch_failed:
