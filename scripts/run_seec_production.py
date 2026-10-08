@@ -4,6 +4,10 @@ from __future__ import annotations
 import argparse, json
 from pathlib import Path
 import numpy as np
+from src.reproducibility_contract import ExecutionContract
+
+CANONICAL_SEED = ExecutionContract.seed
+MIN_DRAWS = ExecutionContract.min_mc_draws
 
 def main():
     ap=argparse.ArgumentParser()
@@ -11,9 +15,11 @@ def main():
     ap.add_argument("--output",default="ci_evidence/seec_production.json")
     ap.add_argument("--draws",type=int,default=5000)
     ap.add_argument("--tune",type=int,default=1500)
-    ap.add_argument("--seed",type=int,default=20261008)
+    ap.add_argument("--seed",type=int,default=CANONICAL_SEED)
     args=ap.parse_args()
-    if args.draws*4<10000: raise SystemExit("BLOCKED: two-chain posterior requires >= 10,000 total draws")
+    if args.seed != CANONICAL_SEED:
+        raise SystemExit(f"BLOCKED: seed {args.seed} does not match canonical seed {CANONICAL_SEED}")
+    if args.draws*4<MIN_DRAWS: raise SystemExit(f"BLOCKED: four-chain posterior requires >= {MIN_DRAWS} total draws")
     try:
         import pandas as pd
         import pymc as pm
@@ -54,7 +60,7 @@ def main():
         idata=pm.sample(draws=args.draws,tune=args.tune,chains=4,cores=4,random_seed=[args.seed,args.seed+1,args.seed+2,args.seed+3],target_accept=0.995,max_treedepth=15,init="jitter+adapt_diag",jitter_max_retries=20,progressbar=False,return_inferencedata=True)
     posterior=idata.posterior
     total_draws=int(posterior.sizes["chain"]*posterior.sizes["draw"])
-    if total_draws<10000: raise SystemExit(f"BLOCKED: posterior has only {total_draws} draws")
+    if total_draws<MIN_DRAWS: raise SystemExit(f"BLOCKED: posterior has only {total_draws} draws")
     vals=np.asarray(posterior["support"].values)
     if not np.isfinite(vals).all(): raise SystemExit("BLOCKED: posterior contains non-finite values")
     div=int(np.asarray(idata.sample_stats["diverging"]).sum()) if "diverging" in idata.sample_stats else 0
@@ -83,6 +89,7 @@ def main():
         "total_draws":total_draws,
         "tune_per_chain":args.tune,
         "seed":args.seed,
+        "canonical_seed":CANONICAL_SEED,
         "posterior_mean_last_study":{p:float(vals[:,:,-1,i].mean()) for i,p in enumerate(parties)},
         "diagnostics":{"divergences":div,"max_r_hat":rhat_max,"min_ess_bulk":ess_bulk_min,"min_ess_tail":ess_tail_min},
         "convergence":{"passed":convergence_passed},
