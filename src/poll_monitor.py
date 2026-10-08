@@ -52,8 +52,8 @@ class Poll:
     pollster: str
     source_id: str
     source_url: str
-    source_tier: str = "SECONDARY_REPLICA"
     parties: dict[str, float]
+    source_tier: str = "SECONDARY_REPLICA"
     fieldwork_start: str | None = None
     fieldwork_end: str | None = None
     sample_size: int | None = None
