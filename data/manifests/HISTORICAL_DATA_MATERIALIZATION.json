@@ -19,9 +19,15 @@
     ],
     "constituencies_per_election": 52,
     "seats_per_election": 350,
-    "derived_csv_sha256": "0b83f9b60e017982c97a702ce24518d5c4432ec90b8e0659210c3db3c9d7634b"
+    "derived_csv_sha256": "fe438253477b0b5d6976161baf1ea17879e8ad8e25691e0320752fdd642409fe"
   },
   "fail_closed": true,
   "no_synthetic_values": true,
-  "canonical_source_verified": true
+  "canonical_source_verified": true,
+  "materialization": {
+    "method": "scripts/materialize_official_history_from_parts.py",
+    "parts": 11,
+    "rows_verified": 50700,
+    "byte_exact_reference": "full_results_2.csv supplied in conversation"
+  }
 }
