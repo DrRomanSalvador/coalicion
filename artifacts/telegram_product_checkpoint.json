@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "b7932d388ed605b836530a6454f9ac404f1c7ade",
-  "updated_at": "2026-10-08T13:12:00+02:00",
+  "commit": "be98f8a3c0e82563a2b814ad39c139f48b789e8c",
+  "updated_at": "2026-10-08T13:14:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,7 +24,7 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Inspect latest phase2-product run; if CI passes, continue release/demo gates.",
+  "resume_from": "Run latest phase2-product; require materialization of blocked territorial artifact, Priority 2 gate, alerts/recovery, reproducibility, security/backup tests.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
@@ -115,5 +115,12 @@
       "fail_closed": true,
       "no_secret_materialization": true
     }
+  },
+  "phase2_ci_execution_fix": {
+    "status": "FIXED",
+    "issues": [
+      "script import order",
+      "explicit PYTHONPATH in phase2 workflow"
+    ]
   }
 }
