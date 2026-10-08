@@ -92,5 +92,19 @@
     "External audit remains pending."
   ],
   "resume_point": "Resume at mvp-validation execution evidence, not by recreating dashboard/newsletter/data work.",
-  "quality_gate": "No duplication, no contradiction, no invented evidence, fail-closed, checkpoint every meaningful state transition."
+  "quality_gate": "No duplication, no contradiction, no invented evidence, fail-closed, checkpoint every meaningful state transition.",
+  "resume_contract": {
+    "first_action": "read this file and ci_evidence/mvp_product_checkpoint.json",
+    "do_not_repeat": [
+      "dashboard implementation",
+      "newsletter implementation",
+      "survey normalizer",
+      "sales docs"
+    ],
+    "do_not_touch": [
+      "Telegram until concurrent agent checkpoint"
+    ],
+    "first_unverified_gate": "mvp-validation GitHub Actions execution",
+    "stop_condition": "any evidence contradiction or missing provenance"
+  }
 }
