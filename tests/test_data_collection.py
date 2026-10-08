@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from src.data.collector import normalize_registry
+from src.data import normalize_registry
 
 
 ROOT = Path(__file__).resolve().parents[1]
