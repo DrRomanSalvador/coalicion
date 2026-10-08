@@ -35,6 +35,7 @@ COMMANDS = [
     ("escenarios", "¿Qué escenarios están calculados?"),
     ("auditoria", "¿Qué nivel de verificación tiene?"),
     ("estado", "Estado operativo"),
+    ("urgencias", "¿Qué requiere atención?"),
     ("radar", "Radar de novedades"),
     ("menu", "Menú completo"),
     ("ayuda", "Ayuda"),
@@ -350,26 +351,24 @@ def _help_text() -> str:
 def _urgencies_text() -> str:
     state = _safe_json(STATE)
     estimation = _safe_json(ESTIMATION)
-    issues: list[str] = []
-    if estimation.get("status") == "BLOCKED":
-        issues.append("P1 · PREDICCIÓN BLOQUEADA: faltan observaciones territoriales explícitas.")
+    items: list[str] = []
     if not _latest_polls():
-        issues.append("P1 · No hay sondeos validados materializados.")
+        items.append("No hay sondeos validados recientes materializados.")
+    elif estimation.get("status") == "BLOCKED":
+        items.append("La aritmética de escaños no tiene ahora una base territorial suficiente; no se publica una cifra inventada.")
     failed = []
     for source in _sources():
         status = str(source.get("status", source.get("health", ""))).upper()
         if status in {"DOWN", "FAILED", "ERROR", "DEGRADED", "UNHEALTHY"}:
             failed.append(str(source.get("id", source.get("source_id", source.get("name", "?")))))
     if failed:
-        issues.append("P1 · Fuentes con incidencia: " + ", ".join(failed[:10]))
+        items.append("Fuentes con incidencia: " + ", ".join(failed[:10]))
     warnings = _list_records(state.get("warnings"))
     if warnings:
-        issues.append("P2 · Advertencias persistentes: " + "; ".join(str(x.get("message", x)) for x in warnings[:3]))
-    if not issues:
-        issues.append("P4 · Sin bloqueos críticos materializados.")
-    return "🚨 URGENCIAS\n\n" + "\n".join(f"• {x}" for x in issues) + (
-        "\n\nHechos y bloqueos, no recomendaciones políticas."
-    )
+        items.append("Advertencias de calidad: " + "; ".join(str(x.get("message", x)) for x in warnings[:3]))
+    if not items:
+        items.append("No hay incidencias relevantes materializadas.")
+    return "🚨 ATENCIÓN\n\n" + "\n".join(f"• {x}" for x in items) + "\n\nHechos verificables, sin recomendaciones políticas."
 
 
 def _polls_text() -> str:
@@ -404,35 +403,8 @@ def _polls_text() -> str:
     territory = sum(1 for poll in polls if poll.get("territorial"))
     lines.append(f"Territoriales explícitas: {territory}/{len(polls)}")
     if not territory:
-        lines.append("⚠️ Escaños bloqueados: no existe observación territorial verificable.")
+        lines.append("ℹ️ Los sondeos disponibles son nacionales; no se publica una conversión automática a escaños.")
     return "\n".join(lines)
-
-
-def _prediction_text() -> str:
-    estimation = _safe_json(ESTIMATION)
-    snapshot = _safe_json(SNAPSHOT)
-    if estimation.get("status") == "BLOCKED":
-        return (
-            "🧮 PREDICCIÓN · BLOQUEADA\n\n"
-            f"Motivo: {estimation.get('reason', 'sin motivo materializado')}\n"
-            f"Sondeos nacionales: {estimation.get('national_poll_count', 0)}\n"
-            f"Observaciones territoriales: {estimation.get('territorial_poll_count', 0)}\n"
-            "No se convierte una encuesta nacional en escaños por inferencia."
-        )
-    projection = snapshot.get("projection")
-    if not isinstance(projection, dict):
-        return "🧮 PREDICCIÓN · BLOQUEADA\nNo existe snapshot territorial materializado."
-    seats = projection.get("national_seats") or projection.get("party")
-    if not isinstance(seats, dict) or not seats:
-        return "🧮 PREDICCIÓN · BLOQUEADA\nEl snapshot no contiene escaños verificables."
-    rows = []
-    for party, value in seats.items():
-        try:
-            rows.append((str(party), int(value)))
-        except (TypeError, ValueError):
-            continue
-    rows.sort(key=lambda x: (-x[1], x[0]))
-    return "🧮 PROYECCIÓN OBSERVADA\n\n" + "\n".join(f"{p}: {s}" for p, s in rows)
 
 
 def _territory_text() -> str:
@@ -446,8 +418,8 @@ def _territory_text() -> str:
         "Cobertura electoral: 52 circunscripciones / 350 escaños.\n\n"
         + ("🟢 Existe entrada territorial explícita en los artefactos observados."
            if explicit else
-           "🔴 BLOQUEADO: no hay entrada territorial explícita suficiente. "
-           "No se fabrica distribución provincial ni se transforma nacional→territorial.")
+           "ℹ️ No hay distribución territorial explícita suficiente en las observaciones actuales. "
+           "No se fabrica una distribución provincial.")
     )
 
 
@@ -522,21 +494,6 @@ def _audit_text() -> str:
     return "\n".join(lines)
 
 
-def _agenda_text() -> str:
-    radar = _safe_json(ESTIMATION).get("radar") or {}
-    alerts = _list_records(radar.get("alerts"))
-    if not alerts:
-        return "📅 AGENDA\nNo hay hitos materializados en el radar."
-    lines = ["📅 AGENDA · HITOS MATERIALIZADOS", ""]
-    for alert in alerts[:12]:
-        facts = alert.get("facts") or {}
-        date = facts.get("date", "n/d")
-        days = facts.get("days_remaining")
-        suffix = f" · {days} días" if days is not None else ""
-        lines.append(f"• {date}{suffix} · {alert.get('title', alert.get('code', 'hito'))}")
-    return "\n".join(lines)
-
-
 def _radar_text() -> str:
     radar = _safe_json(ESTIMATION).get("radar") or {}
     alerts = _list_records(radar.get("alerts"))
@@ -553,7 +510,7 @@ def _radar_text() -> str:
             f"{alert.get('reason', '')}"
         )
     if _safe_json(ESTIMATION).get("status") == "BLOCKED":
-        lines.extend(["", "🔴 BLOQUEO PREDICTIVO", "No hay observación territorial explícita suficiente."])
+        lines.extend(["", "ℹ️ ALCANCE PREDICTIVO", "La base actual no contiene una distribución territorial suficiente para publicar escaños."])
     return "\n".join(lines)
 
 
@@ -608,21 +565,6 @@ def _status_text() -> str:
     )
 
 
-def _briefing_text() -> str:
-    return (
-        "📋 BRIEFING OPERATIVO\n\n"
-        + _urgencies_text().replace("🚨 URGENCIAS\n\n", "🚨 URGENCIAS\n")
-        + "\n\n"
-        + _changes_text().replace("📈 CAMBIOS MATERIALES\n\n", "📈 CAMBIOS\n")
-        + "\n\n"
-        + _status_text().replace("🟢 ESTADO COALICIÓN\n\n", "🟢 ESTADO\n")
-        + "\n\n"
-        + "🔎 AUDITORÍA\n"
-        + f"Predicción: {_safe_json(ESTIMATION).get('status', 'n/d')} · "
-          "la certificación estricta permanece separada del estado operativo."
-    )
-
-
 def render_command(command: str) -> str:
     command = command.split("@", 1)[0].strip().lower()
     aliases = {
@@ -644,6 +586,7 @@ def render_command(command: str) -> str:
         "/evidencia": _evidence_text,
         "/escenarios": _scenarios_text,
         "/auditoria": _audit_text,
+        "/urgencias": _urgencies_text,
         "/estado": _status_text,
         "/radar": _radar_text,
     }
