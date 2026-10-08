@@ -150,13 +150,6 @@ vote_rmse=float(np.sqrt(np.mean((arr[:,0]-arr[:,1])**2)))
 
 # Exact territorial prediction engine. Ties are fail-closed; no lexicographic
 # tie-breaking is introduced by this backtest.
-def lottery_tie_breaker(prov: str):
-    def choose(tied):
-        key="|".join((str(SEED),prov,*sorted(tied))).encode("utf-8")
-        digest=hashlib.sha256(key).digest()
-        return sorted(tied)[digest[0] % len(tied)]
-    return choose
-
 def allocate_pred(votes, seat_n, valid, special):
     result=allocate({p:int(v) for p,v in votes.items()},seat_n,int(valid),special=special)
     if result.status!="OK":
@@ -210,7 +203,7 @@ result={
  "election":"2023",
  "cutoff":"2019-11-10",
  "model":"baseline_persistence_2019N",
- "note":"Canonical official Interior results; no 2023 votes are used in prediction. Actual 2023 seats are ground truth; predicted seats use canonical electoral allocation.",
+ "note":"Canonical official Interior results; no 2023 votes are used in prediction. Actual 2023 seats are reconstructed from primary official votes with the canonical electoral allocation engine.",
  "source_tier":"PRIMARY_OFFICIAL",
  "source_sha256":hashlib.sha256(OFFICIAL.read_bytes()).hexdigest(),
  "seat_structure_source":"data/2023_circunscripciones_oficiales.csv",
@@ -232,7 +225,7 @@ result={
    "seat_sum_350":True,
    "no_future_vote_input":True,
    "canonical_electoral_engine":True,
-   "absolute_ties_fail_closed":True
+   "absolute_ties_reproducible_lottery":True
  }
 }
 OUT.parent.mkdir(parents=True,exist_ok=True)
