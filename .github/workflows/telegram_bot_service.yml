@@ -1,0 +1,51 @@
+name: Telegram bot service
+
+on:
+  schedule:
+    - cron: "0 */5 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/telegram_bot.py"
+      - ".github/workflows/telegram_bot_service.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: telegram-bot-service
+  cancel-in-progress: false
+
+jobs:
+  service:
+    runs-on: ubuntu-latest
+    timeout-minutes: 295
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Validate token configuration
+        run: |
+          test -n "$TELEGRAM_BOT_TOKEN"
+          test "$TELEGRAM_BOT_TOKEN" != "TU_TOKEN_AQUI"
+
+      - name: Run Telegram bot
+        shell: bash
+        run: |
+          set +e
+          timeout --signal=TERM --kill-after=30s 290m python -m src.telegram_bot
+          rc=$?
+          if [ "$rc" -eq 124 ]; then
+            echo "Bot cycle ended normally for scheduled restart."
+            exit 0
+          fi
+          exit "$rc"
