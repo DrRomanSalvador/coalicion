@@ -173,30 +173,76 @@ def allocate_pred(votes, seat_n, valid, special):
         raise RuntimeError(f"territorial allocation blocked: {special} {result.status} {result.tie}")
     return result.seats
 
+# Predictive Monte Carlo dispersion is calibrated only from pre-2023
+# territorial vote-share transitions. This removes the counts+1 overconfidence.
+def historical_predictive_parameters():
+    squared_changes = []
+    entry_shares = []
+    dates = sorted(d for d in df["fecha_eleccion"].astype(str).str[:10].unique()
+                   if d < "2023-07-23")
+    for previous_date, current_date in zip(dates, dates[1:]):
+        prev_p, prev_valid, prev_blank, _ = election_matrix_by_date(previous_date)
+        curr_p, curr_valid, curr_blank, _ = election_matrix_by_date(current_date)
+        prev_maps = {p: dict(zip(g["party"], g["votos"])) for p,g in prev_p.groupby("prov")}
+        curr_maps = {p: dict(zip(g["party"], g["votos"])) for p,g in curr_p.groupby("prov")}
+        for prov in sorted(set(prev_maps) & set(curr_maps)):
+            pt=max(int(prev_valid[prov])-int(prev_blank.get(prov,0)),1)
+            ct=max(int(curr_valid[prov])-int(curr_blank.get(prov,0)),1)
+            for party in set(prev_maps[prov]) | set(curr_maps[prov]):
+                p0=int(prev_maps[prov].get(party,0))/pt
+                p1=int(curr_maps[prov].get(party,0))/ct
+                if p0 > 0:
+                    squared_changes.append((p1-p0)**2)
+                elif p1 > 0:
+                    entry_shares.append(p1)
+    if len(squared_changes) < 100:
+        raise RuntimeError("insufficient historical vote-share changes for MC calibration")
+    # Pooled method-of-moments Dirichlet concentration:
+    # Var(p_i)=p_i(1-p_i)/(K+1).
+    prior_scale=[]
+    for previous_date, current_date in zip(dates, dates[1:]):
+        prev_p, prev_valid, prev_blank, _ = election_matrix_by_date(previous_date)
+        prev_maps={p:dict(zip(g["party"],g["votos"])) for p,g in prev_p.groupby("prov")}
+        for prov, pm in prev_maps.items():
+            total=max(int(prev_valid[prov])-int(prev_blank.get(prov,0)),1)
+            for v in pm.values():
+                p0=int(v)/total
+                if p0 > 0:
+                    prior_scale.append(p0*(1-p0))
+    k_raw=float(np.mean(prior_scale))/max(float(np.mean(squared_changes)),1e-12)-1.0
+    concentration=float(np.clip(k_raw,2.0,500.0))
+    entry_share=float(np.clip(np.median(entry_shares) if entry_shares else 0.002,0.0005,0.05))
+    return concentration, entry_share
+
+PREDICTIVE_CONCENTRATION, ENTRY_SHARE = historical_predictive_parameters()
+
 rng=np.random.Generator(np.random.PCG64(SEED))
 sim_seats={p:np.zeros(N_SIM,dtype=np.int16) for p in parties}
+target_only=sorted(set(parties)-set().union(*[set(v) for v in train_maps.values()]))
 for prov in sorted(train_maps):
     votes=train_maps[prov]
     valid=int(train_valid[prov])
     blank=int(train_blank.get(prov,0))
     party_total=valid-blank
     seat_n=int(seats.loc[seats["prov"].eq(prov),"escanos_2023"].iloc[0])
-    ps=list(votes)
-    counts=np.array([max(float(votes[p]),0.0) for p in ps],dtype=float)
-    alpha=counts+1.0
+    ps=sorted(set(votes)|set(parties))
+    prior_total=max(party_total,1)
+    prior_shares={p:int(votes.get(p,0))/prior_total for p in ps}
+    alpha=np.array([
+        max(PREDICTIVE_CONCENTRATION*prior_shares[p],0.0)
+        +(PREDICTIVE_CONCENTRATION*ENTRY_SHARE if p in target_only else 0.0)
+        +0.05 for p in ps
+    ],dtype=float)
     draws=rng.dirichlet(alpha,size=N_SIM)
     for i in range(N_SIM):
         dv={p:int(round(x*party_total)) for p,x in zip(ps,draws[i])}
-        # Preserve the party-vote total after integer rounding. Blank votes
-        # remain an explicit component of valid votes and never enter a party.
         residual=party_total-sum(dv.values())
         if residual:
             winner=max(dv,key=dv.get)
             dv[winner]+=residual
         alloc=allocate({p:int(v) for p,v in dv.items()},seat_n,valid,
                        special=prov if prov in {"Ceuta","Melilla"} else "",
-                       blank_votes=blank,
-                       tie_breaker=lottery_tie_breaker(prov))
+                       blank_votes=blank,tie_breaker=lottery_tie_breaker(prov))
         if alloc.status!="OK":
             raise RuntimeError(f"simulated allocation blocked: {prov} {alloc.status} {alloc.tie}")
         for p,s in alloc.seats.items():
