@@ -1,11 +1,22 @@
 """Validated, neutral ingestion of explicitly configured public poll feeds."""
 from __future__ import annotations
-import csv, hashlib, io, json, re
-from dataclasses import dataclass
+import csv, io, json, re
 from datetime import date
 from email.utils import parsedate_to_datetime
 from xml.etree import ElementTree as ET
 from bs4 import BeautifulSoup
+
+from .poll_monitor import Poll, normalize_party_name, poll_hash
+
+"""Validated, neutral ingestion of explicitly configured public poll feeds."""
+from __future__ import annotations
+import csv, io, json, re
+from datetime import date
+from email.utils import parsedate_to_datetime
+from xml.etree import ElementTree as ET
+from bs4 import BeautifulSoup
+
+from .poll_monitor import Poll, normalize_party_name, poll_hash
 
 ALIASES={
  "PP":"PP","PARTIDO POPULAR":"PP","PSOE":"PSOE","PARTIDO SOCIALISTA OBRERO ESPAÑOL":"PSOE",
@@ -25,7 +36,7 @@ class Poll:
     sample_size:int|None=None
     methodology:str|None=None
 
-def _party(x): return ALIASES.get(re.sub(r"\s+"," ",str(x).strip().upper()),str(x).strip().upper())
+def _party(x): return normalize_party_name(x)
 def _date(x):
     s=str(x).strip()
     try:
