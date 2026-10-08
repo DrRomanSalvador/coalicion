@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTROL = ROOT / "docs/COLMENA_MISSION_CONTROL.json"
-BATCH_SIZE = 100
+BATCH_SIZE = 5
 WRITE_WORDS = ("integración física", "conexión", "eliminación", "actualización", "crear", "release", "corregir", "materializar")
 
 def canon(x): return json.dumps(x, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
