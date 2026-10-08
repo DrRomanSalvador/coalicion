@@ -49,10 +49,11 @@ def project(votes_by_constituency, seats_by_constituency, blank_votes_by_constit
     if sum(national_seats.values()) != sum(seats_by_constituency.values()):
         raise AssertionError("los escaños no conservan la magnitud electoral")
     national_votes = _national_votes(adjusted)
-    valid = sum(national_votes.values()) + sum(blank_votes_by_constituency.values())
-    shares = {p: v / valid for p, v in national_votes.items()} if valid else {}
+    party_valid_votes = sum(national_votes.values())
+    shares = {p: v / party_valid_votes for p, v in national_votes.items()} if party_valid_votes else {}
+    valid_including_blank = party_valid_votes + sum(blank_votes_by_constituency.values())
     return {
-        "national": {"votes": national_votes, "vote_share": shares, "seats": national_seats},
+        "national": {"votes": national_votes, "vote_share": shares, "valid_votes_excluding_blank": party_valid_votes, "valid_votes_including_blank": valid_including_blank, "seats": national_seats},
         "provincial": seats,
         "party": {p: {"votes": national_votes.get(p, 0), "seats": national_seats.get(p, 0),
                       "vote_share": shares.get(p, 0.0)}
