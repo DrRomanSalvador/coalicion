@@ -71,7 +71,7 @@ def load_historical(parties):
                 v=int(float(r["votos"]))
                 if p == party:
                     votes += v
-                elif party == "OTROS" and p not in PARTIES and "nulo" not in p:
+                elif party == "OTROS" and p not in parties and "nulo" not in p:
                     votes += v
             observations.append(ProvinceObservation(
                 election="2023J", province=province, party=party,
@@ -93,16 +93,16 @@ def main():
         raise RuntimeError("primary historical results are not materialized")
     provinces, historical = load_historical(parties)
     surveys=[]
-    for party, share in survey.items()
+    for party, share in survey.items():
         surveys.append(SurveyRow(
             poll_id="CIS-3411-2023",
             field_date="2023-06-27",
             house="CIS",
             party=party,
             estimate=share/100.0,
-            sample_size=29201,
+            sample_size=CIS_SAMPLE_SIZE,
         ))
-    model=build_model(provinces, PARTIES, historical, surveys)
+    model=build_model(provinces, parties, historical, surveys)
     with model:
         idata=pm.sample(
             draws=DRAWS_PER_CHAIN,
@@ -128,10 +128,10 @@ def main():
         "execution_verified": True,
         "methodology":"REINA-SEEC 4.0",
         "model":"src.seec_bayesian.build_model",
-        "survey_source":"CIS study 3411, Preelectoral Elecciones Generales 2023",
+        "survey_source":"canonical CIS historical dataset / study 3411",
         "survey_publication":"2023-07-05",
         "survey_field_end":"2023-06-27",
-        "survey_sample_size":29201,
+        "survey_sample_size":CIS_SAMPLE_SIZE,
         "survey_composition_sum":100.0,
         "historical_source":"Ministerio del Interior",
         "historical_election":"2023-07-23",
