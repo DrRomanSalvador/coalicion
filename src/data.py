@@ -62,12 +62,16 @@ def _find_col(headers, *names):
     return None
 
 def load_rows(path: str | Path) -> list[dict[str, Any]]:
-    """Return normalized rows when the workbook exposes tabular province/candidature data.
+    """Load a single official electoral table without silent row loss.
 
-    The loader intentionally does not guess party families: labels remain source-native.
+    The loader fails closed on malformed numeric values and duplicate
+    candidature×constituency keys. It also requires the 52 official
+    constituencies; election magnitudes are validated separately by the
+    canonical electoral engine.
     """
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
     rows_out = []
+    seen = set()
     for ws in wb.worksheets:
         it = ws.iter_rows(values_only=True)
         headers = list(next(it, ()))
@@ -78,17 +82,35 @@ def load_rows(path: str | Path) -> list[dict[str, Any]]:
         votescol = _find_col(headers, "Votos", "Votos candidatura", "Candidature votes")
         if pcol is None or partycol is None or votescol is None:
             continue
-        for row in it:
+        for row_number, row in enumerate(it, start=2):
             if len(row) <= max(pcol, partycol, votescol):
-                continue
+                raise ValueError(f"fila truncada en {ws.title}:{row_number}")
             province, party, votes = row[pcol], row[partycol], row[votescol]
             if province in (None, "") or party in (None, ""):
-                continue
-            if isinstance(votes, (int, float)) and votes >= 0:
-                rows_out.append({"sheet": ws.title, "province": str(province).strip(), "party": str(party).strip(), "votes": int(votes)})
+                raise ValueError(f"clave vacía en {ws.title}:{row_number}")
+            if isinstance(votes, bool) or not isinstance(votes, (int, float)) or votes < 0:
+                raise ValueError(f"votos no numéricos/no negativos en {ws.title}:{row_number}")
+            if isinstance(votes, float) and not votes.is_integer():
+                raise ValueError(f"votos no enteros en {ws.title}:{row_number}")
+            key = (str(province).strip(), str(party).strip())
+            if key in seen:
+                raise ValueError(f"duplicado candidatura×circunscripción: {key}")
+            seen.add(key)
+            rows_out.append({
+                "sheet": ws.title,
+                "province": key[0],
+                "party": key[1],
+                "votes": int(votes),
+            })
     if not rows_out:
-        raise RuntimeError("No se encontró una tabla provincial/candidatura reconocible; use inspect_workbook() para adaptar el esquema.")
+        raise RuntimeError("No se encontró una tabla provincial/candidatura reconocible.")
+    constituencies = {r["province"] for r in rows_out}
+    if len(constituencies) != 52:
+        raise ValueError(
+            f"se requieren exactamente 52 circunscripciones; recibidas {len(constituencies)}"
+        )
     return rows_out
+
 
 def write_json(rows: list[dict[str, Any]], destination: str | Path) -> Path:
     dest = Path(destination)
