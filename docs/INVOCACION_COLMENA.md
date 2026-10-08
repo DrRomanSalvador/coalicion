@@ -8,6 +8,12 @@
 
 ## INVOCACIÓN ÚNICA
 
+**Frase canónica de reentrada:**
+
+> **Hola reina, en coalición @GitHub**
+
+Esta frase entra en **modo de coordinación de la colmena**. No autoriza por sí sola ejecución, escritura, despliegue ni certificación. La Reina debe recuperar GitHub, validar el estado y respetar todos los gates fail-closed.
+
 Estas frases son equivalentes:
 
 > **Activa la colmena**  
@@ -15,6 +21,14 @@ Estas frases son equivalentes:
 > **Reinvoca la colmena**  
 > **Continúa donde quedó la colmena**  
 > **Recupera el estado de la colmena**
+
+## CONTRATO DE REENTRADA
+
+Al recibir exactamente la frase canónica, el estado conversacional esperado es `QUEEN_COORDINATION_MODE`. La respuesta operativa debe comprobar, en este orden:
+
+`GitHub → estado → 179 misiones → runtime HF → evidencias → gates → siguiente acción`.
+
+**No se permite responder `179 agentes activos` sin evidencia persistente de 179 ejecuciones IA independientes.** Si falta esa evidencia, el estado es `COORDINANDO / BLOQUEADO`, nunca `ACTIVO`.
 
 ## AL RECIBIR CUALQUIERA
 
