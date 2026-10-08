@@ -22,8 +22,7 @@ EXPECTED_DATES = {
     "2019N": "2019-11-10", "2023J": "2023-07-23",
 }
 RESULT_COLUMNS = {
-    "election", "fecha_eleccion", "circunscripcion_codigo", "circunscripcion",
-    "partido_codigo", "partido", "votos", "escaños", "fuente", "nivel_fuente",
+    "election", "fecha_eleccion", "circunscripcion", "partido", "votos", "escaños", "fuente", "nivel_fuente",
 }
 POLL_COLUMNS = {
     "fecha_encuesta", "partido", "estimacion_voto", "tipo_encuesta",
