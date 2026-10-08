@@ -4,11 +4,15 @@ from dataclasses import dataclass
 from math import floor
 import numpy as np
 from statistics import mean
+from .reproducibility_contract import ExecutionContract
+
+CANONICAL_SEED = ExecutionContract.seed
+CANONICAL_RNG = ExecutionContract.rng
 @dataclass(frozen=True)
 class SimulationConfig:
     iterations:int=10000
-    seed:int=0
-    rng_algorithm:str="numpy.PCG64"
+    seed:int=CANONICAL_SEED
+    rng_algorithm:str=CANONICAL_RNG
     version:str="seec-mc-1"
 @dataclass(frozen=True)
 class SimulationResult:
@@ -18,7 +22,12 @@ def _q(xs,q):
     ys=sorted(xs); pos=(len(ys)-1)*q; lo=floor(pos); hi=min(lo+1,len(ys)-1)
     return ys[lo]+(ys[hi]-ys[lo])*(pos-lo)
 def run_monte_carlo(sampler,seats_by_constituency,blank_votes_by_constituency,special_by_constituency,config):
-    if config.iterations<10000: raise ValueError("se requieren al menos 10.000 simulaciones")
+    if isinstance(config.iterations,bool) or not isinstance(config.iterations,int) or config.iterations<10000:
+        raise ValueError("se requieren al menos 10.000 simulaciones enteras")
+    if isinstance(config.seed,bool) or not isinstance(config.seed,int) or config.seed<0:
+        raise ValueError("semilla de simulación inválida")
+    if config.rng_algorithm != CANONICAL_RNG:
+        raise ValueError(f"algoritmo RNG no implementado: {config.rng_algorithm!r}; se requiere {CANONICAL_RNG}")
     rng=np.random.Generator(np.random.PCG64(config.seed)); draws=[]
     for _ in range(config.iterations):
         scenario=sampler(rng); national={}

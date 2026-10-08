@@ -8,6 +8,7 @@ import math
 from .electoral import allocate
 from .prediction import apply_share_swing
 from .uncertainty import SimulationConfig, run_monte_carlo
+from .reproducibility_contract import ExecutionContract
 
 
 def _national_votes(votes: Mapping[str, Mapping[str, int]]) -> dict[str, int]:
@@ -110,7 +111,7 @@ def uncertainty_summary(draw_results: Sequence[Mapping[str, int]], quantiles=(0.
 
 
 def monte_carlo(votes_by_constituency, seats_by_constituency, blank_votes_by_constituency,
-                special_by_constituency, sampler, iterations=10000, seed=0):
+                special_by_constituency, sampler, iterations=10000, seed=ExecutionContract.seed):
     result = run_monte_carlo(
         sampler, seats_by_constituency, blank_votes_by_constituency,
         special_by_constituency, SimulationConfig(iterations=iterations, seed=seed),
