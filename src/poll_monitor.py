@@ -488,6 +488,7 @@ class PollMonitor:
                     self.state.setdefault("poll_versions", {}).setdefault(poll.poll_id, []).append({
                         "poll_hash": h,
                         "previous_poll_hash": old,
+                        "poll": canonical_poll(poll),
                         "captured_at": datetime.now(timezone.utc).isoformat(),
                     })
                     changed.append(event)
@@ -503,6 +504,7 @@ class PollMonitor:
             self.state.setdefault("poll_versions", {}).setdefault(poll.poll_id, []).append({
                 "poll_hash": h,
                 "previous_poll_hash": None,
+                "poll": canonical_poll(poll),
                 "captured_at": datetime.now(timezone.utc).isoformat(),
             })
             new.append(event)
@@ -601,10 +603,32 @@ class PollMonitor:
                       f"Estado: {d['validation']}"]
         for e in events[:10]:
             p = e["poll"]
-            lines += ["", f"Estado: {'NUEVA' if e in payload['new_polls'] else 'CAMBIADA'}",
+            changed = e.get("event_type") == "CORRECTION_OR_REPUBLICATION"
+            label = "CORRECCIÓN/REPUBLICACIÓN" if changed else "NUEVA"
+            lines += ["", f"Estado: {label}",
                       f"Fuente: {p['source_id']}", f"Encuestadora: {p['pollster']}",
                       f"Publicación: {p['publication_date']}",
                       "Estimaciones: " + ", ".join(f"{k} {v:g}%" for k,v in sorted(p["parties"].items()))]
+            versions = self.state.get("poll_versions", {}).get(p.get("poll_id"), [])
+            previous = versions[-2].get("poll", {}).get("parties", {}) if changed and len(versions) >= 2 else {}
+            if previous:
+                deltas = []
+                for party in sorted(set(p["parties"]) | set(previous)):
+                    try:
+                        delta = float(p["parties"].get(party, 0)) - float(previous.get(party, 0))
+                    except (TypeError, ValueError):
+                        continue
+                    if abs(delta) >= 0.05:
+                        deltas.append((abs(delta), party, delta))
+                deltas.sort(reverse=True)
+                if deltas:
+                    lines.append("Cambios vs versión anterior: " + ", ".join(
+                        f"{party} {delta:+.1f} pp" for _, party, delta in deltas[:6]
+                    ))
+                else:
+                    lines.append("Cambios vs versión anterior: sin variación cuantificable.")
+            elif changed:
+                lines.append("Cambios: versión anterior no materializada; se conserva el evento sin inferir diferencias.")
         for f, key, streak in unsent_failures[:10]:
             self.state.setdefault("failure_reported", {})[f["source_id"]] = key
             lines += ["", f"⚠️ SALUD DE FUENTE: {f['source_id']}",
