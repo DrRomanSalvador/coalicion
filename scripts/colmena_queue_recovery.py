@@ -12,3 +12,5 @@
 # recovery revision 5 — recover after swarm source fixes
 
 # recovery revision 6 — standard runner
+
+# recovery revision 7 — single-pass cancellation
