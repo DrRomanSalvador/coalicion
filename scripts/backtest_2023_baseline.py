@@ -317,6 +317,7 @@ historical_dates = sorted(
 )
 historical_residuals = []
 historical_new_party_residuals = []
+historical_party_residuals = {}
 historical_family_residuals = []
 historical_new_family_residuals = []
 historical_pair_count = 0
@@ -334,6 +335,7 @@ for previous_date, current_date in zip(historical_dates, historical_dates[1:]):
         av = int(actual.get(party, 0))
         residual = abs(av - pv)
         historical_residuals.append(residual)
+        historical_party_residuals.setdefault(party, []).append(residual)
         if pv == 0 and av > 0:
             historical_new_party_residuals.append(residual)
 
@@ -383,6 +385,31 @@ Q90_NEW_FAMILY_SEATS = (
     else Q90_FAMILY_SEATS
 )
 
+# Party-specific finite-sample conformal calibration.
+Q90_PARTY = {}
+for party in parties:
+    obs = historical_party_residuals.get(party, [])
+    if len(obs) >= 3:
+        Q90_PARTY[party] = conformal_quantile(obs, 0.90)
+    else:
+        family = party_family(party)
+        family_values = []
+        for previous_date, current_date in zip(historical_dates, historical_dates[1:]):
+            structure = official_seat_structure(current_date)
+            actual_hist = actual_seats_from_official(current_date)
+            if structure is None or actual_hist is None:
+                continue
+            predicted_hist = persistent_seats(previous_date, current_date, structure)
+            pf, af = {}, {}
+            for p, s in predicted_hist.items():
+                f = party_family(p); pf[f] = pf.get(f, 0) + int(s)
+            for p, s in actual_hist.items():
+                f = party_family(p); af[f] = af.get(f, 0) + int(s)
+            family_values.append(abs(int(af.get(family, 0)) - int(pf.get(family, 0))))
+        fallback = family_values if len(family_values) >= 3 else historical_new_party_residuals
+        Q90_PARTY[party] = conformal_quantile(fallback, 0.90)
+
+
 # Persistence point prediction for 2023. The conformal interval is calibrated
 # independently from this target election and then applied to every 2023 party.
 point_pred_2023 = {}
@@ -415,22 +442,22 @@ for party, seats_n in point_pred_2023.items():
     predicted_family_seats[family] = predicted_family_seats.get(family, 0) + int(seats_n)
 
 intervals={}
-winners=[p for p,s in actual_family_seats.items() if s>0]
+winners=[p for p,s in actual_seats.items() if s>0]
 covered=0
-for family in winners:
-    predicted = int(predicted_family_seats.get(family, 0))
-    q = Q90_NEW_FAMILY_SEATS if predicted == 0 else Q90_FAMILY_SEATS
+for party in winners:
+    predicted = int(point_pred_2023.get(party, 0))
+    q = Q90_PARTY.get(party, Q90_NEW_PARTY_SEATS)
     lo = max(0.0, predicted - q)
     hi = min(350.0, predicted + q)
-    intervals[family]={
-        "actual": int(actual_family_seats[family]),
+    intervals[party]={
+        "actual": int(actual_seats[party]),
         "p10": float(lo),
         "p50": float(predicted),
         "p90": float(hi),
-        "interval_method": "split_conformal_absolute_family_seat_residual",
+        "interval_method": "split_conformal_absolute_party_or_family_seat_residual",
         "calibration_q90": float(q),
     }
-    covered += int(lo <= actual_family_seats[family] <= hi)
+    covered += int(lo <= actual_seats[party] <= hi)
 
 coverage=covered/len(winners) if winners else float("nan")
 
@@ -456,7 +483,8 @@ result={
        np.percentile(sim_seats[p],[90])[0] for p in winners
    ])) if winners else float("nan"),
    "coverage_actual_seats_in_calibrated_p10_p90_winners":coverage,
-   "coverage_unit":"NATIONAL_PARTY_FAMILY",
+   "coverage_unit":"NATIONAL_PARTY",
+   "party_specific_q90_count":sum(1 for p in winners if len(historical_party_residuals.get(p, [])) >= 3),
    "n_2023_seat_winning_families":len(winners),
    "n_2023_seat_winning_parties":len(winners),
    "historical_conformal_pairs":historical_pair_count,
@@ -481,6 +509,7 @@ result={
    "calibration_before_target_election":True,
    "new_party_uncertainty_calibrated":True,
    "family_level_calibration":True,
+   "party_specific_calibration":True,
    "calibrated_coverage_gate": bool(coverage >= 0.85)
  }
 }
