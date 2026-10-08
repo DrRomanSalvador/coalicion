@@ -31,7 +31,9 @@
       "sample_size": 4042,
       "methodology": null,
       "territorial": null,
-      "validation": "VALIDATED"
+      "validation": "VALIDATED",
+      "captured_at": null,
+      "source_content_hash": null
     },
     {
       "poll_id": "datoelectoral::2026-09-07::Barómetro de julio 2026 (estudio 3571 del CIS)",
@@ -60,7 +62,9 @@
       "sample_size": 4020,
       "methodology": null,
       "territorial": null,
-      "validation": "VALIDATED"
+      "validation": "VALIDATED",
+      "captured_at": null,
+      "source_content_hash": null
     },
     {
       "poll_id": "datoelectoral::2026-06-26::Barómetro de junio 2026 (estudio 3567 del CIS)",
@@ -89,7 +93,9 @@
       "sample_size": 4024,
       "methodology": null,
       "territorial": null,
-      "validation": "VALIDATED"
+      "validation": "VALIDATED",
+      "captured_at": null,
+      "source_content_hash": null
     }
   ],
   "policy": {
@@ -97,5 +103,5 @@
     "national_to_territorial_inference": false,
     "unverified_values": false
   },
-  "input_hash": "37e8850bed8c70fd752dc835f55859c7b53e8f9f0ec6f697a42cd1e8155279e7"
+  "input_hash": "946e086b59258bf291aae799248b19cd81f03956b79b8bdd6645cc98e1fb70d9"
 }
