@@ -35,11 +35,17 @@ ALIAS = {
 
 
 def _norm(v: str) -> str:
-    s = re.sub(r"[^a-z0-9 ]+", " ", v.lower()).strip()
+    raw = str(v).strip().lower()
+    # Interior labels frequently carry the canonical acronym after " - ".
+    suffix = raw.rsplit(" - ", 1)[-1].strip() if " - " in raw else raw
+    for candidate in (suffix, raw):
+        s = re.sub(r"[^a-z0-9 ]+", " ", candidate).strip()
+        s = re.sub(r"\s+", " ", s)
+        if s in ALIAS:
+            return ALIAS[s]
+    s = re.sub(r"[^a-z0-9 ]+", " ", suffix).strip()
     s = re.sub(r"\s+", " ", s)
-    return ALIAS.get(s, s.upper().replace(" ", "_"))
-
-
+    return s.upper().replace(" ", "_")
 def _next(d: date):
     for raw, code in ELECTIONS:
         if d < date.fromisoformat(raw):
