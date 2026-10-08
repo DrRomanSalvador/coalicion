@@ -60,9 +60,26 @@ def main():
     poll_events=[e for e in events if e.get("status") in {"NEW_POLL","CHANGED_POLL"}]
     if poll_events:
         poll_payload=json.loads(POLL_REPORT.read_text(encoding="utf-8")) if POLL_REPORT.exists() else {}
-        existing=[x.get("poll") for x in poll_payload.get("reports",[]) if x.get("poll")]
-        by_id={x["id"]:x for x in existing}
-        for e in poll_events: by_id[e["poll"]["id"]]=e["poll"]
+        existing=[x.get("poll") for x in poll_payload.get("reports",[]) if isinstance(x.get("poll"),dict)]
+        # Historical report state is untrusted: malformed records are quarantined,
+        # never allowed to crash the watcher.
+        by_id={}
+        quarantined=0
+        for x in existing:
+            stable_id=x.get("id")
+            if stable_id:
+                by_id[str(stable_id)]=x
+            else:
+                quarantined += 1
+        for e in poll_events:
+            poll=e.get("poll") or {}
+            stable_id=poll.get("id")
+            if not stable_id:
+                events.append({"severity":"CRITICAL","status":"INVALID_POLL_RECORD","source_id":e.get("source_id")})
+                continue
+            by_id[str(stable_id)]=poll
+        if quarantined:
+            events.append({"severity":"WARNING","status":"QUARANTINED_MALFORMED_REPORT_RECORDS","count":quarantined})
         from scripts.build_poll_report import build
         built=build(list(by_id.values()),cfg.get("scenario_sets",[]))
         POLL_REPORT.parent.mkdir(parents=True,exist_ok=True)
@@ -74,7 +91,8 @@ def main():
              "alert_count":sum(e["severity"] in {"ALERT","CRITICAL"} for e in events),
              "new_or_changed_polls":len(poll_events),"scenario_sets":cfg.get("scenario_sets",[]),
              "policy":cfg.get("comparison_policy",{}),"report_policy":cfg.get("report_policy",{}),
-             "report_path":"artifacts/neutral_poll_report.json" if POLL_REPORT.exists() else None}
+             "report_path":"artifacts/neutral_poll_report.json" if POLL_REPORT.exists() else None,
+             "quarantined_report_records":sum(e.get("count",0) for e in events if e.get("status")=="QUARANTINED_MALFORMED_REPORT_RECORDS")}
     state["history"].extend(events); state["last_checked_at"]=now.isoformat()
     REPORT.parent.mkdir(parents=True,exist_ok=True); REPORT.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     STATE.write_text(json.dumps(state,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
