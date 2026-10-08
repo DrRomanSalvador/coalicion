@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: full-reproducible-suite
+  group: full-reproducible-suite-${{ github.sha }}
   cancel-in-progress: true
 
 permissions:
