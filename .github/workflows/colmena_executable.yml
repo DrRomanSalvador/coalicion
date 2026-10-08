@@ -170,6 +170,7 @@ jobs:
               sys.exit(1)
           if not report["all_179_missions_pass"]:
               print("MISSION_CLOSURE_BLOCKED: runtime is real, but unresolved missions remain.")
+              sys.exit(1)
           PY
       - uses: actions/upload-artifact@v4
         if: always()
