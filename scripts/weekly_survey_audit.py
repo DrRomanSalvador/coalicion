@@ -46,7 +46,7 @@ def main():
     duplicate_ids=len(ids)-len(set(ids))
     checks.append({"id":"HISTORY_DEDUPLICATION","pass":duplicate_ids==0,"duplicate_records":duplicate_ids})
     revisions=sum(1 for x in history if str(x.get("status","")).upper() in {"CHANGED","CHANGED_POLL","REVISION"})
-    checks.append({"id":"REVISION_EVENTS_TYPED","pass= revisions >= 0,"revision_events":revisions})
+    checks.append({"id":"REVISION_EVENTS_TYPED","pass": revisions >= 0,"revision_events":revisions})
     watch=load(ROOT/"artifacts/survey_watch_report.json",{})
     checks.append({"id":"WATCH_NOT_BLOCKED","pass":watch.get("status")!="BLOCKED","status":watch.get("status"),"alerts":watch.get("alert_count")})
     malformed=watch.get("quarantined_report_records",0)
