@@ -882,14 +882,63 @@ def _facts_text() -> str:
     return "\n".join(lines)
 
 
-def _digest_text() -> str:
-    briefing = build_briefing(as_of=today_madrid(), polls=_latest_polls(), sources=_sources(), observations=_observations(), horizon_days=31)
-    lines = ["🧭 PARTE ELECTORAL · 08:00", ""]
-    for item in briefing[:6]:
-        lines += [f"• {item['title']}", f"  {item['detail']}"]
-    if len(lines) == 2:
+def _digest_text(period: str = "morning") -> str:
+    today = today_madrid()
+    polls = _latest_polls()
+    sources = _sources()
+    observations = _observations()
+    briefing = build_briefing(
+        as_of=today,
+        polls=polls,
+        sources=sources,
+        observations=observations,
+        horizon_days=31,
+    )
+    failed = [
+        str(source.get("id", source.get("source_id", source.get("name", "?"))))
+        for source in sources
+        if str(source.get("status", source.get("health", ""))).upper()
+        in {"DOWN", "FAILED", "ERROR", "DEGRADED", "UNHEALTHY"}
+    ]
+    latest = polls[0] if polls else {}
+    title = "🧭 PARTE ELECTORAL · 08:00" if period == "morning" else "🌙 PARTE ELECTORAL · 22:00"
+    lines = [
+        title,
+        "",
+        f"Fecha: {today.isoformat()} · Europe/Madrid",
+        f"Observaciones registradas: {len(polls)} · Fuentes: {len(sources)}",
+    ]
+    if latest:
+        lines.append(
+            f"Última observación: {latest.get('publication_date', 'n/d')} · "
+            f"{latest.get('pollster', latest.get('source_id', 'fuente no indicada'))}"
+        )
+    else:
+        lines.append("Última observación: no disponible en los registros materializados.")
+    if failed:
+        lines.append("Fuentes con incidencia: " + ", ".join(failed[:6]))
+    else:
+        lines.append("Fuentes con incidencia: ninguna registrada.")
+    lines.append("")
+    lines.append("CAMBIOS / ATENCIÓN")
+    for item in briefing[:4]:
+        lines.append(f"• {item['priority']} · {item['title']}")
+        lines.append(f"  {item['detail']}")
+    if not briefing:
         lines.append("• Sin novedades operativas materializadas.")
-    lines += ["", "Datos fechados y trazables. Sin recomendación política."]
+    lines.extend([
+        "",
+        "EVIDENCIA",
+        "• Los porcentajes se publican como observaciones fechadas.",
+        "• Sin evidencia territorial explícita no se deriva reparto provincial.",
+        "• Sin posterior/calibración materializados no se publican probabilidades.",
+    ])
+    if period == "nightly":
+        lines.extend([
+            "",
+            "CIERRE",
+            "• Este parte resume lo registrado hasta ahora; no sustituye la evidencia de mañana.",
+        ])
     return "\n".join(lines)
 
 
@@ -1389,12 +1438,12 @@ def _alert_candidates() -> list[dict[str, Any]]:
                 })
     for source in _sources():
         status = str(source.get("status", source.get("health", ""))).upper()
-        if status in {"OK", "UP", "HEALTHY", "ACTIVE"}:
+        if status in {"OK", "UP", "HEALTHY", "ACTIVE"} and source.get("previous_status") in {"FAILED", "DOWN", "ERROR", "DEGRADED", "UNHEALTHY"}:
             sid = source.get("id", source.get("source_id", "fuente"))
             candidates.append({
-                "key": f"sourceup:{sid}:{status}",
+                "key": f"sourceup:{sid}:{source.get('previous_status')}:{status}",
                 "category": "recuperacion_fuente",
-                "title": "Fuente disponible",
+                "title": "Fuente recuperada",
                 "detail": str(sid),
             })
     for item in build_briefing(as_of=today_madrid(), polls=polls, sources=_sources(),
@@ -1452,32 +1501,46 @@ def _send_alerts_to_chat(chat_id: int, *, frequency: str = "immediate") -> None:
 
 
 def _maybe_send_scheduled_digest() -> None:
-    from datetime import datetime
     now = now_madrid()
     if now.minute > 5:
         return
     cfg = _config()
-    if now.hour not in {8} and now.minute > 5:
-        return
-    period = "daily" if now.hour == 8 else "hourly"
-    stamp = now.strftime("%Y-%m-%d-%H") if period == "hourly" else now.strftime("%Y-%m-%d")
     marker = ROOT / "artifacts/telegram_digest_state.json"
     state = _safe_json(marker)
-    last = state.get(period)
-    if last == stamp:
+    schedules = {
+        8: ("morning", "daily"),
+        22: ("nightly", "daily"),
+    }
+    schedule = schedules.get(now.hour)
+    if schedule is None:
         return
+    period, frequency = schedule
+    stamp = now.strftime("%Y-%m-%d")
+    marker_key = f"{period}_digest"
+    if state.get(marker_key) == stamp:
+        return
+    sent_any = False
     for chat_id, prefs in (cfg.get("chats") or {}).items():
-        if isinstance(prefs, dict) and prefs.get("frequency") == period and not _in_quiet(_preferences({"message": {"chat": {"id": chat_id}, "from": {"id": chat_id}}})):
-            try:
-                _send(int(chat_id), _digest_text(), _menu_markup())
-            except (TelegramBotError, ValueError):
-                continue
-    try:
-        marker.parent.mkdir(parents=True, exist_ok=True)
-        state[period] = stamp
-        marker.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
-    except OSError:
-        pass
+        if not isinstance(prefs, dict):
+            continue
+        if prefs.get("frequency", "immediate") not in {frequency, "immediate"}:
+            continue
+        chat_update = {"message": {"chat": {"id": chat_id}, "from": {"id": chat_id}}}
+        if _in_quiet(_preferences(chat_update)):
+            continue
+        try:
+            _send(int(chat_id), _digest_text(period), _menu_markup())
+            sent_any = True
+        except (TelegramBotError, ValueError):
+            continue
+    if sent_any or not cfg.get("chats"):
+        try:
+            marker.parent.mkdir(parents=True, exist_ok=True)
+            state[marker_key] = stamp
+            marker.write_text(json.dumps(state, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+            snapshot_telegram_state()
+        except OSError:
+            pass
 
 
 def _inline_query(update: dict[str, Any]) -> None:
