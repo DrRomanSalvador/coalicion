@@ -71,23 +71,29 @@ def _territorial_split(items: Sequence[Mapping]) -> tuple[list[dict], list[dict]
 
 def _product_envelope(function: str, inputs: dict, result: dict,
                       assumptions: Sequence[str] = ()) -> dict:
+    clean = dict(result)
+    engine_result = clean.pop("_engine_result", None)
+    input_hash = clean.pop("_input_hash", None)
+    stable = {
+        "version": PRODUCT_VERSION,
+        "function": function,
+        "inputs": inputs,
+        "decision": clean,
+        "assumptions": list(assumptions),
+    }
     return {
         "product": {
-            "version": PRODUCT_VERSION,
-            "function": function,
+            **stable,
             "status": "OK",
-            "inputs": inputs,
-            "decision": result,
-            "assumptions": list(assumptions),
+            "decision": clean,
             "generated_at": datetime.now(timezone.utc).isoformat(),
         },
         "technical": {
-            "engine_result": result.pop("_engine_result", None),
-            "input_hash": result.pop("_input_hash", None),
-            "output_hash": sha256_json(result),
+            "engine_result": engine_result,
+            "input_hash": input_hash,
+            "output_hash": sha256_json(stable),
         },
     }
-
 
 def decide_coalition(
     party_a: str,
