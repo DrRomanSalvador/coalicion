@@ -105,7 +105,9 @@ jobs:
         run: python scripts/run_full_oos.py --input data/encuestas_historicas_2004_2023.csv --output artifacts/oos_historical_2004_2023.json
       - name: Install Bayesian runtime
         timeout-minutes: 20
-        run: python -m pip install --disable-pip-version-check --no-input "pymc>=5,<6" "numpy>=1.26,<3" "pytensor>=2.20,<3"
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-input             "numpy==2.3.3" "pymc==6.3.2" "pytensor==3.3.3" "arviz>=0.20,<1"
       - name: Execute SEEC production
         timeout-minutes: 120
         run: |
