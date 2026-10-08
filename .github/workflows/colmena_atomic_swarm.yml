@@ -110,6 +110,8 @@ jobs:
           COLMENA_AGENT_MODEL: onnx-community/Qwen3-0.6B-ONNX:q4f16
           COLMENA_AGENT_EXECUTION_ID: ${{ github.run_id }}-${{ github.run_attempt }}-batch-${{ matrix.batch }}
           COLMENA_COMMAND_TIMEOUT_SECONDS: "300"
+          BATCH: ${{ matrix.batch }}
+          EXPECTED_COUNT: ${{ matrix.batch < 35 && 5 || 4 }}
         run: |
           set -euo pipefail
           mkdir -p artifacts/colmena/workers
@@ -136,9 +138,6 @@ jobs:
           done
           test "$(find artifacts/colmena/workers -name 'worker_M*.json' | wc -l)" -eq "${EXPECTED_COUNT}"
           exit "$rc"
-        env:
-          BATCH: ${{ matrix.batch }}
-          EXPECTED_COUNT: ${{ matrix.batch < 35 && 5 || 4 }}
       - name: Upload batch evidence
         if: always()
         uses: actions/upload-artifact@v4
