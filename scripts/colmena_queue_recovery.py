@@ -14,3 +14,5 @@
 # recovery revision 6 — standard runner
 
 # recovery revision 7 — single-pass cancellation
+
+# recovery revision 8 — cancel superseded active swarm
