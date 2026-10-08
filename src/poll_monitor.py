@@ -679,21 +679,25 @@ class PollMonitor:
             return False
 
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        for attempt in range(2):
-            try:
-                r = self.session.post(
-                    url,
-                    json={"chat_id": chat_id, "text": text},
-                    timeout=10,
-                )
-                r.raise_for_status()
-                return True
-            except requests.RequestException as exc:
-                if attempt == 1:
-                    print(f"Telegram error: {exc}", file=sys.stderr)
-                else:
-                    time.sleep(1)
-        return False
+        sent = False
+        for chat_id in chat_ids:
+            for attempt in range(2):
+                try:
+                    response = self.session.post(
+                        url,
+                        json={"chat_id": chat_id, "text": text},
+                        timeout=10,
+                    )
+                    response.raise_for_status()
+                    sent = True
+                    break
+                except requests.RequestException as exc:
+                    if attempt == 1:
+                        print(f"Telegram error for chat {chat_id}: {exc}", file=sys.stderr)
+                    else:
+                        time.sleep(1)
+        return sent
+
 
     def run(self) -> dict[str, Any]:
         checked = datetime.now(timezone.utc).isoformat()
