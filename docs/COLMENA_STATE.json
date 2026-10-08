@@ -65,5 +65,16 @@
     "EXTERNAL_AUDIT",
     "POLL_SOURCE_COVERAGE",
     "CI_MASTER_CERTIFICATION"
-  ]
+  ],
+  "colmena_mode": "PAUSED_FOR_COORDINATION",
+  "execution_gate": "NO_NEW_WORKFLOW_ACTIVATION",
+  "final_test_gate": "BLOCKED_UNTIL_179_MISSIONS_RESOLVED",
+  "reinvocation": {
+    "entrypoint": "docs/INVOCACION_COLMENA.md",
+    "machine_gate": "src/colmena_resume.py",
+    "source_of_truth": "GitHub",
+    "recover_from": "state+mission_control+queen_state+queen_approval+worker_evidence+closure",
+    "chat_is_not_state": true
+  },
+  "coordination_rule": "Read/recover/coordinate is allowed; do not activate new workflows until the Queen has completed coordination of all 179 missions."
 }
