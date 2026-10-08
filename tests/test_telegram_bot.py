@@ -3,8 +3,17 @@ import json
 from src import telegram_bot
 
 
+def test_start_is_operational_menu():
+    text = telegram_bot.render_command("/start")
+    assert "BRIEFING" not in text
+    assert "/briefing" in text
+    assert "/auditoria" in text
+    assert "/territorio" in text
+
+
 def test_render_prediction_fails_closed_without_snapshot(tmp_path, monkeypatch):
     monkeypatch.setattr(telegram_bot, "SNAPSHOT", tmp_path / "missing.json")
+    monkeypatch.setattr(telegram_bot, "ESTIMATION", tmp_path / "missing-estimation.json")
     text = telegram_bot.render_command("/prediccion")
     assert "BLOQUEADA" in text
     assert "inferencia" in text
@@ -20,7 +29,8 @@ def test_render_polls_uses_materialized_state(tmp_path, monkeypatch):
             "parties": {"PP": 33.2, "PSOE": 28.1, "VOX": 13.0, "SUMAR": 12.2, "ERC": 3.1},
         }],
     }), encoding="utf-8")
-    monkeypatch.setattr(telegram_bot, "STATE", state)\n    monkeypatch.setattr(telegram_bot, "OBSERVATIONS", tmp_path / "missing-observations.json")
+    monkeypatch.setattr(telegram_bot, "STATE", state)
+    monkeypatch.setattr(telegram_bot, "OBSERVATIONS", tmp_path / "missing-observations.json")
     text = telegram_bot.render_command("/encuestas")
     assert "Fuente primaria" in text
     assert "PP 33.2%" in text
@@ -40,49 +50,58 @@ def test_token_fails_closed(monkeypatch):
         raise AssertionError("missing token must fail closed")
 
 
-def test_render_uses_materialized_observations_and_explains_territorial_block(tmp_path, monkeypatch):
+def test_render_changes_and_territory_are_fail_closed(tmp_path, monkeypatch):
     observations = tmp_path / "observations.json"
     observations.write_text(json.dumps({
-        "status": "BLOCKED_NO_TERRITORIAL_OBSERVATION",
         "national_poll_count": 2,
         "territorial_poll_count": 0,
         "polls": [
-            {"publication_date": "2026-10-08", "pollster": "CIS", "parties": {"PSOE": 31.0, "PP": 25.0, "VOX": 16.0}},
-            {"publication_date": "2026-09-07", "pollster": "CIS", "parties": {"PSOE": 33.0, "PP": 25.1, "VOX": 15.3}}
+            {"publication_date": "2026-10-08", "pollster": "CIS",
+             "parties": {"PSOE": 31.0, "PP": 25.0, "VOX": 16.0}},
+            {"publication_date": "2026-09-07", "pollster": "CIS",
+             "parties": {"PSOE": 33.0, "PP": 25.1, "VOX": 15.3}}
         ]
     }), encoding="utf-8")
     monkeypatch.setattr(telegram_bot, "OBSERVATIONS", observations)
     monkeypatch.setattr(telegram_bot, "STATE", tmp_path / "missing-state.json")
-    text = telegram_bot.render_command("/encuestas")
-    assert "2 observaciones validadas" in text
-    assert "PSOE -2.0 pp" in text
-    assert "Territoriales explícitas: 0/ 2" in text
-    assert "BLOQUEADOS" in text
+    text = telegram_bot.render_command("/cambios")
+    assert "PSOE: -2.0 pp" in text
+    territory = telegram_bot.render_command("/territorio")
+    assert "BLOQUEADO" in territory
+    assert "nacional→territorial" in territory
 
-def test_render_status_uses_materialized_observations(tmp_path, monkeypatch):
-    observations = tmp_path / "observations.json"
-    observations.write_text(json.dumps({
-        "territorial_poll_count": 0,
-        "polls": [{"publication_date": "2026-10-08", "parties": {"PP": 25.0}}]
-    }), encoding="utf-8")
-    estimation = tmp_path / "estimation.json"
-    estimation.write_text(json.dumps({"status": "BLOCKED"}), encoding="utf-8")
-    monkeypatch.setattr(telegram_bot, "OBSERVATIONS", observations)
-    monkeypatch.setattr(telegram_bot, "ESTIMATION", estimation)
-    monkeypatch.setattr(telegram_bot, "STATE", tmp_path / "missing-state.json")
-    text = telegram_bot.render_command("/estado")
-    assert "Observaciones validadas: 1" in text
-    assert "Predicción: BLOCKED" in text
-    assert "sin inferencia nacional→territorial" in text
 
-def test_render_radar_exposes_operational_alerts(tmp_path, monkeypatch):
-    estimation = tmp_path / "estimation.json"
-    estimation.write_text(json.dumps({
-        "status": "BLOCKED",
-        "radar": {"status": "OK", "as_of": "2026-10-08",
-                  "alerts": [{"priority": "P4", "title": "Cierre de coaliciones", "facts": {"days_remaining": 8}}]}
+def test_audit_exposes_real_blockers(tmp_path, monkeypatch):
+    execution = tmp_path / "execution.json"
+    execution.write_text(json.dumps({
+        "current_phase": "OPERATIONAL_BETA",
+        "blocked_tasks": ["PRIMARY_BINARY_NOT_REPOSITORY_PINNED", "OOS_CALIBRATION"],
+        "warnings": ["strict certification blocked"],
     }), encoding="utf-8")
-    monkeypatch.setattr(telegram_bot, "ESTIMATION", estimation)
-    text = telegram_bot.render_command("/radar")
-    assert "Cierre de coaliciones" in text
-    assert "BLOQUEO PREDICTIVO" in text
+    oos = tmp_path / "oos.json"
+    oos.write_text(json.dumps({
+        "status": "NOT_STRICTLY_CERTIFIED",
+        "elections": 8,
+        "poll_observations": 28,
+    }), encoding="utf-8")
+    monkeypatch.setattr(telegram_bot, "EXECUTION", execution)
+    monkeypatch.setattr(telegram_bot, "OOS", oos)
+    text = telegram_bot.render_command("/auditoria")
+    assert "PRIMARY_BINARY_NOT_REPOSITORY_PINNED" in text
+    assert "NOT_STRICTLY_CERTIFIED" in text
+
+
+def test_callback_menu_sends_keyboard(monkeypatch):
+    calls = []
+    monkeypatch.setattr(telegram_bot, "_api", lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True})
+    update = {
+        "update_id": 7,
+        "callback_query": {
+            "id": "cb1",
+            "data": "cmd:/estado",
+            "message": {"chat": {"id": 123}},
+        },
+    }
+    assert telegram_bot._handle_update(update, None) == 8
+    assert any(method == "answerCallbackQuery" for method, _ in calls)
+    assert any(method == "sendMessage" for method, _ in calls)
