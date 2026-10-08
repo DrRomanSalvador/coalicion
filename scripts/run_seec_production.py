@@ -57,6 +57,19 @@ def main():
     # The random walk must follow fieldwork chronology, never lexical study IDs.
     study_dates=df.groupby("study_id")["study_date"].min().sort_values(kind="stable")
     studies=study_dates.index.astype(str).tolist()
+    # Random-walk variance scales with elapsed fieldwork time, not one equal
+    # step per row: a 2-day gap must not equal a 2-year gap.
+    day_values=study_dates.astype("int64").to_numpy(dtype=np.float64)/86_400_000_000_000.0
+    positive_gaps=np.diff(day_values)
+    if len(positive_gaps) and np.any(positive_gaps<=0):
+        raise SystemExit("BLOCKED: field dates are not strictly increasing after study grouping")
+    median_gap=float(np.median(positive_gaps)) if len(positive_gaps) else 1.0
+    if not np.isfinite(median_gap) or median_gap<=0:
+        raise SystemExit("BLOCKED: invalid median field-date interval")
+    elapsed_days=np.diff(np.concatenate(([day_values[0]-median_gap],day_values)))
+    temporal_scale=np.sqrt(elapsed_days/median_gap).astype(np.float64)
+    if not np.isfinite(temporal_scale).all() or np.any(temporal_scale<=0):
+        raise SystemExit("BLOCKED: invalid temporal innovation scale")
     parties=sorted(df["party"].astype(str).unique())
     if len(studies)<12 or len(parties)<12: raise SystemExit("BLOCKED: SEEC requires >=12 studies and >=12 parties")
     mat=np.zeros((len(studies),len(parties)))
@@ -70,7 +83,7 @@ def main():
         sigma=pm.HalfNormal("temporal_sigma",sigma=0.25)
         eta0=pm.Normal("eta0",mu=0.0,sigma=2.0,dims="party_minus_one")
         innovation_z=pm.Normal("innovation_z",0.0,1.0,dims=("study","party_minus_one"))
-        innovations=pm.Deterministic("innovations",innovation_z*sigma,dims=("study","party_minus_one"))
+        innovations=pm.Deterministic("innovations",innovation_z*sigma*temporal_scale[:,None],dims=("study","party_minus_one"))
         eta=pm.Deterministic("eta",eta0[None,:]+pm.math.cumsum(innovations,axis=0),dims=("study","party_minus_one"))
         logits=pm.math.concatenate([eta,pm.math.zeros((len(studies),1))],axis=1)
         support=pm.Deterministic("support",pm.math.softmax(logits,axis=1),dims=("study","party"))
@@ -101,6 +114,8 @@ def main():
         "schema":"SEEC_PRODUCTION_POSTERIOR_V2",
         "status":"PASS",
         "model":"hierarchical_compositional_temporal_dirichlet_logistic_normal",
+        "temporal_time_scale":"sqrt(elapsed_days / median_positive_field_date_gap_days)",
+        "median_positive_field_date_gap_days":median_gap,
         "input":args.input,
         "supplemental_input":"artifacts/data/cis_recent_2024_2026.csv" if recent.is_file() else None,
         "studies":len(studies),
