@@ -592,7 +592,7 @@ def render_command(command: str) -> str:
         "/radar": _radar_text,
     }
     renderer = renderers.get(command)
-    return renderer() if renderer else "Escribe una pregunta o pulsa /menu."
+    return renderer() if renderer else "Comando no reconocido. Escribe una pregunta en lenguaje natural o pulsa /menu."
 
 def _set_commands() -> None:
     commands = [{"command": name, "description": description[:256]} for name, description in COMMANDS]
