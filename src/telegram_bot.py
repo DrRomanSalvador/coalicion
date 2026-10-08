@@ -27,6 +27,8 @@ ESTIMATION = ROOT / "artifacts/estimation/real_estimation.json"
 EXECUTION = ROOT / "artifacts/execution_state.json"
 OOS = ROOT / "artifacts/oos_historical_2004_2023.json"
 SNAPSHOT = ROOT / "artifacts/decision_snapshot.json"
+CURRENT_SURVEYS = ROOT / "data/surveys/current_2026/current_national.json"
+DEMO_PREDICTION = ROOT / "artifacts/territorial_prediction_20261008.json"
 SCENARIO_DIR = ROOT / "artifacts"
 API_TIMEOUT = 40
 API_RETRIES = 4
@@ -51,6 +53,7 @@ COMMANDS = [
     ("escenarios", "¿Qué escenarios están calculados?"),
     ("auditoria", "¿Qué nivel de verificación tiene?"),
     ("estado", "Estado operativo"),
+    ("demo", "Demo territorial 2026"),
     ("urgencias", "¿Qué requiere atención?"),
     ("alertas", "Configurar alertas"),
     ("hechos", "Solo hechos"),
@@ -119,6 +122,18 @@ def _latest_polls() -> list[dict[str, Any]]:
     if not rows:
         state = _safe_json(STATE)
         rows = _list_records(state.get("validated_polls") or state.get("polls"))
+    rows = sorted(rows, key=lambda x: str(x.get("publication_date", "")), reverse=True)
+    if rows:
+        return rows
+    current = _safe_json(CURRENT_SURVEYS)
+    for poll in _list_records(current.get("surveys")):
+        rows.append({
+            "source_id": poll.get("id"), "pollster": poll.get("pollster"),
+            "publication_date": poll.get("publication_date"),
+            "fieldwork_start": poll.get("field_start"), "fieldwork_end": poll.get("field_end"),
+            "sample_size": poll.get("sample_size"), "parties": poll.get("shares", {}),
+            "source_url": poll.get("source_url"), "evidence_level": poll.get("evidence_level"),
+        })
     return sorted(rows, key=lambda x: str(x.get("publication_date", "")), reverse=True)
 
 
@@ -450,6 +465,27 @@ def _evidence_text() -> str:
     return "\n".join(lines)
 
 
+def _demo_prediction_text() -> str:
+    data = _safe_json(DEMO_PREDICTION)
+    if not data:
+        return "🧪 DEMO 2026\\n\\nNo hay predicción demo materializada."
+    seats = data.get("national_seats") if isinstance(data.get("national_seats"), dict) else {}
+    rows = []
+    for party, value in seats.items():
+        try:
+            rows.append((str(party), int(value)))
+        except (TypeError, ValueError):
+            pass
+    rows.sort(key=lambda x: (-x[1], x[0]))
+    lines = ["🧪 DEMO 2026 · PREDICCIÓN TERRITORIAL", "", "Modo: MODELADA · NO OFICIAL",
+             "52 circunscripciones · 350 escaños",
+             f"Encuestas actuales de entrada: {data.get('current_survey_count', 'n/d')}", "",
+             "ESCAÑOS MODELADOS"]
+    lines.extend(f"• {p}: {s}" for p, s in rows[:20])
+    lines.extend(["", "Entrada territorial observada: 0", "Calibración 2026: NO CERTIFICADA",
+                  "Salida reproducible para demostración."])
+    return "\n".join(lines)
+
 def _escanos_text() -> str:
     snapshot = _safe_json(SNAPSHOT)
     projection = snapshot.get("projection")
@@ -464,10 +500,12 @@ def _escanos_text() -> str:
         rows.sort(key=lambda x: (-x[1], x[0]))
         if rows:
             return "🪑 ESCAÑOS · COMPOSICIÓN MATERIALIZADA\n\n" + "\n".join(f"{p}: {s}" for p, s in rows)
+    demo = _safe_json(DEMO_PREDICTION)
+    if str(demo.get("status", "")).upper() == "PASS":
+        return _demo_prediction_text()
     return (
         "🪑 ESCAÑOS · SITUACIÓN ACTUAL\n\n"
-        "La cifra actual de escaños requiere evidencia provincial explícita y una distribución territorial explícita. "
-        "El sistema no convierte automáticamente porcentajes nacionales en reparto territorial."
+        "La cifra actual de escaños requiere evidencia provincial explícita y una distribución territorial explícita."
     )
 
 
@@ -964,6 +1002,7 @@ def _natural_query(text: str) -> str | None:
         (("/hoy", "que pasa", "que esta pasando", "situacion actual", "panorama", "ahora"), "/hoy"),
         (("/mes", "este mes", "octubre", "que importa este mes", "que hay este mes"), "/mes"),
         (("/cambios", "que ha cambiado", "novedades", "cambios", "ultimas novedades"), "/cambios"),
+        (("/demo", "demo 2026", "prediccion demo"), "/demo"),
         (("/encuestas", "sondeos", "encuestas", "que dicen los sondeos"), "/encuestas"),
         (("/escanos", "escanos", "cuantos escanos", "que implican"), "/escanos"),
         (("/mayorias", "mayoria", "mayorias", "176"), "/mayorias"),
@@ -1351,6 +1390,7 @@ def render_command(command: str) -> str:
         "/cambios": _changes_text,
         "/encuestas": _polls_text,
         "/escanos": _escanos_text,
+        "/demo": _demo_prediction_text,
         "/mayorias": _majorities_text,
         "/coaliciones": _coalitions_text,
         "/territorio": _territory_text,
