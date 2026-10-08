@@ -90,8 +90,18 @@ def merge_candidacies(*matrices):
 
 def allocate_congress(constituencies,seats_by_constituency,blank_votes_by_constituency,special_by_constituency=None):
     special_by_constituency=special_by_constituency or {}
-    if set(constituencies)!=set(seats_by_constituency) or set(constituencies)!=set(blank_votes_by_constituency): raise ValueError("claves de circunscripción no coinciden")
+    official = set(seats_by_constituency)
+    if len(official) != 52:
+        raise ValueError("la distribución debe contener exactamente 52 circunscripciones")
+    if set(constituencies)!=official or official!=set(blank_votes_by_constituency):
+        raise ValueError("claves de circunscripción no coinciden")
     if sum(seats_by_constituency.values())!=350: raise ValueError("la magnitud debe sumar 350")
+    if not {"Ceuta","Melilla"} <= official:
+        raise ValueError("faltan Ceuta/Melilla")
+    if seats_by_constituency["Ceuta"] != 1 or seats_by_constituency["Melilla"] != 1:
+        raise ValueError("Ceuta/Melilla deben tener exactamente 1 escaño")
+    if special_by_constituency.get("Ceuta") != "Ceuta" or special_by_constituency.get("Melilla") != "Melilla":
+        raise ValueError("Ceuta/Melilla deben estar marcadas como circunscripciones especiales")
     national={}
     for c,votes in constituencies.items():
         a=allocate(votes,seats_by_constituency[c],valid_votes(votes,blank_votes_by_constituency[c]),special_by_constituency.get(c,""),blank_votes_by_constituency[c])
