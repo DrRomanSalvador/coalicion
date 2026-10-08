@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -153,7 +155,8 @@ def supervise(approval, ref, workers_dir, state_path):
     for start in range(0, len(missions), BATCH_SIZE):
         batch = missions[start:start + BATCH_SIZE]
         batch_failed = False
-        for m in batch:
+
+        def dispatch_one(m):
             out = workers / f"worker_{m['index']:04d}.json"
             evidence = None
             if out.exists():
@@ -168,19 +171,48 @@ def supervise(approval, ref, workers_dir, state_path):
                         evidence = existing
                 except Exception:
                     evidence = None
-            if evidence is None:
-                p = subprocess.run([
+
+            if evidence is not None:
+                return evidence
+
+            env = os.environ.copy()
+            base_execution_id = env.get("COLMENA_AGENT_EXECUTION_ID", "")
+            env["COLMENA_AGENT_EXECUTION_ID"] = (
+                f"{base_execution_id}-{m['id']}" if base_execution_id else m["id"]
+            )
+            p = subprocess.run(
+                [
                     sys.executable, "scripts/colmena_worker.py",
                     "--mission-id", m["id"], "--approval", approval,
                     "--ref", ref, "--out", str(out),
-                ], cwd=ROOT)
-                try:
-                    evidence = json.loads(out.read_text(encoding="utf-8"))
-                except Exception:
-                    evidence = {"status": "BLOCKED"}
-                if p.returncode != 0:
-                    batch_failed = True
+                ],
+                cwd=ROOT,
+                env=env,
+                text=True,
+                capture_output=True,
+            )
+            try:
+                evidence = json.loads(out.read_text(encoding="utf-8"))
+            except Exception:
+                evidence = {
+                    "status": "BLOCKED",
+                    "mission_id": m["id"],
+                    "returncode": p.returncode,
+                    "stdout": p.stdout[-4000:],
+                    "stderr": p.stderr[-4000:],
+                }
+            if p.returncode != 0:
+                evidence["_worker_process_returncode"] = p.returncode
+            return evidence
 
+        # Exactly BATCH_SIZE workers are dispatched concurrently. The Queen
+        # waits for the complete batch before advancing, preserving supervision
+        # and fail-closed batch boundaries while removing accidental serialization.
+        with concurrent.futures.ThreadPoolExecutor(max_workers=BATCH_SIZE) as executor:
+            futures = [executor.submit(dispatch_one, m) for m in batch]
+            evidences = [future.result() for future in futures]
+
+        for evidence in evidences:
             state["completed"] += int(evidence.get("status") == "PASS")
             state["failed"] += int(evidence.get("status") == "FAIL")
             state["blocked"] += int(evidence.get("status") not in {"PASS", "FAIL"})
