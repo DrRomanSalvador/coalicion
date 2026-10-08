@@ -60,7 +60,7 @@ jobs:
       - name: Run real SEEC posterior
         run: |
           set -o pipefail
-          python scripts/run_seec_production.py --input artifacts/data/cis_historical_2004_2023.csv --draws 2500 --tune 3000 --seed "$COALICION_SEED" 2>&1 | tee /tmp/seec_run.log
+          python scripts/run_seec_production.py --input artifacts/data/cis_historical_2004_2023.csv --draws 2500 --tune 3000 --chains 4 --seed "$COALICION_SEED" 2>&1 | tee /tmp/seec_run.log
       - name: Materialize SEEC execution failure evidence
         if: failure()
         continue-on-error: true
