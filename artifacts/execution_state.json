@@ -27,7 +27,9 @@
     "product status evaluator and transparency docs added",
     "CAPA_1_ITERACION_1: unificación del contrato Poll entre src/poll_ingest.py y src/poll_monitor.py",
     "CAPA_1_ITERACION_1: hash canónico compartido para ingestión de encuestas",
-    "CAPA_1_ITERACION_1: prueba de no duplicación del contrato Poll"
+    "CAPA_1_ITERACION_1: prueba de no duplicación del contrato Poll",
+    "completion gate automatizado en GitHub Actions",
+    "ejecución automática programada del gate cada 30 minutos y en cada push a main"
   ],
   "in_progress_tasks": [
     "CAPA_1: ingesta de encuestas — trazabilidad y normalización canónicas"
@@ -57,8 +59,9 @@
   ],
   "certificates": [],
   "next_actions": [
-    "CAPA_1: añadir procedencia de captura (URL, timestamp, hash de contenido y calidad) al registro canónico sin duplicar modelos.",
-    "CAPA_1: ampliar extractores configurados y tests por fuente, manteniendo fail-closed.",
+    "CAPA_1: corregir identidad semántica del hash para que la hora de captura no produzca falsos cambios.",
+    "CAPA_1: registrar cambios de contenido de fuente separadamente de cambios reales de encuesta.",
+    "CAPA_1: completar calidad y procedencia del registro canónico.",
     "CAPA_1: validar deduplicación de estudio frente a cambios de contenido y espejos.",
     "Después de cerrar CAPA_1: conectar evidencia territorial y diseñar el contrato OOS antes de activar cualquier proyección."
   ]
