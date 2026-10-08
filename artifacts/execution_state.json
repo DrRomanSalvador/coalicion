@@ -39,11 +39,14 @@
   ],
   "in_progress_tasks": [
     "CAPA_1: ingesta de encuestas — trazabilidad y normalización canónicas",
-    "CI: ejecutar contrato histórico estricto sobre la materialización completa"
+    "OOS: materializar dataset histórico CIS preelectoral y ejecutar expanding-window",
+    "SEEC: ejecutar posterior de producción >=10.000 draws",
+    "EXTERNAL_AUDIT: auditoría independiente pendiente"
   ],
   "blocked_tasks": [
-    "COALITION_REAL_CASE_CERTIFICATION",
     "OOS_CALIBRATION",
+    "SEEC_PRODUCTION",
+    "COALITION_REAL_CASE_CERTIFICATION",
     "EXTERNAL_AUDIT"
   ],
   "failed_tasks": [
@@ -51,8 +54,9 @@
     "pytest import path (resolved)"
   ],
   "warnings": [
-    "Strict official certification remains BLOCKED until primary Interior evidence is materialized and reconciled.",
-    "Beta mode is not predictive certification."
+    "La materialización oficial Interior está PASS: 50.700 filas, 8 elecciones, 52 circunscripciones y 350 escaños por elección.",
+    "La certificación completa sigue bloqueada hasta materializar/ejecutar OOS, SEEC y obtener auditoría externa independiente.",
+    "Beta no equivale a certificación predictiva."
   ],
   "artifacts": [
     "artifacts/baseline/repository_inventory.json",
@@ -63,10 +67,10 @@
   ],
   "certificates": [],
   "next_actions": [
-    "CI: ejecutar verify_historical_contracts.py y validate_historical_data.py sobre main",
-    "OOS: materializar y validar observaciones históricas CIS preelectorales; ejecutar expanding-window 2004–2023 sin fuga",
-    "SEEC: ejecutar posterior de producción >=10.000 draws y persistir evidencia",
-    "CASO REAL: ejecutar certificación reproducible una vez completados los datos y posterior",
-    "EXTERNAL_AUDIT: pendiente de auditoría externa independiente"
+    "Materializar data/encuestas_historicas_2004_2023.csv desde evidencia CIS primaria verificable; no sintetizar valores.",
+    "Ejecutar expanding-window OOS y calibración con holdouts estrictamente futuros.",
+    "Ejecutar SEEC de producción >=10.000 draws y persistir evidencia de convergencia.",
+    "Ejecutar caso real reproducible tras OOS/SEEC PASS.",
+    "Obtener auditoría externa independiente; no autogenerarla."
   ]
 }
