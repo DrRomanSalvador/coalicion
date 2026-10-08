@@ -8,3 +8,5 @@
 # recovery revision 4 — atomic swarm stale-run cancellation enabled
 
 # stale purge revision 5
+
+# recovery revision 5 — recover after swarm source fixes
