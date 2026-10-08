@@ -11,7 +11,7 @@ from src.oos_pipeline import load_poll_observations, run_oos
 
 def main():
     ap=argparse.ArgumentParser(description="Expanding-window OOS fail-closed")
-    ap.add_argument("--input", default="data/encuestas_historicas_2004_2023.csv")
+    ap.add_argument("--input", default="artifacts/data/cis_historical_2004_2023.csv")
     ap.add_argument("--output")
     a=ap.parse_args()
     rows=load_poll_observations(a.input)
