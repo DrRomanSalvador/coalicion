@@ -1146,19 +1146,22 @@
     "cis_news::0e154e65a559b251f65a54ada602f2c49ae0e82596e7845d387a7b23e8999ec3": "4955afe6af59950ad7929ec36f4dfaeeb2305a61bf8daed119e2915eff0b66eb",
     "electomania_ajax::48357c98fba162df30573953358ba401baac39c0dc29afb2bd9d2dce5ee172c9": "b679aed6829d09e37a1c1272f3d22631560fce9d410eb3e6ebaafd07c75069b1",
     "cis_catalog::fdecf91bb4ea3322d88f570aa2548276b08a97ef911124d1612339f7960d304c": "0601ec5342780b23c92c38143c8ff6c44980194c238f1945ce04f7575615061c",
-    "cis_news::c6815f2443236ae6cd0f93566d0aaae249478536197a7a063fa6e1373dded8b6": "9ad82a4b046c539401542c75680b1f3ab124fb2a33589522563d5d626dccb854"
+    "cis_news::c6815f2443236ae6cd0f93566d0aaae249478536197a7a063fa6e1373dded8b6": "9ad82a4b046c539401542c75680b1f3ab124fb2a33589522563d5d626dccb854",
+    "electomania_ajax::eb4840fb731890e57a5198ed2855d7d3c856e679e74bae4c7aa89a02d6a985bf": "49bac1777d2a2e9f0e3a6bcd95d4b043ed04e73ae5a7e107e8be846a59293743",
+    "cis_catalog::ea2afb85255834dca3b01ac4b2d6f1458b669a5795f9afb8ccd45ac0631f111b": "72bf30562ec0169625a9cf175b8c64c66c7cd2e9911baf0fab5c239d3bae4372",
+    "cis_news::6c3dbc9f74bcdd71f89595c8f7763afc253f7dec01e65cb6c990e24b9a9bb359": "346e98b2484244947a9d0a24c92c36fdd68099a523396d2d21bc298faba3f74d"
   },
   "source_hashes": {
     "datoelectoral": "a2e1d095fe81b7c2c49746ce09aac4fc49652948faedf3d04040367dc4f6b18a",
     "europe_elects_spain": "80185495b8e51cf20be6072567e458f3255bd42205c3102083a70c4369a32281",
-    "gad3": "ddfcdef3db254ef2e61e90609aa0e63b5c82a42ec6c7c95ea0e56669b908f0fc",
+    "gad3": "933d45b40821e56ec688aa525a573c3f6f1d7b2eee8f92fb6bfd23e1734c94eb",
     "demoscopia": "6dc9c7fc93bb488bb0520a6c780a8d3c0fb5486a4711aca49b4c53fac7393023",
-    "cis_catalog": "fdecf91bb4ea3322d88f570aa2548276b08a97ef911124d1612339f7960d304c",
-    "cis_news": "c6815f2443236ae6cd0f93566d0aaae249478536197a7a063fa6e1373dded8b6",
+    "cis_catalog": "ea2afb85255834dca3b01ac4b2d6f1458b669a5795f9afb8ccd45ac0631f111b",
+    "cis_news": "6c3dbc9f74bcdd71f89595c8f7763afc253f7dec01e65cb6c990e24b9a9bb359",
     "nc_report": "58062010b619a4c3cc0db7014f653c93466ff4bd9e44aa29455759e7407bb6d8",
     "celeste_tel": "020c438280274a0e29ecb0b98cd167bceed18afeec7d0c299e19b9b61bfc957b",
-    "electomania_ajax": "48357c98fba162df30573953358ba401baac39c0dc29afb2bd9d2dce5ee172c9",
-    "sigma_dos": "e2e1d72d4acf558467fe5e899d4d4776b6a4d5a68476829cfd06d5a4bce381e1",
+    "electomania_ajax": "eb4840fb731890e57a5198ed2855d7d3c856e679e74bae4c7aa89a02d6a985bf",
+    "sigma_dos": "e41d1bf874fe622d759fd50f1f11c147740538aaea5ed10348c1de923de56df2",
     "elpais_40db": "6fdfbf8f36dacc6546669b370b460003a1d6747bb69d61718e61838ab8311014",
     "lasexta_invymark_discovery": "9b6daac0803c068fedf2c884d562b6e46f7d824692b8f5f09cdc8ee339dd0ab5",
     "pollingforecast_registry": "71aae2dfff4472e445df4ac9faad875d2db5a363d76c3adbdc9ff1daf655ae25"
@@ -1167,17 +1170,22 @@
     "cis_rss": "98ea0025d75fc20919f8f71a774647e26ce099c02a1a0ee06b68b10229575a0d",
     "myfdata": "107b7d046641adaa11279d35ca6413cd935aff55ca72859109ced85b387436f3",
     "invymark": "a679e8f268ae0d2f153f9cf609825aa7c88576ae6c19b9d218e95a2c52fdd1a9",
-    "political_stats_spain": "218d8e23b638ec30dcff807c25dbde6acef615e8a855c76c921177bcdf855b0d"
+    "political_stats_spain": "218d8e23b638ec30dcff807c25dbde6acef615e8a855c76c921177bcdf855b0d",
+    "elpais_40db": "c6ef5eb8f5776b08a62473435c62a6b93e51ad051a445f9bdad5e0642898b910"
   },
-  "runs": 368,
+  "runs": 369,
   "total_validated": 3,
   "baseline_completed": true,
-  "last_run": "2026-10-08T15:56:31.142480+00:00",
+  "last_run": "2026-10-08T15:59:24.199585+00:00",
   "last_status": "READY",
   "last_new": 0,
   "last_changed": 0,
   "last_discoveries": 0,
   "last_failures": [
+    {
+      "source_id": "elpais_40db",
+      "error": "RuntimeError:SOURCE_FETCH_FAILED; https://elpais.com/noticias/barometro-el-pais/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/barometro-el-pais/ | https://elpais.com/noticias/barometro-el-pais/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/barometro-el-pais/ | https://elpais.com/noticias/encuestas/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/encuestas/ | https://elpais.com/noticias/encuestas/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/encuestas/"
+    },
     {
       "source_id": "invymark",
       "error": "RuntimeError:SOURCE_FETCH_FAILED; https://invymark.es/ => SSLError:HTTPSConnectionPool(host='invymark.es', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1010)'))) | https://invymark.es/ => SSLError:HTTPSConnectionPool(host='invymark.es', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1010)')))"
@@ -1199,7 +1207,7 @@
       "coverage_role": "primary",
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://electomania.es/encuestas/",
-      "checked_at": "2026-10-08T15:56:31.429601+00:00"
+      "checked_at": "2026-10-08T15:59:24.498420+00:00"
     },
     "cis_catalog": {
       "status": "OK",
@@ -1207,7 +1215,7 @@
       "coverage_role": "discovery",
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://www.cis.es/es/estudios/catalogo",
-      "checked_at": "2026-10-08T15:56:32.768477+00:00"
+      "checked_at": "2026-10-08T15:59:25.984869+00:00"
     },
     "cis_news": {
       "status": "OK",
@@ -1215,15 +1223,14 @@
       "coverage_role": "discovery",
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://www.cis.es/es/sala-prensa/noticias",
-      "checked_at": "2026-10-08T15:56:33.084791+00:00"
+      "checked_at": "2026-10-08T15:59:26.330557+00:00"
     },
     "elpais_40db": {
-      "status": "OK",
+      "status": "FAILED",
       "format": "national_html",
       "coverage_role": "discovery",
-      "source_tier": "UNCLASSIFIED",
-      "source_url": "https://elpais.com/noticias/encuestas-electorales/",
-      "checked_at": "2026-10-08T15:56:33.876791+00:00"
+      "error": "RuntimeError:SOURCE_FETCH_FAILED; https://elpais.com/noticias/barometro-el-pais/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/barometro-el-pais/ | https://elpais.com/noticias/barometro-el-pais/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/barometro-el-pais/ | https://elpais.com/noticias/encuestas/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/encuestas/ | https://elpais.com/noticias/encuestas/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/encuestas/",
+      "checked_at": "2026-10-08T15:59:29.851374+00:00"
     },
     "datoelectoral": {
       "status": "OK",
@@ -1231,7 +1238,7 @@
       "coverage_role": "discovery",
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://www.datoelectoral.es/encuestas",
-      "checked_at": "2026-10-08T15:56:34.062904+00:00"
+      "checked_at": "2026-10-08T15:59:30.061123+00:00"
     },
     "europe_elects_spain": {
       "status": "OK",
@@ -1239,7 +1246,7 @@
       "coverage_role": "discovery",
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://europeelects.eu/spain/",
-      "checked_at": "2026-10-08T15:56:34.491061+00:00"
+      "checked_at": "2026-10-08T15:59:30.585443+00:00"
     },
     "myfdata": {
       "status": "FAILED",
@@ -1254,7 +1261,7 @@
       "coverage_role": "primary",
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://www.sigmados.com/",
-      "checked_at": "2026-10-08T15:56:35.044111+00:00"
+      "checked_at": "2026-10-08T15:59:31.325470+00:00"
     },
     "gad3": {
       "status": "OK",
@@ -1262,7 +1269,7 @@
       "coverage_role": "primary",
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://www.gad3.com/informes/",
-      "checked_at": "2026-10-08T15:56:35.492416+00:00"
+      "checked_at": "2026-10-08T15:59:32.377512+00:00"
     },
     "nc_report": {
       "status": "OK",
@@ -1270,7 +1277,7 @@
       "coverage_role": "primary",
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://ncreport.es/",
-      "checked_at": "2026-10-08T15:56:36.349332+00:00"
+      "checked_at": "2026-10-08T15:59:34.044167+00:00"
     },
     "demoscopia": {
       "status": "OK",
@@ -1278,7 +1285,7 @@
       "coverage_role": "primary",
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://www.demoscopia.es/encuestas/",
-      "checked_at": "2026-10-08T15:56:36.406752+00:00"
+      "checked_at": "2026-10-08T15:59:34.241215+00:00"
     },
     "celeste_tel": {
       "status": "OK",
@@ -1286,27 +1293,27 @@
       "coverage_role": "primary",
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://www.celeste-tel.es/",
-      "checked_at": "2026-10-08T15:56:38.274960+00:00"
+      "checked_at": "2026-10-08T15:59:36.153142+00:00"
     },
     "invymark": {
       "status": "FAILED",
       "format": "national_html",
       "coverage_role": "discovery",
       "error": "RuntimeError:SOURCE_FETCH_FAILED; https://invymark.es/ => SSLError:HTTPSConnectionPool(host='invymark.es', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1010)'))) | https://invymark.es/ => SSLError:HTTPSConnectionPool(host='invymark.es', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1010)')))",
-      "checked_at": "2026-10-08T15:56:40.771811+00:00"
+      "checked_at": "2026-10-08T15:59:38.480529+00:00"
     },
     "political_stats_spain": {
       "status": "FAILED",
       "format": "page",
       "coverage_role": "discovery",
       "error": "RuntimeError:SOURCE_FETCH_FAILED; https://politicalstats.eu/spain => ConnectionError:HTTPSConnectionPool(host='politicalstats.eu', port=443): Max retries exceeded with url: /spain (Caused by NameResolutionError(\"HTTPSConnection(host='politicalstats.eu', port=443): Failed to resolve 'politicalstats.eu' ([Errno -2] Name or service not known)\")) | https://politicalstats.eu/spain => ConnectionError:HTTPSConnectionPool(host='politicalstats.eu', port=443): Max retries exceeded with url: /spain (Caused by NameResolutionError(\"HTTPSConnection(host='politicalstats.eu', port=443): Failed to resolve 'politicalstats.eu' ([Errno -2] Name or service not known)\"))",
-      "checked_at": "2026-10-08T15:56:41.821744+00:00"
+      "checked_at": "2026-10-08T15:59:39.600747+00:00"
     },
     "europe_elects_twitter": {
       "status": "SKIPPED_OPTIONAL",
       "format": "twitter",
       "coverage_role": "discovery",
-      "checked_at": "2026-10-08T15:56:41.821771+00:00"
+      "checked_at": "2026-10-08T15:59:39.600778+00:00"
     },
     "lasexta_invymark_discovery": {
       "status": "OK",
@@ -1314,7 +1321,7 @@
       "coverage_role": "primary",
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://www.lasexta.com/elecciones/generales/encuestas-elecciones-generales_202610056ac365161c30184d44b52907.html",
-      "checked_at": "2026-10-08T15:56:42.040260+00:00"
+      "checked_at": "2026-10-08T15:59:40.164041+00:00"
     },
     "pollingforecast_registry": {
       "status": "OK",
@@ -1322,7 +1329,7 @@
       "coverage_role": "discovery",
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://www.pollingforecast.com/es/polls?lang=es&tab=raw",
-      "checked_at": "2026-10-08T15:56:42.499349+00:00"
+      "checked_at": "2026-10-08T15:59:40.596896+00:00"
     }
   },
   "failure_streaks": {
@@ -1335,11 +1342,11 @@
     "demoscopia": 0,
     "celeste_tel": 0,
     "electomania_ajax": 0,
-    "elpais_40db": 0,
+    "elpais_40db": 1,
     "myfdata": 3,
     "sigma_dos": 0,
-    "invymark": 367,
-    "political_stats_spain": 367,
+    "invymark": 368,
+    "political_stats_spain": 368,
     "lasexta_invymark_discovery": 0,
     "pollingforecast_registry": 0
   },
@@ -6171,6 +6178,36 @@
       "previous_hash": "2ce54088ffb930f0b150081ac0a3ee23592ba787fa7e5237a9cd8ef553b4967a",
       "current_hash": "ddfcdef3db254ef2e61e90609aa0e63b5c82a42ec6c7c95ea0e56669b908f0fc",
       "detected_at": "2026-10-08T15:56:35.492400+00:00"
+    },
+    {
+      "source_id": "electomania_ajax",
+      "previous_hash": "48357c98fba162df30573953358ba401baac39c0dc29afb2bd9d2dce5ee172c9",
+      "current_hash": "eb4840fb731890e57a5198ed2855d7d3c856e679e74bae4c7aa89a02d6a985bf",
+      "detected_at": "2026-10-08T15:59:24.498404+00:00"
+    },
+    {
+      "source_id": "cis_catalog",
+      "previous_hash": "fdecf91bb4ea3322d88f570aa2548276b08a97ef911124d1612339f7960d304c",
+      "current_hash": "ea2afb85255834dca3b01ac4b2d6f1458b669a5795f9afb8ccd45ac0631f111b",
+      "detected_at": "2026-10-08T15:59:25.984848+00:00"
+    },
+    {
+      "source_id": "cis_news",
+      "previous_hash": "c6815f2443236ae6cd0f93566d0aaae249478536197a7a063fa6e1373dded8b6",
+      "current_hash": "6c3dbc9f74bcdd71f89595c8f7763afc253f7dec01e65cb6c990e24b9a9bb359",
+      "detected_at": "2026-10-08T15:59:26.330543+00:00"
+    },
+    {
+      "source_id": "sigma_dos",
+      "previous_hash": "e2e1d72d4acf558467fe5e899d4d4776b6a4d5a68476829cfd06d5a4bce381e1",
+      "current_hash": "e41d1bf874fe622d759fd50f1f11c147740538aaea5ed10348c1de923de56df2",
+      "detected_at": "2026-10-08T15:59:31.325450+00:00"
+    },
+    {
+      "source_id": "gad3",
+      "previous_hash": "ddfcdef3db254ef2e61e90609aa0e63b5c82a42ec6c7c95ea0e56669b908f0fc",
+      "current_hash": "933d45b40821e56ec688aa525a573c3f6f1d7b2eee8f92fb6bfd23e1734c94eb",
+      "detected_at": "2026-10-08T15:59:32.377492+00:00"
     }
   ]
 }
