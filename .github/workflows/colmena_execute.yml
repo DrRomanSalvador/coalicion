@@ -23,7 +23,7 @@ jobs:
     name: Queen Gate
     runs-on: ubuntu-latest
     outputs:
-      batch_numbers: \${{ steps.plan.outputs.batch_numbers }}
+      batch_numbers: ${{ steps.plan.outputs.batch_numbers }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -33,8 +33,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python scripts/colmena_queen.py --ref "\${GITHUB_SHA}" --output queen_approval.json
-          python - <<'PY' >> "\$GITHUB_OUTPUT"
+          python scripts/colmena_queen.py --ref "${GITHUB_SHA}" --output queen_approval.json
+          python - <<'PY' >> "$GITHUB_OUTPUT"
           import json
           p=json.load(open("queen_approval.json",encoding="utf-8"))
           print("batch_numbers="+json.dumps([b["batch"] for b in p["batches"]],separators=(",",":")))
@@ -45,14 +45,14 @@ jobs:
           path: queen_approval.json
 
   workers:
-    name: Worker batch \${{ matrix.number }}
+    name: Worker batch ${{ matrix.batch_number }}
     needs: queen
     if: needs.queen.result == 'success'
     strategy:
       fail-fast: false
       max-parallel: 32
       matrix:
-        batch_number: \${{ fromJSON(needs.queen.outputs.batch_numbers) }}
+        batch_number: ${{ fromJSON(needs.queen.outputs.batch_numbers) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -65,11 +65,10 @@ jobs:
       - name: Execute logical atomic workers
         shell: bash
         env:
-          BATCH_NUMBER: \${{ matrix.batch_number }}
+          BATCH_NUMBER: ${{ matrix.batch_number }}
         run: |
           set +e
           mkdir -p worker_evidence
-          overall=0
           python - <<'PY'
           import json, os, subprocess, sys
           p=json.load(open("queen_approval.json",encoding="utf-8"))
@@ -89,7 +88,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: worker-evidence-batch-\${{ matrix.number }}
+          name: worker-evidence-batch-${{ matrix.number }}
           path: worker_evidence/*.json
           if-no-files-found: error
 
