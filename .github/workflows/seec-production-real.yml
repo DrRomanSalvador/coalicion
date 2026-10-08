@@ -70,7 +70,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add ci_evidence/seec_execution_failure.txt
-          git diff --cached --quiet || (git commit -m "ci: materialize SEEC execution failure evidence" && git push origin HEAD:main)
+          git diff --cached --quiet && exit 0
+          git commit -m "ci: materialize SEEC execution failure evidence"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git rebase origin/main && git push origin HEAD:main && exit 0
+            git rebase --abort || true
+            sleep 5
+          done
+          exit 1
       - name: Verify production gate
         run: |
           python - <<'PY'
@@ -89,7 +97,9 @@ jobs:
           name: seec-production-diagnostics
           path: |
             ci_evidence/seec_install_failure.txt
+            ci_evidence/seec_execution_failure.txt
             /tmp/seec_pip_install.log
+            /tmp/seec_run.log
           if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         if: success()
