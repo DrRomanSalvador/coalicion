@@ -30,7 +30,6 @@ CHAINS = 2
 CIS_STUDY_ID = "3411"
 CIS_SAMPLE_SIZE = 29201
 
-PARTIES = ()
 ALIASES = {
     "pp":"PP","partido popular":"PP",
     "psoe":"PSOE","partido socialista obrero español":"PSOE",
@@ -53,7 +52,7 @@ def sha256(path):
         for chunk in iter(lambda:f.read(1024*1024),b""): h.update(chunk)
     return h.hexdigest()
 
-def load_historical():
+def load_historical(parties):
     rows=[]
     with RESULTS.open(encoding="utf-8",newline="") as f:
         for r in csv.DictReader(f):
@@ -64,7 +63,7 @@ def load_historical():
         raise RuntimeError(f"expected 52 constituencies, got {len(provinces)}")
     observations=[]
     for province in provinces:
-        for party in PARTIES:
+        for party in parties:
             votes=0
             for r in rows:
                 if r["circunscripcion"] != province: continue
@@ -83,13 +82,18 @@ def load_historical():
     return provinces, observations
 
 def main():
-    if abs(sum(SURVEY.values()) - 100.0) > 1e-9:
-        raise RuntimeError("published survey composition does not sum to 100")
+    cis_rows = [r for r in load_cis() if r.election == "2023" and r.study_id == CIS_STUDY_ID]
+    if not cis_rows:
+        raise RuntimeError("canonical CIS dataset missing study 3411/2023")
+    survey = {r.party: r.cis_estimate_pct for r in cis_rows}
+    if abs(sum(survey.values()) - 100.0) > 1e-9:
+        raise RuntimeError("canonical CIS study 3411 does not sum to 100")
+    parties = tuple(survey)
     if not RESULTS.is_file():
         raise RuntimeError("primary historical results are not materialized")
-    provinces, historical = load_historical()
+    provinces, historical = load_historical(parties)
     surveys=[]
-    for party, share in SURVEY.items():
+    for party, share in survey.items()
         surveys.append(SurveyRow(
             poll_id="CIS-3411-2023",
             field_date="2023-06-27",
