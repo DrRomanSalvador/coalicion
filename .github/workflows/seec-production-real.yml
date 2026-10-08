@@ -1,0 +1,42 @@
+name: SEEC production real
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/run_seec_production.py"
+      - "src/seec_bayesian.py"
+      - "artifacts/data/cis_historical_2004_2023.csv"
+      - "requirements.txt"
+      - ".github/workflows/seec-production-real.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  seec:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements.txt
+      - name: Run real SEEC posterior
+        run: python scripts/run_seec_production.py --draws 2500 --tune 1000 --seed 20261008
+      - name: Verify production gate
+        run: |
+          python - <<'PY'
+          import json, math
+          x=json.load(open("ci_evidence/seec_production.json"))
+          assert x["status"]=="PASS"
+          assert x["chains"]==4
+          assert x["total_draws"]>=10000
+          assert x["diagnostics"]["divergences"]==0
+          assert math.isfinite(x["diagnostics"]["max_r_hat"]) and x["diagnostics"]["max_r_hat"]<=1.01
+          print("SEEC PRODUCTION PASS",x["total_draws"],x["diagnostics"])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: seec-production-evidence
+          path: ci_evidence/seec_production.json
