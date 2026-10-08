@@ -1,0 +1,61 @@
+{
+  "schema": "COALICION_COMPLETE_BACKTEST_V2",
+  "status": "PASS",
+  "workflow_run_id": 37765549414,
+  "workflow_head_sha": "eea6e5813c173578352af1536a6bd7219e9ea599",
+  "workflow_conclusion": "success",
+  "artifact": {
+    "id": 11544875108,
+    "name": "complete-backtest-final",
+    "digest": "sha256:b4fb6d564776cc97bd0bf2f73b5181dc5cbd3aaa12608da1cdfa5812719bbf5a",
+    "retention_until": "2027-01-06T10:45:17Z"
+  },
+  "executed_at_utc": "2026-10-08T10:51:37.043207+00:00",
+  "input": {
+    "path": "artifacts/data/cis_historical_2004_2023.csv",
+    "sha256": "76ad123fa60eb1b73dd9c4c559d358ad0705f7122cfec11aa16e3"
+  },
+  "territorial_backtest": {
+    "schema": "BACKTEST_2023_BASELINE_V3",
+    "source_tier": "PRIMARY_OFFICIAL",
+    "source_sha256": "0b83f9b60e017982c97a702ce24518d5c4432ec90b8e0659210c3db3c9d7634b",
+    "seat_structure_sha256": "fd4f64303485151579cd120d65b20663af21460b4477799136924849ba20cf90",
+    "cutoff": "2019-11-10",
+    "n_simulations": 10000,
+    "coverage": 1,
+    "coverage_threshold": 0.85,
+    "coverage_unit": "NATIONAL_PARTY_FAMILY",
+    "winning_families": 11,
+    "historical_conformal_pairs": 6,
+    "historical_conformal_residuals": 1080,
+    "historical_family_residuals": 834,
+    "conformal_nominal_coverage": 0.95,
+    "conformal_q95_family_seats": 2,
+    "contracts": {
+      "historical_conformal_calibration": true,
+      "calibration_before_target_election": true,
+      "target_election_excluded_from_calibration": true,
+      "conformal_nominal_coverage_95": true,
+      "family_level_calibration": true,
+      "party_specific_calibration": true,
+      "calibrated_coverage_gate": true,
+      "no_future_vote_input": true,
+      "canonical_electoral_engine": true,
+      "absolute_ties_reproducible_lottery": true,
+      "seat_sum_350": true
+    }
+  },
+  "oos": {
+    "status": "PASS",
+    "schema": "HISTORICAL_OOS_CALIBRATION_V2",
+    "coverage": 0.9629629629629629,
+    "threshold": 0.85,
+    "leakage_checks": {
+      "field_end_before_election": true,
+      "all_test_elections_use_only_prior_elections": true,
+      "evaluated_election_excluded_from_training": true
+    }
+  },
+  "closure_rule": "PASS requires official 2023 territorial baseline, >=85% pre-2023 family conformal seat coverage, strict OOS PASS and probabilistic calibration PASS.",
+  "full_evidence": "complete-backtest-final GitHub Actions artifact"
+}
