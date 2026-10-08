@@ -1,0 +1,27 @@
+{
+  "source_id": "INTERIOR_INFOELECTORAL_CONGRESO_UNIFIED",
+  "source_name": "Elecciones-Congreso.xlsx",
+  "authority": "Ministerio del Interior / Infoelectoral",
+  "coverage": "1977-06-15 through 2023-07-23",
+  "official_url": "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+  "official_downloads_url": "https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/index.html",
+  "acquisition": "user_uploaded_official_workbook",
+  "acquisition_date": "2026-10-08",
+  "sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
+  "hash_scope": "workbook_bytes",
+  "bytes": 1151199,
+  "official_source_status": "PRIMARY_VERIFIED_BY_UPLOADED_OFFICIAL_WORKBOOK",
+  "validation_2023": {
+    "status": "PASS",
+    "circunscripciones": 52,
+    "escaños": 350,
+    "candidate_votes_total": 24487414,
+    "blank_votes_total": 200673,
+    "valid_votes_total": 24688087
+  },
+  "policy": {
+    "historical_results_are_observed_not_forecasts": true,
+    "no_national_to_territorial_inference": true,
+    "no_2026_poll_inference": true
+  }
+}
