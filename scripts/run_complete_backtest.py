@@ -95,6 +95,7 @@ def main() -> int:
                 },
             }
             out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(out.read_text(encoding="utf-8"))
             return result["returncode"]
 
     baseline = read_json(DEFAULT_BASELINE_OUTPUT)
