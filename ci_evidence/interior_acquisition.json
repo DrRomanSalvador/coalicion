@@ -1,13 +1,10 @@
 {
   "schema": "INTERIOR_OFFICIAL_ACQUISITION_V4",
   "status": "PASS",
-  "source_tier": "PRIMARY_INTERIOR",
-  "source_kind": "OFFICIAL_XLSX_SUPPLIED_BY_USER",
-  "source_sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
-  "source_page": "https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/index.html",
-  "derived_csv_sha256": "0b83f9b60e017982c97a702ce24518d5c4432ec90b8e0659210c3db3c9d7634b",
-  "derived_csv_bytes": 7772611,
-  "n_rows": 50700,
+  "source_url": "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+  "download_page": "https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/index.html",
+  "sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
+  "file_bytes": 1151199,
   "elections": {
     "2004": "2004-03-14",
     "2008": "2008-03-09",
@@ -18,8 +15,11 @@
     "2019N": "2019-11-10",
     "2023J": "2023-07-23"
   },
+  "n_rows": 50700,
   "n_constituencies_per_election": 52,
   "seats_per_election": 350,
+  "source_tier": "PRIMARY_INTERIOR",
+  "source_kind": "OFFICIAL_INTERIOR_XLSX",
   "official_results": {
     "rows": 50700,
     "elections": [
@@ -35,8 +35,5 @@
     "constituencies_per_election": 52,
     "seats_per_election": 350,
     "derived_csv_sha256": "0b83f9b60e017982c97a702ce24518d5c4432ec90b8e0659210c3db3c9d7634b"
-  },
-  "binary_repository_copy": false,
-  "binary_reason": "The supplied official XLSX is retained as source evidence in the conversation; the repository stores its cryptographic fingerprint and deterministic derived CSV.",
-  "fail_closed": true
+  }
 }
