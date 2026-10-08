@@ -43,12 +43,12 @@ jobs:
           path: |
             node_modules
             .cache
-          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-4.3.0-smollm2
+          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-3.8.1-smollm2
       - name: Prepare local AI runtime
         if: steps.local-ai-cache.outputs.cache-hit != 'true'
         run: |
           npm init -y >/dev/null 2>&1
-          npm install --no-audit --no-fund @huggingface/transformers@4.3.0
+          npm install --no-audit --no-fund @huggingface/transformers@3.8.1
       - name: Warm local AI model
         run: |
           node scripts/colmena_local_ai.mjs --warm
@@ -69,7 +69,7 @@ jobs:
           path: |
             node_modules
             .cache
-          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-4.3.0-smollm2
+          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-3.8.1-smollm2
       - id: gate
         run: |
           set -euo pipefail
@@ -113,7 +113,7 @@ jobs:
           path: |
             node_modules
             .cache
-          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-4.3.0-smollm2
+          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-3.8.1-smollm2
           fail-on-cache-miss: true
       - uses: actions/download-artifact@v4
         with:
