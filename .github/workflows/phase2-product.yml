@@ -19,6 +19,7 @@ on:
       - "tests/test_*phase2*.py"
       - "tests/test_territorial_prediction_2026.py"
       - "data/surveys/current_2026/**"
+      - "data/surveys/october_2026/territorial/**"
       - "scripts/materialize_phase2_demo.py"
       - "scripts/verify_phase2_priority1.py"
       - "tests/test_phase2_priority2.py"
