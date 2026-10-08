@@ -389,27 +389,24 @@ def _help_text() -> str:
     )
 
 def _urgencies_text() -> str:
-    state = _safe_json(STATE)
-    estimation = _safe_json(ESTIMATION)
-    items: list[str] = []
-    if not _latest_polls():
-        items.append("No hay sondeos validados recientes materializados.")
-    elif estimation.get("status") == "BLOCKED":
-        items.append("La aritmética de escaños no tiene ahora una base territorial suficiente; no se publica una cifra inventada.")
-    failed = []
-    for source in _sources():
-        status = str(source.get("status", source.get("health", ""))).upper()
-        if status in {"DOWN", "FAILED", "ERROR", "DEGRADED", "UNHEALTHY"}:
-            failed.append(str(source.get("id", source.get("source_id", source.get("name", "?")))))
-    if failed:
-        items.append("Fuentes con incidencia: " + ", ".join(failed[:10]))
-    warnings = _list_records(state.get("warnings"))
-    if warnings:
-        items.append("Advertencias de calidad: " + "; ".join(str(x.get("message", x)) for x in warnings[:3]))
-    if not items:
-        items.append("No hay incidencias relevantes materializadas.")
-    return "🚨 ATENCIÓN\n\n" + "\n".join(f"• {x}" for x in items) + "\n\nHechos verificables, sin recomendaciones políticas."
-
+    briefing = build_briefing(
+        as_of=date.today(),
+        polls=_latest_polls(),
+        sources=_sources(),
+        observations=_observations(),
+        horizon_days=31,
+    )
+    if not briefing:
+        return "🚨 ATENCIÓN · PRIORIDAD\n\nNo hay incidencias relevantes materializadas."
+    lines = ["🚨 ATENCIÓN · PRIORIDAD", ""]
+    for item in briefing[:10]:
+        due = f" · {item['due']}" if item.get("due") else ""
+        lines.append(f"{item['priority']} · {item['title']}{due}")
+        lines.append(f"• {item['detail']}")
+        if item.get("source"):
+            lines.append(f"  Evidencia: {item['source']}")
+    lines.extend(["", "Hechos verificables y comprobaciones operativas; sin recomendaciones políticas."])
+    return "\n".join(lines)
 
 def _polls_text() -> str:
     polls = _latest_polls()
