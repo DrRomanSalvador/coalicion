@@ -36,7 +36,7 @@ def main():
     for row in rows:
         if row[0] not in DATES: raise RuntimeError(f"unknown election: {row[0]}")
         by_e[row[0]].append(row)
-        if row[7]!="PRIMARY_INTERIOR": raise RuntimeError("non-primary source row")
+        if row[7] not in {"PRIMARY_INTERIOR","PRIMARY_OFFICIAL"}: raise RuntimeError("non-primary source row")
     for e,rows_e in by_e.items():
         if len({r[2] for r in rows_e})!=52: raise RuntimeError(f"{e}: expected 52 constituencies")
         if sum(int(r[5]) for r in rows_e)!=350: raise RuntimeError(f"{e}: expected 350 seats")
