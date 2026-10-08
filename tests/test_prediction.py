@@ -22,3 +22,19 @@ def test_predict_preserves_seats_and_uses_exact_allocator():
         {"A":{"X":0.05,"Y":-0.05}},
     )
     assert sum(r["national_seats"].values())==2
+
+def test_share_swing_rejects_non_conservative_changes():
+    import pytest
+    with pytest.raises(ValueError, match="deben sumar cero"):
+        apply_share_swing(
+            {"A": {"X": 600, "Y": 400}},
+            {"A": {"X": 0.05, "Y": 0.00}},
+        )
+
+def test_share_swing_rounding_tie_is_lexicographically_stable():
+    out = apply_share_swing(
+        {"A": {"A": 1, "B": 1}},
+        {"A": {"A": 0.0, "B": 0.0}},
+        {"A": 1.5},
+    )
+    assert out["A"] == {"A": 1, "B": 1}
