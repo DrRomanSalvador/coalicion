@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+# bounded worker execution: no unbounded subprocesses
 WORK_COMMAND_TIMEOUT_SECONDS = int(os.environ.get("COLMENA_COMMAND_TIMEOUT_SECONDS", "600"))
 
 def canon(x): return json.dumps(x, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
