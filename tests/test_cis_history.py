@@ -11,3 +11,9 @@ def test_cis_history_oos_adapter_preserves_published_estimates():
     assert len(rows) == 110
     assert all(r["tipo_encuesta"] == "preelectoral" for r in rows)
     assert all(r["estimacion_voto"] for r in rows)
+
+
+def test_manifest_expected_contract():
+    from src.cis_history import EXPECTED_SHA256, EXPECTED_ROWS
+    assert len(EXPECTED_SHA256) == 64
+    assert EXPECTED_ROWS == 110
