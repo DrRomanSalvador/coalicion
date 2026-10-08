@@ -74,10 +74,10 @@ seats["prov"] = seats["circunscripcion"].map(norm_constituency)
 if int(seats["escanos_2023"].sum()) != 350:
     raise SystemExit("seat structure does not sum to 350")
 
-def election_matrix(code: str):
-    x = df[df["election"].astype(str).eq(code)].copy()
+def election_matrix_by_date(election_date: str):
+    x = df[df["fecha_eleccion"].astype(str).str[:10].eq(election_date)].copy()
     if x.empty:
-        raise SystemExit(f"official election missing: {code}")
+        raise SystemExit(f"official election missing: {election_date}")
     parties = x[x["kind"].eq("PARTY")].groupby(["prov","party"],as_index=False)["votos"].sum()
     blanks = x[x["kind"].eq("BLANK")].groupby("prov")["votos"].sum().to_dict()
     nulls = x[x["kind"].eq("NULL")].groupby("prov")["votos"].sum().to_dict()
@@ -86,15 +86,8 @@ def election_matrix(code: str):
         valid[prov] = valid.get(prov,0) + int(v)
     return parties, valid, blanks, nulls
 
-train_p, train_valid, train_blank, _ = election_matrix("2019")
-target_p, target_valid, target_blank, _ = election_matrix("2023")
-# 2019 official election code is the November election in this materialization.
-if "2019" in df["election"].astype(str).unique():
-    dates=df.loc[df["election"].astype(str).eq("2019"),"fecha_eleccion"].astype(str).unique()
-    if "2019-11-10" not in dates:
-        raise SystemExit(f"2019 materialization is not 2019N: {sorted(dates)}")
-else:
-    raise SystemExit("2019N official results missing")
+train_p, train_valid, train_blank, _ = election_matrix_by_date("2019-11-10")
+target_p, target_valid, target_blank, _ = election_matrix_by_date("2023-07-23")
 
 seat_provs=set(seats["prov"])
 if set(target_p["prov"]) != seat_provs:
