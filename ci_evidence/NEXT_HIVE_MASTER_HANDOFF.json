@@ -1,0 +1,96 @@
+{
+  "schema": "NEXT_HIVE_MASTER_HANDOFF_V1",
+  "generated_at": "2026-10-08",
+  "repository": "DrRomanSalvador/coalicion",
+  "branch": "main",
+  "mission": "MVP vendible hoy para contexto electoral español, con inteligencia electoral reproducible, neutral, fail-closed y sin falsas certificaciones.",
+  "queen_directive": [
+    "Coordinar agentes especializados como un sistema de automatización jerárquico; un agente maestro debe mantener un único estado de verdad y asignar cada tarea una sola vez.",
+    "Antes de modificar: inspeccionar estado actual. Después: codificar, ejecutar, evidenciar y checkpoint.",
+    "Nunca declarar PASS, verde, certificado, desplegado u operativo sin evidencia observable.",
+    "Nunca duplicar motores, pipelines, fuentes de verdad, modelos o artefactos.",
+    "Si dos agentes trabajan sobre la misma superficie, uno debe quedar bloqueado hasta reconciliación.",
+    "Telegram queda reservado al agente concurrente actual; no tocarlo hasta recibir su checkpoint final."
+  ],
+  "truth": {
+    "phase1_internal": "RESUELTA Y VERIFICADA",
+    "master_certification": "READY_FOR_EXTERNAL_AUDIT",
+    "external_audit": "PENDIENTE; obligatoria para validez oficial",
+    "verified_gates": [
+      "OOS",
+      "MC-10000",
+      "SEEC-PyMC-10000",
+      "territorial-2023-backtest",
+      "288/288 contracts",
+      "poll-source coverage",
+      "completion gate"
+    ],
+    "policy": "absence of external audit does not block non-official demo"
+  },
+  "current_mvp": {
+    "checkpoint": "a4a1c3eabf4396b808ab5ff879aa35dfc05dc882",
+    "implemented": [
+      "Streamlit dashboard",
+      "Render free service definition",
+      "current survey registry",
+      "newsletter generator",
+      "newsletter workflow",
+      "API current surveys/demo",
+      "fail-closed E2E tests",
+      "survey normalization+hashes",
+      "sales/design docs"
+    ],
+    "unverified": [
+      "MVP GitHub Actions execution",
+      "real Render deployment",
+      "SMTP production configuration",
+      "2026 territorial primary polling coverage",
+      "2026 territorial calibration",
+      "full E2E production surface"
+    ],
+    "telegram": "DEFERRED_TO_OTHER_AGENT"
+  },
+  "architecture": {
+    "canonical": [
+      "src/pipeline/full_election.py",
+      "src/models/territorial_prediction_2026.py",
+      "src/trailability/evidence.py",
+      "src/reproducibility/hasher.py",
+      "src/reproducibility/verifier.py"
+    ],
+    "removed_legacy": [
+      "electoral_reference.py",
+      "coalition_value.py",
+      "scenarios.py",
+      "decision_engine.py"
+    ],
+    "rule": "one canonical engine per domain"
+  },
+  "data_rules": [
+    "Official sources first: Interior/JEC/BOE; then CIS/INE and explicitly labeled secondary sources.",
+    "Current survey data may be demo/secondary-reconciled; official claims require PRIMARY_VERIFIED.",
+    "Do not convert national polling into observed territorial polling.",
+    "Do not fabricate field dates, sample sizes, methodology, URLs, hashes or territorial observations.",
+    "Every promoted result requires provenance and reproducibility."
+  ],
+  "next_queue": [
+    "1. Observe or otherwise obtain genuine GitHub Actions execution evidence for mvp-validation.",
+    "2. Fix every CI failure until green, preserving fail-closed semantics.",
+    "3. Materialize and verify normalized current survey artifact.",
+    "4. Verify Render configuration/deployment only with observable evidence.",
+    "5. Verify current territorial evidence and distinguish observed vs modelled.",
+    "6. Verify full non-Telegram E2E: current survey→vote composition→territorial input→D'Hondt→dashboard/API.",
+    "7. Reconcile with the other agent's Telegram checkpoint; only then integrate Telegram.",
+    "8. Run complete regression suite and certification gates.",
+    "9. Produce final product release evidence; never label official certification unless external audit exists."
+  ],
+  "known_blockers": [
+    "Current 2026 general territorial matrix for 52 constituencies is not yet established as complete primary observed evidence.",
+    "2026 territorial prediction is modelled and must remain explicitly non-official unless its calibration/evidence contract is satisfied.",
+    "New MVP workflow had no visible workflow-run evidence at last inspection.",
+    "Render and SMTP are configuration-level until actual deployment/send verification.",
+    "External audit remains pending."
+  ],
+  "resume_point": "Resume at mvp-validation execution evidence, not by recreating dashboard/newsletter/data work.",
+  "quality_gate": "No duplication, no contradiction, no invented evidence, fail-closed, checkpoint every meaningful state transition."
+}
