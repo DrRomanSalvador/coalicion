@@ -21,8 +21,7 @@ def load() -> dict:
     missions = data.get("missions")
     if not isinstance(missions, list) or not missions:
         raise SystemExit("FAIL_CLOSED: no atomic missions")
-    if len({str(x) for x in missions}) != len(missions):
-        raise SystemExit("FAIL_CLOSED: duplicate atomic mission")
+    # Repeated titles are distinct atomic missions; identity is ordinal-bound.
     return data
 
 
