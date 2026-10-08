@@ -138,3 +138,4 @@ def load_rows(path:str|Path,election_date:str|None=None)->list[dict[str,Any]]:
 def write_json(rows:list[dict[str,Any]],destination:str|Path)->Path:
     dest=Path(destination); dest.parent.mkdir(parents=True,exist_ok=True)
     dest.write_text(json.dumps(rows,ensure_ascii=False,indent=2),encoding="utf-8"); return dest
+
