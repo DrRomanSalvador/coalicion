@@ -1,4 +1,6 @@
 """Fail-closed end-to-end election pipeline."""
+
+# Phase 2 CI gate: explicit territorial input only.
 from __future__ import annotations
 import hashlib, json
 from pathlib import Path
