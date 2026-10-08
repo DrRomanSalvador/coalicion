@@ -6,6 +6,7 @@ on:
     paths:
       - "docs/COLMENA_MISSION_CONTROL.json"
       - "scripts/colmena_*.py"
+      - "scripts/colmena_local_ai.mjs"
       - ".github/workflows/colmena_executable.yml"
   pull_request:
     paths:
@@ -32,6 +33,33 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Restore local AI cache
+        id: local-ai-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            .cache
+          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-3.8.1-smollm2
+      - name: Prepare local AI runtime
+        if: steps.local-ai-cache.outputs.cache-hit != 'true'
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-audit --no-fund @huggingface/transformers@3.8.1
+      - name: Warm local AI model
+        run: |
+          node scripts/colmena_local_ai.mjs --warm
+      - name: Save local AI cache
+        if: steps.local-ai-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            .cache
+          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-3.8.1-smollm2
       - id: gate
         run: |
           set -euo pipefail
@@ -67,6 +95,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            .cache
+          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-3.8.1-smollm2
+          fail-on-cache-miss: true
       - uses: actions/download-artifact@v4
         with:
           name: colmena-queen-gate
@@ -74,10 +112,9 @@ jobs:
       - name: Execute independent AI agent worker
         env:
           MISSION_ID: ${{ matrix.mission_id }}
-          COLMENA_AGENT_PROVIDER: huggingface-inference-providers
+          COLMENA_AGENT_PROVIDER: github-actions-local-transformers-js
           COLMENA_AI_AGENT_EXECUTION: "true"
-          HF_TOKEN: ${{ secrets.Reina_token }}
-          COLMENA_AGENT_MODEL: openai/gpt-oss-120b:fastest
+          COLMENA_AGENT_MODEL: onnx-community/SmolLM2-135M-Instruct-ONNX-MHA:q4f16
           COLMENA_AGENT_EXECUTION_ID: ${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.mission_id }}
         run: |
           set -euo pipefail
