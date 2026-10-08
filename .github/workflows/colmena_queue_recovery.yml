@@ -26,21 +26,19 @@ jobs:
         run: |
           set -euo pipefail
           for workflow in "colmena_execute.yml" "colmena_atomic_swarm.yml"; do
-            gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 \
-              --json databaseId,status,createdAt \
-              --jq 'sort_by(.createdAt) | reverse | .[] | [.databaseId,.status] | @tsv' |
+            ids="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json databaseId,status,createdAt --jq 'sort_by(.createdAt) | reverse | .[] | [.databaseId,.status] | @tsv')"
+            newest=""
+            if [ "$workflow" = "colmena_atomic_swarm.yml" ]; then
+              newest="$(printf '%s\n' "$ids" | head -n1 | cut -f1)"
+            fi
             while IFS=$'\t' read -r id status; do
               [ -z "$id" ] && continue
-              if [ "$workflow" = "colmena_atomic_swarm.yml" ]; then
-                # Keep the newest atomic swarm; older pending/in-progress copies are stale.
-                newest="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json databaseId,createdAt --jq 'sort_by(.createdAt) | reverse | .[0].databaseId')"
-                [ "$id" = "$newest" ] && continue
-              fi
+              [ "$workflow" = "colmena_atomic_swarm.yml" ] && [ "$id" = "$newest" ] && continue
               case "$status" in
                 queued|in_progress|pending)
                   gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
                   ;;
               esac
-            done
+            done <<< "$ids"
           done
           echo "COLMENA_STALE_EXECUTOR_CLEANUP=PASS"
