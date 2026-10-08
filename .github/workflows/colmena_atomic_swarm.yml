@@ -15,13 +15,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: colmena-atomic-swarm-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   swarm:
     name: "👑 Queen + 179 missions / batches of 5"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
