@@ -15,7 +15,7 @@ permissions:
 
 concurrency:
   group: telegram-bot-service
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   service:
