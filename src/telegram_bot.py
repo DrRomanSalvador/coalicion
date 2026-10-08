@@ -487,14 +487,13 @@ def _config() -> dict[str, Any]:
 
 
 def _save_config(value: dict[str, Any]) -> None:
+    TELEGRAM_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    tmp = TELEGRAM_CONFIG.with_suffix(".tmp")
     try:
-        TELEGRAM_CONFIG.parent.mkdir(parents=True, exist_ok=True)
-        tmp = TELEGRAM_CONFIG.with_suffix(".tmp")
         tmp.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8")
         tmp.replace(TELEGRAM_CONFIG)
-    except OSError:
-        pass
-
+    except OSError as exc:
+        raise TelegramBotError(f"telegram config persistence failed: {exc}") from exc
 
 def _chat_id(update: dict[str, Any]) -> str:
     callback = update.get("callback_query") or {}
@@ -509,12 +508,17 @@ def _user_id(update: dict[str, Any]) -> str:
     return str(user.get("id", ""))
 
 
-def _chat_allowed(chat_id: str) -> bool:
+def _allowed_ids() -> set[str]:
     raw = os.environ.get("TELEGRAM_ALLOWED_CHATS", "").strip()
-    if not raw:
-        return True
-    return chat_id in {x.strip() for x in raw.split(",") if x.strip()}
+    return {x.strip() for x in raw.split(",") if x.strip()}
 
+def _chat_allowed(chat_id: str) -> bool:
+    allowed = _allowed_ids()
+    return bool(allowed) and chat_id in allowed
+
+def _inline_allowed(update: dict[str, Any]) -> bool:
+    allowed = _allowed_ids()
+    return bool(allowed) and _user_id(update) in allowed
 
 def _admin_allowed(update: dict[str, Any]) -> bool:
     admins = {x.strip() for x in os.environ.get("TELEGRAM_ADMIN_IDS", "").split(",") if x.strip()}
@@ -549,8 +553,8 @@ def _audit(update: dict[str, Any], command: str, query: str = "", response: str 
         AUDIT_LOG.parent.mkdir(parents=True, exist_ok=True)
         with AUDIT_LOG.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
-    except OSError:
-        pass
+    except OSError as exc:
+        raise TelegramBotError(f"telegram audit persistence failed: {exc}") from exc
 
 
 def _preferences(update: dict[str, Any]) -> dict[str, Any]:
@@ -1464,6 +1468,8 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
     next_offset = update_id + 1 if isinstance(update_id, int) else offset
 
     if "inline_query" in update:
+        if not _inline_allowed(update):
+            return next_offset
         if _rate_allowed(update):
             try:
                 _inline_query(update)
