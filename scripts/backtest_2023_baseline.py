@@ -102,6 +102,13 @@ if target_provs != seat_provs:
 train_maps={p:dict(zip(g["party"],g["votos"])) for p,g in train_p.groupby("prov")}
 target_maps={p:dict(zip(g["party"],g["votos"])) for p,g in target_p.groupby("prov")}
 
+def lottery_tie_breaker(prov: str):
+    def choose(tied):
+        key="|".join((str(SEED),prov,*sorted(tied))).encode("utf-8")
+        digest=hashlib.sha256(key).digest()
+        return sorted(tied)[digest[0] % len(tied)]
+    return choose
+
 # Actual 2023 seats are deterministically reconstructed from primary
 # official votes with the canonical electoral engine. This avoids relying on
 # an unpopulated seat column while preserving the legal allocation contract.
@@ -112,7 +119,7 @@ for prov,votes in target_maps.items():
     alloc=allocate({p:int(v) for p,v in votes.items()},seat_n,valid,
                    special=prov if prov in {"Ceuta","Melilla"} else "",
                    blank_votes=int(target_blank.get(prov,0)),
-                   tie_breaker=lottery_tie_breaker(prov)
+                   tie_breaker=lottery_tie_breaker(prov))
     if alloc.status!="OK":
         raise RuntimeError(f"actual 2023 allocation blocked: {prov} {alloc.status} {alloc.tie}")
     for party,s in alloc.seats.items():
