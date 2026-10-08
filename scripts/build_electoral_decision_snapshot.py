@@ -6,9 +6,12 @@ This is a dated historical baseline only; it is never treated as a 2026 forecast
 from __future__ import annotations
 import json
 from pathlib import Path
-from src.rapid_decision_center import decision_snapshot
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from src.rapid_decision_center import decision_snapshot
+
 INPUT = ROOT / "artifacts/data/election_2023_canonical.json"
 OUTPUT = ROOT / "artifacts/electoral_decision_snapshot.json"
 
