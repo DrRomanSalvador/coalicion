@@ -1,0 +1,11 @@
+{
+  "schema":"PHASE2_LAYER1_CHECKPOINT_V1",
+  "as_of":"2026-10-08",
+  "status":"IMPLEMENTED_FAIL_CLOSED",
+  "entrypoint":"src/pipeline/full_election.py",
+  "test":"tests/test_full_pipeline.py",
+  "requires_explicit_52_constituency_input":true,
+  "national_to_territorial_inference":false,
+  "reproducible_hashes":true,
+  "seat_invariant":350
+}
