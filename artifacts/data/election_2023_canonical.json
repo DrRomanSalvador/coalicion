@@ -2,7 +2,7 @@
   "schema": "ELECTION_2023_CONSTITUENCY_MATRIX_V1",
   "election": 2023,
   "type": "general",
-  "source_tier": "SECONDARY_REPLICA_VERIFIED",
+  "source_tier": "OFFICIAL_PRIMARY",
   "data": {
     "constituencies": {
       "A Coruña": {
@@ -978,6 +978,28 @@
     "errors": [],
     "circunscripciones": 52,
     "escaños": 350,
-    "candidate_votes_total": 24487414
-  }
+    "candidate_votes_total": 24487414,
+    "official_workbook_reconciliation": {
+      "status": "PASS",
+      "constituencies": 52,
+      "seats": 350,
+      "candidate_votes_total": 24487414,
+      "blank_votes_total": 200673,
+      "valid_votes_total": 24688087
+    }
+  },
+  "source": {
+    "provider": "Ministerio del Interior / Infoelectoral",
+    "official_url": "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+    "official_downloads": "https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/index.html",
+    "workbook_sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
+    "hash_scope": "uploaded_official_workbook_bytes",
+    "reconciliation": "52/52 circunscripciones; 350/350 escaños; votos y votos válidos reconciliados"
+  },
+  "notes": [
+    "La estructura de candidaturas existente se conserva para compatibilidad matemática con el motor.",
+    "La fuente primaria que respalda los valores es el workbook oficial del Ministerio del Interior.",
+    "Los resultados históricos observados no constituyen una predicción de las elecciones de 2026.",
+    "No se realiza inferencia nacional→territorial."
+  ]
 }
