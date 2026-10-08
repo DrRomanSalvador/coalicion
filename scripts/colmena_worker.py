@@ -127,6 +127,8 @@ def main():
             ai = invoke_ai_agent(m, agent_id)
             evidence = run(m, a.ref, agent_id, runtime)
             evidence["ai_inference"] = ai
+            evidence["runtime_status"] = "PASS"
+            evidence["mission_status"] = evidence.get("status")
         except Exception as exc:
             evidence = {"schema":"COLMENA_WORKER_EVIDENCE_V3","mission_id":m["id"],"title":m["title"],"agent_id":agent_id,"agent_runtime":runtime,"status":"BLOCKED","adapter":"AI_AGENT_RUNTIME_ERROR","command":None,"ref":ref,"queen_approval":m["approval"],"started_at":datetime.now(timezone.utc).isoformat(),"finished_at":datetime.now(timezone.utc).isoformat(),"source_write":False,"returncode":2,"stdout":"","stderr":str(exc)}
     o = Path(a.out); o.parent.mkdir(parents=True, exist_ok=True)
