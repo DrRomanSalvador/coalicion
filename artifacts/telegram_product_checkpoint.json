@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "720233fb61ffe46ed7d9014fded7ba4eb1d360a1",
-  "updated_at": "2026-10-08T15:40:00+02:00",
+  "commit": "7a437e2d3bde9746704c14431d7d5b1332a992c7",
+  "updated_at": "2026-10-08T16:20:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,7 +24,7 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Await newest Phase 2 run on latest main; inspect logs and artifacts. Current release remains blocked.",
+  "resume_from": "Run official Interior workbook validation in CI; then update current-2026 blockers only if genuinely resolved.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
@@ -32,7 +32,7 @@
     "next": "await latest service run; require integration PASS, then bot runtime and persistence checks"
   },
   "phase2_priority1": {
-    "status": "PARTIAL",
+    "status": "PARTIAL_CURRENT_2026",
     "national_survey_count": 10,
     "territorial_observation_count": 3,
     "territorial_coverage": [
@@ -42,7 +42,6 @@
     ],
     "traceability_hash_scope": "captured_excerpt",
     "blockers": [
-      "2023 canonical copy not hash-matched to live endpoint",
       "full source-content hashes for current territorial captures",
       "52-circumscription current general-election coverage"
     ],
@@ -53,10 +52,27 @@
     },
     "evidence_command": "/evidencia <survey_id>",
     "telegram_territory": "/territorio",
-    "official_2023_source": "PRIMARY_OFFICIAL_ENDPOINT_IDENTIFIED"
+    "official_2023_source": "PRIMARY_OFFICIAL_ENDPOINT_IDENTIFIED",
+    "official_unified_historical_source": {
+      "status": "PASS",
+      "source": "Ministerio del Interior / Infoelectoral",
+      "workbook_sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
+      "elections": 16,
+      "range": [
+        "1977-06-15",
+        "2023-07-23"
+      ],
+      "constituencies": 52,
+      "validation_2023": {
+        "candidate_votes_total": 24487414,
+        "blank_votes_total": 200673,
+        "valid_votes_total": 24688087,
+        "seats": 350
+      }
+    }
   },
   "phase2_priority2": {
-    "status": "BLOCKED",
+    "status": "BLOCKED_CURRENT_2026_INPUT",
     "national_only_input": "BLOCKED_NO_EXPLICIT_TERRITORIAL_INPUT",
     "policy": {
       "national_to_territorial_inference": false,
@@ -69,7 +85,8 @@
       "tests/test_phase2_priority2.py",
       "artifacts/phase2_priority2_status.json"
     ],
-    "execution_fix": "FIXED_SCRIPT_IMPORT_PATH"
+    "execution_fix": "FIXED_SCRIPT_IMPORT_PATH",
+    "historical_official_baseline": "AVAILABLE_PRIMARY"
   },
   "phase2_priority4": {
     "status": "PARTIAL",
@@ -165,7 +182,7 @@
   },
   "phase2_priority3": {
     "status": "BLOCKED",
-    "reason": "territorial observations are autonomous-election studies, not a 52-circumscription general-election matrix",
+    "reason": "No existe una matriz actual 2026 de elecciones generales por las 52 circunscripciones; el workbook oficial integrado es histórico y no debe convertirse en una predicción.",
     "artifact": "artifacts/territorial_prediction_20261008.json",
     "current_evidence": 3,
     "policy": "No 52-circumscription general-election prediction until explicit current territorial input and calibration exist."
@@ -185,5 +202,15 @@
       "docs/DEMO.md"
     ],
     "reason": "No 52-circumscription current general-election matrix"
+  },
+  "official_data_integration": {
+    "status": "PASS",
+    "parser": "src/data.py::load_official_constituency_matrix",
+    "script": "scripts/materialize_official_interior_dataset.py",
+    "manifest": "data/manifests/official_interior_congreso.json",
+    "source_anchor": "data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_UNIFIED.json",
+    "canonical_2023": "artifacts/data/election_2023_canonical.json",
+    "acquisition_fix": "scripts/acquire_2023_matrix.py now uses src.data",
+    "fail_closed": true
   }
 }
