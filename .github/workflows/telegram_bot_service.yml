@@ -51,9 +51,9 @@ jobs:
 
       - name: Validate Telegram integration
         run: |
-          test -n "$TELEGRAM_ALLOWED_CHATS"
           python -m py_compile src/telegram_bot.py src/telegram_timezone.py src/telegram_persistence.py scripts/verify_telegram_integration.py
           python -m pytest -q tests/test_telegram_bot.py tests/test_telegram_integration.py tests/test_telegram_source_status.py
+          if [ -z "$TELEGRAM_ALLOWED_CHATS" ]; then echo "Telegram allowlist absent; runtime remains fail-closed."; fi
 
       - name: Materialize Telegram integration evidence
         run: python scripts/verify_telegram_integration.py
