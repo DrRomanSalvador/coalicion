@@ -35,6 +35,16 @@ jobs:
       - name: Compile colmena layer
         run: |
           python -m py_compile scripts/queen_bee.py scripts/queen_bee_v2.py scripts/queen_bee_v3.py scripts/worker_bee.py scripts/product_status.py src/neutral_coalition.py
+      - name: Diagnose canonical contract
+        run: |
+          python -m src.neutral_audit artifacts/data/election_2023_canonical.json
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          p=Path("artifacts/data/election_2023_canonical.json")
+          print("CANONICAL_SHA256=", hashlib.sha256(p.read_bytes()).hexdigest())
+          print("SIDECAR=", p.with_name(p.name+".sha256").read_text(encoding="utf-8").strip())
+          PY
       - name: Validate neutral contracts
         run: python -m pytest -q tests/test_neutral_coalition.py tests/test_neutral_audit.py tests/test_electoral.py tests/test_decision.py
 
