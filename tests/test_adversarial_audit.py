@@ -15,7 +15,7 @@ def test_oos_excludes_null_and_aggregate_rows(tmp_path):
     p = tmp_path / "official.csv"
     p.write_text(
         "election,fecha_eleccion,partido,votos\n2023J,2023-07-23,PP,40\n2023J,2023-07-23,PSOE,50\n"
-        "2023,Votos en blanco,10\n2023,Votos nulos,5\n2023,Total,105\n",
+        "2023J,2023-07-23,Votos en blanco,10\n2023J,2023-07-23,Votos nulos,5\n2023J,2023-07-23,Total,105\n",
         encoding="utf-8",
     )
     actuals = _official(p)
