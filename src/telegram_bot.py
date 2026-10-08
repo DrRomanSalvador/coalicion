@@ -449,6 +449,300 @@ def _escanos_text() -> str:
     )
 
 
+
+# --- Telegram product layer: preferences, security, alerts, evidence, exports ---
+
+ALERT_CATEGORIES = {
+    "nueva_encuesta": "🔴 Nueva encuesta",
+    "modificacion_encuesta": "🟠 Modificación de encuesta",
+    "cambio_territorial": "🟣 Cambio territorial",
+    "nuevo_dato_oficial": "🟡 Nuevo dato oficial",
+    "cambio_plazo_legal": "⚖️ Cambio/plazo legal",
+    "cambio_escenario": "📊 Cambio de escenario",
+    "cambio_evidencia": "🔎 Cambio de evidencia",
+    "recuperacion_fuente": "🟢 Recuperación de fuente",
+}
+ALERT_FREQUENCIES = {"immediate": "inmediata", "hourly": "horaria", "daily": "diaria"}
+TELEGRAM_CONFIG = ROOT / "artifacts/telegram_config.json"
+AUDIT_LOG = ROOT / "artifacts/telegram_audit.jsonl"
+RATE_WINDOW = 60.0
+RATE_LIMIT_PRIVATE = 10
+RATE_LIMIT_GROUP = 100
+_RATE: dict[str, list[float]] = {}
+
+
+def _config() -> dict[str, Any]:
+    value = _safe_json(TELEGRAM_CONFIG)
+    if not isinstance(value.get("users"), dict):
+        value["users"] = {}
+    if not isinstance(value.get("chats"), dict):
+        value["chats"] = {}
+    return value
+
+
+def _save_config(value: dict[str, Any]) -> None:
+    try:
+        TELEGRAM_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+        tmp = TELEGRAM_CONFIG.with_suffix(".tmp")
+        tmp.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+        tmp.replace(TELEGRAM_CONFIG)
+    except OSError:
+        pass
+
+
+def _chat_id(update: dict[str, Any]) -> str:
+    callback = update.get("callback_query") or {}
+    message = callback.get("message") or {}
+    chat = message.get("chat") or update.get("message", {}).get("chat") or {}
+    return str(chat.get("id", ""))
+
+
+def _user_id(update: dict[str, Any]) -> str:
+    callback = update.get("callback_query") or {}
+    user = callback.get("from") or update.get("message", {}).get("from") or {}
+    return str(user.get("id", ""))
+
+
+def _chat_allowed(chat_id: str) -> bool:
+    raw = os.environ.get("TELEGRAM_ALLOWED_CHATS", "").strip()
+    if not raw:
+        return True
+    return chat_id in {x.strip() for x in raw.split(",") if x.strip()}
+
+
+def _admin_allowed(update: dict[str, Any]) -> bool:
+    admins = {x.strip() for x in os.environ.get("TELEGRAM_ADMIN_IDS", "").split(",") if x.strip()}
+    return bool(admins) and _user_id(update) in admins
+
+
+def _rate_allowed(update: dict[str, Any]) -> bool:
+    uid = _user_id(update) or _chat_id(update)
+    now = time.time()
+    values = [x for x in _RATE.get(uid, []) if now - x < RATE_WINDOW]
+    message = update.get("message") or (update.get("callback_query") or {}).get("message") or {}
+    chat_type = str((message.get("chat") or {}).get("type", "private"))
+    limit = RATE_LIMIT_GROUP if chat_type in {"group", "supergroup"} else RATE_LIMIT_PRIVATE
+    if len(values) >= limit:
+        _RATE[uid] = values
+        return False
+    values.append(now)
+    _RATE[uid] = values
+    return True
+
+
+def _audit(update: dict[str, Any], command: str, query: str = "", response: str = "") -> None:
+    import hashlib
+    from datetime import datetime, timezone
+    record = {
+        "user_id": _user_id(update), "chat_id": _chat_id(update), "command": command,
+        "query": query[:500],
+        "response_hash": hashlib.sha256(response.encode("utf-8")).hexdigest(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    try:
+        AUDIT_LOG.parent.mkdir(parents=True, exist_ok=True)
+        with AUDIT_LOG.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
+    except OSError:
+        pass
+
+
+def _preferences(update: dict[str, Any]) -> dict[str, Any]:
+    cfg = _config()
+    key = _chat_id(update) or _user_id(update)
+    prefs = cfg["chats"].get(key) or cfg["users"].get(_user_id(update)) or {}
+    categories = prefs.get("categories")
+    if not isinstance(categories, dict):
+        categories = {k: True for k in ALERT_CATEGORIES}
+    return {
+        "categories": {k: bool(categories.get(k, True)) for k in ALERT_CATEGORIES},
+        "frequency": str(prefs.get("frequency", "immediate")),
+        "quiet_start": str(prefs.get("quiet_start", "22:00")),
+        "quiet_end": str(prefs.get("quiet_end", "08:00")),
+        "threshold": float(prefs.get("threshold", 0.0) or 0.0),
+    }
+
+
+def _set_preferences(update: dict[str, Any], **changes: Any) -> None:
+    cfg = _config()
+    key = _chat_id(update) or _user_id(update)
+    prefs = _preferences(update)
+    prefs.update(changes)
+    cfg["chats"][key] = prefs
+    _save_config(cfg)
+
+
+def _alerts_markup(update: dict[str, Any]) -> dict[str, Any]:
+    prefs = _preferences(update)
+    rows = []
+    for category, label in ALERT_CATEGORIES.items():
+        mark = "✅" if prefs["categories"].get(category, True) else "⬜"
+        rows.append([{"text": f"{mark} {label}", "callback_data": f"alert:toggle:{category}"}])
+    rows.extend([
+        [{"text": f"⏱ Frecuencia: {ALERT_FREQUENCIES.get(prefs['frequency'], prefs['frequency'])}", "callback_data": "alert:frequency"}],
+        [{"text": f"🌙 Silencio {prefs['quiet_start']}–{prefs['quiet_end']}", "callback_data": "alert:quiet"}],
+        [{"text": f"📏 Umbral: {prefs['threshold']:.1f} pp", "callback_data": "alert:threshold"}],
+        [{"text": "🏠 Inicio", "callback_data": "home"}],
+    ])
+    return {"inline_keyboard": rows}
+
+
+def _alerts_text(update: dict[str, Any]) -> str:
+    prefs = _preferences(update)
+    lines = [
+        "🔔 ALERTAS · CONFIGURACIÓN", "",
+        f"Frecuencia: {ALERT_FREQUENCIES.get(prefs['frequency'], prefs['frequency'])}",
+        f"Silencio: {prefs['quiet_start']}–{prefs['quiet_end']}",
+        f"Umbral: {prefs['threshold']:.1f} pp", "", "Categorías:"
+    ]
+    for category, label in ALERT_CATEGORIES.items():
+        lines.append(("• ✅ " if prefs["categories"].get(category, True) else "• ⬜ ") + label)
+    lines.append("\nPulsa una categoría para activarla o desactivarla.")
+    return "\n".join(lines)
+
+
+def _poll_card(index: int) -> str:
+    polls = _latest_polls()
+    if not polls or index < 0 or index >= len(polls):
+        return "🗳 FICHA DE ENCUESTA\n\nNo hay una observación validada disponible."
+    poll = polls[index]
+    parties = poll.get("parties") if isinstance(poll.get("parties"), dict) else {}
+    parsed = []
+    for party, value in parties.items():
+        try:
+            parsed.append((str(party), float(value)))
+        except (TypeError, ValueError):
+            pass
+    parsed.sort(key=lambda x: (-x[1], x[0]))
+    lines = [
+        "🗳 FICHA DE ENCUESTA", "",
+        f"Publicación: {poll.get('publication_date', 'n/d')}",
+        f"Campo: {poll.get('field_date', poll.get('fieldwork_date', 'n/d'))}",
+        f"Encuestadora/fuente: {poll.get('pollster', poll.get('source_id', 'n/d'))}",
+        f"Muestra: {poll.get('sample_size', poll.get('sample', 'n/d'))}",
+        f"Metodología: {poll.get('methodology', 'n/d')}", "", "Estimaciones:"
+    ]
+    lines.extend(f"• {p}: {v:.1f}%" for p, v in parsed[:12])
+    return "\n".join(lines)
+
+
+def _poll_card_markup(index: int) -> dict[str, Any]:
+    polls = _latest_polls()
+    row = []
+    if index > 0:
+        row.append({"text": "← Anterior", "callback_data": f"evidence:poll:{index-1}"})
+    if index + 1 < len(polls):
+        row.append({"text": "Siguiente →", "callback_data": f"evidence:poll:{index+1}"})
+    rows = [row] if row else []
+    rows.extend([
+        [{"text": "🔎 ¿De dónde sale?", "callback_data": f"evidence:detail:{index}"}],
+        [{"text": "📈 Cambios", "callback_data": "cmd:/cambios"}, {"text": "🏠 Inicio", "callback_data": "home"}],
+    ])
+    return {"inline_keyboard": rows}
+
+
+def _evidence_detail(index: int) -> str:
+    polls = _latest_polls()
+    if not polls or index < 0 or index >= len(polls):
+        return "🔎 EVIDENCIA\n\nNo hay evidencia materializada para mostrar."
+    poll = polls[index]
+    fields = [
+        ("Fuente/URL", poll.get("source_url") or poll.get("url") or poll.get("source_id") or poll.get("source")),
+        ("Publicación", poll.get("publication_date")),
+        ("Campo", poll.get("field_date") or poll.get("fieldwork_date")),
+        ("Captura", poll.get("capture_date") or poll.get("retrieved_at")),
+        ("Hash", poll.get("sha256") or poll.get("hash")),
+        ("Materialización", poll.get("materialization") or poll.get("artifact")),
+        ("Transformación", poll.get("transformation")),
+        ("Verificación", poll.get("verification_level") or poll.get("status")),
+        ("Advertencias", poll.get("warnings") or "Ninguna registrada"),
+    ]
+    lines = ["🔎 EVIDENCIA · FICHA", ""]
+    for label, value in fields:
+        lines.append(f"{label}: {value if value not in (None, '') else 'n/d'}")
+    lines.append("\nNo se completan campos ausentes por inferencia.")
+    return "\n".join(lines)
+
+
+def _scenario_markup() -> dict[str, Any]:
+    return {"inline_keyboard": [
+        [{"text": "Base", "callback_data": "scenario:central"}, {"text": "Optimista", "callback_data": "scenario:optimista"}, {"text": "Pesimista", "callback_data": "scenario:pesimista"}],
+        [{"text": "🪑 Escaños", "callback_data": "scenario:view:seats"}, {"text": "📐 Incertidumbre", "callback_data": "scenario:view:uncertainty"}],
+        [{"text": "🗺 Territorio", "callback_data": "scenario:view:territory"}, {"text": "🔎 Evidencia", "callback_data": "scenario:view:evidence"}],
+        [{"text": "🏠 Inicio", "callback_data": "home"}],
+    ]}
+
+
+def _scenario_text(name: str = "central") -> str:
+    data = _safe_json(SCENARIO_DIR / f"scenario_{name}.json")
+    if not data:
+        return "🧪 ESCENARIO\n\nNo existe un escenario materializado de este tipo."
+    return f"🧪 ESCENARIO · {name.upper()}\n\nEstado: {data.get('status', 'materializado')}\nSchema: {data.get('schema', 'n/d')}\n\nSolo se muestran cifras materializadas."
+
+
+def _territory_markup() -> dict[str, Any]:
+    return {"inline_keyboard": [
+        [{"text": "🇪🇸 España", "callback_data": "territory:ES"}],
+        [{"text": "🔎 Evidencia", "callback_data": "cmd:/evidencia"}, {"text": "← Atrás", "callback_data": "back"}],
+    ]}
+
+
+def _export_payload(kind: str) -> tuple[bytes, str, str]:
+    if kind == "polls":
+        data = _latest_polls()
+        return json.dumps(data, ensure_ascii=False, indent=2).encode(), "coalicion_encuestas.json", "application/json"
+    if kind == "evidence":
+        data = [{"index": i, "poll": p} for i, p in enumerate(_latest_polls()[:20])]
+        return json.dumps(data, ensure_ascii=False, indent=2).encode(), "coalicion_evidencia.json", "application/json"
+    if kind == "changes":
+        return _changes_text().encode(), "coalicion_cambios.txt", "text/plain"
+    return json.dumps({"briefing": _briefing_text()}, ensure_ascii=False, indent=2).encode(), "coalicion_briefing.json", "application/json"
+
+
+def _send_document(chat_id: int, data: bytes, filename: str, content_type: str) -> None:
+    _api("sendDocument", files={"document": (filename, data, content_type)}, data={"chat_id": str(chat_id)})
+
+
+def _facts_text() -> str:
+    polls = _latest_polls()
+    sources = _sources()
+    lines = [
+        "📚 SOLO HECHOS", "", "Elección: 29/11/2026", "Cámara: 350 escaños",
+        "Circunscripciones: 52", f"Sondeos validados: {len(polls)}", f"Fuentes registradas: {len(sources)}",
+    ]
+    if polls:
+        p = polls[0]
+        lines += ["", f"Observación más reciente: {p.get('publication_date', 'n/d')}",
+                  f"Fuente/encuestadora: {p.get('pollster', p.get('source_id', 'n/d'))}"]
+        parties = p.get("parties") if isinstance(p.get("parties"), dict) else {}
+        for party, value in list(parties.items())[:12]:
+            try:
+                lines.append(f"{party}: {float(value):.1f}%")
+            except (TypeError, ValueError):
+                pass
+    return "\n".join(lines)
+
+
+def _digest_text() -> str:
+    briefing = build_briefing(as_of=date.today(), polls=_latest_polls(), sources=_sources(), observations=_observations(), horizon_days=31)
+    lines = ["🧭 PARTE ELECTORAL · 08:00", ""]
+    for item in briefing[:6]:
+        lines += [f"• {item['title']}", f"  {item['detail']}"]
+    if len(lines) == 2:
+        lines.append("• Sin novedades operativas materializadas.")
+    lines += ["", "Datos fechados y trazables. Sin recomendación política."]
+    return "\n".join(lines)
+
+
+def _configure_bot_ui() -> None:
+    _set_commands()
+    webapp = os.environ.get("TELEGRAM_WEBAPP_URL", "").strip()
+    if webapp:
+        try:
+            _api("setChatMenuButton", json={"menu_button": {"type": "web_app", "text": "Panel", "web_app": {"url": webapp}}})
+        except TelegramBotError:
+            pass
+
 def _natural_query(text: str) -> str | None:
     import unicodedata
     normalized = unicodedata.normalize("NFD", text.lower())
