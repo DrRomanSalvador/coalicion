@@ -77,7 +77,8 @@ jobs:
           set +e
           mkdir -p worker_evidence
           python - <<'PY'
-          rc=subprocess.run([sys.executable,"scripts/colmena_worker.py","--mission-id",os.environ["MISSION_ID"],"--approval","queen_approval.json","--ref",os.environ["GITHUB_SHA"],"--out",f"worker_evidence/{os.environ["MISSION_ID"]}.json"]).returncode
+          mid=os.environ["MISSION_ID"]
+          rc=subprocess.run([sys.executable,"scripts/colmena_worker.py","--mission-id",mid,"--approval","queen_approval.json","--ref",os.environ["GITHUB_SHA"],"--out","worker_evidence/"+mid+".json"]).returncode
           raise SystemExit(rc)
       - uses: actions/upload-artifact@v4
         if: always()
