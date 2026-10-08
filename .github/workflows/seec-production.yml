@@ -25,8 +25,31 @@ jobs:
           assert x["diagnostics"]["divergences"]==0
           assert math.isfinite(x["diagnostics"]["max_r_hat"]) and x["diagnostics"]["max_r_hat"]<=1.01
           PY
-      - run: |
+      - name: Persist genuine SEEC evidence with race recovery
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ci_evidence/seec_production.json
-          git diff --cached --quiet || (git commit -m "ci: materialize genuine SEEC posterior evidence" && git push origin HEAD:main)
+          cp ci_evidence/seec_production.json /tmp/seec_production.json
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p ci_evidence
+            cp /tmp/seec_production.json ci_evidence/seec_production.json
+            git add ci_evidence/seec_production.json
+            if git diff --cached --quiet; then
+              echo "Canonical SEEC evidence is already persisted."
+              exit 0
+            fi
+            git commit -m "ci: materialize genuine SEEC posterior evidence"
+            if git push origin HEAD:main; then
+              echo "SEEC evidence persisted on attempt $attempt."
+              exit 0
+            fi
+            echo "Concurrent main update; retrying evidence persistence ($attempt/5)."
+            sleep 3
+          done
+          echo "Unable to persist SEEC evidence after 5 attempts."
+          exit 1
