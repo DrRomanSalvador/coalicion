@@ -708,6 +708,35 @@ def _poll_card_markup(index: int) -> dict[str, Any]:
     return {"inline_keyboard": rows}
 
 
+def _territorial_evidence_detail(survey_id: str) -> str:
+    root = ROOT / "data" / "surveys" / "october_2026" / "territorial"
+    for path in sorted(root.glob("*.json")):
+        try:
+            item = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if item.get("survey_id") != survey_id:
+            continue
+        fields = [
+            ("Encuesta", item.get("survey_id")),
+            ("Fuente", item.get("source_id")),
+            ("Ámbito", item.get("territory_name")),
+            ("Tipo", item.get("territory_type")),
+            ("Campo", f"{item.get('fieldwork_start', 'n/d')} → {item.get('fieldwork_end', 'n/d')}"),
+            ("Publicación", item.get("publication_date")),
+            ("Muestra", item.get("sample_size")),
+            ("Metodología", item.get("methodology")),
+            ("URL primaria", item.get("source_url")),
+            ("Hash", item.get("content_sha256")),
+            ("Alcance del hash", item.get("content_hash_scope")),
+            ("Verificación", item.get("validation")),
+        ]
+        lines=["🔎 EVIDENCIA · TERRITORIAL",""]
+        lines.extend(f"{label}: {value if value not in (None, '') else 'n/d'}" for label, value in fields)
+        lines.append("\nNo se convierte esta encuesta en datos de las elecciones generales.")
+        return "\n".join(lines)
+    return "🔎 EVIDENCIA\n\nNo existe una encuesta territorial materializada con ese ID."
+
 def _evidence_detail(index: int) -> str:
     polls = _latest_polls()
     if not polls or index < 0 or index >= len(polls):
@@ -1373,12 +1402,17 @@ def _status_text() -> str:
 
 
 def render_command(command: str) -> str:
-    command = command.split("@", 1)[0].strip().lower()
+    raw_command = command.split("@", 1)[0].strip()
+    command = raw_command.lower()
     aliases = {
         "/start": "/briefing", "/menu": "/briefing", "/help": "/ayuda",
         "/prediccion": "/escanos", "/agenda": "/calendario",
     }
     command = aliases.get(command, command)
+    if command.startswith("/evidencia ") or command.startswith("/evidencia\n"):
+        parts = raw_command.split(None, 1)
+        survey_id = parts[1].strip() if len(parts) == 2 else ""
+        return _territorial_evidence_detail(survey_id) if survey_id else _evidence_text()
     renderers = {
         "/hoy": _home_text,
         "/briefing": _briefing_text,
