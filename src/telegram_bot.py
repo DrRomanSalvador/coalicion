@@ -686,11 +686,60 @@ def _scenario_text(name: str = "central") -> str:
     return f"🧪 ESCENARIO · {name.upper()}\n\nEstado: {data.get('status', 'materializado')}\nSchema: {data.get('schema', 'n/d')}\n\nSolo se muestran cifras materializadas."
 
 
-def _territory_markup() -> dict[str, Any]:
-    return {"inline_keyboard": [
-        [{"text": "🇪🇸 España", "callback_data": "territory:ES"}],
-        [{"text": "🔎 Evidencia", "callback_data": "cmd:/evidencia"}, {"text": "← Atrás", "callback_data": "back"}],
-    ]}
+TERRITORY_GROUPS = {
+    "Andalucía": ["Almería","Cádiz","Córdoba","Granada","Huelva","Jaén","Málaga","Sevilla"],
+    "Aragón": ["Huesca","Teruel","Zaragoza"],
+    "Asturias": ["Asturias"],
+    "Illes Balears": ["Illes Balears"],
+    "Canarias": ["Las Palmas","Santa Cruz de Tenerife"],
+    "Cantabria": ["Cantabria"],
+    "Castilla-La Mancha": ["Albacete","Ciudad Real","Cuenca","Guadalajara","Toledo"],
+    "Castilla y León": ["Ávila","Burgos","León","Palencia","Salamanca","Segovia","Soria","Valladolid","Zamora"],
+    "Cataluña": ["Barcelona","Girona","Lleida","Tarragona"],
+    "Comunitat Valenciana": ["Alicante/Alacant","Castellón/Castelló","Valencia/València"],
+    "Extremadura": ["Badajoz","Cáceres"],
+    "Galicia": ["A Coruña","Lugo","Ourense","Pontevedra"],
+    "Madrid": ["Madrid"],
+    "Murcia": ["Murcia"],
+    "Navarra": ["Navarra"],
+    "País Vasco": ["Araba/Álava","Bizkaia","Gipuzkoa"],
+    "La Rioja": ["La Rioja"],
+    "Ceuta": ["Ceuta"],
+    "Melilla": ["Melilla"],
+}
+
+def _territory_markup(level: str = "ES", region: str | None = None) -> dict[str, Any]:
+    if level == "ES":
+        rows = [[{"text": f"🇪🇸 {name}", "callback_data": f"territory:region:{i}"}] for i, name in enumerate(TERRITORY_GROUPS)]
+    else:
+        provinces = TERRITORY_GROUPS.get(region or "", [])
+        rows = [[{"text": f"📍 {p}", "callback_data": f"territory:province:{p}"}] for p in provinces]
+    rows += [
+        [{"text": "🔎 Evidencia", "callback_data": "cmd:/evidencia"}],
+        [{"text": "← Atrás", "callback_data": "back"}, {"text": "🏠 Inicio", "callback_data": "home"}],
+    ]
+    return {"inline_keyboard": rows}
+
+def _territory_detail(name: str) -> str:
+    matrix = _safe_json(ROOT / "artifacts/data/election_2023_canonical.json")
+    data = (matrix.get("data") or {}).get("constituencies") if isinstance(matrix, dict) else {}
+    item = data.get(name) if isinstance(data, dict) else None
+    if not isinstance(item, dict):
+        return f"📍 TERRITORIO · {name}\n\nNo hay una observación territorial materializada para esta circunscripción."
+    seats = item.get("seats", "n/d")
+    parties = item.get("parties") if isinstance(item.get("parties"), dict) else {}
+    rows = []
+    for party, votes in parties.items():
+        try: rows.append((str(party), int(votes)))
+        except (TypeError, ValueError): continue
+    rows.sort(key=lambda x: (-x[1], x[0]))
+    lines = [f"📍 TERRITORIO · {name}", "", f"Escaños: {seats}", f"Votos válidos: {item.get('valid_votes', 'n/d')}", "", "Votación 2023 materializada:"]
+    lines.extend(f"• {p}: {v:,}" for p, v in rows[:10])
+    lines.append("")
+    lines.append("Fuente territorial registrada en la matriz; no se extrapola a 2026.")
+    return "\n".join(lines)
+
+
 
 
 def _export_payload(kind: str) -> tuple[bytes, str, str]:
@@ -1479,9 +1528,19 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
                 view = data.split(":", 2)[2]
                 text = _scenario_text("central") + f"\n\nVista solicitada: {view}."
                 markup = _scenario_markup()
-            elif data.startswith("territory:"):
-                text = _territory_text()
-                markup = _territory_markup()
+            elif data == "territory:ES":
+                text, markup = _territory_text(), _territory_markup("ES")
+            elif data.startswith("territory:region:"):
+                idx = int(data.rsplit(":", 1)[-1])
+                region = list(TERRITORY_GROUPS)[idx]
+                text, markup = f"🗺 TERRITORIO · {region}\n\nSelecciona una circunscripción.", _territory_markup("REGION", region)
+            elif data.startswith("territory:province:"):
+                name = data.split(":", 2)[2]
+                text = _territory_detail(name)
+                markup = {"inline_keyboard": [
+                    [{"text": "← Comunidad", "callback_data": "territory:ES"}, {"text": "🏠 Inicio", "callback_data": "home"}],
+                    [{"text": "🔎 Evidencia", "callback_data": "cmd:/evidencia"}],
+                ]}
             elif data.startswith("export:"):
                 kind = data.split(":")[-1]
                 _export_text(int(chat_id), "csv" if kind == "csv" else ("pdf" if kind == "pdf" else ("polls" if kind == "polls" else kind)))
@@ -1548,7 +1607,7 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
         elif command == "/escenarios":
             response, markup = _scenarios_text(), _scenario_markup()
         elif command == "/territorio":
-            response, markup = _territory_text(), _territory_markup()
+            response, markup = _territory_text(), _territory_markup("ES")
         else:
             response, markup = render_command(command), _navigation_markup(command)
         _set_user_navigation(key, command, previous=_get_user_navigation(key)["current"])
