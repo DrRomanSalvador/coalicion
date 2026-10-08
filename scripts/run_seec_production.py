@@ -29,6 +29,7 @@ CHAINS = 2
 
 CIS_STUDY_ID = "3411"
 CIS_SAMPLE_SIZE = 29201
+OTHER_PARTY = "OTHER_UNSPECIFIED"
 
 ALIASES = {
     "pp":"PP","partido popular":"PP",
@@ -42,6 +43,10 @@ ALIASES = {
     "cup":"CUP","teruel existe":"TERUEL_EXISTE",
     "en blanco":"EN_BLANCO","votos en blanco":"EN_BLANCO",
 }
+CIS_CANONICAL = [r for r in load_cis() if r.election == "2023" and r.study_id == CIS_STUDY_ID]
+SURVEY = {r.party: r.cis_estimate_pct for r in CIS_CANONICAL}
+SURVEY_SOURCE_SUM = sum(SURVEY.values())
+
 def norm(s):
     return ALIASES.get(" ".join(str(s).lower().replace("_"," ").split()),
                        " ".join(str(s).lower().replace("_"," ").split()))
