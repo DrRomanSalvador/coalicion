@@ -1,0 +1,105 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "COALICIÓN API",
+    "version": "1.0.0",
+    "description": "API neutral de evidencia y análisis electoral; las predicciones no certificadas fallan cerrado."
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "summary": "Health",
+        "responses": {
+          "200": {
+            "description": "Service healthy"
+          }
+        }
+      }
+    },
+    "/estado": {
+      "get": {
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operational status"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/encuestas": {
+      "get": {
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validated poll observations"
+          }
+        }
+      }
+    },
+    "/territorio": {
+      "get": {
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Materialized territorial evidence"
+          }
+        }
+      }
+    },
+    "/evidencia": {
+      "get": {
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Certification evidence"
+          }
+        }
+      }
+    },
+    "/prediccion": {
+      "get": {
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Certified prediction"
+          },
+          "409": {
+            "description": "Prediction not certified"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    }
+  }
+}
