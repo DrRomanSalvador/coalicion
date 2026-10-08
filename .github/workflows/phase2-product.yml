@@ -41,6 +41,9 @@ on:
 permissions:
   contents: read
 
+env:
+  PYTHONPATH: .
+
 jobs:
   phase2:
     runs-on: ubuntu-latest
