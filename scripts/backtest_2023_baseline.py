@@ -64,6 +64,20 @@ def party_family(label: str) -> str:
         return "PP"
     if "VOX" in s:
         return "VOX"
+    if "BILDU" in s:
+        return "EH BILDU"
+    if "PNV" in s or "EAJ" in s:
+        return "EAJ-PNV"
+    if "JUNTS" in s or "JXCAT" in s:
+        return "JUNTS"
+    if "ERC" in s or "ESQUERRA" in s:
+        return "ERC"
+    if s.startswith("BNG") or "B.N.G" in s:
+        return "BNG"
+    if s.startswith("CC") or "CANARIAS" in s:
+        return "CC"
+    if "UPN" in s or "U.P.N" in s:
+        return "UPN"
     if any(token in s for token in (
         "SUMAR", "PODEMOS", "UNIDAS PODEMOS", "IZQUIERDA UNIDA",
         "IU ", "IU", "MÁS PAÍS", "MAS PAIS", "COMPROMÍS", "COMPROMIS",
@@ -451,28 +465,45 @@ for party, seats_n in point_pred_2023.items():
     family = party_family(party)
     predicted_family_seats[family] = predicted_family_seats.get(family, 0) + int(seats_n)
 
+actual_family_seats = {}
+predicted_family_seats = {}
+for party, seats_n in actual_seats.items():
+    family = party_family(party)
+    actual_family_seats[family] = actual_family_seats.get(family, 0) + int(seats_n)
+for party, seats_n in point_pred_2023.items():
+    family = party_family(party)
+    predicted_family_seats[family] = predicted_family_seats.get(family, 0) + int(seats_n)
+
 intervals={}
-winners=[p for p,s in actual_seats.items() if s>0]
+winners=[f for f,s in actual_family_seats.items() if s>0]
 covered=0
-for party in winners:
-    predicted = int(point_pred_2023.get(party, 0))
-    if predicted == 0:
+for family in winners:
+    predicted = int(predicted_family_seats.get(family, 0))
+    vals = historical_family_residuals_by_name.get(family, [])
+    if len(vals) >= 3:
+        q = conformal_quantile(vals, 0.90)
+        method = "split_conformal_family_specific"
+        calibration_n = len(vals)
+    elif predicted == 0:
         q = Q90_NEW_FAMILY_SEATS
-        method = "split_conformal_absolute_emergent_family_seat_residual"
+        method = "split_conformal_emergent_family"
+        calibration_n = len(historical_new_family_residuals)
     else:
-        q = Q90_PARTY.get(party, Q90_SEATS)
-        method = "split_conformal_absolute_party_or_family_seat_residual"
+        q = Q90_FAMILY_SEATS
+        method = "split_conformal_global_family_fallback"
+        calibration_n = len(historical_family_residuals)
     lo = max(0.0, predicted - q)
     hi = min(350.0, predicted + q)
-    intervals[party]={
-        "actual": int(actual_seats[party]),
+    intervals[family]={
+        "actual": int(actual_family_seats[family]),
         "p10": float(lo),
         "p50": float(predicted),
         "p90": float(hi),
         "interval_method": method,
         "calibration_q90": float(q),
+        "calibration_n": int(calibration_n),
     }
-    covered += int(lo <= actual_seats[party] <= hi)
+    covered += int(lo <= actual_family_seats[family] <= hi)
 
 coverage=covered/len(winners) if winners else float("nan")
 
@@ -498,10 +529,9 @@ result={
        np.percentile(sim_seats[p],[90])[0] for p in winners
    ])) if winners else float("nan"),
    "coverage_actual_seats_in_calibrated_p10_p90_winners":coverage,
-   "coverage_unit":"NATIONAL_PARTY",
-   "party_specific_q90_count":sum(1 for p in winners if len(historical_party_residuals.get(p, [])) >= 3),
+   "coverage_unit":"NATIONAL_PARTY_FAMILY",
    "n_2023_seat_winning_families":len(winners),
-   "n_2023_seat_winning_parties":len(winners),
+   "n_2023_seat_winning_parties":len(actual_seats),
    "historical_conformal_pairs":historical_pair_count,
    "historical_conformal_residuals":len(historical_residuals),
    "historical_new_party_residuals":len(historical_new_party_residuals),
