@@ -39,3 +39,4 @@ jobs:
         run: python -m pytest -q tests/test_neutral_coalition.py tests/test_neutral_audit.py tests/test_electoral.py tests/test_decision.py
 
 # activation-touch: 2026-10-08 — ejecución explícita de la abeja reina/colmena
+# queen-bee activation run: 2026-10-08T14:00Z
