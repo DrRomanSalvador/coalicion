@@ -15,6 +15,12 @@ on:
       - "scripts/colmena_*.py"
       - ".github/workflows/colmena_executable.yml"
   workflow_dispatch:
+  # Automatic execution after the repository's already-running poll monitor.
+  # No human Run workflow action is required.
+  workflow_run:
+    workflows: ["Autonomous poll monitor"]
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: read
@@ -26,6 +32,7 @@ concurrency:
 jobs:
   queen-gate:
     name: Queen Gate
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
