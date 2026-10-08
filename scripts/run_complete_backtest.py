@@ -103,6 +103,14 @@ def main() -> int:
 
     required_pass = (
         isinstance(baseline, dict)
+        and isinstance(baseline.get("metrics"), dict)
+        and isinstance(baseline.get("contracts"), dict)
+        and float(baseline["metrics"].get("coverage_actual_seats_in_calibrated_interval_winners", 0.0)) >= 0.85
+        and baseline["contracts"].get("calibrated_coverage_gate") is True
+        and baseline["contracts"].get("historical_conformal_calibration") is True
+        and baseline["contracts"].get("calibration_before_target_election") is True
+        and baseline["contracts"].get("target_election_excluded_from_calibration") is True
+        and baseline["contracts"].get("conformal_nominal_coverage_95") is True
         and isinstance(oos, dict)
         and oos.get("status") == "PASS"
         and isinstance(calibration, dict)
@@ -118,6 +126,7 @@ def main() -> int:
             "oos": "EXPANDING_WINDOW_NO_FUTURE_LEAKAGE",
             "calibration": "STRICT_FAIL_CLOSED",
             "territorial_baseline": "2023_FROM_2019N",
+            "territorial_seat_calibration": "PRE_2023_FAMILY_SPECIFIC_CONFORMAL_95",
         },
         "input": {
             "path": str(inp.relative_to(ROOT)),
@@ -130,7 +139,7 @@ def main() -> int:
             "probabilistic_calibration": calibration,
         },
         "closure_rule": (
-            "PASS requires baseline execution, strict OOS PASS and "
+            "PASS requires baseline execution with territorial coverage >=85%, strict OOS PASS and "
             "probabilistic calibration PASS; otherwise NOT_CERTIFIED."
         ),
     }
