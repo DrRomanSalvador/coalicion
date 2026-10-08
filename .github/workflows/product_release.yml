@@ -1,0 +1,48 @@
+name: Product release gate
+on:
+  push:
+    branches: [main]
+    paths:
+      - "README.md"
+      - "QUICKSTART.md"
+      - "Dockerfile"
+      - "docker_entrypoint.py"
+      - "api.py"
+      - "web/**"
+      - "src/telegram_bot.py"
+      - "src/pipeline/**"
+      - "requirements.lock"
+      - "scripts/product_release_gate.py"
+      - "ci_evidence/**"
+      - ".github/workflows/product_release.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: product-release-main
+  cancel-in-progress: true
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install runtime
+        run: python -m pip install -r requirements.lock
+      - name: Runtime contract
+        run: |
+          python -m py_compile api.py docker_entrypoint.py scripts/product_release_gate.py src/telegram_bot.py src/pipeline/full_election.py
+          pytest -q tests/test_runtime_contracts.py tests/test_full_pipeline.py tests/test_telegram_integration.py tests/test_telegram_source_status.py
+      - name: Product gate
+        run: python scripts/product_release_gate.py
+      - name: Persist product gate evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ci_evidence/product_release_gate.json
+          git diff --cached --quiet || (git commit -m "ci: materialize product release gate" && git push origin HEAD:main)
+      - name: Docker build
+        run: docker build -t coalicion-product .
