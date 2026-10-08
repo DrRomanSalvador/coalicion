@@ -7,7 +7,8 @@ import re
 import time
 from pathlib import Path
 from typing import Any
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 from src.election_calendar import critical_window
 from src.operational_briefing import build_briefing
@@ -25,9 +26,13 @@ SCENARIO_DIR = ROOT / "artifacts"
 API_TIMEOUT = 40
 API_RETRIES = 4
 MAX_MESSAGE = 4090
+MADRID_TZ = ZoneInfo('Europe/Madrid')
 
 COMMANDS = [
     ("hoy", "¿Qué está pasando ahora?"),
+    ("situacion", "Sala de situación en tiempo real"),
+    ("tendencias", "Tendencias descriptivas"),
+    ("incertidumbre", "Incertidumbre materializada"),
     ("briefing", "¿Qué debo saber ahora mismo?"),
     ("mes", "¿Qué importa este mes?"),
     ("cambios", "¿Qué ha cambiado?"),
@@ -114,7 +119,8 @@ def _latest_polls() -> list[dict[str, Any]]:
 
 
 def _sources() -> list[dict[str, Any]]:
-    value = _safe_json(STATE).get("sources") or _safe_json(STATE).get("source_health")
+    state = _safe_json(STATE)
+    value = state.get("source_status") or state.get("sources") or state.get("source_health")
     if isinstance(value, dict):
         return [{"id": k, **(v if isinstance(v, dict) else {"status": v})} for k, v in value.items()]
     return _list_records(value)
@@ -184,7 +190,7 @@ def _send(chat_id: int, text: str, markup: dict[str, Any] | None = None) -> None
 
 def _briefing_text() -> str:
     """Single-screen factual situation room for current electoral operations."""
-    today = date.today()
+    today = datetime.now(MADRID_TZ).date()
     polls = _latest_polls()
     sources = _sources()
     observations = _observations()
