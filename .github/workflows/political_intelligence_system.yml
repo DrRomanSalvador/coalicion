@@ -33,10 +33,13 @@ jobs:
         run: python -m pytest tests/test_political_intelligence.py tests/test_political_intelligence_system.py -q
       - name: Build reproducibility manifest
         run: python scripts/build_political_intelligence_manifest.py
+      - name: Build master intelligence readiness manifest
+        run: python scripts/build_political_intelligence_master_manifest.py
       - name: Publish manifests and primary evidence
         uses: actions/upload-artifact@v4
         with:
           name: political-intelligence-evidence
           path: |
             artifacts/political_intelligence_manifest.json
+            artifacts/political_intelligence_master_manifest.json
             artifacts/primary_evidence/
