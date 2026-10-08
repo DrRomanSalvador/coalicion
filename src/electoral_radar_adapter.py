@@ -64,6 +64,7 @@ def build_radar_from_snapshot(*, today: date, current: Mapping[str, Any],
         "model_status": current.get("status", "UNKNOWN"),
         "methodology_status": current.get("methodology", {}).get("status", "UNKNOWN"),
         "methodology_promotion_allowed": current.get("methodology", {}).get("promotion_allowed", False),
+        "baseline": current.get("baseline"),
     }
     radar["integration"] = {
         "source": "src.rapid_decision_center.decision_snapshot",
