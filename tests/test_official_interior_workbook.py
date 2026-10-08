@@ -4,7 +4,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from src.data import available_elections, download_workbook, load_official_constituency_matrix, load_rows
-from src.electoral import allocate
+from src.electoral import allocate\nfrom src.prediction import official_matrix_to_prediction_inputs, predict
 
 ROOT=Path(__file__).resolve().parents[1]
 WORKBOOK=ROOT/"data"/"raw"/"Elecciones-Congreso.xlsx"
@@ -85,6 +85,26 @@ def test_official_2023_votes_reproduce_observed_seat_allocation():
             observed = item["observed_seats"]
             predicted_positive = {p: s for p, s in allocation.seats.items() if s > 0}
             assert predicted_positive == observed, constituency
+    finally:
+        if temp:
+            temp.cleanup()
+
+
+def test_official_matrix_connects_to_prediction_without_inference():
+    path, temp = _workbook()
+    try:
+        result = load_official_constituency_matrix(path, "2023-07-23")
+        matrix = {"constituencies": result["constituencies"]}
+        votes, seats, blanks, special = official_matrix_to_prediction_inputs(matrix)
+        changes = {c: {p: 0.0 for p in row} for c, row in votes.items()}
+        factors = {c: 1.0 for c in votes}
+        predicted = predict(votes, seats, blanks, changes, factors, special)
+        observed = {}
+        for c, item in result["constituencies"].items():
+            for p, s in item["observed_seats"].items():
+                observed[p] = observed.get(p, 0) + s
+        assert sum(predicted["national_seats"].values()) == 350
+        assert {p: s for p, s in predicted["national_seats"].items() if s} == observed
     finally:
         if temp:
             temp.cleanup()
