@@ -27,6 +27,7 @@ jobs:
           python -m pip install --disable-pip-version-check --no-input "pymc==6.3.2" "arviz>=0.22,<0.24" 2>&1 | tee /tmp/seec_pip_install.log
       - name: Materialize installation failure evidence
         if: failure()
+        continue-on-error: true
         run: |
           set -euo pipefail
           mkdir -p ci_evidence
@@ -59,6 +60,15 @@ jobs:
           print("SEEC PRODUCTION PASS",x["total_draws"],x["diagnostics"])
           PY
       - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: seec-production-diagnostics
+          path: |
+            ci_evidence/seec_install_failure.txt
+            /tmp/seec_pip_install.log
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: seec-production-evidence
           path: ci_evidence/seec_production.json
