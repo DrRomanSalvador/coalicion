@@ -5,10 +5,9 @@ from src import telegram_bot
 
 def test_start_is_operational_menu():
     text = telegram_bot.render_command("/start")
-    assert "BRIEFING" not in text
-    assert "/briefing" in text
-    assert "/auditoria" in text
-    assert "/territorio" in text
+    assert "PANEL DE HOY" in text
+    assert "Último sondeo validado" in text
+    assert "/menu" not in text
 
 
 def test_render_prediction_fails_closed_without_snapshot(tmp_path, monkeypatch):
@@ -105,3 +104,24 @@ def test_callback_menu_sends_keyboard(monkeypatch):
     assert telegram_bot._handle_update(update, None) == 8
     assert any(method == "answerCallbackQuery" for method, _ in calls)
     assert any(method == "sendMessage" for method, _ in calls)
+
+
+def test_natural_questions_route_to_useful_answers():
+    assert "PANEL DE HOY" in telegram_bot.render_command(telegram_bot._natural_query("¿Qué está pasando ahora?"))
+    assert "CAMBIOS" in telegram_bot.render_command(telegram_bot._natural_query("¿Qué ha cambiado?"))
+    assert "ENCUESTAS" in telegram_bot.render_command(telegram_bot._natural_query("¿Qué dicen los sondeos?"))
+    assert "MAYORÍAS" in telegram_bot.render_command(telegram_bot._natural_query("¿Qué mayorías son posibles?"))
+
+
+def test_user_never_sees_internal_prediction_blocker():
+    text = telegram_bot.render_command("/escanos")
+    assert "BLOCKED_NO_TERRITORIAL_INPUT" not in text
+    assert "BLOQUEADO" not in text
+
+
+def test_menu_uses_question_language():
+    markup = telegram_bot._menu_markup()
+    labels = [button["text"] for row in markup["inline_keyboard"] for button in row]
+    assert "🟦 ¿Qué pasa ahora?" in labels
+    assert "🗳 ¿Qué dicen los sondeos?" in labels
+    assert "📅 ¿Qué plazos importan?" in labels
