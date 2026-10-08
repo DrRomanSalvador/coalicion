@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "a2a34474a9a131493ca3e3443c296b3f7c454185",
-  "updated_at": "2026-10-08T15:30:00+02:00",
+  "commit": "a1c5779f0751492d164781d57198f11c3a6a63b3",
+  "updated_at": "2026-10-08T15:34:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,7 +24,7 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Inspect running phase2-product job; then fix any actual CI failure. No release tag until P1-P3 evidence gates pass.",
+  "resume_from": "Inspect newest phase2-product run. If failure, fix exact failing test; if success, materialize CI evidence and continue only with remaining P1/P3 blockers.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
@@ -143,9 +143,13 @@
   },
   "phase2_ci_workflow": "FIXED_CLEAN_PATHS_AND_FULL_TEST_MATRIX",
   "phase2_ci_execution": {
-    "status": "PENDING_GITHUB_ACTIONS",
-    "latest_head": "b8c80f0a65702859414813269e7f4efec0f46521",
-    "note": "No workflow run/status materialized yet for latest head; previous phase2 run failed on script import order, which is now fixed."
+    "status": "QUEUED_AFTER_REAL_FAILURE_FIX",
+    "previous_failure": "territory renderer wording contract",
+    "fix": "restored required fail-closed wording",
+    "tests_added": [
+      "test_territorial_data_collection",
+      "test_telegram_evidence"
+    ]
   },
   "phase2_summary": {
     "priority1": "BLOCKED",
