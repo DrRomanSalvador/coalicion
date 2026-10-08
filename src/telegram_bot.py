@@ -14,6 +14,7 @@ OBSERVATIONS=ROOT/"artifacts/estimation/observations.json"
 ESTIMATION=ROOT/"artifacts/estimation/real_estimation.json"
 SNAPSHOT=ROOT/"artifacts/decision_snapshot.json"
 API_TIMEOUT=20
+API_RETRIES=4
 
 class TelegramBotError(RuntimeError):
     pass
@@ -25,12 +26,24 @@ def _token() -> str:
     return token
 
 def _api(method:str,**kwargs:Any)->dict[str,Any]:
-    response=requests.post(f"https://api.telegram.org/bot{_token()}/{method}",timeout=API_TIMEOUT,**kwargs)
-    response.raise_for_status()
-    payload=response.json()
-    if not payload.get("ok"):
-        raise TelegramBotError(f"Telegram API error: {payload}")
-    return payload
+    last:Exception|None=None
+    for attempt in range(API_RETRIES):
+        try:
+            response=requests.post(
+                f"https://api.telegram.org/bot{_token()}/{method}",
+                timeout=API_TIMEOUT,
+                **kwargs,
+            )
+            response.raise_for_status()
+            payload=response.json()
+            if not payload.get("ok"):
+                raise TelegramBotError(f"Telegram API error: {payload}")
+            return payload
+        except (requests.RequestException, ValueError) as exc:
+            last=exc
+            if attempt + 1 < API_RETRIES:
+                time.sleep(min(2 ** attempt, 8))
+    raise TelegramBotError(f"Telegram transport failed after {API_RETRIES} attempts: {last}") from last
 
 def send_message(chat_id:int,text:str)->None:
     _api("sendMessage",json={"chat_id":chat_id,"text":text[:4090]})
@@ -98,6 +111,51 @@ def _polls_text()->str:
     if not territory: lines.append("Escaños: BLOQUEADOS hasta disponer de observación territorial verificable.")
     return "\n".join(lines)[:4090]
 
+def _urgencies_text()->str:
+    state=_load_json(STATE) or {}
+    estimation=_load_json(ESTIMATION) or {}
+    obs=_observations()
+    issues:list[str]=[]
+    if estimation.get("status")=="BLOCKED":
+        issues.append("PREDICCIÓN BLOQUEADA: faltan observaciones territoriales explícitas.")
+    if not _latest_polls():
+        issues.append("No hay sondeos validados materializados.")
+    sources=state.get("sources") or state.get("source_health") or []
+    if isinstance(sources,dict):
+        sources=[{"id":k,**(v if isinstance(v,dict) else {"status":v})} for k,v in sources.items()]
+    if isinstance(sources,list):
+        failed=[]
+        for s in sources:
+            if not isinstance(s,dict): continue
+            status=str(s.get("status",s.get("health",""))).upper()
+            if status in {"DOWN","FAILED","ERROR","DEGRADED","UNHEALTHY"}:
+                failed.append(str(s.get("id",s.get("source_id",s.get("name","?")))))
+        if failed:
+            issues.append("Fuentes con incidencia: "+", ".join(failed[:8]))
+    if not issues:
+        issues.append("Sin bloqueos críticos materializados.")
+    return ("URGENCIAS · ESTADO OPERATIVO\n\n"
+            + "\n".join(f"• {x}" for x in issues)
+            + "\n\nNo recomienda decisiones políticas: identifica hechos, bloqueos y evidencia pendiente.")
+
+def _sources_text()->str:
+    state=_load_json(STATE) or {}
+    sources=state.get("sources") or state.get("source_health") or []
+    if isinstance(sources,dict):
+        sources=[{"id":k,**(v if isinstance(v,dict) else {"status":v})} for k,v in sources.items()]
+    if not isinstance(sources,list) or not sources:
+        return "FUENTES\nNo hay estado de fuentes materializado."
+    lines=["FUENTES · SALUD MATERIALIZADA",""]
+    for s in sources[:30]:
+        if not isinstance(s,dict): continue
+        sid=s.get("id",s.get("source_id",s.get("name","?")))
+        status=s.get("status",s.get("health","UNKNOWN"))
+        err=s.get("error") or s.get("last_error")
+        line=f"{sid}: {status}"
+        if err: line += f" · {str(err)[:140]}"
+        lines.append(line)
+    return "\n".join(lines)[:4090]
+
 def _status_text()->str:
     obs=_observations()
     state=_load_json(STATE) or {}
@@ -135,13 +193,17 @@ def render_command(command:str)->str:
     command=command.split("@",1)[0].strip().lower()
     if command in {"/start","/ayuda","/help"}:
         return ("COALICIÓN · vigilancia electoral neutral\n\n"
+                "/urgencias — bloqueos y problemas que requieren atención\n"
                 "/prediccion — estado de la proyección y bloqueo real\n"
                 "/encuestas — observaciones y cambios entre sondeos\n"
+                "/fuentes — salud y errores de fuentes\n"
                 "/estado — estado operativo y cobertura\n"
                 "/radar — alertas y bloqueos actuales\n"
                 "/ayuda — ayuda")
+    if command=="/urgencias": return _urgencies_text()
     if command=="/prediccion": return _prediction_text()
     if command=="/encuestas": return _polls_text()
+    if command=="/fuentes": return _sources_text()
     if command=="/estado": return _status_text()
     if command=="/radar": return _radar_text()
     return "Comando no reconocido. Usa /ayuda."
