@@ -13,6 +13,7 @@ from pathlib import Path
 from src.data import download_workbook, inspect_workbook, load_rows, write_json
 from src.decision import coalition_result, apply_absolute_shift, Scenario, validate_scenario
 from src.marginality import marginal_seat
+from src.political_intelligence import intelligence_snapshot
 from src.electoral import allocate
 
 CANONICAL = Path("artifacts/data/election_2023_canonical.json")
@@ -109,6 +110,11 @@ def cmd_marginal(a):
     print(json.dumps(out, ensure_ascii=False, indent=2))
 
 
+def cmd_intelligence(a):
+    from datetime import date\n    snapshot = intelligence_snapshot(as_of=a.as_of or date.today().isoformat())
+    print(json.dumps(snapshot, ensure_ascii=False, indent=2))
+
+
 def cmd_audit(a):
     cert = Path(a.certificate or "artifacts/audit/certificate_2023.json")
     if not cert.is_file():
@@ -160,6 +166,10 @@ def main():
     m.add_argument("--election", default="2023")
     m.add_argument("--input")
     m.set_defaults(fn=cmd_marginal)
+
+    pi = sub.add_parser("intelligence-status")
+    pi.add_argument("--as-of", default=None)
+    pi.set_defaults(fn=cmd_intelligence)
 
     au = sub.add_parser("audit")
     au.add_argument("election", default="2023", nargs="?")
