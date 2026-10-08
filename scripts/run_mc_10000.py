@@ -38,6 +38,7 @@ def main():
     rng=np.random.Generator(np.random.PCG64(int(args.seed)))
     seat_sums=np.empty(n,dtype=np.int16)
     status_counts={}
+    resampled_ties=0
     for i in range(n):
         total_seats=0
         for name,row in constituencies.items():
@@ -46,14 +47,23 @@ def main():
             seat_n=int(row["seats"])
             total=max(sum(votes.values()),1)
             probs=np.array([v/total for v in votes.values()],dtype=float)
-            draw=rng.dirichlet(np.maximum(probs*CONCENTRATION,0.05))
-            simulated={party:int(round(float(frac)*total)) for party,frac in zip(votes,draw)}
-            diff=total-sum(simulated.values())
-            if diff:
-                simulated[max(simulated,key=simulated.get)]+=diff
-            valid=sum(simulated.values())+blank
             special=name if name in {"Ceuta","Melilla"} else ""
-            allocation=allocate(simulated,seat_n,valid,special=special,blank_votes=blank)
+            allocation=None
+            for _attempt in range(1000):
+                draw=rng.dirichlet(np.maximum(probs*CONCENTRATION,0.05))
+                simulated={party:int(round(float(frac)*total)) for party,frac in zip(votes,draw)}
+                diff=total-sum(simulated.values())
+                if diff:
+                    simulated[max(simulated,key=simulated.get)]+=diff
+                valid=sum(simulated.values())+blank
+                candidate=allocate(simulated,seat_n,valid,special=special,blank_votes=blank)
+                if candidate.status=="EMPATE_ABSOLUTO_PENDIENTE":
+                    resampled_ties+=1
+                    continue
+                allocation=candidate
+                break
+            if allocation is None:
+                raise SystemExit(f"BLOCKED: unresolved absolute tie after 1000 resamples in {name}")
             status_counts[allocation.status]=status_counts.get(allocation.status,0)+1
             if allocation.status!="OK":
                 raise SystemExit(f"BLOCKED: allocation {name} {allocation.status}")
@@ -78,6 +88,7 @@ def main():
         "invariants":{"every_draw_seat_sum_350":True,"all_allocations_status_OK":True},
         "allocation_calls":n*52,
         "status_counts":status_counts,
+        "resampled_absolute_ties":resampled_ties,
         "predictive_claim":False,
         "fail_closed":True,
     }
