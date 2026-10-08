@@ -17,7 +17,10 @@ def command_for(title: str):
     if "muestreo pymc" in t or "seec producción" in t or "seec producción genuino" in t:
         return [sys.executable, "scripts/run_seec_production.py"], "SEEC_REAL_SAMPLING"
     if "calibración probabilística" in t:
-        return [sys.executable, "scripts/complete_historical_calibration.py", "--input", "artifacts/data/cis_historical_2004_2023.csv", "--output", "ci_evidence/oos_calibration.json"], "PROBABILISTIC_CALIBRATION"
+        candidate = ROOT / "data/encuestas_historicas_2004_2023.csv"
+        if not candidate.is_file():
+            return None, "CALIBRATION_REQUIRES_MATERIALIZED_INPUT"
+        return [sys.executable, "scripts/complete_historical_calibration.py", "--input", str(candidate), "--output", "ci_evidence/oos_calibration.json"], "PROBABILISTIC_CALIBRATION"
     if "backtest 1977-2023" in t or "backtest histórico reproducible" in t:
         return [sys.executable, "scripts/run_complete_backtest.py", "--input", "artifacts/data/cis_historical_2004_2023.csv"], "BACKTEST_COMPLETE"
     if "backtest oos" in t or "oos" in t:
@@ -42,7 +45,7 @@ def command_for(title: str):
         return [sys.executable, "scripts/audit_2023.py"], "AUDIT_2023"
     if "py_compile" in t or "compil" in t:
         return [sys.executable, "-m", "compileall", "-q", "src", "scripts"], "PY_COMPILE"
-    if any(x in t for x in ("test", "regresión", "batería completa", "end-to-end", "integración", "seguridad")):
+    if any(x in t for x in ("batería completa de tests", "tests unitarios", "tests integración", "tests end-to-end", "tests seguridad", "regresión motor", "regresión coaliciones", "regresión incertidumbre", "regresión bot", "regresión monitor", "regresión telegram")):
         return [sys.executable, "-m", "pytest", "-q"], "PYTEST"
     return None, "AI_ANALYSIS"
 
