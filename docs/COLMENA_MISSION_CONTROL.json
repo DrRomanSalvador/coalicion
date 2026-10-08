@@ -214,21 +214,40 @@
     "release v1.0.0"
   ],
   "execution_rules": [
-    "Cada entrada es una misión atómica con worker lógico propio.",
+    "Cada entrada es una misión atómica con identidad de agente propia; la ejecución debe corresponder a un agente IA/worker independiente verificable.",
     "La Reina valida cada orden antes de cualquier escritura del worker.",
     "Workers no escriben fuera de su alcance autorizado.",
     "Múltiples workers pueden leer en paralelo; escrituras con solapamiento quedan serializadas.",
     "Una misión terminada desbloquea automáticamente sus dependientes.",
     "No se declara PASS sin evidencia materializada.",
     "No se cierra una misión si contradice otra misión o la fuente de verdad.",
-    "El control se mantiene en GitHub y exclusivamente en este repositorio."
+    "El control se mantiene en GitHub y exclusivamente en este repositorio.",
+    "La reinvocación debe comprobar la disponibilidad del runtime de agentes antes de ejecutar.",
+    "El proveedor de runtime puede ser GitHub Actions, Hugging Face u otro proveedor autorizado; el proveedor es intercambiable, el contrato de evidencia no.",
+    "No se puede sustituir la ejecución de 179 agentes independientes por 179 slots lógicos y declararlo equivalente.",
+    "Cada agente debe poder recuperarse por su mission_id sin perder su contexto, aprobación ni evidencia.",
+    "La Reina coordina agentes; no atribuye a un agente trabajo realizado por otro."
   ],
   "agent_model": {
-    "logical_agents": 179,
-    "execution": "GitHub Actions worker slots governed by Queen",
-    "ai_claim": "not_autonomous_ai_processes",
-    "persistence": "per-mission evidence + batch checkpoints + Queen approval artifacts",
-    "recovery": "same plan hash and approvals; rerun only missing/failed missions"
+    "logical_missions": 179,
+    "required_runtime_agents": 179,
+    "identity": "one_unique_agent_identity_per_mission_M0001_to_M0179",
+    "execution": "real_independent_AI_agents_or_workers_created_by_a_provider_backed_runtime_and_governed_by_Queen",
+    "ai_claim": "ONLY_TRUE_WHEN_RUNTIME_EXECUTION_EVIDENCE_EXISTS",
+    "provider": "provider-neutral; GitHub Actions, Hugging Face or another authorized runtime may be used",
+    "independence_requirements": [
+      "unique agent identity",
+      "isolated mission context",
+      "explicit mission scope",
+      "Queen-issued approval",
+      "independent execution result",
+      "persistent evidence bound to mission ID",
+      "recoverable checkpoint",
+      "no shared PASS inferred from another agent"
+    ],
+    "persistence": "per-mission agent identity + execution evidence + batch checkpoints + Queen approval + closure",
+    "recovery": "recover persisted agent state and continue from first non-PASS; never recreate PASS from chat memory",
+    "fail_closed": "if the runtime cannot prove 179 independent agents/workers were instantiated and executed, the colmena remains BLOCKED and the system must not claim 179 autonomous agents"
   },
   "queen_contract": {
     "preconditions": [
