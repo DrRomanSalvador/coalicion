@@ -30,7 +30,9 @@ def calculate_coalition(votes_by_constituency: Mapping[str, Mapping[str,int]],
     separate_by={}; coalition_by={}
     for c,row0 in votes_by_constituency.items():
         row=dict(row0)
-        for p in members: row.setdefault(p,0)
+        missing=[p for p in members if p not in row]
+        if missing:
+            raise ValueError(f"{c}: candidaturas ausentes: {missing}")
         a=allocate(row,seats_by_constituency[c],valid_votes[c],special.get(c,""),blank.get(c,0))
         if a.status!="OK": raise RuntimeError(f"BLOCKED:{c}:{a.status}")
         name=" + ".join(members)
