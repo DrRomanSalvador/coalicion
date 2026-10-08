@@ -4,7 +4,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from src.data import available_elections, download_workbook, load_official_constituency_matrix, load_rows
-from src.electoral import allocate\nfrom src.prediction import official_matrix_to_prediction_inputs, predict
+from src.electoral import allocate
+from src.prediction import official_matrix_to_prediction_inputs, predict
 
 ROOT=Path(__file__).resolve().parents[1]
 WORKBOOK=ROOT/"data"/"raw"/"Elecciones-Congreso.xlsx"
