@@ -26,14 +26,15 @@
         "UPN": 0.1,
         "OTROS PARTIDOS": 8.6
       },
+      "source_tier": "SECONDARY_REPLICA",
       "fieldwork_start": null,
       "fieldwork_end": null,
       "sample_size": 4042,
       "methodology": null,
       "territorial": null,
       "validation": "VALIDATED",
-      "captured_at": "2026-10-08T09:01:50.886493+00:00",
-      "source_content_hash": "55a4adcddd53ed78049d44f3a2a502a50a7c795b009085b4366bf67c83483dd1"
+      "captured_at": "2026-10-08T10:57:42.154077+00:00",
+      "source_content_hash": "a2e1d095fe81b7c2c49746ce09aac4fc49652948faedf3d04040367dc4f6b18a"
     },
     {
       "poll_id": "datoelectoral::2026-09-07::Barómetro de julio 2026 (estudio 3571 del CIS)",
@@ -57,14 +58,15 @@
         "UPN": 0.2,
         "OTROS PARTIDOS": 8.0
       },
+      "source_tier": "SECONDARY_REPLICA",
       "fieldwork_start": null,
       "fieldwork_end": null,
       "sample_size": 4020,
       "methodology": null,
       "territorial": null,
       "validation": "VALIDATED",
-      "captured_at": "2026-10-08T09:01:50.886493+00:00",
-      "source_content_hash": "55a4adcddd53ed78049d44f3a2a502a50a7c795b009085b4366bf67c83483dd1"
+      "captured_at": "2026-10-08T10:57:42.154077+00:00",
+      "source_content_hash": "a2e1d095fe81b7c2c49746ce09aac4fc49652948faedf3d04040367dc4f6b18a"
     },
     {
       "poll_id": "datoelectoral::2026-06-26::Barómetro de junio 2026 (estudio 3567 del CIS)",
@@ -88,14 +90,15 @@
         "UPN": 0.1,
         "OTROS PARTIDOS": 7.6
       },
+      "source_tier": "SECONDARY_REPLICA",
       "fieldwork_start": null,
       "fieldwork_end": null,
       "sample_size": 4024,
       "methodology": null,
       "territorial": null,
       "validation": "VALIDATED",
-      "captured_at": "2026-10-08T09:01:50.886493+00:00",
-      "source_content_hash": "55a4adcddd53ed78049d44f3a2a502a50a7c795b009085b4366bf67c83483dd1"
+      "captured_at": "2026-10-08T10:57:42.154077+00:00",
+      "source_content_hash": "a2e1d095fe81b7c2c49746ce09aac4fc49652948faedf3d04040367dc4f6b18a"
     }
   ],
   "policy": {
@@ -103,5 +106,5 @@
     "national_to_territorial_inference": false,
     "unverified_values": false
   },
-  "input_hash": "211cf774018b52ad491ba93a4e322934b9070f7163920660ebb012e41d0c3132"
+  "input_hash": "faed198b40c63ea14b5b60301fdba372229d9d8e73f600c17ed4269ea4b1099f"
 }
