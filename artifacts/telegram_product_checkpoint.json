@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "f77bc971bf86349a247769705e05063bd8b33c01",
-  "updated_at": "2026-10-08T15:20:00+02:00",
+  "commit": "8112f30f68a37acf7813884d94f1b77ec2bcc419",
+  "updated_at": "2026-10-08T15:26:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,7 +24,7 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Run phase2-product on latest main; inspect territorial/evidence tests and materialized artifacts.",
+  "resume_from": "Inspect current Actions queue; if CI starts, inspect logs/artifacts. Continue only from evidence-backed gaps.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
@@ -42,9 +42,9 @@
     ],
     "traceability_hash_scope": "captured_excerpt",
     "blockers": [
-      "full source-content hashes not materialized",
-      "2023 primary evidence missing",
-      "52-circumscription current general-election coverage missing"
+      "2023 canonical copy not hash-matched to live endpoint",
+      "full source-content hashes for current territorial captures",
+      "52-circumscription current general-election coverage"
     ],
     "policy": {
       "no_synthetic_values": true,
@@ -52,7 +52,8 @@
       "fail_closed": true
     },
     "evidence_command": "/evidencia <survey_id>",
-    "telegram_territory": "/territorio"
+    "telegram_territory": "/territorio",
+    "official_2023_source": "PRIMARY_OFFICIAL_ENDPOINT_IDENTIFIED"
   },
   "phase2_priority2": {
     "status": "BLOCKED",
