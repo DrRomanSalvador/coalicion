@@ -120,7 +120,8 @@ jobs:
           COLMENA_AGENT_EXECUTION_ID: ${{ github.run_id }}-${{ github.run_attempt }}-queen
           COLMENA_AI_SERVER_POOL_SIZE: "5"
           COLMENA_AI_SERVER_PORT_BASE: "8765"
-          COLMENA_COMMAND_TIMEOUT_SECONDS: "300"
+          COLMENA_COMMAND_TIMEOUT_SECONDS: "1200"
+          COLMENA_WORKER_TIMEOUT_SECONDS: "1500"
         run: |
           set -euo pipefail
           python scripts/colmena_queen.py --ref "$GITHUB_SHA" --output artifacts/colmena/queen_approval.json --supervise --workers-dir artifacts/colmena/workers --state artifacts/colmena/queen_state.json
