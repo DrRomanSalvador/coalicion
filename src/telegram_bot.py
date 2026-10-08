@@ -497,10 +497,7 @@ def _sources_text() -> str:
     for source in sources[:35]:
         sid = source.get("id", source.get("source_id", source.get("name", "?")))
         status = source.get("status", source.get("health", "UNKNOWN"))
-        error = source.get("error") or source.get("last_error")
         line = f"{sid}: {status}"
-        if error:
-            line += f" · {str(error)[:160]}"
         lines.append(line)
     return "\n".join(lines)
 
