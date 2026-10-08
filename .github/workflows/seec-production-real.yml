@@ -40,3 +40,5 @@ jobs:
         with:
           name: seec-production-evidence
           path: ci_evidence/seec_production.json
+
+# deterministic production gate
