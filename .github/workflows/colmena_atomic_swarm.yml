@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: colmena-atomic-swarm-${{ github.ref }}
+  group: colmena-atomic-swarm-${{ github.sha }}
   cancel-in-progress: true
 
 jobs:
