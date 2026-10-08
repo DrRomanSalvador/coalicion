@@ -1,7 +1,7 @@
-"""Generate and optionally send the COALICIÓN daily situation newsletter.
+"""Generate the concise COALICIÓN review briefing.
 
-Sending is disabled unless SMTP credentials are explicitly configured.
-Generation itself is deterministic from materialized repository evidence.
+The generated HTML is an internal editorial draft. It is not sent automatically:
+a human reviews, corrects and approves it before distribution.
 """
 from __future__ import annotations
 
@@ -9,57 +9,72 @@ import html
 import json
 import os
 import smtplib
-from datetime import datetime
 from email.message import EmailMessage
 from pathlib import Path
-from zoneinfo import ZoneInfo
+
+from src.situation_state import build_situation_state
 
 ROOT = Path(__file__).resolve().parents[2]
-SURVEYS = ROOT / "data/surveys/current_2026/current_national.json"
 OUTPUT = ROOT / "artifacts/newsletter/latest.html"
 
 
-def load() -> dict:
-    try:
-        value = json.loads(SURVEYS.read_text(encoding="utf-8"))
-        return value if isinstance(value, dict) else {}
-    except (OSError, json.JSONDecodeError):
-        return {}
+def _esc(value: object) -> str:
+    return html.escape(str(value))
 
 
-def build_newsletter(data: dict | None = None) -> str:
-    data = data if data is not None else load()
-    surveys = [x for x in data.get("surveys", []) if isinstance(x, dict)]
-    today = datetime.now(ZoneInfo("Europe/Madrid")).strftime("%d/%m/%Y")
-    rows = []
-    for poll in surveys:
-        shares = poll.get("shares", {})
-        rows.append(
-            "<tr>"
-            f"<td>{html.escape(str(poll.get('pollster', '—')))}</td>"
-            f"<td>{html.escape(str(poll.get('publication_date', '—')))}</td>"
-            f"<td>{shares.get('PP', '—')}%</td>"
-            f"<td>{shares.get('PSOE', '—')}%</td>"
-            f"<td>{shares.get('Vox', '—')}%</td>"
-            f"<td>{shares.get('Sumar', '—')}%</td>"
-            f"<td>{html.escape(str(poll.get('evidence_level', '—')))}</td>"
-            "</tr>"
-        )
-    table = "".join(rows) or "<tr><td colspan='7'>NO DISPONIBLE</td></tr>"
+def build_newsletter() -> str:
+    state = build_situation_state()
+    changed = state["headline"]["changed"][:3]
+    questions = state["headline"]["questions"][:3]
+    uncertainties = state["headline"]["uncertainties"][:1]
+
+    changes_html = "".join(
+        f"<li><strong>{_esc(item.get('party', item.get('code', 'Cambio')))}</strong> "
+        f"{_esc(item.get('summary', item.get('delta_pp', '')))}"
+        f"{' (' + _esc(item.get('latest_poll_date')) + ')' if item.get('latest_poll_date') else ''}</li>"
+        for item in changed
+    ) or "<li>Sin cambio electoral materializado que pueda afirmarse con la evidencia disponible.</li>"
+
+    questions_html = "".join(
+        f"<li>{_esc(item['question'])}</li>" for item in questions
+    ) or "<li>No hay preguntas prioritarias materializadas.</li>"
+
+    uncertainty_html = "".join(
+        f"<li>{_esc(item['statement'])}</li>" for item in uncertainties
+    ) or "<li>No se ha materializado una incertidumbre adicional en este corte.</li>"
+
+    radar = _esc(state["radar"])
+    as_of = _esc(state["as_of"])
     return f"""<!doctype html>
-<html lang="es"><meta charset="utf-8">
-<title>COALICIÓN — Sala de Situación {today}</title>
-<h1>🧭 SALA DE SITUACIÓN — {today}</h1>
-<p>Estado: <strong>demo no oficial</strong>. Los datos no verificados como primarios
-se identifican explícitamente.</p>
-<table border="1" cellpadding="6">
-<thead><tr><th>Encuestadora</th><th>Publicación</th><th>PP</th><th>PSOE</th>
-<th>Vox</th><th>Sumar</th><th>Evidencia</th></tr></thead>
-<tbody>{table}</tbody></table>
-<p><strong>Territorio:</strong> NO DISPONIBLE si no existe evidencia territorial
-2026 suficiente. No se infieren observaciones territoriales desde una media nacional.</p>
-<p>COALICIÓN — infraestructura neutral de auditoría y simulación reproducible.</p>
-</html>"""
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>COALICIÓN · Brief · {as_of}</title>
+<style>
+body{{margin:0;background:#f5f6f8;color:#111827;font-family:Arial,sans-serif}}
+main{{max-width:680px;margin:0 auto;padding:28px 20px}}
+.card{{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:22px;margin:12px 0}}
+h1{{font-size:25px;margin:0 0 4px}} h2{{font-size:14px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 12px}}
+li{{margin:9px 0;line-height:1.35}} .muted{{color:#6b7280;font-size:12px}}
+.badge{{display:inline-block;border:1px solid #d1d5db;border-radius:999px;padding:4px 9px;font-size:11px}}
+a{{color:#111827}}
+</style></head>
+<body><main>
+<div class="card">
+<h1>COALICIÓN</h1><div class="muted">Brief interno · {as_of}</div>
+<p><span class="badge">RADAR: {radar}</span></p>
+</div>
+<div class="card"><h2>Lo que cambió</h2><ol>{changes_html}</ol></div>
+<div class="card"><h2>Preguntas de hoy</h2><ol>{questions_html}</ol></div>
+<div class="card"><h2>Una incertidumbre</h2><ul>{uncertainty_html}</ul></div>
+<div class="card">
+<h2>Control</h2>
+<p class="muted">Encuestas nacionales materializadas: {_esc(state['counts']['national_polls'])} ·
+territoriales: {_esc(state['counts']['territorial_polls'])} ·
+última publicación: {_esc(state['counts']['latest_poll_date'] or 'NO DISPONIBLE')}</p>
+<p class="muted">Evidencia: {_esc(state['evidence']['input_hash'])}</p>
+<p class="muted">Borrador editorial. Revisar y corroborar antes de distribuir.</p>
+</div>
+</main></body></html>"""
 
 
 def write_newsletter() -> Path:
@@ -77,10 +92,10 @@ def send_newsletter(recipient: str | None = None) -> bool:
     if not all((host, user, password, sender, recipient)):
         return False
     msg = EmailMessage()
-    msg["Subject"] = "🧭 COALICIÓN — Sala de Situación"
+    msg["Subject"] = "COALICIÓN · Brief"
     msg["From"] = sender
     msg["To"] = recipient
-    msg.set_content("Consulte la versión HTML de la Sala de Situación.")
+    msg.set_content("Borrador de briefing generado por COALICIÓN; revisar antes de distribuir.")
     msg.add_alternative(build_newsletter(), subtype="html")
     with smtplib.SMTP(host, int(os.environ.get("SMTP_PORT", "587")), timeout=30) as smtp:
         smtp.starttls()
