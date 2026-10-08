@@ -7,12 +7,13 @@ env.useWasmCache = true;
 
 const MODEL = "onnx-community/SmolLM2-135M-Instruct-ONNX-MHA";
 const DTYPE = "q4f16";
+const DEVICE = process.env.COLMENA_AI_DEVICE || "cpu";
 
 async function main() {
-  const pipe = await pipeline("text-generation", MODEL, { dtype: DTYPE, device: "wasm" });
+  const pipe = await pipeline("text-generation", MODEL, { dtype: DTYPE, device: DEVICE });
 
   if (process.argv.includes("--warm")) {
-    console.log(JSON.stringify({warm:true, model:MODEL, dtype:DTYPE}));
+    console.log(JSON.stringify({warm:true, model:MODEL, dtype:DTYPE, device:DEVICE}));
     return;
   }
 
@@ -38,7 +39,7 @@ async function main() {
   const generated = Array.isArray(result) ? result[0]?.generated_text : "";
   const content = typeof generated === "string" ? generated.trim() : "";
   if (!content) throw new Error("empty generated content");
-  process.stdout.write(JSON.stringify({model:MODEL, dtype:DTYPE, content}) + "\n");
+  process.stdout.write(JSON.stringify({model:MODEL, dtype:DTYPE, device:DEVICE, content}) + "\n");
 }
 
 main().catch(err => {
