@@ -56,32 +56,32 @@ def party_label(label: str) -> str:
     return parts[1].strip() if len(parts) == 2 else str(label).strip()
 
 def party_family(label: str) -> str:
-    """Stable national/coalition family used only for historical seat calibration."""
-    s = re.sub(r"[^A-Z0-9ÁÉÍÓÚÜÑ ]+", " ", str(label).upper()).strip()
-    if "PSOE" in s or s == "PSC" or "PSC " in s:
+    """Canonical national/coalition family for pre-2023 seat calibration."""
+    raw = str(label).upper()
+    compact = re.sub(r"[^A-Z0-9ÁÉÍÓÚÜÑ]+", "", raw)
+    if "PSOE" in compact or compact == "PSC" or compact.startswith("PSC"):
         return "PSOE"
-    if s == "PP" or s.startswith("PP "):
+    if compact == "PP" or compact.startswith("PP"):
         return "PP"
-    if "VOX" in s:
+    if "VOX" in compact:
         return "VOX"
-    if "BILDU" in s:
+    if "BILDU" in compact:
         return "EH BILDU"
-    if "PNV" in s or "EAJ" in s:
+    if "PNV" in compact or "EAJ" in compact:
         return "EAJ-PNV"
-    if "JUNTS" in s or "JXCAT" in s:
+    if "JUNTS" in compact or "JXCAT" in compact:
         return "JUNTS"
-    if "ERC" in s or "ESQUERRA" in s:
+    if "ERC" in compact or "ESQUERRA" in compact:
         return "ERC"
-    if s.startswith("BNG") or "B.N.G" in s:
+    if "BNG" in compact:
         return "BNG"
-    if s.startswith("CC") or "CANARIAS" in s:
+    if compact.startswith("CC") or "CANARIAS" in compact:
         return "CC"
-    if "UPN" in s or "U.P.N" in s:
+    if "UPN" in compact:
         return "UPN"
-    if any(token in s for token in (
-        "SUMAR", "PODEMOS", "UNIDAS PODEMOS", "IZQUIERDA UNIDA",
-        "IU ", "IU", "MÁS PAÍS", "MAS PAIS", "COMPROMÍS", "COMPROMIS",
-        "EN COMÚ", "EN COMU", "COMUNS", "ECP",
+    if any(token in compact for token in (
+        "SUMAR", "PODEMOS", "UNIDASPODEMOS", "IZQUIERDAUNIDA",
+        "IU", "MASPAIS", "COMPROMIS", "ENCOMU", "COMUNS", "ECP",
     )):
         return "SUMAR"
     return str(label).strip()
@@ -376,7 +376,7 @@ if historical_pair_count < 2 or len(historical_residuals) < 20:
         "insufficient pre-2023 historical seat residuals for conformal calibration"
     )
 
-def conformal_quantile(values, coverage=0.90):
+def conformal_quantile(values, coverage=0.95):
     vals = np.sort(np.asarray(values, dtype=float))
     if vals.size == 0:
         raise RuntimeError("empty conformal calibration set")
@@ -386,35 +386,35 @@ def conformal_quantile(values, coverage=0.90):
     rank = min(max(rank, 0), len(vals) - 1)
     return float(vals[rank])
 
-Q90_SEATS = conformal_quantile(historical_residuals, 0.90)
-Q90_NEW_PARTY_SEATS = (
-    conformal_quantile(historical_new_party_residuals, 0.90)
+Q95_SEATS = conformal_quantile(historical_residuals, 0.95)
+Q95_NEW_PARTY_SEATS = (
+    conformal_quantile(historical_new_party_residuals, 0.95)
     if historical_new_party_residuals
-    else Q90_SEATS
+    else Q95_SEATS
 )
 if len(historical_family_residuals) < 20:
     raise RuntimeError("insufficient family-level seat residuals for calibration")
-Q90_FAMILY_SEATS = conformal_quantile(historical_family_residuals, 0.90)
-Q90_NEW_FAMILY_SEATS = (
-    conformal_quantile(historical_new_family_residuals, 0.90)
+Q95_FAMILY_SEATS = conformal_quantile(historical_family_residuals, 0.95)
+Q95_NEW_FAMILY_SEATS = (
+    conformal_quantile(historical_new_family_residuals, 0.95)
     if historical_new_family_residuals
-    else Q90_FAMILY_SEATS
+    else Q95_FAMILY_SEATS
 )
 
-def family_q90(family: str, predicted: int) -> tuple[float, str, int]:
+def family_q95(family: str, predicted: int) -> tuple[float, str, int]:
     vals = historical_family_residuals_by_name.get(family, [])
     if len(vals) >= 3:
-        return conformal_quantile(vals, 0.90), "FAMILY", len(vals)
+        return conformal_quantile(vals, 0.95), "FAMILY", len(vals)
     if predicted == 0 and historical_new_family_residuals:
-        return Q90_NEW_FAMILY_SEATS, "NEW_FAMILY", len(historical_new_family_residuals)
-    return Q90_FAMILY_SEATS, "GLOBAL_FAMILY_FALLBACK", len(historical_family_residuals)
+        return Q95_NEW_FAMILY_SEATS, "NEW_FAMILY", len(historical_new_family_residuals)
+    return Q95_FAMILY_SEATS, "GLOBAL_FAMILY_FALLBACK", len(historical_family_residuals)
 
 # Party-specific finite-sample conformal calibration.
-Q90_PARTY = {}
+Q95_PARTY = {}
 for party in parties:
     obs = historical_party_residuals.get(party, [])
     if len(obs) >= 3:
-        Q90_PARTY[party] = conformal_quantile(obs, 0.90)
+        Q95_PARTY[party] = conformal_quantile(obs, 0.95)
     else:
         family = party_family(party)
         family_values = []
@@ -431,7 +431,7 @@ for party in parties:
                 f = party_family(p); af[f] = af.get(f, 0) + int(s)
             family_values.append(abs(int(af.get(family, 0)) - int(pf.get(family, 0))))
         fallback = family_values if len(family_values) >= 3 else historical_new_party_residuals
-        Q90_PARTY[party] = conformal_quantile(fallback, 0.90)
+        Q95_PARTY[party] = conformal_quantile(fallback, 0.95)
 
 
 # Persistence point prediction for 2023. The conformal interval is calibrated
@@ -481,26 +481,26 @@ for family in winners:
     predicted = int(predicted_family_seats.get(family, 0))
     vals = historical_family_residuals_by_name.get(family, [])
     if len(vals) >= 3:
-        q = conformal_quantile(vals, 0.90)
+        q = conformal_quantile(vals, 0.95)
         method = "split_conformal_family_specific"
         calibration_n = len(vals)
     elif predicted == 0:
-        q = Q90_NEW_FAMILY_SEATS
+        q = Q95_NEW_FAMILY_SEATS
         method = "split_conformal_emergent_family"
         calibration_n = len(historical_new_family_residuals)
     else:
-        q = Q90_FAMILY_SEATS
+        q = Q95_FAMILY_SEATS
         method = "split_conformal_global_family_fallback"
         calibration_n = len(historical_family_residuals)
     lo = max(0.0, predicted - q)
     hi = min(350.0, predicted + q)
     intervals[family]={
         "actual": int(actual_family_seats[family]),
-        "p10": float(lo),
+        "p025": float(lo),
         "p50": float(predicted),
-        "p90": float(hi),
+        "p975": float(hi),
         "interval_method": method,
-        "calibration_q90": float(q),
+        "calibration_q95": float(q),
         "calibration_n": int(calibration_n),
     }
     covered += int(lo <= actual_family_seats[family] <= hi)
@@ -510,7 +510,7 @@ coverage=covered/len(winners) if winners else float("nan")
 result={
  "election":"2023",
  "cutoff":"2019-11-10",
- "model":"baseline_persistence_2019N_with_historical_conformal_seat_calibration",
+ "model":"baseline_persistence_2019N_with_pre2023_family_specific_conformal95_seat_calibration",
  "note":"Canonical official Interior results. The prediction uses only 2019N votes. Seat uncertainty is calibrated from pre-2023 historical persistence errors; emerging-party intervals use the pre-2023 distribution of positive-seat parties absent from the preceding election.",
  "source_tier":"PRIMARY_OFFICIAL",
  "source_sha256":hashlib.sha256(OFFICIAL.read_bytes()).hexdigest(),
@@ -528,7 +528,7 @@ result={
        np.percentile(sim_seats[p],[10])[0] <= actual_seats[p] <=
        np.percentile(sim_seats[p],[90])[0] for p in winners
    ])) if winners else float("nan"),
-   "coverage_actual_seats_in_calibrated_p10_p90_winners":coverage,
+   "coverage_actual_seats_in_calibrated_interval_winners":coverage,
    "coverage_unit":"NATIONAL_PARTY_FAMILY",
    "n_2023_seat_winning_families":len(winners),
    "n_2023_seat_winning_parties":len(actual_seats),
@@ -537,16 +537,16 @@ result={
    "historical_new_party_residuals":len(historical_new_party_residuals),
    "historical_family_residuals":len(historical_family_residuals),
    "historical_new_family_residuals":len(historical_new_family_residuals),
-   "conformal_q90_family_seats":Q90_FAMILY_SEATS,
-   "conformal_q90_new_family_seats":Q90_NEW_FAMILY_SEATS,
+   "conformal_q95_family_seats":Q95_FAMILY_SEATS,
+   "conformal_q95_new_family_seats":Q95_NEW_FAMILY_SEATS,
    "family_specific_calibrations": {
-       family: {"n": len(vals), "q90": conformal_quantile(vals, 0.90)}
+       family: {"n": len(vals), "q95": conformal_quantile(vals, 0.95)}
        for family, vals in sorted(historical_family_residuals_by_name.items())
        if len(vals) >= 3
    },
-   "conformal_nominal_coverage":0.90,
-   "conformal_q90_seats":Q90_SEATS,
-   "conformal_q90_new_party_seats":Q90_NEW_PARTY_SEATS
+   "conformal_nominal_coverage":0.95,
+   "conformal_q95_seats":Q95_SEATS,
+   "conformal_q95_new_party_seats":Q95_NEW_PARTY_SEATS
  },
  "seat_intervals":intervals,
  "contracts":{
@@ -557,6 +557,8 @@ result={
    "absolute_ties_reproducible_lottery":True,
    "historical_conformal_calibration":True,
    "calibration_before_target_election":True,
+   "target_election_excluded_from_calibration":True,
+   "conformal_nominal_coverage_95":True,
    "new_party_uncertainty_calibrated":True,
    "family_level_calibration":True,
    "party_specific_calibration":True,
