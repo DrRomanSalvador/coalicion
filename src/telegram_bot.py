@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 
 from src.election_calendar import critical_window
 from src.operational_briefing import build_briefing
+from src.situation_room import situation, trends, uncertainty
 
 import requests
 
@@ -427,7 +428,7 @@ def _evidence_text() -> str:
     lines = [
         "🔎 EVIDENCIA · TRAZABILIDAD",
         "",
-        f"Sondeos validados disponibles: {len(polls)}",
+        f"Observaciones registradas disponibles: {len(polls)}",
         f"Fuentes registradas por el monitor: {len(sources)}",
         "",
         "Fuentes de las observaciones recientes:",
@@ -855,7 +856,7 @@ def _facts_text() -> str:
     sources = _sources()
     lines = [
         "📚 SOLO HECHOS", "", "Elección: 29/11/2026", "Cámara: 350 escaños",
-        "Circunscripciones: 52", f"Sondeos validados: {len(polls)}", f"Fuentes registradas: {len(sources)}",
+        "Circunscripciones: 52", f"Observaciones registradas: {len(polls)}", f"Fuentes registradas: {len(sources)}",
     ]
     if polls:
         p = polls[0]
@@ -895,7 +896,10 @@ def _natural_query(text: str) -> str | None:
     normalized = unicodedata.normalize("NFD", text.lower())
     normalized = "".join(c for c in normalized if unicodedata.category(c) != "Mn")
     rules = [
-        (("/briefing", "que debo saber", "que debo saber ahora", "sala de situacion", "resumen ejecutivo"), "/briefing"),
+        (("/situacion", "sala de situacion en tiempo real"), "/situacion"),
+        (("/tendencias", "tendencias"), "/tendencias"),
+        (("/incertidumbre", "incertidumbre"), "/incertidumbre"),
+        (("/briefing", "que debo saber", "que debo saber ahora", "resumen ejecutivo"), "/briefing"),
         (("/hoy", "que pasa", "que esta pasando", "situacion actual", "panorama", "ahora"), "/hoy"),
         (("/mes", "este mes", "octubre", "que importa este mes", "que hay este mes"), "/mes"),
         (("/cambios", "que ha cambiado", "novedades", "cambios", "ultimas novedades"), "/cambios"),
@@ -1032,7 +1036,10 @@ def _menu_markup() -> dict[str, Any]:
             [{"text": "🗺 ¿Dónde están los cambios?", "callback_data": "cmd:/territorio"},
              {"text": "📅 ¿Qué plazos importan?", "callback_data": "cmd:/calendario"}],
             [{"text": "🔎 ¿De dónde sale cada dato?", "callback_data": "cmd:/evidencia"},
-             {"text": "🧪 ¿Qué escenarios hay?", "callback_data": "cmd:/escenarios"}],
+             {"text": "🧭 Sala de situación", "callback_data": "cmd:/situacion"}],
+            [{"text": "📈 Tendencias", "callback_data": "cmd:/tendencias"},
+             {"text": "📐 Incertidumbre", "callback_data": "cmd:/incertidumbre"}],
+            [{"text": "🧪 ¿Qué escenarios hay?", "callback_data": "cmd:/escenarios"}],
             [{"text": "🛡 ¿Qué nivel de verificación tiene?", "callback_data": "cmd:/auditoria"},
              {"text": "📡 Radar", "callback_data": "cmd:/radar"}],
         ]
@@ -1070,7 +1077,7 @@ def _polls_text() -> str:
     polls = _latest_polls()
     if not polls:
         return "🗳 ENCUESTAS\n\nNo hay una observación validada reciente que publicar. Se conserva la vigilancia de fuentes."
-    lines = [f"🗳 ENCUESTAS · {len(polls)} observaciones validadas", ""]
+    lines = [f"🗳 ENCUESTAS · {len(polls)} observaciones registradas", ""]
     for i, poll in enumerate(polls[:7]):
         parties = poll.get("parties")
         if not isinstance(parties, dict):
@@ -1275,6 +1282,9 @@ def render_command(command: str) -> str:
     renderers = {
         "/hoy": _home_text,
         "/briefing": _briefing_text,
+        "/situacion": lambda: situation(_safe_json(STATE), _latest_polls(), _sources()),
+        "/tendencias": lambda: trends(_latest_polls()),
+        "/incertidumbre": lambda: uncertainty(_safe_json(ESTIMATION)),
         "/mes": _month_text,
         "/ayuda": _help_text,
         "/cambios": _changes_text,
