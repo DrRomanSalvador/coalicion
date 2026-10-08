@@ -87,7 +87,7 @@ def main() -> None:
     elections = {r["election"] for r in erows}
     require(elections == set(EXPECTED_DATES), f"election scope mismatch: {elections}")
     require("2023N" not in elections, "invented 2023N election detected")
-    require(len(erows) == 50700, f"official dataset must contain exactly 50700 rows: {len(erows)}")
+    require(len(erows) >= 50000, f"official dataset row floor not met: {len(erows)}")\n    require(len(erows) == 50700, f"official dataset must contain exactly 50700 rows: {len(erows)}")
     require(len(prows) >= 1000, f"CIS minimum not met: {len(prows)} rows")
 
     require(all(r["nivel_fuente"] in {"PRIMARY_OFFICIAL", "PRIMARY_INTERIOR"} for r in erows), "non-primary official source row")
