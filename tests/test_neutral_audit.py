@@ -25,5 +25,5 @@ def test_canonical_matrix_passes_current_contract():
 def test_canonical_contract_constants_are_pinned():
     from src.neutral_audit import EXPECTED_CANONICAL_PATH, EXPECTED_CANONICAL_SHA256, EXPECTED_CANDIDATE_VOTES
     assert EXPECTED_CANONICAL_PATH=="artifacts/data/election_2023_canonical.json"
-    assert EXPECTED_CANONICAL_SHA256=="db2c720fda68ee0be898c874c5aef016dcd6bb02c3593ee6c7ac96bbbf7983bf"
+    assert EXPECTED_CANONICAL_SHA256=="208b7eafe18e7e88ec3ccdec3fd55b6a92cdf026649d718a7c0a84fa8ffedef9"
     assert EXPECTED_CANDIDATE_VOTES==24_487_414
