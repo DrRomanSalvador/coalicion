@@ -20,14 +20,27 @@ jobs:
     runs-on: ubuntu-slim
     timeout-minutes: 5
     steps:
-      - name: Cancel stale duplicate Colmena executions
+      - name: Cancel stale Colmena executions
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh run list --repo "$GITHUB_REPOSITORY" --workflow "colmena_execute.yml" --limit 100 --json databaseId,status --jq '.[] | select(.status == "queued" or .status == "in_progress" or .status == "pending") | .databaseId' |
-            while read -r id; do
+          for workflow in "colmena_execute.yml" "colmena_atomic_swarm.yml"; do
+            gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 \
+              --json databaseId,status,createdAt \
+              --jq 'sort_by(.createdAt) | reverse | .[] | [.databaseId,.status] | @tsv' |
+            while IFS=$'\t' read -r id status; do
               [ -z "$id" ] && continue
-              gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
+              if [ "$workflow" = "colmena_atomic_swarm.yml" ]; then
+                # Keep the newest atomic swarm; older pending/in-progress copies are stale.
+                newest="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json databaseId,createdAt --jq 'sort_by(.createdAt) | reverse | .[0].databaseId')"
+                [ "$id" = "$newest" ] && continue
+              fi
+              case "$status" in
+                queued|in_progress|pending)
+                  gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
+                  ;;
+              esac
             done
+          done
           echo "COLMENA_STALE_EXECUTOR_CLEANUP=PASS"
