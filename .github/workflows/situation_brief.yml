@@ -1,0 +1,51 @@
+name: COALICIÓN — Situation Brief
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 8 * * *"
+      timezone: "Europe/Madrid"
+    - cron: "0 16 * * *"
+      timezone: "Europe/Madrid"
+    - cron: "0 0 * * *"
+      timezone: "Europe/Madrid"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: situation-brief
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate situation state
+        run: python scripts/generate_situation_state.py
+
+      - name: Generate review briefing
+        run: python -m src.email.newsletter
+
+      - name: Verify deterministic contracts
+        run: pytest -q tests/test_situation_state.py tests/test_operational_briefing.py tests/test_electoral_intelligence.py
+
+      - name: Persist materialized state
+        run: |
+          git config user.name "coalicion-situation[bot]"
+          git config user.email "coalicion-situation[bot]@users.noreply.github.com"
+          git add artifacts/situation_state.json artifacts/newsletter/latest.html
+          if git diff --cached --quiet; then
+            echo "No materialized change."
+            exit 0
+          fi
+          git commit -m "chore(intelligence): materialize situation brief"
+          git push
