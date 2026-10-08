@@ -124,10 +124,10 @@ def parse_secondary(raw, province, seats):
     raise ValueError(f"candidate table missing or unreadable: {province}")
 
 def build_from_official(raw, root):
-    from src.data_pipeline import load_rows
+    from src.data import load_rows
     p = root/"artifacts/data/raw_2023_interior.xlsx"
     p.write_bytes(raw)
-    rows = load_rows(p)
+    rows = load_rows(p, "2023-07-23")
     matrix = {}
     for row in rows:
         c = row["province"]
