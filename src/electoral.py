@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from fractions import Fraction
 from typing import Callable, Mapping, Optional
+from pathlib import Path
+import csv
 
 @dataclass(frozen=True)
 class Allocation:
@@ -88,18 +90,34 @@ def merge_candidacies(*matrices):
         for p,v in m.items(): out[p]=out.get(p,0)+v
     return out
 
+def official_2026_seats() -> dict[str, int]:
+    path = Path(__file__).resolve().parents[1] / "data" / "2026_circunscripciones_oficiales.csv"
+    if not path.is_file():
+        raise RuntimeError("BLOCKED: falta la tabla oficial de magnitudes 2026")
+    out = {}
+    with path.open(newline="", encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            if row.get("source") != "BOE-A-2026-20742":
+                raise RuntimeError("BLOCKED: fuente BOE inesperada en magnitudes 2026")
+            name = str(row.get("circunscripcion") or "").strip()
+            seats = int(row.get("escanos_2026") or 0)
+            if not name or seats < 1 or name in out:
+                raise RuntimeError("BLOCKED: tabla de magnitudes 2026 inválida")
+            out[name] = seats
+    if len(out) != 52 or sum(out.values()) != 350 or out.get("Ceuta") != 1 or out.get("Melilla") != 1:
+        raise RuntimeError("BLOCKED: magnitudes oficiales 2026 no suman 52/350")
+    return out
+
 def allocate_congress(constituencies,seats_by_constituency,blank_votes_by_constituency,special_by_constituency=None):
     special_by_constituency=special_by_constituency or {}
+    official_2026 = official_2026_seats()
     official = set(seats_by_constituency)
-    if len(official) != 52:
-        raise ValueError("la distribución debe contener exactamente 52 circunscripciones")
+    if official != set(official_2026):
+        raise ValueError("las circunscripciones no coinciden exactamente con la tabla oficial 2026")
+    if dict(seats_by_constituency) != official_2026:
+        raise ValueError("la magnitud de alguna circunscripción no coincide con BOE-A-2026-20742")
     if set(constituencies)!=official or official!=set(blank_votes_by_constituency):
         raise ValueError("claves de circunscripción no coinciden")
-    if sum(seats_by_constituency.values())!=350: raise ValueError("la magnitud debe sumar 350")
-    if not {"Ceuta","Melilla"} <= official:
-        raise ValueError("faltan Ceuta/Melilla")
-    if seats_by_constituency["Ceuta"] != 1 or seats_by_constituency["Melilla"] != 1:
-        raise ValueError("Ceuta/Melilla deben tener exactamente 1 escaño")
     if special_by_constituency.get("Ceuta") != "Ceuta" or special_by_constituency.get("Melilla") != "Melilla":
         raise ValueError("Ceuta/Melilla deben estar marcadas como circunscripciones especiales")
     national={}
