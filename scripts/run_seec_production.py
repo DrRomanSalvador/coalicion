@@ -76,7 +76,7 @@ def load_historical(parties):
                 v=int(float(r["votos"]))
                 if p == party:
                     votes += v
-                elif party == "OTROS" and p not in parties and "nulo" not in p:
+                elif party == OTHER_PARTY and p not in parties and "nulo" not in p and "total" not in p:
                     votes += v
             observations.append(ProvinceObservation(
                 election="2023J", province=province, party=party,
@@ -91,8 +91,10 @@ def main():
     if not cis_rows:
         raise RuntimeError("canonical CIS dataset missing study 3411/2023")
     survey = {r.party: r.cis_estimate_pct for r in cis_rows}
-    if abs(sum(survey.values()) - 100.0) > 1e-9:
-        raise RuntimeError("canonical CIS study 3411 does not sum to 100")
+    source_sum = sum(survey.values())
+    if not 0 < source_sum < 100:
+        raise RuntimeError(f"invalid canonical CIS composition sum: {source_sum}")
+    survey[OTHER_PARTY] = 100.0 - source_sum
     parties = tuple(survey)
     field_dates = {r.study_date for r in cis_rows}
     if len(field_dates) != 1:
