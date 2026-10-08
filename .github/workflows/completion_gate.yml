@@ -1,0 +1,68 @@
+name: completion-gate
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  completion-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.lock ]; then pip install -r requirements.lock; else pip install pytest; fi
+
+      - name: Run contract suite
+        run: pytest -q
+
+      - name: Fail closed until all declared blockers are resolved
+        id: gate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = Path("artifacts/execution_state.json")
+          if not p.exists():
+              raise SystemExit("MISSING_EXECUTION_STATE")
+          state = json.loads(p.read_text(encoding="utf-8"))
+          blocked = state.get("blocked_tasks", [])
+          if blocked:
+              print("BLOCKED_TASKS=" + json.dumps(blocked, ensure_ascii=False))
+              raise SystemExit(2)
+          print("COMPLETION_GATE=PASS")
+          PY
+
+      - name: Notify Telegram only after verified completion
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "${TELEGRAM_BOT_TOKEN}" ] || [ -z "${TELEGRAM_CHAT_ID}" ]; then
+            echo "Telegram secrets not configured; completion remains verified in GitHub."
+            exit 0
+          fi
+          python - <<'PY'
+          import os, urllib.request, urllib.parse
+          token=os.environ["TELEGRAM_BOT_TOKEN"]
+          chat_id=os.environ["TELEGRAM_CHAT_ID"]
+          text="✅ COALICIÓN: implementación completa verificada y ejecución operativa PASS."
+          data=urllib.parse.urlencode({"chat_id":chat_id,"text":text}).encode()
+          req=urllib.request.Request(f"https://api.telegram.org/bot{token}/sendMessage", data=data, method="POST")
+          urllib.request.urlopen(req, timeout=15).read()
+          PY
