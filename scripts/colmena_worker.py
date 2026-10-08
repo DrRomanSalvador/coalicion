@@ -130,7 +130,7 @@ def main():
             evidence["runtime_status"] = "PASS"
             evidence["mission_status"] = evidence.get("status")
         except Exception as exc:
-            evidence = {"schema":"COLMENA_WORKER_EVIDENCE_V3","mission_id":m["id"],"title":m["title"],"agent_id":agent_id,"agent_runtime":runtime,"status":"BLOCKED","adapter":"AI_AGENT_RUNTIME_ERROR","command":None,"ref":ref,"queen_approval":m["approval"],"started_at":datetime.now(timezone.utc).isoformat(),"finished_at":datetime.now(timezone.utc).isoformat(),"source_write":False,"returncode":2,"stdout":"","stderr":str(exc)}
+            evidence = {"schema":"COLMENA_WORKER_EVIDENCE_V3","mission_id":m["id"],"title":m["title"],"agent_id":agent_id,"agent_runtime":runtime,"status":"BLOCKED","adapter":"AI_AGENT_RUNTIME_ERROR","command":None,"ref":a.ref,"queen_approval":m["approval"],"started_at":datetime.now(timezone.utc).isoformat(),"finished_at":datetime.now(timezone.utc).isoformat(),"source_write":False,"returncode":2,"stdout":"","stderr":str(exc)}
     o = Path(a.out); o.parent.mkdir(parents=True, exist_ok=True)
     o.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"mission_id": m["id"], "status": evidence["status"], "adapter": evidence["adapter"]}))
