@@ -44,8 +44,13 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}
         run: python -m src.email.newsletter
 
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check --no-input pytest
+
       - name: Verify deterministic contracts
-        run: pytest -q tests/test_situation_state.py tests/test_operational_briefing.py tests/test_electoral_intelligence.py
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m pytest -q tests/test_situation_state.py tests/test_operational_briefing.py tests/test_electoral_intelligence.py
 
       - name: Persist materialized state
         run: |
