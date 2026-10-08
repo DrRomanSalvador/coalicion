@@ -155,7 +155,7 @@ def main():
 
     out = {
         "schema": "HISTORICAL_OOS_CALIBRATION_V2",
-        "status": "PASS",
+        "status": "PASS" if coverage_gate else "NOT_CERTIFIED",
         "contract": "EXPANDING_WINDOW_NO_FUTURE_LEAKAGE",
         "input": args.input,
         "n_rows": result["n_rows"],
@@ -183,10 +183,9 @@ def main():
     p.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(out, ensure_ascii=False, indent=2))
     if not coverage_gate:
-        raise RuntimeError(
-            f"OOS 90% interval coverage gate failed: {base_coverage!r} < 0.85"
-        )
+        return 2
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
