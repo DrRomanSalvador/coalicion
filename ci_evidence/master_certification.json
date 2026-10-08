@@ -1,29 +1,58 @@
 {
-  "schema": "MASTER_CERTIFICATION_V1",
+  "schema": "MASTER_CERTIFICATION_V2",
   "status": "BLOCKED",
   "certification": "BLOCKED",
-  "reason": "OOS y MC-10000 tienen evidencia de ejecución PASS. El artefacto SEEC territorial de 10.000 draws es auxiliar y no sustituye el SEEC jerárquico PyMC de producción. La ejecución PyMC real aún no ha producido evidencia materializada; la auditoría externa independiente también sigue pendiente.",
-  "required_gates": [
-    "source_manifest",
-    "primary_interior",
-    "reconciliation",
-    "seec_posterior",
-    "mc_10000",
-    "oos_calibration",
-    "oos_walk_forward",
-    "poll_source_coverage",
-    "external_audit"
-  ],
   "fail_closed": true,
-  "gates": {
-    "source_manifest": "PASS",
-    "primary_interior": "PASS",
-    "reconciliation": "PASS",
-    "seec_posterior": "PENDING",
-    "mc_10000": "PASS",
-    "oos_calibration": "PASS",
-    "oos_walk_forward": "PASS",
-    "poll_source_coverage": "PASS",
-    "external_audit": "PENDING"
-  }
+  "gates": [
+    {
+      "name": "source_manifest",
+      "status": "PASS",
+      "detail": "manifest primario materializado y estructuralmente validado"
+    },
+    {
+      "name": "primary_interior",
+      "status": "PASS",
+      "detail": "la fuente histórica debe estar declarada como primaria"
+    },
+    {
+      "name": "reconciliation",
+      "status": "PASS",
+      "detail": "reconciliación exacta y fail-closed"
+    },
+    {
+      "name": "seec_posterior",
+      "status": "FAIL",
+      "detail": "posterior jerárquico PyMC de producción >=10.000 draws con convergencia materializada"
+    },
+    {
+      "name": "mc_10000",
+      "status": "PASS",
+      "detail": "MC-10000 independiente, con invariantes electorales verificadas"
+    },
+    {
+      "name": "baseline_2023",
+      "status": "PASS",
+      "detail": "baseline territorial 2023 presente y estructuralmente verificable"
+    },
+    {
+      "name": "oos_calibration",
+      "status": "PASS",
+      "detail": "calibración OOS expanding-window con gate de cobertura materializado"
+    },
+    {
+      "name": "oos_walk_forward",
+      "status": "PASS",
+      "detail": "al menos un holdout estrictamente futuro"
+    },
+    {
+      "name": "poll_source_coverage",
+      "status": "FAIL",
+      "detail": "cobertura de transporte/roles materializada; no se interpreta como validación de todos los sondeos"
+    },
+    {
+      "name": "external_audit",
+      "status": "FAIL",
+      "detail": "auditoría independiente materializada y declarada"
+    }
+  ]
 }
