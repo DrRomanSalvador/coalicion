@@ -21,6 +21,10 @@ on:
     workflows: ["Autonomous poll monitor"]
     types: [completed]
     branches: [main]
+  # Watchdog: guarantees an automatic invocation even if an upstream
+  # workflow_run event is not delivered. The gate decides whether work is needed.
+  schedule:
+    - cron: "*/15 * * * *"
 
 permissions:
   contents: read
