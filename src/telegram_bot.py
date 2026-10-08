@@ -144,51 +144,40 @@ def _answer_callback(callback_id: str) -> None:
 def _month_text() -> str:
     """Executive neutral briefing for the current election month."""
     today = date.today()
-    events = critical_window(today, horizon_days=31)
     polls = _latest_polls()
     sources = _sources()
-    failed = []
-    for source in sources:
-        status = str(source.get("status", source.get("health", ""))).upper()
-        if status in {"DOWN", "FAILED", "ERROR", "DEGRADED", "UNHEALTHY"}:
-            failed.append(str(source.get("id", source.get("source_id", source.get("name", "?")))))
+    briefing = build_briefing(
+        as_of=today,
+        polls=polls,
+        sources=sources,
+        observations=_observations(),
+        horizon_days=31,
+    )
     lines = [
         "🗓 OCTUBRE · CENTRO DE SITUACIÓN",
         "",
         "ELECCIÓN: 29/11/2026 · 350 escaños · 52 circunscripciones",
         "",
-        "PRÓXIMOS HITOS LEGALES",
+        "PRIORIDADES OPERATIVAS",
     ]
-    upcoming = [x for x in events if x["status"] != "past"]
-    for event in upcoming[:8]:
-        d = event["days_remaining"]
-        when = "hoy" if d == 0 else f"en {d} días"
-        lines.append(f"• {event['date']} · {event['title']} · {when}")
-    if not upcoming:
-        lines.append("• Sin hitos próximos en la ventana operativa.")
+    for item in briefing[:8]:
+        due = f" · vence {item['due']}" if item.get("due") else ""
+        lines.append(f"• {item['priority']} · {item['title']}{due}")
+        lines.append(f"  {item['detail']}")
     lines.extend([
         "",
-        "DATOS QUE CAMBIAN",
+        "DATOS DE COBERTURA",
         f"• Sondeos validados: {len(polls)}",
         f"• Fuentes registradas: {len(sources)}",
-        f"• Fuentes con incidencia: {len(failed)}" if failed else "• Fuentes con incidencia: 0",
         "",
-        "CAPACIDAD ACTUAL",
-        "• Sondeos: seguimiento fechado y comparación entre observaciones.",
-        "• Territorio: distribución provincial solo cuando existe evidencia territorial explícita.",
-        "• Escaños: D’Hondt sobre candidaturas y circunscripciones, sin convertir automáticamente porcentajes nacionales.",
-        "• Mayorías/combinaciones: aritmética descriptiva cuando existe una composición de escaños.",
-        "• Evidencia: trazabilidad de fuente, fecha y registro.",
-    ])
-    if failed:
-        lines.extend(["", "INCIDENCIAS DE FUENTE", "• " + ", ".join(failed[:8])])
-    lines.extend([
-        "",
-        "Preguntas rápidas: ¿qué ha cambiado?, ¿qué sondeos hay?, ¿qué plazos vencen?, "
-        "¿dónde cambia el territorio?, ¿qué evidencia sustenta cada dato?"
+        "CAPACIDADES",
+        "• Sondeos: seguimiento fechado y comparación.",
+        "• Territorio: solo con evidencia provincial explícita.",
+        "• Escaños: D’Hondt por circunscripción, sin inferencia nacional→territorial.",
+        "• Mayorías/combinaciones: aritmética descriptiva sobre composiciones explícitas.",
+        "• Evidencia: fuente + fecha + registro.",
     ])
     return "\n".join(lines)
-
 
 def _home_text() -> str:
     polls = _latest_polls()
