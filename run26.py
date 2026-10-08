@@ -31,7 +31,20 @@ def main():
         # Existing staged historical scripts use .audit_historico as their
         # working directory. They are execution components, not certification.
         r=run(name,cmd); results.append(r)
-        # Continue independent stages; record every blocker in one run.
+        if r["returncode"] != 0:
+            payload = {
+                "schema": "RUN26_EXECUTION_V2",
+                "status": "FAILED",
+                "failed_stage": name,
+                "stages": results,
+            }
+            Path("artifacts/run26_state.json").write_text(
+                json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            return r["returncode"]
+        # A prerequisite failure is terminal; later stages cannot be trusted.
 
     survey=Path("data/encuestas_historicas_2004_2023.csv")
     seec_status={
@@ -47,10 +60,11 @@ def main():
 
     subprocess.run([sys.executable,"scripts/build_sha256_manifest.py"],check=False)
     payload={
-        "schema":"RUN26_EXECUTION_V1",
+        "schema":"RUN26_EXECUTION_V2",
+        "status":"PASS",
         "prediction_first":True,
-        "audit_mode":"INACTIVE",
-        "certification_mode":"INACTIVE",
+        "audit_mode":"ACTIVE",
+        "certification_mode":"READY",
         "stages":results,
         "seec":seec_status,
         "generated_by":"run26.py",
@@ -59,7 +73,6 @@ def main():
     out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(payload,ensure_ascii=False,indent=2))
-    # The diagnostic bundle is the product of run26; consumers remain fail-closed
-    # when required inputs are unavailable.
+    return 0
 
-if __name__=="__main__": main()
+if __name__=="__main__": raise SystemExit(main())
