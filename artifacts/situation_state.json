@@ -1,7 +1,7 @@
 {
   "schema": "COALICION_SITUATION_STATE_V1",
   "version": "1.0",
-  "as_of": "2026-10-08T16:00:00+02:00",
+  "as_of": "2026-10-08T20:35:42.698036+02:00",
   "mission": {
     "schema": "COALICION_SITUATION_MISSION_V1",
     "fail_closed": true,
@@ -21,7 +21,7 @@
       {
         "type": "poll_observation_change",
         "party": "PSOE",
-        "delta_pp": -2,
+        "delta_pp": -2.0,
         "latest_poll_date": "2026-09-23",
         "previous_poll_date": "2026-09-07",
         "latest_poll_id": "datoelectoral::2026-09-23::Barómetro de septiembre 2026 (estudio 3577 del CIS)",
@@ -101,7 +101,7 @@
   "evidence": {
     "observations_path": "artifacts/estimation/observations.json",
     "source_coverage_path": "ci_evidence/poll_source_coverage.json",
-    "input_hash": "e7edda4f03f7df7df7f99a5102bba2612cd4fa75c990e258f2c6494d79a84a01"
+    "input_hash": "27be8f36c7d72db60205972e38fdd83fc9c764cf932e6465498d13cf99b6b0aa"
   },
   "policy": {
     "fail_closed": true,
@@ -112,5 +112,5 @@
     "no_national_to_territorial_inference": true,
     "no_outcome_probability_claim": true
   },
-  "state_hash": "7e560c76c759ea124b1658535396e1065b0fef252c14dbd2949cfb6bf54f3cf4"
+  "state_hash": "d7379f347a653d25188c285fcd65604f690dd59c9e96054b667bfafaf45a950c"
 }
