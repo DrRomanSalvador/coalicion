@@ -1,0 +1,39 @@
+name: phase2-layer0-and-pipeline
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/trailability/**"
+      - "src/pipeline/**"
+      - "tests/test_trailability.py"
+      - "tests/test_full_pipeline.py"
+      - "ci_evidence/phase2_layer0_checkpoint.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -r requirements.txt pytest
+      - name: Verify Phase 2 contracts
+        run: |
+          python -m pytest -q tests/test_trailability.py tests/test_full_pipeline.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("ci_evidence/phase2_layer0_checkpoint.json")
+          x=json.loads(p.read_text())
+          assert x["status"]=="BLOCKED"
+          assert x["policy"]["fail_closed"] is True
+          assert x["policy"]["future_november_data_fabrication"] is False
+          print("PHASE2_LAYER0_FAIL_CLOSED=PASS")
+          PY
