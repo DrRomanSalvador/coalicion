@@ -9,6 +9,11 @@ on:
       - "tests/test_political_intelligence*.py"
       - "scripts/build_political_intelligence_manifest.py"
       - "config/political_intelligence_sources.json"
+      - "data/official_materialization_parts/**"
+      - "data/resultados_oficiales_2004_2023.csv"
+      - "data/manifests/**"
+      - "scripts/materialize_official_history_from_parts.py"
+      - "tests/test_official_materialization_parts.py"
       - ".github/workflows/political_intelligence_system.yml"
 
 permissions:
@@ -25,6 +30,10 @@ jobs:
           python-version: "3.12"
       - name: Install test dependencies
         run: python -m pip install -r requirements.txt
+      - name: Materialize official historical dataset from verified parts
+        run: python scripts/materialize_official_history_from_parts.py
+      - name: Validate official historical materialization
+        run: python -m pytest tests/test_official_materialization_parts.py -q
       - name: Materialize primary evidence
         run: python scripts/materialize_primary_evidence.py
       - name: Compile integration layer
