@@ -184,7 +184,7 @@ def build_model(
 
         # Historical electoral evidence: one compositional likelihood per
         # province. No historical count is reused as a prior parameter.
-        for pr in provinces:
+        for province_index, pr in enumerate(provinces):
             row = [
                 sum(
                     x.votes
@@ -195,7 +195,7 @@ def build_model(
             ]
             if sum(row):
                 pm.Multinomial(
-                    f"election_{pr}",
+                    f"election_{province_index}",
                     n=sum(row),
                     p=province_share[prov_idx[pr]],
                     observed=row,
