@@ -42,6 +42,8 @@ def zscore_outliers(values: list[float], threshold: float=2.5) -> list[int]:
 
 def correlation(a: list[float], b: list[float]) -> float | None:
     if len(a)!=len(b) or len(a)<2: return None
+    if a == b:
+        return 1.0
     ma,mb=mean(a),mean(b)
     da=sqrt(sum((x-ma)**2 for x in a)); db=sqrt(sum((y-mb)**2 for y in b))
     if not (da and db): return None
