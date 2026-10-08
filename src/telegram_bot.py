@@ -43,6 +43,10 @@ COMMANDS = [
     ("auditoria", "¿Qué nivel de verificación tiene?"),
     ("estado", "Estado operativo"),
     ("urgencias", "¿Qué requiere atención?"),
+    ("alertas", "Configurar alertas"),
+    ("hechos", "Solo hechos"),
+    ("exportar", "Exportar datos"),
+    ("comparar", "Comparar observaciones"),
     ("radar", "Radar de novedades"),
     ("menu", "Menú completo"),
     ("ayuda", "Ayuda"),
@@ -763,6 +767,11 @@ def _natural_query(text: str) -> str | None:
         (("/escenarios", "escenarios", "supuestos"), "/escenarios"),
         (("/auditoria", "auditoria", "verificacion", "rigor"), "/auditoria"),
         (("/urgencias", "que requiere atencion", "que requiere atencion ahora", "incidencias"), "/urgencias"),
+        (("/alertas", "alertas", "avisos", "notificaciones"), "/alertas"),
+        (("/hechos", "solo hechos", "hechos", "sin interpretacion"), "/hechos"),
+        (("/exportar", "exporta", "exportar", "csv", "json", "informe"), "/exportar"),
+        (("/comparar", "compara", "comparame", "comparación", "comparacion", "ultimas 5"), "/comparar"),
+        (("ponme al dia", "ponme al día"), "/briefing"),
     ]
     for needles, command in rules:
         if any(needle in normalized for needle in needles):
@@ -1139,6 +1148,10 @@ def render_command(command: str) -> str:
         "/urgencias": _urgencies_text,
         "/estado": _status_text,
         "/radar": _radar_text,
+        "/alertas": lambda: "🔔 ALERTAS · CONFIGURACIÓN\n\nAbre /alertas para gestionar categorías, frecuencia, silencio y umbral.",
+        "/hechos": _facts_text,
+        "/exportar": lambda: "📤 EXPORTACIÓN\n\nElige CSV/JSON desde las fichas disponibles.",
+        "/comparar": _changes_text,
     }
     renderer = renderers.get(command)
     return renderer() if renderer else "Comando no reconocido. Escribe una pregunta en lenguaje natural o pulsa /menu."
