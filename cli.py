@@ -111,7 +111,8 @@ def cmd_marginal(a):
 
 
 def cmd_intelligence(a):
-    from datetime import date\n    snapshot = intelligence_snapshot(as_of=a.as_of or date.today().isoformat())
+    from datetime import date
+    snapshot = intelligence_snapshot(as_of=a.as_of or date.today().isoformat())
     print(json.dumps(snapshot, ensure_ascii=False, indent=2))
 
 
