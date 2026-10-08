@@ -1,0 +1,12 @@
+{
+  "schema":"TERRITORIAL_SURVEY_REGISTRY_V1",
+  "as_of":"2026-10-08",
+  "count":3,
+  "observations":[
+    {"survey_id":"ipsos_lavanguardia_catalunya_20261004","territory":"Catalunya","election_scope":"autonómica","validation":"PRIMARY_VERIFIABLE"},
+    {"survey_id":"celeste_tel_valencia_20260917","territory":"Comunitat Valenciana","election_scope":"autonómica","validation":"PRIMARY_VERIFIABLE"},
+    {"survey_id":"sigma_dos_asturias_20260908","territory":"Principado de Asturias","election_scope":"autonómica","validation":"PRIMARY_VERIFIED"}
+  ],
+  "coverage_statement":"Tres observaciones territoriales actuales están materializadas. No constituyen una matriz provincial de las elecciones generales 2026.",
+  "fail_closed":true
+}
