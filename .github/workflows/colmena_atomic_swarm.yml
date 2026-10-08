@@ -19,19 +19,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  queen-gate:
-    name: "👑 Queen Gate"
+  swarm:
+    name: "👑 Queen + 179 missions / batches of 5"
     runs-on: ubuntu-latest
-    outputs:
-      batches: ${{ steps.matrix.outputs.batches }}
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+
       - name: Restore local AI cache
         id: cache
         uses: actions/cache/restore@v4
@@ -39,13 +41,25 @@ jobs:
           path: |
             node_modules
             .cache
-          key: ${{ runner.os }}-colmena-local-ai-v2-transformersjs-3.8.1-smollm2
+          key: ${{ runner.os }}-colmena-local-ai-v3-transformersjs-3.8.1-smollm2
+
       - name: Prepare local AI runtime
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
+          set -euo pipefail
           npm init -y >/dev/null 2>&1
           npm install --no-audit --no-fund @huggingface/transformers@3.8.1
-      - name: Warm and smoke-test local AI
+
+      - name: Save local AI cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            .cache
+          key: ${{ runner.os }}-colmena-local-ai-v3-transformersjs-3.8.1-smollm2
+
+      - name: Real local AI warm and smoke test
         run: |
           set -euo pipefail
           node scripts/colmena_local_ai.mjs --warm
@@ -57,204 +71,122 @@ jobs:
           assert isinstance(d.get("content"), str) and d["content"].strip()
           print("REAL_LOCAL_AI_SMOKE=PASS")
           PY
-      - name: Save local AI cache
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            node_modules
-            .cache
-          key: ${{ runner.os }}-colmena-local-ai-v2-transformersjs-3.8.1-smollm2
-      - name: Queen creates authoritative plan
+
+      - name: 👑 Queen creates plan and approvals
+        env:
+          COLMENA_AGENT_PROVIDER: github-actions-local-transformers-js
+          COLMENA_AI_AGENT_EXECUTION: "true"
+          COLMENA_AI_DEVICE: "cpu"
+          COLMENA_AGENT_MODEL: onnx-community/SmolLM2-135M-Instruct-ONNX-MHA:q4f16
+          COLMENA_AGENT_EXECUTION_ID: ${{ github.run_id }}-${{ github.run_attempt }}-queen
         run: |
           set -euo pipefail
           mkdir -p artifacts/colmena
-          python scripts/colmena_queen.py --ref "$GITHUB_SHA" --output artifacts/colmena/queen_approval.json
-          test "$(python -c 'import json; print(len(json.load(open("artifacts/colmena/queen_approval.json"))["missions"]))')" = "179"
-          test "$(python -c 'import json; print(len(json.load(open("artifacts/colmena/queen_approval.json"))["batches"]))')" = "36"
-      - id: matrix
-        run: |
-          python - <<'PY' >> "$GITHUB_OUTPUT"
+          python scripts/colmena_queen.py             --ref "$GITHUB_SHA"             --output artifacts/colmena/queen_approval.json
+          python - <<'PY'
           import json
           p=json.load(open("artifacts/colmena/queen_approval.json",encoding="utf-8"))
-          print("batches="+json.dumps(p["batches"],separators=(",",":")))
+          assert len(p["missions"]) == 179
+          assert len(p["batches"]) == 36
+          assert all(len(b["mission_ids"]) <= 5 for b in p["batches"])
+          print("QUEEN_PLAN=PASS", "missions=179", "batches=36")
           PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: colmena-queen-gate
-          path: artifacts/colmena/
-          if-no-files-found: error
-          retention-days: 30
 
-  worker-batch:
-    name: "Workers batch ${{ matrix.batch }}"
-    needs: queen-gate
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        include: ${{ fromJSON(needs.queen-gate.outputs.batches) }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - uses: actions/cache/restore@v4
-        with:
-          path: |
-            node_modules
-            .cache
-          key: ${{ runner.os }}-colmena-local-ai-v2-transformersjs-3.8.1-smollm2
-          fail-on-cache-miss: true
-      - uses: actions/download-artifact@v4
-        with:
-          name: colmena-queen-gate
-          path: artifacts/colmena
-      - name: Start one persistent AI runtime for this batch
+      - name: Start persistent AI runtime
         env:
           COLMENA_AI_PORT: "8765"
           COLMENA_AI_DEVICE: "cpu"
         run: |
           set -euo pipefail
-          node scripts/colmena_local_ai.mjs --server > ai_runtime.log 2>&1 &
-          echo $! > ai_runtime.pid
+          node scripts/colmena_local_ai.mjs --server > artifacts/colmena/ai_runtime.log 2>&1 &
+          echo $! > artifacts/colmena/ai_runtime.pid
           python - <<'PY'
           import time, urllib.request
-          for _ in range(60):
+          for _ in range(90):
               try:
                   with urllib.request.urlopen("http://127.0.0.1:8765/health", timeout=3) as r:
-                      assert r.status == 200
-                      print("AI_RUNTIME_SERVER=PASS")
-                      break
+                      if r.status == 200:
+                          print("AI_RUNTIME_SERVER=PASS")
+                          break
               except Exception:
                   time.sleep(2)
           else:
-              raise SystemExit("FAIL_CLOSED: AI runtime server did not become healthy")
+              raise SystemExit("FAIL_CLOSED: persistent AI runtime did not become healthy")
           PY
-      - name: Execute exactly this Queen batch
+
+      - name: 👑 Queen dispatches and supervises batches of 5
         env:
-          BATCH_JSON: ${{ toJSON(matrix) }}
           COLMENA_AGENT_PROVIDER: github-actions-local-transformers-js
           COLMENA_AI_AGENT_EXECUTION: "true"
+          COLMENA_AI_DEVICE: "cpu"
           COLMENA_AGENT_MODEL: onnx-community/SmolLM2-135M-Instruct-ONNX-MHA:q4f16
+          COLMENA_AGENT_EXECUTION_ID: ${{ github.run_id }}-${{ github.run_attempt }}-queen
           COLMENA_AI_SERVER_URL: http://127.0.0.1:8765
         run: |
           set +e
-          mkdir -p worker_evidence
-          python - <<'PY'
-          import json, os, subprocess, sys
-          b=json.loads(os.environ["BATCH_JSON"])
-          approval="artifacts/colmena/queen_approval.json"
-          ref=os.environ["GITHUB_SHA"]
-          rc=0
-          for mission_id in b["mission_ids"]:
-              env=os.environ.copy()
-              env["COLMENA_AGENT_EXECUTION_ID"]=f'{env["GITHUB_RUN_ID"]}-{env["GITHUB_RUN_ATTEMPT"]}-{mission_id}'
-              out=f"worker_evidence/{mission_id}.json"
-              p=subprocess.run([
-                  sys.executable,"scripts/colmena_worker.py",
-                  "--mission-id",mission_id,"--approval",approval,"--ref",ref,"--out",out
-              ],env=env)
-              rc=max(rc,p.returncode)
-          raise SystemExit(rc)
-          PY
-          batch_rc=$?
-          python - <<'PY'
-          import json, os
-          from pathlib import Path
-          b=json.loads(os.environ["BATCH_JSON"])
-          rows=[]
-          for mission_id in b["mission_ids"]:
-              p=Path(f"worker_evidence/{mission_id}.json")
-              if p.exists():
-                  rows.append(json.loads(p.read_text()))
-          payload={
-              "schema":"COLMENA_BATCH_EVIDENCE_V1",
-              "batch":b["batch"],
-              "mission_ids":b["mission_ids"],
-              "observed":len(rows),
-              "statuses":{s:sum(r.get("status")==s for r in rows) for s in ["PASS","FAIL","BLOCKED"]},
-              "ref":os.environ["GITHUB_SHA"]
-          }
-          Path(f"worker_evidence/batch_{int(b['batch']):02d}.json").write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n")
-          PY
-          kill "$(cat ai_runtime.pid)" 2>/dev/null || true
-          exit "$batch_rc"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: "colmena-batch-${{ matrix.batch }}"
-          path: |
-            worker_evidence/
-            ai_runtime.log
-          if-no-files-found: error
-          retention-days: 30
+          mkdir -p artifacts/colmena/workers
+          python scripts/colmena_queen.py             --ref "$GITHUB_SHA"             --output artifacts/colmena/queen_approval.json             --supervise             --workers-dir artifacts/colmena/workers             --state artifacts/colmena/queen_runtime_state.json
+          rc=$?
+          kill "$(cat artifacts/colmena/ai_runtime.pid)" 2>/dev/null || true
+          exit "$rc"
 
-  queen-summary:
-    name: "👑 Queen Final Reconciliation"
-    if: always() && needs.queen-gate.result == 'success'
-    needs: [queen-gate, worker-batch]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: colmena-batch-*
-          path: artifacts/colmena/workers
-          merge-multiple: true
-      - uses: actions/download-artifact@v4
-        with:
-          name: colmena-queen-gate
-          path: artifacts/colmena
-      - name: Reconcile 179 missions fail-closed
+      - name: 👑 Queen reconciles all 179 evidences fail-closed
+        if: always()
         run: |
+          set +e
           python - <<'PY'
           import json, sys
           from pathlib import Path
+
           root=Path("artifacts/colmena")
-          files=sorted(root.glob("workers/**/M*.json"))
-          rows=[json.loads(p.read_text()) for p in files]
-          approval=json.loads((root/"queen_approval.json").read_text())
+          approval=json.loads((root/"queen_approval.json").read_text(encoding="utf-8"))
           expected={m["id"]:m for m in approval["missions"]}
+          files=sorted((root/"workers").glob("worker_*.json"))
+          rows=[json.loads(p.read_text(encoding="utf-8")) for p in files]
           observed={r.get("mission_id"):r for r in rows}
-          unique=set(observed)
-          exact_ids=unique==set(expected) and len(rows)==179 and len(unique)==179
-          valid=True
+
+          exact_ids=(len(rows)==179 and len(observed)==179 and set(observed)==set(expected))
+          valid=exact_ids
           for mid,m in expected.items():
               r=observed.get(mid)
-              valid=valid and bool(r)
-              if r:
-                  valid=valid and r.get("agent_id")==m["agent_id"] and r.get("ref")==m["ref"]
-                  valid=valid and r.get("queen_approval")==m["approval"]
-                  valid=valid and r.get("status")=="PASS"
-                  rt=r.get("agent_runtime",{})
-                  valid=valid and rt.get("independent") is True and rt.get("ai_execution") is True
-                  valid=valid and r.get("runtime_status")=="PASS" and isinstance(r.get("ai_inference"),dict)
-          ok=bool(exact_ids and valid)
+              if not r:
+                  valid=False
+                  continue
+              rt=r.get("agent_runtime",{})
+              valid = valid and (
+                  r.get("agent_id")==m["agent_id"] and
+                  r.get("title")==m["title"] and
+                  r.get("ref")==m["ref"] and
+                  r.get("queen_approval")==m["approval"] and
+                  r.get("status")=="PASS" and
+                  r.get("runtime_status")=="PASS" and
+                  rt.get("independent") is True and
+                  rt.get("ai_execution") is True and
+                  bool(rt.get("execution_id")) and
+                  isinstance(r.get("ai_inference"),dict)
+              )
+
+          state=json.loads((root/"queen_runtime_state.json").read_text(encoding="utf-8")) if (root/"queen_runtime_state.json").exists() else {}
+          ok=bool(valid and state.get("status")=="PASS" and state.get("completed")==179 and state.get("failed")==0 and state.get("blocked")==0 and state.get("batches_completed")==36)
+
           payload={
-              "schema":"COLMENA_RECONCILIATION_V5",
-              "expected":179,"observed":len(rows),"unique_missions":len(unique),
-              "all_179_ai_runtime_pass":ok,"all_179_missions_pass":ok,
-              "fail_closed":True,"status":"PASS" if ok else "BLOCKED"
+              "schema":"COLMENA_RECONCILIATION_V6",
+              "expected":179,
+              "observed":len(rows),
+              "unique_missions":len(observed),
+              "all_179_ai_runtime_pass":ok,
+              "all_179_missions_pass":ok,
+              "fail_closed":True,
+              "status":"PASS" if ok else "BLOCKED"
           }
-          (root/"reconciliation.json").write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n")
-          state={
-              "schema":"COLMENA_QUEEN_RUNTIME_STATE_V4","status":payload["status"],
-              "repository":"DrRomanSalvador/coalicion","branch":"main",
-              "ref":approval["missions"][0]["ref"],"plan_sha256":approval["plan_sha256"],
-              "mission_count":179,"completed":sum(r.get("status")=="PASS" for r in rows),
-              "failed":sum(r.get("status")=="FAIL" for r in rows),
-              "blocked":sum(r.get("status")=="BLOCKED" for r in rows),
-              "batch_size":5,"batch_count":36,"reconciled":True
-          }
-          (root/"queen_runtime_state.json").write_text(json.dumps(state,ensure_ascii=False,indent=2)+"\n")
+          (root/"reconciliation.json").write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
           print(json.dumps(payload,ensure_ascii=False))
           sys.exit(0 if ok else 1)
-      - uses: actions/upload-artifact@v4
+          PY
+
+      - name: Upload complete Queen evidence
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: colmena-swarm-complete
           path: artifacts/colmena/
