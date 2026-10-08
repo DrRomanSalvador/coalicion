@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "81f65c389dd4f301f44f41211101e97f78a63661",
-  "updated_at": "2026-10-08T13:02:00+02:00",
+  "commit": "ae8f5fe581525a5542881c5e3da1e576a59724ed",
+  "updated_at": "2026-10-08T13:04:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,7 +24,7 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Execute phase2-product on latest main; inspect Priority 1 and territorial blocked artifacts; next repair only primary evidence/traceability.",
+  "resume_from": "Execute phase2-product on latest main; verify Priority 1/2 artifacts; continue to evidence acquisition and reproducibility gates.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
@@ -50,5 +50,20 @@
     },
     "resume_from": "Run phase2-product on this commit; inspect phase2_priority1_status.json; then repair only evidenced traceability/territorial gaps.",
     "territorial_prediction_boundary": "FIXED_FAIL_CLOSED"
+  },
+  "phase2_priority2": {
+    "status": "BLOCKED",
+    "national_only_input": "BLOCKED_NO_EXPLICIT_TERRITORIAL_INPUT",
+    "policy": {
+      "national_to_territorial_inference": false,
+      "fail_closed": true
+    },
+    "implementation": [
+      "src/pipeline/full_election.py",
+      "tests/test_full_pipeline.py",
+      "scripts/materialize_priority2_checkpoint.py",
+      "tests/test_phase2_priority2.py",
+      "artifacts/phase2_priority2_status.json"
+    ]
   }
 }
