@@ -126,11 +126,13 @@ def certify(root: str = "."):
         and str(baseline.get("model", "")).startswith("baseline_persistence_2019N")
         and int(baseline.get("n_simulations", 0)) >= 10000
         and baseline.get("rng") == "numpy.PCG64"
-        and baseline.get("source_tier") == "PRIMARY_INTERIOR"
+        and baseline.get("source_tier") == "PRIMARY_OFFICIAL"
         and isinstance(baseline.get("contracts"), dict)
         and baseline["contracts"].get("calibration_before_target_election") is True
         and baseline["contracts"].get("historical_conformal_calibration") is True
         and baseline["contracts"].get("family_level_calibration") is True
+        and baseline["contracts"].get("target_election_excluded_from_calibration") is True
+        and baseline["contracts"].get("conformal_nominal_coverage_95") is True
         and float(baseline.get("metrics", {}).get("coverage_actual_seats_in_calibrated_interval_winners", 0.0)) >= 0.85
     )
     gates.append(_gate(
