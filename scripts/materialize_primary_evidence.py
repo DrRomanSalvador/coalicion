@@ -6,7 +6,6 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.request import Request, urlopen
-import certifi
 import ssl
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,7 +16,7 @@ BOE_CORRECTION = "https://www.boe.es/buscar/doc.php?id=BOE-A-2023-15828"
 BOE_RESULTS = "https://www.boe.es/buscar/doc.php?id=BOE-A-2023-18907"
 
 def fetch(url: str, path: Path) -> dict:
-    ctx = ssl.create_default_context(cafile=certifi.where())
+    ctx = ssl.create_default_context()
     req = Request(url, headers={"User-Agent": "COALICION/primary-evidence"})
     with urlopen(req, context=ctx, timeout=90) as r:
         data = r.read()
