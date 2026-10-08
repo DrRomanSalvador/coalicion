@@ -15,8 +15,6 @@ from .coalition import CoalitionDecisionEngine, CoalitionScenario
 from .electoral import allocate
 from .electoral_radar_adapter import build_radar_from_snapshot
 from .marginality import rank_marginality
-from .projection_suite import project
-from .uncertainty import SimulationConfig, run_monte_carlo
 
 EXPECTED_CONSTITUENCIES = 52
 EXPECTED_SEATS = 350
@@ -100,6 +98,9 @@ def run_real_estimation(
         raise PipelineBlocked("BLOCKED_NO_TERRITORIAL_INPUT")
     special = dict(special or {})
     validate_territorial_matrix(votes, seats, blank, special)
+
+    from .projection_suite import project
+    from .uncertainty import SimulationConfig, run_monte_carlo
 
     base = project(votes, seats, blank, {}, {}, special)
     marginal = rank_marginality([
