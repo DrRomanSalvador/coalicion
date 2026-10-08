@@ -102,6 +102,13 @@ def run(m, ref, agent_id, runtime):
     else:
         p = subprocess.run(command, cwd=ROOT, text=True, capture_output=True)
         rc, out, err = p.returncode, p.stdout[-12000:], p.stderr[-12000:]
+        if rc != 0 and "run_complete_backtest.py" in command:
+            diagnostic = ROOT / "ci_evidence/backtest_complete_2004_2023.json"
+            if diagnostic.is_file():
+                try:
+                    err = (err + "\\nBACKTEST_ARTIFACT_DIAGNOSTIC\\n" + diagnostic.read_text(encoding="utf-8")[-12000:])[-12000:]
+                except OSError as exc:
+                    err = (err + "\\nBACKTEST_ARTIFACT_READ_ERROR: " + str(exc))[-12000:]
         status = "PASS" if rc == 0 else "FAIL"
     return {
         "schema":"COLMENA_WORKER_EVIDENCE_V4","agent_id":agent_id,"agent_runtime":runtime,
