@@ -475,6 +475,102 @@ def _natural_query(text: str) -> str | None:
             return command
     return None
 
+
+USER_STATE = ROOT / "artifacts/telegram_user_state.json"
+MAX_STATE_USERS = 10000
+
+
+def _state_key(update: dict[str, Any]) -> str:
+    callback = update.get("callback_query") or {}
+    message = callback.get("message") or {}
+    user = callback.get("from") or {}
+    chat_id = (message.get("chat") or {}).get("id")
+    user_id = user.get("id")
+    return str(user_id if user_id is not None else chat_id if chat_id is not None else "")
+
+
+def _load_user_state() -> dict[str, Any]:
+    value = _safe_json(USER_STATE)
+    users = value.get("users")
+    return users if isinstance(users, dict) else {}
+
+
+def _save_user_state(users: dict[str, Any]) -> None:
+    try:
+        USER_STATE.parent.mkdir(parents=True, exist_ok=True)
+        trimmed = dict(list(users.items())[-MAX_STATE_USERS:])
+        tmp = USER_STATE.with_suffix(".tmp")
+        tmp.write_text(json.dumps({"users": trimmed}, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+        tmp.replace(USER_STATE)
+    except OSError:
+        # Navigation remains functional if persistence is temporarily unavailable.
+        pass
+
+
+def _get_user_navigation(key: str) -> dict[str, Any]:
+    users = _load_user_state()
+    value = users.get(key)
+    if not isinstance(value, dict):
+        return {"current": "/briefing", "stack": []}
+    return {
+        "current": str(value.get("current", "/briefing")),
+        "stack": [str(x) for x in value.get("stack", []) if isinstance(x, str)][-20:],
+    }
+
+
+def _set_user_navigation(key: str, current: str, *, previous: str | None = None) -> None:
+    if not key:
+        return
+    users = _load_user_state()
+    state = _get_user_navigation(key)
+    stack = list(state["stack"])
+    if previous and previous != current:
+        stack.append(previous)
+    users[key] = {"current": current, "stack": stack[-20:]}
+    _save_user_state(users)
+
+
+def _navigation_markup(command: str) -> dict[str, Any]:
+    command = command.split("@", 1)[0].strip().lower()
+    if command in {"/briefing", "/hoy"}:
+        return {
+            "inline_keyboard": [
+                [{"text": "🔄 Actualizar", "callback_data": f"refresh:{command}"},
+                 {"text": "🧭 Inicio", "callback_data": "home"}],
+                [{"text": "📈 Cambios", "callback_data": "cmd:/cambios"},
+                 {"text": "🗳 Sondeos", "callback_data": "cmd:/encuestas"}],
+                [{"text": "📅 Plazos", "callback_data": "cmd:/calendario"},
+                 {"text": "🔎 Evidencia", "callback_data": "cmd:/evidencia"}],
+            ]
+        }
+    return {
+        "inline_keyboard": [
+            [{"text": "← Atrás", "callback_data": "back"},
+             {"text": "🏠 Inicio", "callback_data": "home"},
+             {"text": "🔄 Actualizar", "callback_data": f"refresh:{command}"}],
+        ]
+    }
+
+
+def _edit(chat_id: int, message_id: int, text: str, markup: dict[str, Any] | None = None) -> None:
+    payload: dict[str, Any] = {
+        "chat_id": chat_id,
+        "message_id": message_id,
+        "text": _public_text(text),
+    }
+    if markup is not None:
+        payload["reply_markup"] = markup
+    _api("editMessageText", json=payload)
+
+
+def _callback_command(data: str) -> str | None:
+    if data.startswith("cmd:"):
+        return data[4:]
+    if data.startswith("refresh:"):
+        return data[8:]
+    return None
+
+
 def _menu_markup() -> dict[str, Any]:
     return {
         "inline_keyboard": [
@@ -771,23 +867,53 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
         data = str(callback.get("data", ""))
         callback_id = callback.get("id")
         if callback_id:
-            try:
-                _answer_callback(str(callback_id))
-            except TelegramBotError:
-                pass
+            _answer_callback(str(callback_id))
         message = callback.get("message") or {}
         chat_id = (message.get("chat") or {}).get("id")
-        if chat_id is not None and data.startswith("cmd:"):
-            _send(int(chat_id), render_command(data[4:]), _menu_markup())
+        message_id = message.get("message_id")
+        key = _state_key(update)
+        if chat_id is not None and isinstance(message_id, int):
+            state = _get_user_navigation(key)
+            current = state["current"]
+            if data == "home":
+                target = "/briefing"
+                _set_user_navigation(key, target)
+            elif data == "back":
+                stack = list(state["stack"])
+                target = stack.pop() if stack else "/briefing"
+                users = _load_user_state()
+                users[key] = {"current": target, "stack": stack[-20:]}
+                _save_user_state(users)
+            else:
+                target = _callback_command(data)
+                if target:
+                    target = target.split("@", 1)[0].strip().lower()
+                    _set_user_navigation(key, target, previous=current)
+            if data == "refresh:" + current:
+                target = current
+            elif data == "home":
+                target = "/briefing"
+            elif data == "back":
+                target = _get_user_navigation(key)["current"]
+            if target:
+                try:
+                    _edit(int(chat_id), message_id, render_command(target), _navigation_markup(target))
+                except TelegramBotError:
+                    _send(int(chat_id), render_command(target), _navigation_markup(target))
         return next_offset
 
     message = update.get("message") or {}
     chat_id = (message.get("chat") or {}).get("id")
     text = str(message.get("text") or "").strip()
+    user_id = (message.get("from") or {}).get("id")
     if chat_id is not None and text:
         command = text.split()[0] if text.startswith("/") else _natural_query(text)
         if command:
-            _send(int(chat_id), render_command(command), _menu_markup())
+            command = command.split("@", 1)[0].strip().lower()
+            key = str(user_id if user_id is not None else chat_id)
+            previous = _get_user_navigation(key)["current"]
+            _set_user_navigation(key, command, previous=previous)
+            _send(int(chat_id), render_command(command), _navigation_markup(command))
         else:
             _send(
                 int(chat_id),
