@@ -1,101 +1,61 @@
-# INVOCACIÓN — ESTADO HEREDABLE DE LA COLMENA
+# COLMENA — MAPA DE REINVOCACIÓN
 
-## PROM DE ARRANQUE — NO RECONSTRUIR
+**REPO:** `DrRomanSalvador/coalicion`  
+**BRANCH:** `main`  
+**FUENTE DE VERDAD:** GitHub  
+**CHAT:** solo superficie de invocación  
+**SEED:** `20261006`
 
-**ÚNICA FUENTE DE CONTINUIDAD:** `docs/COLMENA_STATE.json`. El chat no es almacenamiento de estado.
-1. Leer `README.md`, `CONTRATO_MAESTRO_IA.md`, este archivo y `docs/COLMENA_STATE.json`.
-2. Ejecutar `python -m src.colmena_resume`.
-3. Ejecutar `python -m src.reproducibility_contract`.
-4. Ejecutar `pytest -q tests/test_reproducibility_contract.py tests/test_error_registry.py tests/test_colmena_resume.py`.
-5. Leer `next_single_action` del estado.
-6. Ejecutar únicamente esa acción.
-7. Persistir inmediatamente `last_action`, resultado, commit y una sola `next_single_action`.
-8. Si código, estado o evidencia discrepan: DETENER y registrar contradicción; no reconstruir desde el chat.
+## INVOCACIÓN ÚNICA
 
-## CONTRATO DETERMINISTA
-- Metodología única: SEEC.
-- Cadena: FUENTES → DATOS → VALIDACIÓN → SESGOS → TERRITORIO → ESCENARIO → COALICIÓN → LEY ELECTORAL → MARGINALIDAD → INCERTIDUMBRE → RESULTADO → AUDITORÍA.
-- RNG: NumPy PCG64.
-- Semilla canónica: 20261006.
-- Monte Carlo mínimo: 10.000; preferencia 50.000+.
-- Misma versión + mismos datos + mismos parámetros + misma semilla = misma salida.
-- Fail-closed ante ausencia, contradicción, hash incorrecto, no reproducibilidad o evidencia insuficiente.
-- Ninguna corrección metodológica sin validación OOS predefinida.
+Estas frases son equivalentes:
 
-## ANCLA PRIMARIA
-`data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.json`
-SHA-256: `b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7`
-Hash incorrecto o ancla ausente = DETENER. No buscar sustitutos automáticamente.
-El manifiesto fija la identidad; el PDF binario aún debe fijarse en almacenamiento versionado.
+> **Activa la colmena**  
+> **Habla la abeja reina**  
+> **Reinvoca la colmena**  
+> **Continúa donde quedó la colmena**  
+> **Recupera el estado de la colmena**
 
-## ECONOMÍA DE TOKENS
-- Repositorio primero.
-- No repetir búsquedas/cálculos/auditorías ya evidenciados.
-- No volver a buscar una fuente anclada.
-- No narrar herramientas.
-- No pedir información ya presente.
-- Un razonamiento o mensaje no enviado no es estado heredable.
-- Cada unidad de trabajo termina en checkpoint persistido.
-- El estado máquina prevalece sobre memoria conversacional.
+## AL RECIBIR CUALQUIERA
 
-## ÚLTIMA HUELLA
-Checkpoint verificado: `d86b037d37ed63a1293583c60c931cef48c9171a`.
-CI del checkpoint anterior `ab31768ef7e3341d29113dfd4d28129dd9663524`: cero estados registrados; **INCONCLUSO**, nunca PASS.
-Estado global: **BLOCKED / FAIL-CLOSED**.
-Última acción: verificación del checkpoint, contrato, ancla y estado CI; después se persistió el estado máquina actualizado.
-Siguiente acción única: materializar y fijar los bytes originales del PDF en almacenamiento binario versionado y registrar identificador inmutable + SHA-256.
+1. Leer este archivo.
+2. Leer `docs/COLMENA_STATE.json`.
+3. Leer `docs/COLMENA_MISSION_CONTROL.json`.
+4. Recuperar `artifacts/colmena/queen_state.json`, `queen_approval.json` y evidencias.
+5. Continuar desde la primera misión no-PASS.
+6. No repetir trabajo ya probado.
+7. Solo `DrRomanSalvador/coalicion`, solo `main`.
+8. Fail-closed: sin evidencia persistente, no PASS.
+9. Cada aprendizaje estructural se codifica en GitHub antes de continuar.
+10. **No prueba final hasta resolver las 179 limitaciones.**
 
+## MAPA EJECUTABLE
 
-## HUELLA CANÓNICA ACTUAL
+| Función | Fuente |
+|---|---|
+| Reina | `scripts/colmena_queen.py` |
+| Dispatcher | `scripts/queen_dispatcher.py` |
+| Worker | `scripts/colmena_worker.py` |
+| Cierre | `scripts/colmena_closure.py` |
+| 179 misiones | `docs/COLMENA_MISSION_CONTROL.json` |
+| Estado | `docs/COLMENA_STATE.json` |
+| Estado Reina | `artifacts/colmena/queen_state.json` |
+| Aprobación | `artifacts/colmena/queen_approval.json` |
+| Evidencias | `artifacts/colmena/worker_*.json` |
+| Cierre | `artifacts/colmena/colmena_closure.json` |
 
-Último checkpoint persistido: `0e30da0742f871f31e2357da1424a340e03703d3`.
-Estado: **BLOCKED / FAIL-CLOSED**.
-La verificación del hash ahora exige los **bytes reales** del PDF; el manifiesto por sí solo no puede pasar.
-No se ha certificado el sistema: permanecen bloqueos explícitos en fuente binaria, reconciliación primaria, ejecución SEEC, calibración OOS y auditoría externa.
-Siguiente acción única: fijar el PDF binario con SHA-256 `b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7`.
+## PERSISTENCIA
 
-**Regla de mensaje incompleto:** si una IA muere, se queda sin tokens o termina una respuesta a mitad, se ignora cualquier intención no persistida. El siguiente agente ejecuta el estado del repositorio y no vuelve a pensar lo ya resuelto.
+**Repositorio = memoria.**  
+Si este chat desaparece, no reconstruirlo desde conversación: leer GitHub, recuperar el último checkpoint y continuar.
 
+**Regla permanente:** `estado → una siguiente acción → ejecutar → evidencia → checkpoint → siguiente acción`.
 
-## HUELLA DE PRODUCTO — CHECKPOINT ACTUAL
+## PAUSA ACTUAL
 
-Último checkpoint persistido: b96d87f924546c4a9ffe24349a8ed7214cef7b8f.
-Estado: SELLABLE_BETA / READY_FOR_EXTERNAL_AUDIT.
-Gate comercial materializado: ci_evidence/product_release_gate.json = SELLABLE_BETA.
-SEEC, MC, OOS y cobertura de fuentes tienen evidencia PASS; auditoría externa permanece abierta.
+**PAUSADO PARA COORDINACIÓN.**  
+Los workflows automáticos no deben avanzar la misión mientras la Reina termina de coordinar las 179 limitaciones. La prueba final será única, coherente y posterior al cierre completo.
 
-### PROM MÍNIMO PARA CUALQUIER CHAT NUEVO
+## NO CONFUNDIR
 
-REPOSITORIO = MEMORIA.
-CHAT = INTERFAZ.
-
-1. Leer README.md.
-2. Leer CONTRATO_MAESTRO_IA.md.
-3. Leer docs/INVOCACION_COLMENA.md.
-4. Leer docs/COLMENA_STATE.json.
-5. Ejecutar: python -m src.colmena_resume
-6. Ejecutar los tests canónicos indicados por la invocación.
-7. Tomar únicamente docs/COLMENA_STATE.json.next_single_action.
-8. Ejecutar esa acción y ninguna otra acción paralela.
-9. Persistir resultado, evidencia, commit y una única next_single_action.
-10. Detenerse.
-
-No buscar de nuevo fuentes ancladas. No repetir cálculos ya evidenciados. No usar memoria del chat para reconstruir estado.
-
-Siguiente acción única: desplegar el blueprint Render y materializar una URL pública verificable.
-
-
-### HUELLA DE INTELIGENCIA DE SITUACIÓN
-
-Implementado en `main`:
-- `src/situation_state.py`: contrato único `COALICION_SITUATION_STATE_V1`.
-- `config/situation_mission.json`: misión/foco fail-closed.
-- `artifacts/situation_state.json`: estado materializado actual.
-- `src/email/newsletter.py`: Brief interno conciso para revisión humana.
-- `src/alerts/situation_alerts.py`: filtro de alertas de una frase.
-- `src/web/dashboard.py`: Situation State como fuente común.
-- `.github/workflows/situation_brief.yml`: generación a las 08:00, 16:00 y 00:00 Europe/Madrid + revisión CI.
-
-Estado materializado actual: `UNCERTAINTY`. Motivo verificable: 0 observaciones territoriales 2026 materializadas.
-
-Siguiente acción única: ejecutar y verificar en GitHub Actions la batería del contrato Situation State; no marcar PASS hasta disponer de evidencia de ejecución.
+Las **179** son el contrato de misiones/slots lógicos gobernados por la Reina. Solo se llamarán “agentes IA autónomos” cuando exista evidencia real de ejecución autónoma; el código no inventa esa evidencia.
