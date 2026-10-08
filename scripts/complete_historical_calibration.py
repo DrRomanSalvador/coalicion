@@ -7,6 +7,11 @@ Nothing is calibrated against the election being evaluated.
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
 import argparse
 import json
 import math
