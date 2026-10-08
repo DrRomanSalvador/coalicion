@@ -1,0 +1,50 @@
+{
+  "schema": "REALTIME_SITUATION_ROOM_CHECKPOINT_V1",
+  "generated_at": "2026-10-08",
+  "repository": "DrRomanSalvador/coalicion",
+  "policy": {
+    "neutral": true,
+    "fail_closed": true,
+    "no_national_to_territorial_inference": true,
+    "no_targeted_political_persuasion": true
+  },
+  "layers": {
+    "0_sources": {
+      "status": "PASS",
+      "evidence": "17 source_status records persisted; monitor workflow completed successfully"
+    },
+    "1_ingestion": {
+      "status": "PASS",
+      "evidence": "raw source materialization, hashing, deduplication and observations materialization are wired into poll monitor workflow"
+    },
+    "2_longitudinal": {
+      "status": "IMPLEMENTED_PENDING_OOS",
+      "evidence": "src/longitudinal.py provides moving averages, slope, volatility, outliers and correlation; no calibration claim"
+    },
+    "3_bayesian_models": {
+      "status": "PARTIAL",
+      "evidence": "Gaussian process, quantile forest, Bayesian ensemble and hierarchical SEEC exist; BMA is explicitly a BIC approximation and DLM generic adapter remains incomplete"
+    },
+    "4_realtime_update": {
+      "status": "PARTIAL",
+      "evidence": "poll monitor plus observations materialization run on schedule; model posterior refresh is not yet proven end-to-end"
+    },
+    "5_situation_room": {
+      "status": "IMPLEMENTED_PENDING_RUNTIME",
+      "evidence": "Telegram commands /situacion, /tendencias and /incertidumbre are wired to materialized artifacts"
+    },
+    "6_advisory": {
+      "status": "BLOCKED_BY_POLICY_FOR_TARGETED_PERSUASION",
+      "evidence": "neutral scenario/decision-support is allowed; actor-specific persuasion strategies are not implemented"
+    },
+    "7_alerts": {
+      "status": "PARTIAL",
+      "evidence": "existing alert categories and source recovery/failure alerts remain; intelligent probabilistic significance is not yet validated"
+    },
+    "8_traceability_fail_closed": {
+      "status": "PASS_WITH_LIMITS",
+      "evidence": "territorial seat inference remains fail-closed and evidence levels are explicit; secondary replicas are no longer treated as primary verification"
+    }
+  },
+  "not_certified": true
+}
