@@ -2,6 +2,11 @@ name: COALICIÓN — Situation Brief
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - "src/**"
+      - "config/**"
+      - ".github/workflows/situation_brief.yml"
   schedule:
     - cron: "0 8 * * *"
       timezone: "Europe/Madrid"
