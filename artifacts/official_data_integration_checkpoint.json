@@ -1,0 +1,28 @@
+{
+  "schema": "OFFICIAL_DATA_INTEGRATION_CHECKPOINT_V1",
+  "branch": "main",
+  "updated_at": "2026-10-08T16:35:00+02:00",
+  "source": "Ministerio del Interior / Infoelectoral",
+  "official_workbook_sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
+  "historical_elections": 16,
+  "range": [
+    "1977-06-15",
+    "2023-07-23"
+  ],
+  "constituencies": 52,
+  "normalized_records": 322556,
+  "validation_2023": {
+    "status": "PASS",
+    "candidate_votes_total": 24487414,
+    "blank_votes_total": 200673,
+    "valid_votes_total": 24688087,
+    "seats": 350
+  },
+  "seat_reconciliation_2023_52_constituencies": "PASS",
+  "parser": "src/data.py::load_official_constituency_matrix",
+  "materializer": "scripts/materialize_official_interior_dataset.py",
+  "manifest": "data/manifests/official_interior_congreso.json",
+  "canonical": "artifacts/data/election_2023_canonical.json",
+  "ci_validation": "PENDING",
+  "current_2026_territorial_matrix": "NOT_AVAILABLE"
+}
