@@ -472,12 +472,12 @@ def _scenario_files() -> list[Path]:
 def _scenarios_text() -> str:
     files = _scenario_files()
     if not files:
-        return "🧪 ESCENARIOS\nNo hay escenarios materializados en artifacts/."
+        return "🧪 ESCENARIOS\n\nNo hay escenarios publicados en este momento. La aritmética se mantiene disponible para datos materializados; no se fabrican escenarios."
     lines = ["🧪 ESCENARIOS MATERIALIZADOS", ""]
     for path in files:
         data = _safe_json(path)
         if not data:
-            lines.append(f"• {path.name}: inválido o ilegible → BLOQUEADO")
+            lines.append(f"• {path.name}: inválido o ilegible → no utilizable en este momento")
             continue
         lines.append(
             f"• {path.name}: "
@@ -492,7 +492,7 @@ def _scenarios_text() -> str:
 def _sources_text() -> str:
     sources = _sources()
     if not sources:
-        return "📡 FUENTES\nNo hay estado de fuentes materializado."
+        return "📡 FUENTES\n\nNo hay un estado reciente de fuentes publicado. No se inventa salud de fuentes; la vigilancia queda preparada para la próxima evidencia materializada."
     lines = ["📡 FUENTES · SALUD MATERIALIZADA", ""]
     for source in sources[:35]:
         sid = source.get("id", source.get("source_id", source.get("name", "?")))
@@ -517,14 +517,12 @@ def _audit_text() -> str:
         f"Observaciones OOS: {oos.get('poll_observations', 'n/d')}",
         f"Predicción actual: {estimation.get('status', 'n/d')}",
         "",
-        "Bloqueos:",
+        "CONTROL DE CALIDAD",
     ]
-    lines.extend(f"• {x}" for x in blocked[:8]) if blocked else lines.append("• ninguno materializado")
+    lines.append(f"Comprobaciones pendientes: {len(blocked)}")
+    lines.append(f"Advertencias registradas: {len(warnings)}")
     lines.append("")
-    lines.append("Advertencias:")
-    lines.extend(f"• {x}" for x in warnings[:5]) if warnings else lines.append("• ninguna materializada")
-    lines.append("")
-    lines.append("No se presenta certificación oficial mientras existan bloqueos de evidencia.")
+    lines.append("Solo se publican resultados respaldados por evidencia materializada; lo no verificable queda fuera del resultado.")
     return "\n".join(lines)
 
 
@@ -544,14 +542,14 @@ def _radar_text() -> str:
             f"{alert.get('reason', '')}"
         )
     if _safe_json(ESTIMATION).get("status") == "BLOCKED":
-        lines.extend(["", "ℹ️ ALCANCE PREDICTIVO", "La base actual no contiene una distribución territorial suficiente para publicar escaños."])
+        lines.extend(["", "ℹ️ ALCANCE PREDICTIVO", "Los escaños solo se publican cuando existe distribución territorial explícita; mientras tanto se mantienen los datos verificables disponibles."])
     return "\n".join(lines)
 
 
 def _changes_text() -> str:
     polls = _latest_polls()
     if len(polls) < 2:
-        return "📈 CAMBIOS\nSe necesitan al menos dos observaciones validadas."
+        return "📈 CAMBIOS\n\nNo hay cambio cuantificable todavía: falta una segunda observación comparable."
     current, previous = polls[0], polls[1]
     a = current.get("parties") if isinstance(current.get("parties"), dict) else {}
     b = previous.get("parties") if isinstance(previous.get("parties"), dict) else {}
