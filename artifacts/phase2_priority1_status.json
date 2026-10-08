@@ -1,9 +1,9 @@
 {
   "schema": "PHASE2_PRIORITY1_STATUS_V1",
-  "status": "BLOCKED",
+  "status": "PARTIAL",
   "national_survey_count": 10,
   "national_requirement": 10,
-  "territorial_observation_count": 0,
+  "territorial_observation_count": 3,
   "territorial_requirement": 3,
   "fully_traceable_national_count": 0,
   "primary_verified_national_count": 2,
@@ -19,10 +19,9 @@
   "official_2023_matrix_present": true,
   "official_2023_primary_evidence_present": false,
   "blockers": [
-    "BLOCKED_NO_3_TERRITORIAL_OBSERVATIONS",
-    "BLOCKED_INCOMPLETE_TRACEABILITY",
-    "BLOCKED_PRIMARY_SOURCE_COVERAGE",
-    "BLOCKED_2023_PRIMARY_EVIDENCE_MISSING"
+    "BLOCKED_INCOMPLETE_PRIMARY_SOURCE_CONTENT_HASH",
+    "BLOCKED_PRIMARY_2023_EVIDENCE_MISSING",
+    "BLOCKED_GENERAL_ELECTION_CONSTITUENCY_COVERAGE_52"
   ],
   "policy": {
     "no_synthetic_values": true,
@@ -30,6 +29,29 @@
     "fail_closed": true
   },
   "execution_trigger": "CI",
-  "updated_at": "2026-10-08T13:00:00+02:00",
-  "workflow_revision": "2026-10-08T13:17:00+02:00"
+  "updated_at": "2026-10-08T15:15:00+02:00",
+  "workflow_revision": "2026-10-08T13:17:00+02:00",
+  "territorial_observations": [
+    {
+      "survey_id": "ipsos_lavanguardia_catalunya_20261004",
+      "territory": "Catalunya",
+      "election_scope": "autonómica",
+      "traceability": "PRIMARY_VERIFIABLE",
+      "hash_scope": "captured_excerpt"
+    },
+    {
+      "survey_id": "celeste_tel_valencia_20260917",
+      "territory": "Comunitat Valenciana",
+      "election_scope": "autonómica",
+      "traceability": "PRIMARY_VERIFIABLE",
+      "hash_scope": "captured_excerpt"
+    },
+    {
+      "survey_id": "sigma_dos_asturias_20260908",
+      "territory": "Principado de Asturias",
+      "election_scope": "autonómica",
+      "traceability": "PRIMARY_VERIFIED",
+      "hash_scope": "captured_excerpt"
+    }
+  ]
 }
