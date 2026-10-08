@@ -12,7 +12,7 @@ REMOVED = {
     "decision_engine.py",
 }
 COALITION_FUNCS = {"merge_coalition_votes"}
-PREDICTION_FUNCS = {"predict", "apply_share_swing", "historical_share_changes"}
+PREDICTION_FUNCS = {"apply_share_swing", "historical_share_changes"}
 DHONDT_FUNCS = {"dhondt", "d_hondt"}
 
 def _functions(path):
