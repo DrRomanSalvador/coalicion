@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "73e2a9b9f59d76b0d1327a4ffed665edf7d86f9c",
-  "updated_at": "2026-10-08T13:06:00+02:00",
+  "commit": "3f25700479cc84f7685bbc2422bacdfebf8d4bab",
+  "updated_at": "2026-10-08T13:08:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,7 +24,7 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Wait for latest phase2-product run; inspect failure/success; preserve blocked territorial status.",
+  "resume_from": "Wait for latest phase2-product run; inspect all gates. Then harden reproducibility/security/release without claiming blocked capabilities.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
@@ -66,5 +66,23 @@
       "artifacts/phase2_priority2_status.json"
     ],
     "execution_fix": "FIXED_SCRIPT_IMPORT_PATH"
+  },
+  "phase2_priority4": {
+    "status": "PARTIAL",
+    "implemented": [
+      "src/alerts/realtime_notifier.py",
+      "src/recovery/retry_fallback.py",
+      "tests/test_alerts.py",
+      "tests/test_recovery.py"
+    ],
+    "blocked": [
+      "runtime 17-source execution pending CI",
+      "Telegram credentials deployment prerequisite"
+    ],
+    "policy": {
+      "no_invented_events": true,
+      "source_recovery_requires_previous_failure": true,
+      "fail_closed": true
+    }
   }
 }
