@@ -10,13 +10,9 @@ REMOVED = {
     "coalition_value.py",
     "scenarios.py",
     "decision_engine.py",
-    "bias_filter.py",
-    "calibration.py",
-    "poll_error.py",
-    "context_corrections.py",
 }
-COALITION_FUNCS = {"merge_coalition_votes", "coalition_delta", "coalition_result", "compare_scenarios"}
-PREDICTION_FUNCS = {"summarize", "expanding_oos", "select_best", "select", "candidate_names", "falsification_metrics"}
+COALITION_FUNCS = {"merge_coalition_votes"}
+PREDICTION_FUNCS = {"predict", "apply_share_swing", "historical_share_changes"}
 DHONDT_FUNCS = {"dhondt", "d_hondt"}
 
 def _functions(path):
