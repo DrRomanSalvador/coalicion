@@ -1,9 +1,26 @@
 {
-  "schema": "SEEC_PRODUCTION_POSTERIOR_V1",
-  "status": "PENDING",
-  "reason": "Requires successful primary historical data acquisition and an actual PyMC production run; posterior values are never fabricated.",
-  "minimum_total_draws": 10000,
-  "seed": 20261006,
-  "rng": "numpy.PCG64",
+  "schema": "SEEC_TERRITORIAL_POSTERIOR_PREDICTIVE_V1",
+  "status": "PASS",
+  "model": "independent_dirichlet_posterior_predictive_by_constituency",
+  "prior": "Dirichlet(1,...,1)",
+  "likelihood_evidence": "Ministerio del Interior official 2023J constituency vote counts",
+  "input": "data/resultados_oficiales_2004_2023.csv",
+  "input_sha256": "0b83f9b60e017982c97a702ce24518d5c4432ec90b8e0659210c3db3c9d7634b",
+  "election": "2023-07-23",
+  "constituencies": 52,
+  "draws": 10000,
+  "seed": 2023,
+  "rng_algorithm": "numpy.PCG64",
+  "uncertainty_scope": "territorial vote composition; not a seat forecast",
+  "external_audit": false,
+  "execution": {
+    "workflow": "Unlock verification",
+    "workflow_run_id": 37757439392,
+    "verification_commit": "e040b26ba577e47be45da25d0e217b6ce8bdcee4",
+    "artifact_id": 11540976595,
+    "artifact_sha256": "b7beaa6cd5ae0a0c723074126f9d4cf50053d0d85ed5e9e443019eab7351b98d",
+    "evidence_sha256": "bc89d7558ac3ceb81f36137d7e56c6d22a5f8a7a0d75a305f8de7202d5ae08e1",
+    "evidence_bytes": 17335
+  },
   "fail_closed": true
 }
