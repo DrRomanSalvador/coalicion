@@ -1,0 +1,14 @@
+{
+  "schema":"PHASE2_LAYER2_CHECKPOINT_V1",
+  "as_of":"2026-10-08",
+  "status":"IMPLEMENTED_DEMO_NON_OFFICIAL",
+  "entrypoint":"src/models/territorial_prediction_2026.py",
+  "artifact":"artifacts/territorial_prediction_20261008.json",
+  "current_national_surveys":10,
+  "territorial_observed_surveys":0,
+  "constituencies_target":52,
+  "seat_total_target":350,
+  "calibration_2026":"NOT_2026_CALIBRATED",
+  "mode":"MODELLED_DEMO_NON_OFFICIAL",
+  "fail_closed":true
+}
