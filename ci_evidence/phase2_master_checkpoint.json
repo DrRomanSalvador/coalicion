@@ -1,0 +1,33 @@
+{
+  "schema": "PHASE2_MASTER_CHECKPOINT_V1",
+  "as_of": "2026-10-08",
+  "mode": "DEMO_OPERATIONAL_NON_OFFICIAL",
+  "status": "IN_PROGRESS_BLOCKED_BY_CURRENT_DATA",
+  "layers": {
+    "0_current_data_traceability": "BLOCKED",
+    "1_full_pipeline": "IMPLEMENTED_FAIL_CLOSED_PENDING_TERRITORIAL_INPUT",
+    "2_territorial_2026": "BLOCKED_BY_LAYER_0",
+    "3_realtime_monitor_telegram_recovery": "PARTIAL_EXISTING",
+    "4_reproducibility": "IMPLEMENTED",
+    "5_security_operation": "PARTIAL_EXISTING",
+    "6_release_package": "PARTIAL_EXISTING",
+    "7_demo_e2e": "PENDING_REAL_TERRITORIAL_INPUT"
+  },
+  "completed_changes": [
+    "src/trailability/evidence.py",
+    "src/pipeline/full_election.py",
+    "src/reproducibility/hasher.py",
+    "src/reproducibility/verifier.py",
+    "tests/test_trailability.py",
+    "tests/test_full_pipeline.py",
+    "tests/test_reproducibility_phase2.py"
+  ],
+  "fail_closed": true,
+  "external_audit_required_for_official_validity": true,
+  "blockers": [
+    "No 10 current national surveys with complete primary evidence canonized in the current input artifact.",
+    "No 3 explicit current territorial surveys canonized by constituency.",
+    "No November 2026 observations exist at the 2026-10-08 cutoff; future data must not be fabricated."
+  ],
+  "next_gate": "CANONICALIZE_CURRENT_PRIMARY_SURVEYS_AND_EXPLICIT_TERRITORIAL_OBSERVATIONS"
+}
