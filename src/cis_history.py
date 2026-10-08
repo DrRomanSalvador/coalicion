@@ -5,6 +5,7 @@ No imputation, party substitution, or percentage renormalization is allowed.
 """
 from __future__ import annotations
 import csv
+import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 
