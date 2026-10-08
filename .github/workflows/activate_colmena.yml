@@ -47,8 +47,11 @@ jobs:
           PY
       - name: Validate neutral contracts
         run: python -m pytest -q tests/test_neutral_coalition.py tests/test_neutral_audit.py tests/test_electoral.py tests/test_decision.py
+      - name: Execute queen bee
+        run: python scripts/queen_bee.py
 
 # activation-touch: 2026-10-08 — ejecución explícita de la abeja reina/colmena
 # canonical-integrity-pin: repaired from runner-observed SHA-256 208b7eafe18e7e88ec3ccdec3fd55b6a92cdf026649d718a7c0a84fa8ffedef9
 # activation-test-pin: 2026-10-08
+# queen-execution: scripts/queen_bee.py
 # queen-bee activation run: 2026-10-08T14:00Z
