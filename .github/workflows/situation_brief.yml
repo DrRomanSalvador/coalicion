@@ -19,7 +19,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: situation-brief-${{ github.ref }}
+  group: situation-brief-\${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -28,6 +28,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -36,12 +38,12 @@ jobs:
 
       - name: Generate situation state
         env:
-          PYTHONPATH: ${{ github.workspace }}
+          PYTHONPATH: \${{ github.workspace }}
         run: python scripts/generate_situation_state.py
 
       - name: Generate review briefing
         env:
-          PYTHONPATH: ${{ github.workspace }}
+          PYTHONPATH: \${{ github.workspace }}
         run: python -m src.email.newsletter
 
       - name: Install test runner
@@ -49,20 +51,21 @@ jobs:
 
       - name: Verify deterministic contracts
         env:
-          PYTHONPATH: ${{ github.workspace }}
+          PYTHONPATH: \${{ github.workspace }}
         run: python -m pytest -q tests/test_situation_state.py tests/test_operational_briefing.py tests/test_electoral_intelligence.py
 
       - name: Persist materialized state
         env:
-          PYTHONPATH: ${{ github.workspace }}
+          PYTHONPATH: \${{ github.workspace }}
         run: |
           set -euo pipefail
           git config user.name "coalicion-situation[bot]"
           git config user.email "coalicion-situation[bot]@users.noreply.github.com"
 
-          for attempt in 1 2 3 4 5; do
-            git fetch origin main
+          for attempt in 1 2 3 4 5 6 7; do
+            git fetch --prune origin main
             git reset --hard origin/main
+            git clean -fd
 
             python scripts/generate_situation_state.py
             python -m src.email.newsletter
@@ -75,12 +78,13 @@ jobs:
 
             git commit -m "chore(intelligence): materialize situation brief"
             if git push origin HEAD:main; then
+              echo "Materialized state pushed successfully."
               exit 0
             fi
 
-            echo "Concurrent main update; retrying ($attempt/5)."
-            git reset --hard HEAD^
+            echo "Concurrent main update; retrying ($attempt/7)."
+            git fetch --prune origin main
           done
 
-          echo "Unable to push materialized state after 5 attempts."
+          echo "Unable to push materialized state after 7 attempts."
           exit 1
