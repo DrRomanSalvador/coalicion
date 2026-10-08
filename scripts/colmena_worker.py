@@ -62,7 +62,7 @@ def load_approval(path, mission_id, ref):
     return d, m
 
 def invoke_ai_agent(m, agent_id):
-    model = os.environ.get("COLMENA_AGENT_MODEL", "onnx-community/SmolLM2-135M-Instruct-ONNX-MHA:q4f16").strip()
+    model = os.environ.get("COLMENA_AGENT_MODEL", "onnx-community/Qwen3-0.6B-ONNX:q4f16").strip()
     payload = {"agent_id": agent_id, "mission_id": m["id"], "mission": m["title"], "scope": m.get("scope", "")}
     server = os.environ.get("COLMENA_AI_SERVER_URL", "").strip()
     if server:
