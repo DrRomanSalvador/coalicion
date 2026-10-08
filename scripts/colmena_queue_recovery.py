@@ -10,3 +10,5 @@
 # stale purge revision 5
 
 # recovery revision 5 — recover after swarm source fixes
+
+# recovery revision 6 — standard runner
