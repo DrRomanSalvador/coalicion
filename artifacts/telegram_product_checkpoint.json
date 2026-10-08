@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "b8c80f0a65702859414813269e7f4efec0f46521",
-  "updated_at": "2026-10-08T13:18:00+02:00",
+  "commit": "735ca377e39951859ce468060a63e2642641d483",
+  "updated_at": "2026-10-08T13:20:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,7 +24,7 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Wait for Actions on latest main. Do not mark any Phase 2 priority PASS until real CI evidence exists.",
+  "resume_from": "Run and inspect GitHub Actions on latest main; fix real CI failures; then continue Priority 1 evidence acquisition. Do not claim any blocked priority as PASS.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
@@ -142,5 +142,17 @@
     "status": "PENDING_GITHUB_ACTIONS",
     "latest_head": "b8c80f0a65702859414813269e7f4efec0f46521",
     "note": "No workflow run/status materialized yet for latest head; previous phase2 run failed on script import order, which is now fixed."
+  },
+  "phase2_summary": {
+    "priority1": "BLOCKED",
+    "priority2": "BLOCKED_WITH_FAIL_CLOSED_PIPELINE",
+    "priority3": "BLOCKED_NO_TERRITORIAL_OBSERVATIONS",
+    "priority4": "PARTIAL_IMPLEMENTED",
+    "priority5": "IMPLEMENTED_PENDING_CI",
+    "priority6": "IMPLEMENTED_PENDING_CI",
+    "priority7": "BLOCKED_RELEASE",
+    "priority8": "BLOCKED_DEMO",
+    "fail_closed": true,
+    "no_national_to_territorial_inference": true
   }
 }
