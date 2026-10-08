@@ -126,3 +126,10 @@ def test_menu_uses_question_language():
     assert "🟦 ¿Qué pasa ahora?" in labels
     assert "🗳 ¿Qué dicen los sondeos?" in labels
     assert "📅 ¿Qué plazos importan?" in labels
+
+
+def test_month_situation_centre_is_available():
+    text = telegram_bot.render_command("/mes")
+    assert "CENTRO DE SITUACIÓN" in text
+    assert "29/11/2026" in text
+    assert "PRÓXIMOS HITOS LEGALES" in text
