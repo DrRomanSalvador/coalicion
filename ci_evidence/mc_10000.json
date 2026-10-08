@@ -6,7 +6,7 @@
   "canonical_seed": 20261006,
   "rng": "numpy.PCG64",
   "input": "artifacts/data/election_2023_canonical.json",
-  "input_sha256": "db2c720fda68ee0be898c874c5aef016dcd6bb02c3593ee6c7ac96bbbf7983bf",
+  "input_sha256": "208b7eafe18e7e88ec3ccdec3fd55b6a92cdf026649d718a7c0a84fa8ffedef9",
   "constituencies": 52,
   "seats": 350,
   "sampler": "Dirichlet-multinomial composition with concentration=200; canonical 2023 territorial matrix; simulation prior, not posterior",
