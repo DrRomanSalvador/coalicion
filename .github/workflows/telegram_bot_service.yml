@@ -80,25 +80,40 @@ jobs:
           fi
           git config user.name "coalicion-telegram-bot[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          for file in artifacts/telegram_state.json artifacts/telegram_config.json artifacts/telegram_user_state.json artifacts/telegram_alert_state.json artifacts/telegram_digest_state.json artifacts/telegram_audit.jsonl ci_evidence/telegram_integration.json; do
-            if [ -f "$file" ]; then git add "$file"; fi
+          snapshot="$(mktemp -d)"
+          files=(artifacts/telegram_state.json artifacts/telegram_config.json artifacts/telegram_user_state.json artifacts/telegram_alert_state.json artifacts/telegram_digest_state.json artifacts/telegram_audit.jsonl ci_evidence/telegram_integration.json)
+          for file in "${files[@]}"; do
+            if [ -f "$file" ]; then
+              mkdir -p "$snapshot/$(dirname "$file")"
+              cp "$file" "$snapshot/$file"
+              git add "$file"
+            fi
           done
           if git diff --cached --quiet; then
             echo "No Telegram state changes."
             exit 0
           fi
           git commit -m "chore: persist Telegram service state"
-          for attempt in 1 2 3; do
+          for attempt in 1 2 3 4 5; do
             if git push origin HEAD:main; then
               echo "Telegram state persisted."
               exit 0
             fi
+            echo "Concurrent main update; restoring Telegram snapshot (attempt $attempt/5)."
             git fetch origin main
             git reset --hard origin/main
-            for file in artifacts/telegram_state.json artifacts/telegram_config.json artifacts/telegram_user_state.json artifacts/telegram_alert_state.json artifacts/telegram_digest_state.json artifacts/telegram_audit.jsonl; do
-              if [ -f "$file" ]; then git add "$file"; fi
+            for file in "${files[@]}"; do
+              if [ -f "$snapshot/$file" ]; then
+                mkdir -p "$(dirname "$file")"
+                cp "$snapshot/$file" "$file"
+                git add "$file"
+              fi
             done
-            git commit -m "chore: persist Telegram service state" || true
+            if git diff --cached --quiet; then
+              echo "Telegram snapshot already matches main."
+              exit 0
+            fi
+            git commit -m "chore: persist Telegram service state"
           done
-          echo "Unable to persist Telegram state after retries."
+          echo "Unable to persist Telegram state after 5 attempts."
           exit 1
