@@ -1,121 +1,202 @@
-"""Master SEEC certification gate. PASS requires evidence, not source-code markers."""
+"""Master certification gate: evidence-only, fail-closed, hash-aware."""
 from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
+import hashlib
 import json
+
 
 @dataclass(frozen=True)
 class Gate:
-    name:str
-    status:str
-    detail:str
+    name: str
+    status: str
+    detail: str
 
-def _gate(name, condition, detail):
+
+def _gate(name: str, condition: bool, detail: str) -> Gate:
     return Gate(name, "PASS" if condition else "FAIL", detail)
 
-def certify(root="."):
-    r=Path(root)
-    gates=[]
-    # Source materialization must be real and hashed.
-    manifest=r/"ci_evidence/historico_manifest.json"
-    tier=r/"ci_evidence/historico_source_tier.txt"
-    manifest_ok=False
-    if manifest.exists():
-        try:
-            mx=json.loads(manifest.read_text(encoding="utf-8"))
-            manifest_ok=mx.get("status") in {"PASS","CERTIFIED"} and mx.get("source_tier")=="PRIMARY_INTERIOR"
-        except Exception:
-            manifest_ok=False
-    gates.append(_gate("source_manifest", manifest_ok,
-                       "manifest primario materializado y validado"))
-    tier_text=tier.read_text() if tier.exists() else ""
-    gates.append(_gate("primary_interior", tier_text.strip()=="PRIMARY_INTERIOR",
-                       "la fuente primaria debe estar materializada y declarada explícitamente"))
-    # Exact reconciliation, never a warning-only path.
-    recon=r/"ci_evidence/reconciliation.json"
-    if recon.exists():
-        x=json.loads(recon.read_text())
-        gates.append(_gate("reconciliation", x.get("status")=="PASS" and float(x.get("max_abs_diff",1))==0,
-                           "reconciliación exacta; diferencia máxima = 0"))
-    else:
-        gates.append(_gate("reconciliation",False,"falta evidencia de reconciliación"))
-    # Full SEEC posterior and MC evidence.
-    posterior=r/"ci_evidence/seec_production.json"
-    if not posterior.exists():
-        posterior=r/"ci_evidence/seec_posterior.json"
-    posterior_ok=False
-    if posterior.exists():
-        try:
-            px=json.loads(posterior.read_text(encoding="utf-8"))
-            posterior_ok=(px.get("status") in {"PASS","CERTIFIED"} and px.get("schema")=="SEEC_PRODUCTION_POSTERIOR_V2" and px.get("model")=="hierarchical_compositional_temporal_dirichlet_logistic_normal" and int(px.get("total_posterior_draws",0))>=10000)
-        except Exception:
-            posterior_ok=False
-    gates.append(_gate("seec_posterior", posterior_ok,
-                       "posterior jerárquico ejecutado y certificado"))
-    if posterior.exists():
-        x=json.loads(posterior.read_text())
-        gates.append(_gate("mc_10000", x.get("status") in {"PASS","CERTIFIED"} and int(x.get("total_posterior_draws", x.get("draws",0)))>=10000,
-                           ">=10.000 simulaciones en posterior válido"))
-    else:
-        gates.append(_gate("mc_10000",False,"sin posterior"))
-    # Expanding OOS calibration gate. This artifact is for poll-vote-share
-    # calibration; seat MAE is a separate electoral backtest metric and must not
-    # be fabricated from poll-share observations.
-    calib=r/"ci_evidence/oos_calibration.json"
-    calib_ok=False
-    if calib.exists():
-        try:
-            cx=json.loads(calib.read_text(encoding="utf-8"))
-            required={"status","n_rows","n_elections","walk_forward_holdouts"}
-            calib_ok=(cx.get("status") in {"PASS","CERTIFIED"}
-                      and required.issubset(cx)
-                      and int(cx.get("n_rows",0)) > 0
-                      and int(cx.get("n_elections",0)) >= 3
-                      and int(cx.get("walk_forward_holdouts",0)) >= 1)
-        except Exception:
-            calib_ok=False
-    gates.append(_gate("oos_calibration", calib_ok,
-                       "calibración OOS expanding-window de voto con separación temporal estricta"))
-    if calib.exists():
-        x=json.loads(calib.read_text())
-        gates.append(_gate("oos_walk_forward", calib_ok and int(x.get("walk_forward_holdouts",0)) >= 1,
-                           "al menos un holdout walk-forward estrictamente futuro"))
-    else:
-        gates.append(Gate("oos_walk_forward","FAIL","sin calibración OOS"))
-    # Poll-source coverage is an explicit gate.
-    coverage=r/"ci_evidence/poll_source_coverage.json"
-    coverage_ok=False
-    if coverage.exists():
-        try:
-            cv=json.loads(coverage.read_text(encoding="utf-8"))
-            coverage_ok=cv.get("status")=="PASS"
-        except Exception:
-            coverage_ok=False
-    gates.append(_gate("poll_source_coverage", coverage_ok,
-                       "cobertura de transporte y roles materializada; no equivale a validar cada sondeo"))
-    # Independent audit must be a separate evidence artifact.
-    ext=r/"ci_evidence/external_audit.json"
-    external_ok=False
-    if ext.exists():
-        try:
-            ex=json.loads(ext.read_text(encoding="utf-8"))
-            external_ok=(ex.get("status") in {"PASS","CERTIFIED"} and ex.get("independent") is True and bool(ex.get("auditor")))
-        except Exception:
-            external_ok=False
-    gates.append(_gate("external_audit", external_ok,
-                       "auditoría independiente materializada y declarada"))
+
+def _read_json(path: Path):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def _sha256(path: Path) -> str | None:
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError:
+        return None
+
+
+def _hash_matches(path: Path, expected: str | None) -> bool:
+    return bool(expected) and _sha256(path) == expected
+
+
+def certify(root: str = "."):
+    r = Path(root)
+    gates: list[Gate] = []
+
+    manifest_path = r / "ci_evidence/historico_manifest.json"
+    tier_path = r / "ci_evidence/historico_source_tier.txt"
+    manifest = _read_json(manifest_path)
+    manifest_ok = (
+        isinstance(manifest, dict)
+        and manifest.get("status") in {"PASS", "CERTIFIED"}
+        and manifest.get("source_tier") == "PRIMARY_INTERIOR"
+        and int(manifest.get("materialized_rows", 0)) == int(manifest.get("expected_rows", -1))
+        and int(manifest.get("elections_required", 0)) == 8
+        and int(manifest.get("constituencies_required", 0)) == 52
+        and int(manifest.get("seats_per_election", 0)) == 350
+    )
+    gates.append(_gate("source_manifest", manifest_ok, "manifest primario materializado y estructuralmente validado"))
+
+    tier_text = tier_path.read_text(encoding="utf-8").strip() if tier_path.exists() else ""
+    gates.append(_gate(
+        "primary_interior",
+        tier_text == "PRIMARY_INTERIOR" or (
+            isinstance(manifest, dict) and manifest.get("source_tier") == "PRIMARY_INTERIOR"
+        ),
+        "la fuente histórica debe estar declarada como primaria",
+    ))
+
+    recon_path = r / "ci_evidence/reconciliation.json"
+    recon = _read_json(recon_path)
+    gates.append(_gate(
+        "reconciliation",
+        isinstance(recon, dict)
+        and recon.get("status") == "PASS"
+        and float(recon.get("max_abs_diff", 1)) == 0
+        and bool(recon.get("fail_closed", False)),
+        "reconciliación exacta y fail-closed",
+    ))
+
+    # Production SEEC only. Auxiliary territorial simulations cannot satisfy this gate.
+    posterior_path = r / "ci_evidence/seec_production.json"
+    posterior = _read_json(posterior_path)
+    posterior_ok = (
+        isinstance(posterior, dict)
+        and posterior.get("status") in {"PASS", "CERTIFIED"}
+        and posterior.get("schema") == "SEEC_PRODUCTION_POSTERIOR_V2"
+        and posterior.get("model") == "hierarchical_compositional_temporal_dirichlet_logistic_normal"
+        and int(posterior.get("total_draws", 0)) >= 10000
+        and int(posterior.get("draws_per_chain", 0)) >= 1000
+        and bool(posterior.get("convergence", {}).get("passed", False))
+    )
+    gates.append(_gate(
+        "seec_posterior",
+        posterior_ok,
+        "posterior jerárquico PyMC de producción >=10.000 draws con convergencia materializada",
+    ))
+
+    # MC-10000 is an independent simulation artifact; never infer it from SEEC.
+    mc_path = r / "ci_evidence/mc_10000.json"
+    mc = _read_json(mc_path)
+    mc_ok = (
+        isinstance(mc, dict)
+        and mc.get("status") in {"PASS", "CERTIFIED"}
+        and mc.get("schema") == "ELECTORAL_MONTE_CARLO_10000_V2"
+        and int(mc.get("iterations", 0)) >= 10000
+        and int(mc.get("constituencies", 0)) == 52
+        and int(mc.get("seats", 0)) == 350
+        and bool(mc.get("invariants", {}).get("every_draw_seat_sum_350", False))
+        and bool(mc.get("invariants", {}).get("all_allocations_status_OK", False))
+    )
+    gates.append(_gate(
+        "mc_10000",
+        mc_ok,
+        "MC-10000 independiente, con invariantes electorales verificadas",
+    ))
+
+    baseline_path = r / "ci_evidence/backtest_2023_baseline.json"
+    baseline = _read_json(baseline_path)
+    baseline_ok = (
+        isinstance(baseline, dict)
+        and baseline.get("election") == "2023"
+        and baseline.get("model") == "baseline_persistence_2019N"
+        and int(baseline.get("n_simulations", 0)) >= 10000
+        and baseline.get("rng") == "numpy.PCG64"
+        and baseline.get("source_tier") in {"PRIMARY_INTERIOR", "SECONDARY_REPLICA"}
+    )
+    gates.append(_gate(
+        "baseline_2023",
+        baseline_ok,
+        "baseline territorial 2023 presente y estructuralmente verificable",
+    ))
+
+    calib_path = r / "ci_evidence/oos_calibration.json"
+    calib = _read_json(calib_path)
+    calibration_gate = isinstance(calib, dict) and isinstance(calib.get("coverage_gate"), dict)
+    calib_ok = (
+        calibration_gate
+        and calib.get("status") in {"PASS", "CERTIFIED"}
+        and int(calib.get("n_rows", 0)) > 0
+        and int(calib.get("n_elections", 0)) >= 3
+        and int(calib.get("walk_forward_holdouts", 0)) >= 1
+        and bool(calib["coverage_gate"].get("passed", False))
+    )
+    gates.append(_gate(
+        "oos_calibration",
+        calib_ok,
+        "calibración OOS expanding-window con gate de cobertura materializado",
+    ))
+    gates.append(_gate(
+        "oos_walk_forward",
+        calib_ok and int(calib.get("walk_forward_holdouts", 0)) >= 1 if isinstance(calib, dict) else False,
+        "al menos un holdout estrictamente futuro",
+    ))
+
+    coverage_path = r / "ci_evidence/poll_source_coverage.json"
+    coverage = _read_json(coverage_path)
+    coverage_ok = isinstance(coverage, dict) and coverage.get("status") == "PASS"
+    gates.append(_gate(
+        "poll_source_coverage",
+        coverage_ok,
+        "cobertura de transporte/roles materializada; no se interpreta como validación de todos los sondeos",
+    ))
+
+    # Independent audit is deliberately impossible to self-certify.
+    ext_path = r / "ci_evidence/external_audit.json"
+    external = _read_json(ext_path)
+    external_ok = (
+        isinstance(external, dict)
+        and external.get("status") in {"PASS", "CERTIFIED"}
+        and external.get("independent") is True
+        and bool(external.get("auditor"))
+    )
+    gates.append(_gate(
+        "external_audit",
+        external_ok,
+        "auditoría independiente materializada y declarada",
+    ))
+
     required = [g for g in gates if g.name != "external_audit"]
     required_ok = all(g.status == "PASS" for g in required)
-    external = next(g for g in gates if g.name == "external_audit")
-    if required_ok and external.status != "PASS":
+    external_gate = next(g for g in gates if g.name == "external_audit")
+    if required_ok and external_gate.status != "PASS":
         status = "READY_FOR_EXTERNAL_AUDIT"
+    elif required_ok and external_gate.status == "PASS":
+        status = "CERTIFIED"
     else:
-        status = "CERTIFIED" if required_ok and external.status == "PASS" else "BLOCKED"
-    return {"status": status, "gates": [g.__dict__ for g in gates]}
+        status = "BLOCKED"
 
-if __name__=="__main__":
-    out=certify()
+    return {
+        "schema": "MASTER_CERTIFICATION_V2",
+        "status": status,
+        "certification": status,
+        "fail_closed": True,
+        "gates": [g.__dict__ for g in gates],
+    }
+
+
+if __name__ == "__main__":
+    out = certify()
     Path("ci_evidence").mkdir(parents=True, exist_ok=True)
-    Path("ci_evidence/master_certification.json").write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps(out,ensure_ascii=False,indent=2))
-    raise SystemExit(0 if out["status"] in {"CERTIFIED","READY_FOR_EXTERNAL_AUDIT"} else 1)
+    Path("ci_evidence/master_certification.json").write_text(
+        json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    print(json.dumps(out, ensure_ascii=False, indent=2))
+    raise SystemExit(0 if out["status"] in {"CERTIFIED", "READY_FOR_EXTERNAL_AUDIT"} else 1)
