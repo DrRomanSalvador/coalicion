@@ -1,0 +1,39 @@
+name: Product runtime smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**.py"
+      - "Dockerfile"
+      - "requirements.lock"
+      - "web/dashboard/**"
+      - ".github/workflows/product-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: product-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install locked runtime
+        run: python -m pip install -r requirements.lock
+      - name: Compile all Python
+        run: python -m compileall -q .
+      - name: Runtime contract tests
+        run: pytest -q tests/test_runtime_contracts.py
+      - name: CLI import smoke
+        run: python -c "import cli, political_product, api, run26; print('ENTRYPOINT_IMPORTS_PASS')"
+      - name: Docker build
+        run: docker build -t coalicion-smoke .
