@@ -10,10 +10,10 @@ def main():
     ap.add_argument("--input",default="artifacts/data/cis_historical_2004_2023.csv")
     ap.add_argument("--output",default="ci_evidence/seec_production.json")
     ap.add_argument("--draws",type=int,default=5000)
-    ap.add_argument("--tune",type=int,default=1000)
+    ap.add_argument("--tune",type=int,default=1500)
     ap.add_argument("--seed",type=int,default=20261008)
     args=ap.parse_args()
-    if args.draws*2<10000: raise SystemExit("BLOCKED: two-chain posterior requires >= 10,000 total draws")
+    if args.draws*4<10000: raise SystemExit("BLOCKED: two-chain posterior requires >= 10,000 total draws")
     try:
         import pandas as pd
         import pymc as pm
@@ -37,15 +37,15 @@ def main():
     y=np.clip(mat/row_sums[:,None],1e-6,1.0); y=y/y.sum(axis=1,keepdims=True)
     coords={"study":studies,"party":parties,"party_minus_one":parties[:-1]}
     with pm.Model(coords=coords) as model:
-        sigma=pm.HalfNormal("temporal_sigma",sigma=1.0)
+        sigma=pm.HalfNormal("temporal_sigma",sigma=0.25)
         eta0=pm.Normal("eta0",mu=0.0,sigma=2.0,dims="party_minus_one")
         innovations=pm.Normal("innovations",0.0,sigma,dims=("study","party_minus_one"))
         eta=pm.Deterministic("eta",eta0[None,:]+pm.math.cumsum(innovations,axis=0),dims=("study","party_minus_one"))
         logits=pm.math.concatenate([eta,pm.math.zeros((len(studies),1))],axis=1)
         support=pm.Deterministic("support",pm.math.softmax(logits,axis=1),dims=("study","party"))
-        concentration=pm.Exponential("concentration",1/100.0)
+        concentration=pm.Exponential("concentration",1/50.0)
         pm.Dirichlet("observed_composition",a=support*concentration+1e-6,observed=y,dims=("study","party"))
-        idata=pm.sample(draws=args.draws,tune=args.tune,chains=2,cores=1,random_seed=[args.seed,args.seed+1],target_accept=0.9,progressbar=False,return_inferencedata=True)
+        idata=pm.sample(draws=args.draws,tune=args.tune,chains=4,cores=2,random_seed=[args.seed,args.seed+1,args.seed+2,args.seed+3],target_accept=0.95,progressbar=False,return_inferencedata=True)
     posterior=idata.posterior
     total_draws=int(posterior.sizes["chain"]*posterior.sizes["draw"])
     if total_draws<10000: raise SystemExit(f"BLOCKED: posterior has only {total_draws} draws")
@@ -59,6 +59,6 @@ def main():
         rhat_max=float(np.nanmax(summ["r_hat"].to_numpy()))
         if not np.isfinite(rhat_max) or rhat_max>1.01: raise SystemExit(f"BLOCKED: R-hat diagnostic {rhat_max!r} > 1.01")
     except ImportError: raise SystemExit("BLOCKED: ArviZ required for production diagnostics")
-    out={"schema":"SEEC_PRODUCTION_POSTERIOR_V2","status":"PASS","model":"hierarchical_compositional_temporal_dirichlet_logistic_normal","input":args.input,"studies":len(studies),"parties":len(parties),"chains":2,"draws_per_chain":args.draws,"total_draws":total_draws,"tune_per_chain":args.tune,"seed":args.seed,"posterior_mean_last_study":{p:float(vals[:,:,-1,i].mean()) for i,p in enumerate(parties)},"diagnostics":{"divergences":div,"max_r_hat":rhat_max},"fail_closed":True,"note":"Posterior describes CIS compositional support; it is not itself an election-outcome posterior."}
+    out={"schema":"SEEC_PRODUCTION_POSTERIOR_V2","status":"PASS","model":"hierarchical_compositional_temporal_dirichlet_logistic_normal","input":args.input,"studies":len(studies),"parties":len(parties),"chains":4,"draws_per_chain":args.draws,"total_draws":total_draws,"tune_per_chain":args.tune,"seed":args.seed,"posterior_mean_last_study":{p:float(vals[:,:,-1,i].mean()) for i,p in enumerate(parties)},"diagnostics":{"divergences":div,"max_r_hat":rhat_max},"fail_closed":True,"note":"Posterior describes CIS compositional support; it is not itself an election-outcome posterior."}
     p=Path(args.output); p.parent.mkdir(parents=True,exist_ok=True); p.write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n",encoding="utf-8"); print(json.dumps(out,ensure_ascii=False,indent=2))
 if __name__=="__main__": main()
