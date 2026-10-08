@@ -18,9 +18,9 @@
     "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH"
   },
   "blocking_errors": [],
-  "last_action": "Unificar Telegram /situacion con COALICION_SITUATION_STATE_V1 y añadir regresión",
-  "last_action_result": "TELEGRAM_CANONICAL_SITUATION_MATERIALIZED",
-  "next_single_action": "Ejecutar CI de Fase 1: situation_brief + telegram validation + tests de integración y revisar fallos reales",
+  "last_action": "Perfeccionar memoria/reinvocación de la Colmena y materializar el gate de no nueva ejecución",
+  "last_action_result": "COLMENA_REINVOCATION_HARDENED_NO_NEW_WORKFLOW_ACTIVATION",
+  "next_single_action": "Coordinar y reconciliar el estado persistido de las 179 misiones, identificar la primera limitación no-PASS y preparar su resolución sin activar ningún workflow nuevo",
   "certification": "READY_FOR_EXTERNAL_AUDIT",
   "data_source": "PRIMARY_INTERIOR_SUPPLIED_VALIDATED",
   "primary_binary": "PINNED_BY_SHA256",
