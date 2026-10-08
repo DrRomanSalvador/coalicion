@@ -163,7 +163,6 @@ def decision_snapshot(
     changes = _national_changes(previous_projection, projection)
     payload = {
         "version": VERSION,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
         "status": "OK",
         "territory": {
             "constituencies": len(votes_by_constituency),
