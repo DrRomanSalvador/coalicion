@@ -24,7 +24,8 @@ EXPECTED_DATES = {
 RESULT_COLUMNS = {
     "election", "fecha_eleccion", "circunscripcion", "partido", "votos", "escaños", "fuente", "nivel_fuente",
 }
-EXPECTED_ROWS = 50700\nPOLL_COLUMNS = {
+EXPECTED_ROWS = 50700
+POLL_COLUMNS = {
     "fecha_encuesta", "partido", "estimacion_voto", "tipo_encuesta",
     "encuesta", "fuente", "nivel_fuente", "metodo", "codigo_estudio",
     "variable", "sample_size",
