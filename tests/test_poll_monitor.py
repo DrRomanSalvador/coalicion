@@ -281,7 +281,7 @@ def test_oos_rejects_poll_on_or_after_target_election():
 
 def test_historical_validator_uses_certified_official_row_floor():
     source = Path("scripts/validate_historical_data.py").read_text(encoding="utf-8")
-    assert 'len(erows) >= 50000' in source
+    assert 'EXPECTED_ROWS = 50700' in source
     assert 'seats.is_integer()' in source
 
 
