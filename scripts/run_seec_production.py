@@ -59,6 +59,28 @@ def main():
         rhat_max=float(np.nanmax(summ["r_hat"].to_numpy()))
         if not np.isfinite(rhat_max) or rhat_max>1.01: raise SystemExit(f"BLOCKED: R-hat diagnostic {rhat_max!r} > 1.01")
     except ImportError: raise SystemExit("BLOCKED: ArviZ required for production diagnostics")
-    out={"schema":"SEEC_PRODUCTION_POSTERIOR_V2","status":"PASS","model":"hierarchical_compositional_temporal_dirichlet_logistic_normal","input":args.input,"studies":len(studies),"parties":len(parties),"chains":4,"draws_per_chain":args.draws,"total_draws":total_draws,"tune_per_chain":args.tune,"seed":args.seed,"posterior_mean_last_study":{p:float(vals[:,:,-1,i].mean()) for i,p in enumerate(parties)},"diagnostics":{"divergences":div,"max_r_hat":rhat_max},"fail_closed":True,"note":"Posterior describes CIS compositional support; it is not itself an election-outcome posterior."}
+    ess_bulk_min=float(np.nanmin(summ["ess_bulk"].to_numpy()))
+    ess_tail_min=float(np.nanmin(summ["ess_tail"].to_numpy()))
+    convergence_passed=bool(np.isfinite(rhat_max) and rhat_max<=1.01 and np.isfinite(ess_bulk_min) and ess_bulk_min>=400 and np.isfinite(ess_tail_min) and ess_tail_min>=400 and div==0)
+    if not convergence_passed:
+        raise SystemExit(f"BLOCKED: convergence diagnostics failed (r_hat={rhat_max!r}, ess_bulk_min={ess_bulk_min!r}, ess_tail_min={ess_tail_min!r}, divergences={div})")
+    out={
+        "schema":"SEEC_PRODUCTION_POSTERIOR_V2",
+        "status":"PASS",
+        "model":"hierarchical_compositional_temporal_dirichlet_logistic_normal",
+        "input":args.input,
+        "studies":len(studies),
+        "parties":len(parties),
+        "chains":4,
+        "draws_per_chain":args.draws,
+        "total_draws":total_draws,
+        "tune_per_chain":args.tune,
+        "seed":args.seed,
+        "posterior_mean_last_study":{p:float(vals[:,:,-1,i].mean()) for i,p in enumerate(parties)},
+        "diagnostics":{"divergences":div,"max_r_hat":rhat_max,"min_ess_bulk":ess_bulk_min,"min_ess_tail":ess_tail_min},
+        "convergence":{"passed":convergence_passed},
+        "fail_closed":True,
+        "note":"Posterior describes CIS compositional support; it is not itself an election-outcome posterior."
+    }
     p=Path(args.output); p.parent.mkdir(parents=True,exist_ok=True); p.write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n",encoding="utf-8"); print(json.dumps(out,ensure_ascii=False,indent=2))
 if __name__=="__main__": main()
