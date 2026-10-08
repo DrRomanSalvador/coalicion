@@ -39,11 +39,17 @@ def main():
             if total<=0: raise SystemExit(f"BLOCKED: {name}: empty valid vote composition")
             shares=observed/total
             alpha=np.maximum(shares,1e-9)*200.0
-            sampled=_largest_remainder(rng.dirichlet(alpha),SCALE)
-            votes={p:int(v) for p,v in zip(parties,sampled[:-1])}; blank=int(sampled[-1])
-            valid=sum(votes.values())+blank
-            result=allocate(votes,int(row["seats"]),valid,blank_votes=blank,tie_breaker=legal_tie_lot)
-            if result.status!="OK": raise SystemExit(f"BLOCKED: {name}: {result.status}")
+            accepted=False
+            for attempt in range(100):
+                sampled=_largest_remainder(rng.dirichlet(alpha),SCALE)
+                votes={p:int(v) for p,v in zip(parties,sampled[:-1])}; blank=int(sampled[-1])
+                valid=sum(votes.values())+blank
+                result=allocate(votes,int(row["seats"]),valid,blank_votes=blank)
+                if result.status=="OK":
+                    accepted=True
+                    break
+            if not accepted:
+                raise SystemExit(f"BLOCKED: {name}: unresolved exact tie after 100 rejection attempts")
             for p,s in result.seats.items(): national[p]=national.get(p,0)+s
         if sum(national.values())!=350: raise SystemExit("BLOCKED: seat conservation")
         draws.append(national)
