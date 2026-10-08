@@ -13,6 +13,7 @@ CANONICAL_METHOD = "SEEC"
 CANONICAL_VERSION = "4.0"
 CANONICAL_RNG = "numpy.PCG64"
 CANONICAL_SEED = 20261006
+COLMENA_MODE = "PAUSED_FOR_COORDINATION"
 
 def load_state(root: Path = Path(".")):
     path = root / STATE
@@ -28,6 +29,8 @@ def load_state(root: Path = Path(".")):
         raise RuntimeError("METHOD_MISMATCH")
     if state.get("canonical_rng") != CANONICAL_RNG or state.get("canonical_seed") != CANONICAL_SEED:
         raise RuntimeError("SEED_MISMATCH")
+    if state.get("colmena_mode") == COLMENA_MODE:
+        pass
     action = state.get("next_single_action")
     if not isinstance(action, str) or not action.strip():
         raise RuntimeError("MULTIPLE_NEXT_ACTIONS")
