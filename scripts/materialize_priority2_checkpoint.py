@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Materialize the Priority 2 national-only pipeline gate."""
 from pathlib import Path
+import sys
 from src.pipeline.full_election import run_full_election
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 OUT = ROOT / "artifacts/phase2_priority2_status.json"
 
 def main() -> int:
