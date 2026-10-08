@@ -1,0 +1,16 @@
+{
+  "schema": "PRIMARY_INTERIOR_SOURCE_MANIFEST_V1",
+  "status": "PASS",
+  "source_tier": "PRIMARY_INTERIOR",
+  "source": "Ministerio del Interior",
+  "source_url": "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+  "source_sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
+  "derived_csv": "data/resultados_oficiales_2004_2023.csv",
+  "derived_csv_sha256": "0b83f9b60e017982c97a702ce24518d5c4432ec90b8e0659210c3db3c9d7634b",
+  "rows": 50700,
+  "elections": 8,
+  "constituencies_per_election": 52,
+  "seats_per_election": 350,
+  "synthetic_values": false,
+  "fail_closed": true
+}
