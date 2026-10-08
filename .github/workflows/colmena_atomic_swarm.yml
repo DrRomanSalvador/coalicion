@@ -30,8 +30,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install runtime
-        run: python -m pip install -r requirements.txt
+      # Queen planning is stdlib-only. Do not block the gate on the heavyweight scientific runtime.
       - id: plan
         shell: bash
         run: |
@@ -71,8 +70,22 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install runtime
-        run: python -m pip install -r requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            .cache
+          key: ${{ runner.os }}-colmena-local-ai-v1-transformersjs-3.8.1-smollm2
+          fail-on-cache-miss: false
+      - name: Prepare local AI runtime
+        run: |
+          if [ ! -d node_modules/@huggingface/transformers ]; then
+            npm init -y >/dev/null 2>&1
+            npm install --no-audit --no-fund @huggingface/transformers@3.8.1
+          fi
       - name: Recreate Queen approval deterministically
         run: |
           mkdir -p artifacts/colmena
