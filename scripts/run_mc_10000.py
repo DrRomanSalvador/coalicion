@@ -49,7 +49,7 @@ def main():
                     accepted=True
                     break
             if not accepted:
-                raise SystemExit(f"BLOCKED: {name}: unresolved exact tie after 100 rejection attempts")
+                raise SystemExit(f"BLOCKED: {name}: unresolved exact tie after 100 rejection attempts; tied={getattr(result,'tie',())}")
             for p,s in result.seats.items(): national[p]=national.get(p,0)+s
         if sum(national.values())!=350: raise SystemExit("BLOCKED: seat conservation")
         draws.append(national)
