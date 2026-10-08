@@ -134,6 +134,7 @@ COMPONENTS: dict[str, str] = {
     "telegram_bot": "src/telegram_bot.py",
     "telegram_notifier": "src/telegram_notifier.py",
     "miniapp": "web/telegram/index.html",
+    "master_manifest_builder": "scripts/build_political_intelligence_master_manifest.py",
 }
 
 
@@ -191,7 +192,7 @@ def intelligence_snapshot(*, as_of: str | date) -> dict[str, Any]:
             "official_sources", "ingestion", "validation", "oos", "calibration",
             "prediction", "territorialization", "seats", "uncertainty",
             "marginality", "coalition_counterfactuals", "decision_snapshot",
-            "monitoring", "audit", "reproducibility",
+            "monitoring", "briefing", "telegram", "audit", "reproducibility",
         ],
         "policy": {
             "neutral": True,
