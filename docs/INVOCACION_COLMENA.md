@@ -59,11 +59,10 @@ Siguiente acción única: fijar el PDF binario con SHA-256 `b5ed11be35ef4ad05b95
 
 ## HUELLA DE PRODUCTO — CHECKPOINT ACTUAL
 
-Último checkpoint persistido: `be9b7dd8fee0940b9f63d2e4e14b041b126cf086`.
-Artefacto añadido: `docs/CONTRATO_PRODUCTO_COLMENA.md`.
-Artefactos de continuidad: registro canónico de errores + gate de reanudación de contexto cero.
-Estado: **BLOCKED / FAIL-CLOSED**; no se declara producto certificado mientras existan BLOCKER abiertos.
-Regla: esta huella es la referencia de reanudación; no se reconstruye intención desde el chat.
+Último checkpoint persistido: b96d87f924546c4a9ffe24349a8ed7214cef7b8f.
+Estado: SELLABLE_BETA / READY_FOR_EXTERNAL_AUDIT.
+Gate comercial materializado: ci_evidence/product_release_gate.json = SELLABLE_BETA.
+SEEC, MC, OOS y cobertura de fuentes tienen evidencia PASS; auditoría externa permanece abierta.
 
 ### PROM MÍNIMO PARA CUALQUIER CHAT NUEVO
 
@@ -78,7 +77,9 @@ CHAT = INTERFAZ.
 6. Ejecutar los tests canónicos indicados por la invocación.
 7. Tomar únicamente docs/COLMENA_STATE.json.next_single_action.
 8. Ejecutar esa acción y ninguna otra acción paralela.
-9. Persistir resultado, errores, evidencia, commit y una única next_single_action.
+9. Persistir resultado, evidencia, commit y una única next_single_action.
 10. Detenerse.
 
 No buscar de nuevo fuentes ancladas. No repetir cálculos ya evidenciados. No usar memoria del chat para reconstruir estado.
+
+Siguiente acción única: desplegar el blueprint Render y materializar una URL pública verificable.
