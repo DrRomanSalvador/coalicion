@@ -1,7 +1,7 @@
 {
   "schema": "COALICION_SITUATION_STATE_V1",
   "version": "1.0",
-  "as_of": "2026-10-09T00:51:32.767829+02:00",
+  "as_of": "2026-10-09T00:54:41.733903+02:00",
   "mission": {
     "schema": "COALICION_SITUATION_MISSION_V1",
     "fail_closed": true,
@@ -112,5 +112,5 @@
     "no_national_to_territorial_inference": true,
     "no_outcome_probability_claim": true
   },
-  "state_hash": "22b9d989270b3a2c3be2205926dfe5006b6190bf7da791794e2e59b4cf91c4b5"
+  "state_hash": "6ea5637094ab150ee70ddf7606f28a1fe116028b217811302bcdf1c19a4a86ad"
 }
