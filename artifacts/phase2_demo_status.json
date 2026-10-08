@@ -1,0 +1,11 @@
+{
+  "schema":"PHASE2_DEMO_STATUS_V1",
+  "status":"BLOCKED",
+  "reason":"BLOCKED_NO_TERRITORIAL_OBSERVATIONS",
+  "surveys_current":10,
+  "territorial_observations":0,
+  "pipeline":"BLOCKED_NO_EXPLICIT_TERRITORIAL_INPUT",
+  "telegram":"INTEGRATION_IMPLEMENTED_PENDING_RUNTIME_CREDENTIALS",
+  "evidence":"PARTIAL",
+  "policy":{"no_national_to_territorial_inference":true,"fail_closed":true}
+}
