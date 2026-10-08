@@ -10,7 +10,7 @@ on:
       - ".github/workflows/seec-production-real.yml"
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   seec:
     runs-on: ubuntu-latest
@@ -21,7 +21,29 @@ jobs:
         with:
           python-version: "3.13"
           cache: pip
-      - run: python -m pip install --disable-pip-version-check --no-input "numpy>=2.0,<2.4" "pandas==2.3.3" "pymc==6.3.2" "arviz>=0.22,<0.24"
+      - name: Install SEEC dependencies
+        run: |
+          set -o pipefail
+          python -m pip install --disable-pip-version-check --no-input "numpy>=2.0,<2.4" "pandas==2.3.3" "pymc==6.3.2" "arviz>=0.22,<0.24" 2>&1 | tee /tmp/seec_pip_install.log
+      - name: Materialize installation failure evidence
+        if: failure()
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          {
+            echo "SEEC_INSTALL_FAILURE"
+            echo "sha: $GITHUB_SHA"
+            echo "python:"
+            python --version
+            echo "pip:"
+            python -m pip --version
+            echo "log:"
+            cat /tmp/seec_pip_install.log
+          } > ci_evidence/seec_install_failure.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ci_evidence/seec_install_failure.txt
+          git diff --cached --quiet || (git commit -m "ci: materialize SEEC installation failure evidence" && git push origin HEAD:main")
       - name: Run real SEEC posterior
         run: python scripts/run_seec_production.py --draws 2500 --tune 1000 --seed 20261008
       - name: Verify production gate
