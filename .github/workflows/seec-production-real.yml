@@ -54,7 +54,23 @@ jobs:
           done
           exit 1
       - name: Run real SEEC posterior
-        run: python scripts/run_seec_production.py --draws 2500 --tune 1000 --seed 20261008
+        run: |
+          set -o pipefail
+          python scripts/run_seec_production.py --draws 2500 --tune 1000 --seed 20261008 2>&1 | tee /tmp/seec_run.log
+      - name: Materialize SEEC execution failure evidence
+        if: failure()
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence
+          {
+            echo "SEEC_EXECUTION_FAILURE"
+            echo "sha: $GITHUB_SHA"
+            cat /tmp/seec_run.log
+          } > ci_evidence/seec_execution_failure.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ci_evidence/seec_execution_failure.txt
+          git diff --cached --quiet || (git commit -m "ci: materialize SEEC execution failure evidence" && git push origin HEAD:main)
       - name: Verify production gate
         run: |
           python - <<'PY'
