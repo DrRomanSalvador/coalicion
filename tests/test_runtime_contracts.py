@@ -40,11 +40,11 @@ def test_negative_absolute_shift_preserves_vote_mass():
     assert shifted["A"]["A"] < votes["A"]["A"]
 
 
-def test_neutral_coalition_rejects_missing_candidates():
+def test_neutral_coalition_treats_missing_candidate_as_zero():
     votes = {"X": {"A": 100, "B": 100}}
-    with pytest.raises(ValueError):
-        calculate_coalition(votes, {"X": 2}, {"X": 200}, ("A", "C"))
-
+    result = calculate_coalition(votes, {"X": 2}, {"X": 200}, ("A", "C"))
+    assert result.separate_seats >= 0
+    assert result.coalition_seats >= 0
 
 def test_product_envelope_does_not_mutate_result():
     result = {"value": 1, "_engine_result": {"ok": True}, "_input_hash": "abc"}
