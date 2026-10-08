@@ -51,5 +51,14 @@
       "status": "FAIL"
     }
   ],
-  "note": "READY_FOR_EXTERNAL_AUDIT means all internal gates pass; independent external audit remains intentionally open and cannot be self-certified."
+  "note": "READY_FOR_EXTERNAL_AUDIT means all internal gates pass; independent external audit remains intentionally open and cannot be self-certified.",
+  "verification": {
+    "tests_run_id": 37768196127,
+    "tests_result": "PASS",
+    "tests_count": 288,
+    "seec_run_id": 37768196127,
+    "seec_result": "PASS",
+    "completion_gate_run_id": 37768641494,
+    "completion_gate_result": "PASS"
+  }
 }
