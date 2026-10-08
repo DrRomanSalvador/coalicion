@@ -10,9 +10,10 @@ from src.electoral import allocate
 SCALE=1_000_000_000
 
 def _largest_remainder(raw,total):
-    floors=np.floor(raw).astype(int); rem=int(total-floors.sum())
+    scaled=raw*total
+    floors=np.floor(scaled).astype(int); rem=int(total-floors.sum())
     if rem<0: raise RuntimeError("BLOCKED: negative rounding remainder")
-    order=np.argsort(-(raw-floors),kind="stable")
+    order=np.argsort(-(scaled-floors),kind="stable")
     floors[order[:rem]]+=1
     return floors
 
