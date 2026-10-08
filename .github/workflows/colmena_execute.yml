@@ -130,7 +130,7 @@ jobs:
           path: persist/queen
       - uses: actions/download-artifact@v4
         with:
-          pattern: worker-evidence-batch-*
+          pattern: worker-evidence-*
           path: persist/workers
           merge-multiple: true
       - uses: actions/download-artifact@v4
