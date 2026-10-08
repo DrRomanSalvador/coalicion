@@ -25,7 +25,22 @@ jobs:
           PYTHONPATH=. python scripts/run_complete_backtest.py             --input artifacts/data/cis_historical_2004_2023.csv             --output ci_evidence/backtest_complete_2004_2023.json
           rc=$?
           test -s ci_evidence/backtest_complete_2004_2023.json
-          exit $rc
+          if [ "$rc" -ne 0 ]; then exit "$rc"; fi
+          python - <<'PY'
+          import json, math
+          x=json.load(open("ci_evidence/backtest_2023_baseline.json", encoding="utf-8"))
+          m=x["metrics"]
+          c=x["contracts"]
+          coverage=float(m["coverage_actual_seats_in_calibrated_interval_winners"])
+          assert math.isfinite(coverage) and coverage >= 0.85
+          assert c["historical_conformal_calibration"] is True
+          assert c["calibration_before_target_election"] is True
+          assert c["target_election_excluded_from_calibration"] is True
+          assert c["conformal_nominal_coverage_95"] is True
+          assert c["calibrated_coverage_gate"] is True
+          assert int(x["n_simulations"]) == 10000
+          print("TERRITORIAL_SEAT_CALIBRATION_PASS", coverage)
+          PY
       - name: Upload backtest evidence
         if: always()
         uses: actions/upload-artifact@v4
