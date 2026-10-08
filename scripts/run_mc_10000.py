@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]; sys.path.insert(0,str(ROOT))
 import numpy as np
 from src.electoral import allocate
 
-SCALE=1_000_000
+SCALE=1_000_000_000
 
 def _largest_remainder(raw,total):
     floors=np.floor(raw).astype(int); rem=int(total-floors.sum())
@@ -49,6 +49,6 @@ def main():
         draws.append(national)
     parties=sorted({p for d in draws for p in d})
     def q(p,qv): return float(np.quantile([d.get(p,0) for d in draws],qv,method="linear"))
-    out={"schema":"ELECTORAL_MONTE_CARLO_10000_V2","status":"PASS","iterations":args.iterations,"seed":args.seed,"rng":"numpy.PCG64","input":args.input,"constituencies":52,"seats":350,"sampler":"Dirichlet-multinomial composition with explicit 1,000,000-vote simulation scale; concentration=200; includes blank-vote category; simulation prior, not posterior; exact legal ties resolved by seeded lot then alternation","p10":{p:q(p,.10) for p in parties},"p50":{p:q(p,.50) for p in parties},"p90":{p:q(p,.90) for p in parties},"probability_at_least_one_seat":{p:sum(d.get(p,0)>=1 for d in draws)/args.iterations for p in parties},"invariants":{"every_draw_seat_sum_350":True,"all_allocations_status_OK":True},"legal_tie_lots":tie_lots,"fail_closed":True}
+    out={"schema":"ELECTORAL_MONTE_CARLO_10000_V2","status":"PASS","iterations":args.iterations,"seed":args.seed,"rng":"numpy.PCG64","input":args.input,"constituencies":52,"seats":350,"sampler":"Dirichlet-multinomial composition with explicit 1,000,000,000-vote simulation scale; concentration=200; includes blank-vote category; simulation prior, not posterior; exact legal ties resolved by seeded lot then alternation","p10":{p:q(p,.10) for p in parties},"p50":{p:q(p,.50) for p in parties},"p90":{p:q(p,.90) for p in parties},"probability_at_least_one_seat":{p:sum(d.get(p,0)>=1 for d in draws)/args.iterations for p in parties},"invariants":{"every_draw_seat_sum_350":True,"all_allocations_status_OK":True},"legal_tie_lots":tie_lots,"fail_closed":True}
     p=Path(args.output); p.parent.mkdir(parents=True,exist_ok=True); p.write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n",encoding="utf-8"); print(json.dumps(out,ensure_ascii=False,indent=2))
 if __name__=="__main__": main()
