@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse, hashlib, json
 import sys
 import unicodedata
+import re
 from difflib import get_close_matches
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -32,6 +33,7 @@ def main():
     def norm(x):
         raw=str(x)
         key=" ".join(unicodedata.normalize("NFKD",raw).encode("ascii","ignore").decode().lower().replace("/"," ").replace(","," ").split())
+        key=re.sub(r"^\\d+\\s*[-–—:]?\\s*", "", key)
         if key in aliases:
             return aliases[key]
         if key in seat_by_key:
