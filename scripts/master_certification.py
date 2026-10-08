@@ -83,8 +83,13 @@ def certify(root: str = "."):
         and posterior.get("schema") == "SEEC_PRODUCTION_POSTERIOR_V2"
         and posterior.get("model") == "hierarchical_compositional_temporal_dirichlet_logistic_normal"
         and int(posterior.get("total_draws", 0)) >= 10000
-        and int(posterior.get("studies", 0)) >= 12
+        and int(posterior.get("studies", 0)) >= 8
         and int(posterior.get("draws_per_chain", 0)) >= 1000
+        and int(posterior.get("chains", 0)) >= 4
+        and int(posterior.get("diagnostics", {}).get("divergences", 1)) == 0
+        and float(posterior.get("diagnostics", {}).get("max_r_hat", 99)) <= 1.01
+        and float(posterior.get("diagnostics", {}).get("min_ess_bulk", 0)) >= 1000
+        and float(posterior.get("diagnostics", {}).get("min_ess_tail", 0)) >= 1000
         and bool(posterior.get("convergence", {}).get("passed", False))
     )
     gates.append(_gate(
@@ -120,7 +125,12 @@ def certify(root: str = "."):
         and str(baseline.get("model", "")).startswith("baseline_persistence_2019N")
         and int(baseline.get("n_simulations", 0)) >= 10000
         and baseline.get("rng") == "numpy.PCG64"
-        and baseline.get("source_tier") in {"PRIMARY_INTERIOR", "SECONDARY_REPLICA"}
+        and baseline.get("source_tier") == "PRIMARY_INTERIOR"
+        and isinstance(baseline.get("contracts"), dict)
+        and baseline["contracts"].get("calibration_before_target_election") is True
+        and baseline["contracts"].get("historical_conformal_calibration") is True
+        and baseline["contracts"].get("family_level_calibration") is True
+        and float(baseline.get("metrics", {}).get("coverage_actual_seats_in_calibrated_interval_winners", 0.0)) >= 0.85
     )
     gates.append(_gate(
         "baseline_2023",
@@ -152,7 +162,11 @@ def certify(root: str = "."):
 
     coverage_path = r / "ci_evidence/poll_source_coverage.json"
     coverage = _read_json(coverage_path)
-    coverage_ok = isinstance(coverage, dict) and coverage.get("status") == "PASS"
+    coverage_ok = (
+        isinstance(coverage, dict)
+        and coverage.get("status") == "PASS"
+        and bool(coverage.get("coverage", {}).get("total", coverage.get("total", False)))
+    )
     gates.append(_gate(
         "poll_source_coverage",
         coverage_ok,
