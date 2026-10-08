@@ -38,6 +38,9 @@ def main():
             return aliases[key]
         if key in seat_by_key:
             return seat_by_key[key]
+        contained=[name for candidate,name in seat_by_key.items() if candidate in key or key in candidate]
+        if len(set(contained))==1:
+            return contained[0]
         matches=get_close_matches(key, list(seat_by_key), n=2, cutoff=0.82)
         if len(matches)==1:
             return seat_by_key[matches[0]]
