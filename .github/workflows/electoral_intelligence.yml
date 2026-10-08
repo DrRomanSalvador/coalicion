@@ -15,6 +15,7 @@ on:
       - "src/coalition.py"
       - "src/uncertainty.py"
       - "scripts/electoral_radar.py"
+      - "scripts/build_electoral_decision_snapshot.py"
       - "scripts/survey_watch.py"
       - "scripts/notify_webhook.py"
       - "config/electoral_alerts.json"
@@ -33,7 +34,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies
-        run: python -m pip install --upgrade pip pytest numpy
+        run: python -m pip install --upgrade pip pytest numpy beautifulsoup4
       - name: Compile connected pipeline
         run: |
           python -m py_compile \
@@ -52,6 +53,11 @@ jobs:
         run: python -m pytest -q tests/test_electoral_intelligence.py tests/test_rapid_decision_center.py tests/test_marginality.py tests/test_projection_suite.py tests/test_telegram_notifier.py
       - name: Ingest surveys continuously
         run: python scripts/survey_watch.py || test "$?" = "1"
+      - name: Materialize explicit historical baseline snapshot when current snapshot is absent
+        run: |
+          if [ ! -f artifacts/electoral_decision_snapshot.json ]; then
+            python scripts/build_electoral_decision_snapshot.py
+          fi
       - name: Build connected electoral radar
         run: python scripts/electoral_radar.py
       - name: Publish radar artifact
