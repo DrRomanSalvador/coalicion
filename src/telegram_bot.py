@@ -126,8 +126,26 @@ def _delta(current: dict[str, Any], previous: dict[str, Any], party: str) -> str
         return "n/d"
 
 
+def _public_text(text: str) -> str:
+    """Final safety barrier: never leak internal failure vocabulary to Telegram users."""
+    value = str(text or "").strip()
+    if not value:
+        return "🟦 COALICIÓN\n\nNo hay una actualización publicable todavía. Consulta /hoy para el estado verificable disponible."
+    replacements = {
+        "BLOCKED": "NO PUBLICABLE",
+        "BLOQUEADO": "NO PUBLICABLE",
+        "BLOQUEADA": "NO PUBLICABLE",
+        "BLOQUEO": "COMPROBACIÓN PENDIENTE",
+        "ERROR": "INCIDENCIA TÉCNICA",
+        "Exception": "INCIDENCIA TÉCNICA",
+    }
+    for source, target in replacements.items():
+        value = value.replace(source, target)
+    return value[:MAX_MESSAGE]
+
+
 def _send(chat_id: int, text: str, markup: dict[str, Any] | None = None) -> None:
-    payload: dict[str, Any] = {"chat_id": chat_id, "text": text[:MAX_MESSAGE]}
+    payload: dict[str, Any] = {"chat_id": chat_id, "text": _public_text(text)}
     if markup:
         payload["reply_markup"] = markup
     _api("sendMessage", json=payload)
