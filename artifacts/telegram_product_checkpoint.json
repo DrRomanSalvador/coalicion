@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "8112f30f68a37acf7813884d94f1b77ec2bcc419",
-  "updated_at": "2026-10-08T15:26:00+02:00",
+  "commit": "a2a34474a9a131493ca3e3443c296b3f7c454185",
+  "updated_at": "2026-10-08T15:30:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,7 +24,7 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Inspect current Actions queue; if CI starts, inspect logs/artifacts. Continue only from evidence-backed gaps.",
+  "resume_from": "Inspect running phase2-product job; then fix any actual CI failure. No release tag until P1-P3 evidence gates pass.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
@@ -162,5 +162,21 @@
   "phase2_priority3": {
     "status": "BLOCKED",
     "reason": "territorial observations are autonomous-election studies, not a 52-circumscription general-election matrix"
+  },
+  "phase2_priority7": {
+    "status": "BLOCKED_RELEASE_PREPARED",
+    "files": [
+      "RELEASE_v1.0.0.md",
+      "CHANGELOG.md",
+      "docs/QUICKSTART.md"
+    ],
+    "tag_created": false
+  },
+  "phase2_priority8": {
+    "status": "BLOCKED_FAIL_CLOSED_DEMO",
+    "files": [
+      "docs/DEMO.md"
+    ],
+    "reason": "No 52-circumscription current general-election matrix"
   }
 }
