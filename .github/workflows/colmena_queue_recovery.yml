@@ -1,0 +1,33 @@
+name: COALICION — Actions Queue Recovery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/colmena_queue_recovery.py"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: colmena-queue-recovery
+  cancel-in-progress: true
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    steps:
+      - name: Cancel stale duplicate Colmena executions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh run list --repo "$GITHUB_REPOSITORY" --workflow "colmena_execute.yml" --limit 100 --json databaseId,status --jq '.[] | select(.status == "queued" or .status == "in_progress" or .status == "pending") | .databaseId' |
+            while read -r id; do
+              [ -z "$id" ] && continue
+              gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
+            done
+          echo "COLMENA_STALE_EXECUTOR_CLEANUP=PASS"
