@@ -12,7 +12,7 @@ on:
       - ".github/workflows/colmena_execute.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   queen:
@@ -50,7 +50,7 @@ jobs:
     if: needs.queen.result == 'success'
     strategy:
       fail-fast: false
-      max-parallel: 32
+      max-parallel: 179
       matrix:
         mission_id: ${{ fromJSON(needs.queen.outputs.mission_ids) }}
     runs-on: ubuntu-latest
