@@ -9,7 +9,6 @@ on:
       - "scripts/colmena_queen.py"
       - "scripts/colmena_worker.py"
       - "scripts/colmena_local_ai.mjs"
-      - ".github/workflows/colmena_atomic_swarm.yml"
 
 permissions:
   contents: read
