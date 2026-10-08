@@ -456,7 +456,12 @@ winners=[p for p,s in actual_seats.items() if s>0]
 covered=0
 for party in winners:
     predicted = int(point_pred_2023.get(party, 0))
-    q = Q90_PARTY.get(party, Q90_NEW_PARTY_SEATS)
+    if predicted == 0:
+        q = Q90_NEW_FAMILY_SEATS
+        method = "split_conformal_absolute_emergent_family_seat_residual"
+    else:
+        q = Q90_PARTY.get(party, Q90_SEATS)
+        method = "split_conformal_absolute_party_or_family_seat_residual"
     lo = max(0.0, predicted - q)
     hi = min(350.0, predicted + q)
     intervals[party]={
@@ -464,7 +469,7 @@ for party in winners:
         "p10": float(lo),
         "p50": float(predicted),
         "p90": float(hi),
-        "interval_method": "split_conformal_absolute_party_or_family_seat_residual",
+        "interval_method": method,
         "calibration_q90": float(q),
     }
     covered += int(lo <= actual_seats[party] <= hi)
