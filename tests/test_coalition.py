@@ -15,7 +15,7 @@ def test_coalition_is_recomputed_by_constituency():
 def test_affected_constituencies_are_exposed():
     r=coalition_decision(
         {"A":{"P1":600,"P2":250,"P3":150}},
-        {"A":3},
+        {"A":2},
         {"A":0},
         ("P2","P3"),
     )
