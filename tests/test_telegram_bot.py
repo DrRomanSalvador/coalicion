@@ -55,7 +55,7 @@ def test_render_uses_materialized_observations_and_explains_territorial_block(tm
     monkeypatch.setattr(telegram_bot, "STATE", tmp_path / "missing-state.json")
     text = telegram_bot.render_command("/encuestas")
     assert "2 observaciones validadas" in text
-    assert "PSOE + -2.0 pp" in text
+    assert "PSOE -2.0 pp" in text
     assert "Territoriales explícitas: 0/ 2" in text
     assert "BLOQUEADOS" in text
 
