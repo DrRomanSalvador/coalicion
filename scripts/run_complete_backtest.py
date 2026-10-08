@@ -106,12 +106,12 @@ def main() -> int:
         and isinstance(baseline.get("metrics"), dict)
         and isinstance(baseline.get("contracts"), dict)
         and float(baseline["metrics"].get(
-            "coverage_actual_seats_in_calibrated_p10_p90_winners", 0.0
+            "coverage_actual_seats_in_calibrated_interval_winners", 0.0
         )) >= 0.85
         and baseline["contracts"].get("calibrated_coverage_gate") is True
         and baseline["contracts"].get("historical_conformal_calibration") is True
         and baseline["contracts"].get("calibration_before_target_election") is True
-        and baseline["contracts"].get("party_specific_calibration") is True
+        and baseline["contracts"].get("family_level_calibration") is True
         and isinstance(oos, dict)
         and oos.get("status") == "PASS"
         and isinstance(calibration, dict)
