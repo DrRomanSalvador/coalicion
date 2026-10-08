@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OFFICIAL = ROOT / "data" / "resultados_oficiales_2004_2023.csv"
 SEATS = ROOT / "data" / "2023_circunscripciones_oficiales.csv"
 OUT = ROOT / "ci_evidence" / "backtest_2023_baseline.json"
+SCHEMA = "BACKTEST_2023_BASELINE_V3"
 SEED = 20261006
 N_SIM = 10_000
 
@@ -508,6 +509,7 @@ for family in winners:
 coverage=covered/len(winners) if winners else float("nan")
 
 result={
+ "schema":SCHEMA,
  "election":"2023",
  "cutoff":"2019-11-10",
  "model":"baseline_persistence_2019N_with_pre2023_family_specific_conformal95_seat_calibration",
