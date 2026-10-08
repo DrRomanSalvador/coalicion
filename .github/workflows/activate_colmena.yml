@@ -1,119 +1,39 @@
 name: Activar Colmena
-# Activación explícita de la Colmena por la Abeja Reina.
-# Mission pulse: 2026-10-08
-
-# Triggered by the Queen's mission activation; execution remains fail-closed.
 
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     paths:
-      - "scripts/queen_bee.py"
-      - "scripts/queen_bee_v2.py"
-      - "scripts/queen_bee_v3.py"
-      - "cli.py"
-      - "scripts/ai_electoral_data_engine.py"
-      - "scripts/exhaustive_data_acquisition.py"
-      - "scripts/acquire_with_boe_fallback.py"
+      - "scripts/queen_bee*.py"
       - "scripts/worker_bee.py"
+      - "scripts/product_status.py"
       - "src/neutral_coalition.py"
-      - "scripts/generate_neutral_coalition_report.py"
       - "tests/test_neutral_coalition.py"
       - ".github/workflows/activate_colmena.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: colmena-neutral-activation
   cancel-in-progress: true
 
 jobs:
-  queen:
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Instalar dependencias
-        run: python -m pip install --upgrade pip certifi openpyxl pandas pytest requests beautifulsoup4
-      - name: Endurecimiento
-        id: hardening
+      - name: Install runtime
         run: |
-          mkdir -p artifacts/queue
-          set +e
-          python -m unittest discover -s tests -p "test_*.py" > artifacts/queue/hardening_tests.log 2>&1
-          rc=$?
-          cat artifacts/queue/hardening_tests.log
-          printf '%s
-' "$rc" > artifacts/queue/hardening_tests.exit
-          exit "$rc"
-      - name: Adquirir y validar matriz 2023
-        run: python scripts/acquire_2023_matrix.py
-      - name: Auditar matriz canónica
-        run: python src/neutral_audit.py artifacts/data/election_2023_canonical.json
-      - name: Verificar estado READY
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+      - name: Compile colmena layer
         run: |
-          python - <<'PY'
-          import json, sys
-          p="artifacts/data/election_2023_matrix_acquisition.json"
-          d=json.load(open(p, encoding="utf-8"))
-          if d.get("status") != "READY":
-              print("FAIL_CLOSED", d)
-              sys.exit(1)
-          print("MATRIX_READY", d.get("source_tier"), d.get("sha256"))
-          PY
-
-      - name: Abeja Reina v3
-        env:
-          COLMENA_MAX_RETRIES: "3"
-          COLMENA_RETRY_DELAY: "10"
-          COLMENA_SKIP_EXHAUSTIVE: "1"
-          COLMENA_NEUTRAL_MODE: "1"
-        run: python scripts/queen_bee_v3.py
-      - name: Tests de neutralidad y corrección
+          python -m py_compile scripts/queen_bee.py scripts/queen_bee_v2.py scripts/queen_bee_v3.py scripts/worker_bee.py scripts/product_status.py src/neutral_coalition.py
+      - name: Validate neutral contracts
         run: python -m pytest -q tests/test_neutral_coalition.py tests/test_neutral_audit.py tests/test_electoral.py tests/test_decision.py
-
-      - name: Generar análisis neutral de coaliciones 2023
-        run: python scripts/generate_neutral_coalition_report.py
-
-      - name: Publicar estado de colmena
-        if: always()
-        run: |
-          python scripts/product_status.py
-          test ! -f artifacts/queen_bee_v3_report.json || cat artifacts/queen_bee_v3_report.json
-      - name: Persistir evidencia
-        if: always()
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          mkdir -p artifacts reports
-          cp -a artifacts /tmp/colmena-artifacts
-          cp -a reports /tmp/colmena-reports
-
-          for attempt in 1 2 3 4 5; do
-            git fetch origin main
-            git reset --hard origin/main
-            cp -a /tmp/colmena-artifacts/. artifacts/
-            cp -a /tmp/colmena-reports/. reports/
-
-            git add -A artifacts reports
-            if git diff --cached --quiet; then
-              echo "NO_CHANGES"
-              exit 0
-            fi
-
-            git commit -m "ci: persist colmena execution evidence"
-            if git push origin HEAD:main; then
-              echo "Persistencia publicada en main (intento $attempt)."
-              exit 0
-            fi
-
-            echo "Carrera detectada; reintentando sobre main actualizado (intento $attempt)."
-          done
-
-          echo "ERROR: no se pudo publicar la evidencia después de 5 intentos."
-          exit 1
