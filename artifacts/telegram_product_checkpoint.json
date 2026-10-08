@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "1bddf8a7e0eb476fe0998f5e0c750c2a3379d40b",
-  "updated_at": "2026-10-08T12:42:00+02:00",
+  "commit": "71e5a72c796b111da5c0f2ece393a8e58776605d",
+  "updated_at": "2026-10-08T13:00:06.135Z",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,11 +24,30 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Run Telegram bot service on latest main; require validate + integration evidence PASS; then inspect runtime/persistence and continue product hardening.",
+  "resume_from": "Run phase2-product on latest main; inspect Priority 1 gate; continue only with materialized evidence.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
     "integration_failure": "fixed verifier import path; fixed optional-state persistence path handling",
     "next": "await latest service run; require integration PASS, then bot runtime and persistence checks"
+  },
+  "phase2_priority1": {
+    "status": "BLOCKED",
+    "national_survey_count": 10,
+    "territorial_observation_count": 0,
+    "primary_verified_national_count": 2,
+    "fully_traceable_national_count": 0,
+    "blockers": [
+      "BLOCKED_NO_3_TERRITORIAL_OBSERVATIONS",
+      "BLOCKED_INCOMPLETE_TRACEABILITY",
+      "BLOCKED_PRIMARY_SOURCE_COVERAGE",
+      "BLOCKED_2023_PRIMARY_EVIDENCE_MISSING"
+    ],
+    "policy": {
+      "no_synthetic_values": true,
+      "no_national_to_territorial_inference": true,
+      "fail_closed": true
+    },
+    "resume_from": "Run phase2-product on this commit; inspect phase2_priority1_status.json; then repair only evidenced traceability/territorial gaps."
   }
 }
