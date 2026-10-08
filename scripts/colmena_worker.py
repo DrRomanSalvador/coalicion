@@ -17,9 +17,9 @@ def command_for(title: str):
     if "muestreo pymc" in t or "seec producción" in t or "seec producción genuino" in t:
         return [sys.executable, "scripts/run_seec_production.py"], "SEEC_REAL_SAMPLING"
     if "calibración probabilística" in t:
-        return [sys.executable, "scripts/run_probabilistic_calibration.py"], "PROBABILISTIC_CALIBRATION"
-    if "backtest 1977-2023" in t:
-        return [sys.executable, "scripts/run_complete_backtest.py"], "BACKTEST_COMPLETE"
+        return [sys.executable, "scripts/complete_historical_calibration.py", "--input", "artifacts/data/cis_historical_2004_2023.csv", "--output", "ci_evidence/oos_calibration.json"], "PROBABILISTIC_CALIBRATION"
+    if "backtest 1977-2023" in t or "backtest histórico reproducible" in t:
+        return [sys.executable, "scripts/run_complete_backtest.py", "--input", "artifacts/data/cis_historical_2004_2023.csv"], "BACKTEST_COMPLETE"
     if "backtest oos" in t or "oos" in t:
         return [sys.executable, "scripts/run_full_oos.py"], "OOS"
     if "backtest 2023" in t:
@@ -133,7 +133,7 @@ def main():
         except Exception as exc:
             evidence={"schema":"COLMENA_WORKER_EVIDENCE_V4","mission_id":m["id"],"title":m["title"],"agent_id":agent_id,"agent_runtime":runtime,"status":"BLOCKED","adapter":"AI_AGENT_RUNTIME_ERROR","command":None,"ref":a.ref,"queen_approval":m["approval"],"started_at":datetime.now(timezone.utc).isoformat(),"finished_at":datetime.now(timezone.utc).isoformat(),"source_write":False,"returncode":2,"stdout":"","stderr":str(exc)}
     o=Path(a.out); o.parent.mkdir(parents=True,exist_ok=True); o.write_text(json.dumps(evidence,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-    print(json.dumps({"mission_id":m["id"],"status":evidence["status"],"adapter":evidence["adapter"]}))
+    print(json.dumps({"mission_id":m["id"],"status":evidence["status"],"adapter":evidence["adapter"],"returncode":evidence.get("returncode"),"stderr_tail":str(evidence.get("stderr",""))[-2000:],"stdout_tail":str(evidence.get("stdout",""))[-2000:]}, ensure_ascii=False))
     return 0 if evidence["status"]=="PASS" else 1
 
 if __name__=="__main__": raise SystemExit(main())
