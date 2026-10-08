@@ -30,3 +30,25 @@ def test_persistence_roundtrip(tmp_path, monkeypatch):
     restore()
     assert json.loads(config.read_text(encoding="utf-8"))["chats"]["123"]["frequency"] == "daily"
     assert json.loads(users.read_text(encoding="utf-8"))["users"]["42"]["current"] == "/briefing"
+
+from src import telegram_bot
+
+
+def test_authorization_is_fail_closed(monkeypatch):
+    monkeypatch.setenv("TELEGRAM_ALLOWED_CHATS", "123,456")
+    assert telegram_bot._chat_allowed("123")
+    assert not telegram_bot._chat_allowed("999")
+
+
+def test_audit_failure_does_not_propagate(monkeypatch):
+    def fail_snapshot():
+        raise OSError("simulated persistence failure")
+    monkeypatch.setattr(telegram_bot, "snapshot_telegram_state", fail_snapshot)
+    update = {"message": {"chat": {"id": 123}, "from": {"id": 456}}}
+    assert telegram_bot._audit(update, "/estado", response="ok") is False
+
+
+def test_internal_errors_are_translated():
+    text = telegram_bot._public_text("BLOCKED_NO_TERRITORIAL_INPUT")
+    assert "bloqueo" in text.lower()
+    assert "COMPROBACIÓN PENDIENTE" not in text
