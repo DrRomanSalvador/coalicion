@@ -89,7 +89,7 @@ def test_audit_exposes_real_blockers(tmp_path, monkeypatch):
     text = telegram_bot.render_command("/auditoria")
     assert "Comprobaciones pendientes: 2" in text
     assert "PRIMARY_BINARY_NOT_REPOSITORY_PINNED" not in text
-    assert "NOT_STRICTLY_CERTIFIED" in text
+    assert "verificación OOS pendiente" in text
     assert "Advertencias registradas: 1" in text
 
 
@@ -154,7 +154,28 @@ def test_public_text_never_leaks_internal_failure_terms():
     assert "BLOQUEADO" not in text
 
 
+def test_public_text_sanitizes_case_insensitive_internal_terms():
+    from src.telegram_bot import _public_text
+    text = _public_text("blocked_no_territorial_input BLOQUEADA Error Exception NOT_STRICTLY_CERTIFIED")
+    assert "blocked" not in text.lower()
+    assert "bloqueada" not in text.lower()
+    assert "error" not in text.lower()
+    assert "exception" not in text.lower()
+    assert "not_strictly_certified" not in text.lower()
+    assert "COMPROBACIÓN PENDIENTE" in text
+
+
 def test_public_text_has_nonempty_fallback():
     from src.telegram_bot import _public_text
 
     assert _public_text("").startswith("🟦 COALICIÓN")
+
+
+def test_send_splits_long_public_response(monkeypatch):
+    calls = []
+    monkeypatch.setattr(telegram_bot, "_api", lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True})
+    telegram_bot._send(123, "A" * (telegram_bot.MAX_MESSAGE + 100))
+    texts = [kwargs["json"]["text"] for method, kwargs in calls if method == "sendMessage"]
+    assert len(texts) == 2
+    assert "".join(texts) == "A" * (telegram_bot.MAX_MESSAGE + 100)
+    assert all(len(x) <= telegram_bot.MAX_MESSAGE for x in texts)
