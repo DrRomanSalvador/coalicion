@@ -100,7 +100,9 @@ def main():
     if div: raise SystemExit(f"BLOCKED: posterior contains {div} divergent transitions")
     try:
         import arviz as az
-        summ=az.summary(idata,var_names=["temporal_sigma","log_concentration","concentration"],round_to=None)
+        # Diagnose the latent temporal trajectory too; hyperparameter-only
+        # diagnostics can hide non-converged party-by-study states.
+        summ=az.summary(idata,var_names=["temporal_sigma","log_concentration","eta0","eta"],round_to=None)
         rhat_max=float(np.nanmax(summ["r_hat"].to_numpy()))
         if not np.isfinite(rhat_max) or rhat_max>1.01: pass
     except ImportError: raise SystemExit("BLOCKED: ArviZ required for production diagnostics")
