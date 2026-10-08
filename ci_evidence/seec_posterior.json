@@ -1,6 +1,6 @@
 {
   "schema": "SEEC_TERRITORIAL_POSTERIOR_PREDICTIVE_V1",
-  "status": "PASS",
+  "status": "PENDING",
   "model": "independent_dirichlet_posterior_predictive_by_constituency",
   "prior": "Dirichlet(1,...,1)",
   "likelihood_evidence": "Ministerio del Interior official 2023J constituency vote counts",
@@ -22,5 +22,7 @@
     "evidence_sha256": "bc89d7558ac3ceb81f36137d7e56c6d22a5f8a7a0d75a305f8de7202d5ae08e1",
     "evidence_bytes": 17335
   },
-  "fail_closed": true
+  "fail_closed": true,
+  "reason": "Auxiliary territorial posterior-predictive evidence only. It does not satisfy the hierarchical PyMC SEEC production gate.",
+  "production_gate": false
 }
