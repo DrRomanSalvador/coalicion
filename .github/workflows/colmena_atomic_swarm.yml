@@ -106,13 +106,13 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p artifacts/colmena/workers
-          python - <<'PY'
+          python - <<'PY' > /tmp/shard_batches
           import json, os
           p=json.load(open("artifacts/colmena/queen_approval.json",encoding="utf-8"))
           shard=int(os.environ["SHARD"])
           for batch_no in range(shard, len(p["batches"]), 10):
               print(batch_no, *p["batches"][batch_no]["mission_ids"])
-          PY > /tmp/shard_batches
+          PY
           rc=0
           while read -r batch mid1 mid2 mid3 mid4 mid5; do
             [ -z "${batch:-}" ] && continue
