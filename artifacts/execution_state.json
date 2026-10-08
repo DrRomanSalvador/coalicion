@@ -33,15 +33,15 @@
     "CAPA_1: hash semántico independiente de captura",
     "CAPA_1: cambios de contenido de fuente separados de cambios de encuesta",
     "RECONOCIMIENTO: matriz 2023 ya materializada en artifacts/data/election_2023_canonical.json",
-    "RECONOCIMIENTO: paquete histórico Interior recibido; materialización actual detectada como truncada a 10.700/50.700 filas"
+    "RECONOCIMIENTO: paquete histórico Interior recibido; materialización actual detectada como truncada a 10.700/50.700 filas",
+    "RECUPERACIÓN: paquete histórico Interior completo materializado en 50.700 filas",
+    "EVIDENCIA: manifest primario y reconciliación contractual materializados"
   ],
   "in_progress_tasks": [
     "CAPA_1: ingesta de encuestas — trazabilidad y normalización canónicas",
-    "RECUPERACIÓN: restaurar las 40.000 filas históricas faltantes del paquete Interior"
+    "CI: ejecutar contrato histórico estricto sobre la materialización completa"
   ],
   "blocked_tasks": [
-    "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
-    "PRIMARY_RECONCILIATION",
     "COALITION_REAL_CASE_CERTIFICATION",
     "OOS_CALIBRATION",
     "EXTERNAL_AUDIT"
@@ -63,9 +63,10 @@
   ],
   "certificates": [],
   "next_actions": [
-    "RECUPERAR: restaurar el paquete Interior original de 50.700 filas; no volver a tratarlo como fuente ausente.",
-    "OOS: materializar el dataset histórico de encuestas/observaciones preelectorales y ejecutar expanding-window 2004–2023 sin fuga.",
-    "CASO REAL: ejecutar certificación reproducible una vez restaurada la matriz histórica completa.",
-    "EXTERNAL_AUDIT: pendiente de auditoría externa independiente."
+    "CI: ejecutar verify_historical_contracts.py y validate_historical_data.py sobre main",
+    "OOS: materializar y validar observaciones históricas CIS preelectorales; ejecutar expanding-window 2004–2023 sin fuga",
+    "SEEC: ejecutar posterior de producción >=10.000 draws y persistir evidencia",
+    "CASO REAL: ejecutar certificación reproducible una vez completados los datos y posterior",
+    "EXTERNAL_AUDIT: pendiente de auditoría externa independiente"
   ]
 }
