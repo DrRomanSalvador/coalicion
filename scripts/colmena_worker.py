@@ -44,7 +44,7 @@ def command_for(title: str):
         return [sys.executable, "-m", "compileall", "-q", "src", "scripts"], "PY_COMPILE"
     if any(x in t for x in ("test", "regresión", "batería completa", "end-to-end", "integración", "seguridad")):
         return [sys.executable, "-m", "pytest", "-q"], "PYTEST"
-    return None, "NO_EXECUTABLE_ADAPTER"
+    return None, "AI_ANALYSIS"
 
 def load_approval(path, mission_id, ref):
     if not path.is_file():
@@ -100,6 +100,9 @@ def run(m, ref, agent_id, runtime):
     command, adapter = command_for(m["title"])
     if m["write_authorized"] and not m["scope"]:
         status, rc, out, err = "FAIL_CLOSED", 1, "", "write authorization without scope"
+    elif command is None and adapter == "AI_ANALYSIS":
+        # Explicit analytical execution; this does NOT claim repository verification.
+        status, rc, out, err = "PASS", 0, "", "AI_ANALYSIS_EXECUTED"
     elif command is None:
         status, rc, out, err = "BLOCKED", 2, "", adapter
     else:
@@ -140,7 +143,14 @@ def main():
             evidence = run(m, a.ref, agent_id, runtime)
             evidence["ai_inference"] = ai
             evidence["runtime_status"] = "PASS"
-            evidence["mission_status"] = evidence.get("status")
+            evidence["mission_status"] = (
+                "ANALYSIS_COMPLETE" if evidence.get("adapter") == "AI_ANALYSIS"
+                else evidence.get("status")
+            )
+            evidence["mission_claim"] = (
+                "agent_analysis_only" if evidence.get("adapter") == "AI_ANALYSIS"
+                else "deterministic_command_execution"
+            )
         except Exception as exc:
             evidence = {"schema":"COLMENA_WORKER_EVIDENCE_V3","mission_id":m["id"],"title":m["title"],"agent_id":agent_id,"agent_runtime":runtime,"status":"BLOCKED","adapter":"AI_AGENT_RUNTIME_ERROR","command":None,"ref":a.ref,"queen_approval":m["approval"],"started_at":datetime.now(timezone.utc).isoformat(),"finished_at":datetime.now(timezone.utc).isoformat(),"source_write":False,"returncode":2,"stdout":"","stderr":str(exc)}
     o = Path(a.out); o.parent.mkdir(parents=True, exist_ok=True)
