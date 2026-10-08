@@ -1,0 +1,32 @@
+{
+  "schema": "PHASE2_PRIORITY1_STATUS_V1",
+  "status": "BLOCKED",
+  "national_survey_count": 10,
+  "national_requirement": 10,
+  "territorial_observation_count": 0,
+  "territorial_requirement": 3,
+  "fully_traceable_national_count": 0,
+  "primary_verified_national_count": 2,
+  "traceability_failures": [
+    {
+      "id": "registry-level",
+      "missing": [
+        "methodology",
+        "source_content_sha256"
+      ]
+    }
+  ],
+  "official_2023_matrix_present": true,
+  "official_2023_primary_evidence_present": false,
+  "blockers": [
+    "BLOCKED_NO_3_TERRITORIAL_OBSERVATIONS",
+    "BLOCKED_INCOMPLETE_TRACEABILITY",
+    "BLOCKED_PRIMARY_SOURCE_COVERAGE",
+    "BLOCKED_2023_PRIMARY_EVIDENCE_MISSING"
+  ],
+  "policy": {
+    "no_synthetic_values": true,
+    "no_national_to_territorial_inference": true,
+    "fail_closed": true
+  }
+}
