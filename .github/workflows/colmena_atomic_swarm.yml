@@ -117,3 +117,5 @@ jobs:
         with:
           name: colmena-swarm-cycle
           path: artifacts/colmena/swarm_cycle.json
+
+# Queen activation cycle: execute 179 logical workers and persist evidence.
