@@ -41,4 +41,4 @@ def test_share_swing_rounding_tie_is_lexicographically_stable():
 
 def test_vote_rounding_uses_half_up_not_bankers_rounding():
     from src.prediction import rescale_votes_by_turnout
-    assert rescale_votes_by_turnout({"X": 1}, 1.0, 1.5)["X"] == 2
+    assert rescale_votes_by_turnout({"X": 1}, 0.5, 0.75)["X"] == 2
