@@ -30,14 +30,13 @@ def calculate_coalition(votes_by_constituency: Mapping[str, Mapping[str,int]],
     separate_by={}; coalition_by={}
     for c,row0 in votes_by_constituency.items():
         row=dict(row0)
-        missing=[p for p in members if p not in row]
-        if missing:
-            raise ValueError(f"{c}: candidaturas ausentes: {missing}")
+        for p in members:
+            row.setdefault(p, 0)
         a=allocate(row,seats_by_constituency[c],valid_votes[c],special.get(c,""),blank.get(c,0))
         if a.status!="OK": raise RuntimeError(f"BLOCKED:{c}:{a.status}")
         name=" + ".join(members)
         merged={p:v for p,v in row.items() if p not in members}
-        merged[name]=sum(row[p] for p in members)
+        merged[name]=sum(row.get(p, 0) for p in members)
         b=allocate(merged,seats_by_constituency[c],valid_votes[c],special.get(c,""),blank.get(c,0))
         if b.status!="OK": raise RuntimeError(f"BLOCKED:{c}:{b.status}")
         separate_by[c]=sum(a.seats.get(p,0) for p in members)
