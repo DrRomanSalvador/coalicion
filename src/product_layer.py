@@ -119,7 +119,7 @@ def decide_coalition(
         "separate_seats": central["separate_seats"],
         "coalition_seats": central["coalition_seats"],
         "seat_delta": central["delta"],
-        "decision_rule": "SÍ" if result["benefit"] > 0 else "NO",
+        "decision_rule": "CENTRAL_DELTA_POSITIVE" if result["benefit"] > 0 else "CENTRAL_DELTA_NON_POSITIVE",
         "decisive_constituencies": result["decisive_constituencies"],
         "beneficial_constituencies": gains,
         "harmful_constituencies": losses,
@@ -185,7 +185,7 @@ def rank_coalitions(
         {"parties": list(parties), "min_size": min_size, "max_size": max_size},
         {
             "ranking": ranking,
-            "best_by_engine_criteria": ranking[0] if ranking else None,
+            "top_by_engine_criteria": ranking[0] if ranking else None,
             "coalitions": result["all_coalitions"],
             "_engine_result": result,
         },
