@@ -14,10 +14,6 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: colmena-execution-main
-  cancel-in-progress: false
-
 jobs:
   queen:
     name: Queen Gate
