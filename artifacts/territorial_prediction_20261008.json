@@ -13,10 +13,28 @@
     "fail_closed": true
   },
   "blockers": [
-    "BLOCKED_NO_TERRITORIAL_OBSERVATIONS",
-    "BLOCKED_NO_2026_TERRITORIAL_CALIBRATION"
+    "BLOCKED_NO_52_CIRCUMSCRIPTION_GENERAL_ELECTION_INPUT",
+    "BLOCKED_NO_2026_GENERAL_ELECTION_TERRITORIAL_CALIBRATION",
+    "BLOCKED_NO_NATIONAL_TO_TERRITORIAL_INFERENCE"
   ],
   "constituencies": {},
   "national_seats": {},
-  "seat_total": 0
+  "seat_total": 0,
+  "observed_territorial_evidence": [
+    {
+      "survey_id": "ipsos_lavanguardia_catalunya_20261004",
+      "territory": "Catalunya",
+      "scope": "autonómica"
+    },
+    {
+      "survey_id": "celeste_tel_valencia_20260917",
+      "territory": "Comunitat Valenciana",
+      "scope": "autonómica"
+    },
+    {
+      "survey_id": "sigma_dos_asturias_20260908",
+      "territory": "Principado de Asturias",
+      "scope": "autonómica"
+    }
+  ]
 }
