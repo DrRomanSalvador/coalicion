@@ -140,6 +140,14 @@ def _public_text(text: str) -> str:
     return value
 
 
+def _answer_callback(callback_id: str) -> None:
+    """Acknowledge an inline-button callback without exposing transport details."""
+    try:
+        _api("answerCallbackQuery", json={"callback_query_id": callback_id})
+    except TelegramBotError:
+        pass
+
+
 def _send(chat_id: int, text: str, markup: dict[str, Any] | None = None) -> None:
     """Send complete public content in Telegram-safe chunks."""
     value = _public_text(text)
@@ -436,7 +444,7 @@ def _escanos_text() -> str:
             return "🪑 ESCAÑOS · COMPOSICIÓN MATERIALIZADA\n\n" + "\n".join(f"{p}: {s}" for p, s in rows)
     return (
         "🪑 ESCAÑOS · SITUACIÓN ACTUAL\n\n"
-        "La cifra actual de escaños requiere evidencia provincial explícita. "
+        "La cifra actual de escaños requiere una distribución territorial explícita. "
         "El sistema no convierte automáticamente porcentajes nacionales en reparto territorial."
     )
 
