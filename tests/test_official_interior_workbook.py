@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from src.data import available_elections, download_workbook, load_official_constituency_matrix, load_rows
+from src.data import available_elections, download_workbook, load_official_constituency_matrix, load_rows\nfrom src.electoral import allocate
 
 ROOT=Path(__file__).resolve().parents[1]
 WORKBOOK=ROOT/"data"/"raw"/"Elecciones-Congreso.xlsx"
@@ -66,3 +66,24 @@ def test_load_rows_supports_official_wide_workbook():
         assert all(isinstance(r["votes"],int) and r["votes"]>=0 for r in rows)
     finally:
         if temp: temp.cleanup()
+
+def test_official_2023_votes_reproduce_observed_seat_allocation():
+    path, temp = _workbook()
+    try:
+        result = load_official_constituency_matrix(path, "2023-07-23")
+        for constituency, item in result["constituencies"].items():
+            special = constituency if constituency in {"Ceuta", "Melilla"} else ""
+            allocation = allocate(
+                item["parties"],
+                item["seats"],
+                item["valid_votes"],
+                special=special,
+                blank_votes=item["blank_votes"],
+            )
+            assert allocation.status == "OK", constituency
+            observed = item["observed_seats"]
+            predicted_positive = {p: s for p, s in allocation.seats.items() if s > 0}
+            assert predicted_positive == observed, constituency
+    finally:
+        if temp:
+            temp.cleanup()
