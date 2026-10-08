@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: coalicion
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: COALICION_SERVICE
+        value: api
+      - key: COALICION_API_HOST
+        value: 0.0.0.0
+      - key: COALICION_API_PORT
+        value: 8080
+      - key: COALICION_API_KEY
+        generateValue: true
