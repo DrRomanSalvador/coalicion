@@ -44,4 +44,6 @@ def correlation(a: list[float], b: list[float]) -> float | None:
     if len(a)!=len(b) or len(a)<2: return None
     ma,mb=mean(a),mean(b)
     da=sqrt(sum((x-ma)**2 for x in a)); db=sqrt(sum((y-mb)**2 for y in b))
-    return sum((x-ma)*(y-mb) for x,y in zip(a,b))/(da*db) if da and db else None
+    if not (da and db): return None
+    value=sum((x-ma)*(y-mb) for x,y in zip(a,b))/(da*db)
+    return max(-1.0, min(1.0, value))
