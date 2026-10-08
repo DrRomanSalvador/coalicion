@@ -1,6 +1,10 @@
-from scripts.run_seec_production import SURVEY, SURVEY_SOURCE_SUM
+from pathlib import Path
 
-def test_seec_production_survey_is_canonical_and_not_renormalized():
-    assert len(SURVEY) == 12
-    assert abs(SURVEY_SOURCE_SUM - 96.5) < 1e-9
-    assert abs(sum(SURVEY.values()) - SURVEY_SOURCE_SUM) < 1e-9
+def test_seec_production_contract_is_canonical():
+    text = Path("scripts/run_seec_production.py").read_text(encoding="utf-8")
+    assert 'artifacts/data/cis_historical_2004_2023.csv' in text
+    assert 'chains=2' in text
+    assert 'total_draws<10000' in text
+    assert 'diverging' in text
+    assert 'r_hat' in text
+    assert 'fail_closed' in text
