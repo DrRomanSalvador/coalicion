@@ -12,6 +12,7 @@ on:
       - "src/data/**"
       - "tests/test_full_pipeline.py"
       - "data/surveys/current_2026/**"
+      - "scripts/materialize_current_surveys.py"
       - "api.py"
       - "requirements.txt"
       - "requirements.lock"
@@ -35,9 +36,13 @@ jobs:
         run: python -m compileall -q src/web src/email src/pipeline api.py
       - name: MVP tests
         run: python -m pytest -q tests/test_mvp_e2e.py tests/test_data_collection.py tests/test_full_pipeline.py
+      - name: Survey materialization
+        run: python scripts/materialize_current_surveys.py
       - name: Newsletter materialization
         run: python -m src.email.newsletter
       - uses: actions/upload-artifact@v4
         with:
           name: mvp-validation-evidence
-          path: artifacts/newsletter/latest.html
+          path: |
+            artifacts/newsletter/latest.html
+            artifacts/surveys/current_2026_normalized.json
