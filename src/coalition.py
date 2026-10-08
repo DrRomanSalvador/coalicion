@@ -39,9 +39,9 @@ def merge_coalition_votes(votes_by_constituency, coalition):
     name = "+".join(parties)
     out = {}
     for constituency, row in votes_by_constituency.items():
-        if any(p not in row for p in parties):
-            raise ValueError(f"{constituency}: candidatura ausente")
         merged = dict(row)
+        for p in parties:
+            merged.setdefault(p, 0)
         merged[name] = sum(merged.pop(p) for p in parties)
         out[constituency] = merged
     return out
@@ -119,12 +119,13 @@ class CoalitionDecisionEngine:
         name = "+".join(parties)
         separate = coalition = 0
         for c, row in scenario.votes.items():
-            if any(p not in row for p in parties):
-                raise ValueError(f"{scenario.name}/{c}: candidatura ausente")
+            row = dict(row)
+            for p in parties:
+                row.setdefault(p, 0)
             base = self._allocate(row, c)
             separate += sum(base.seats.get(p, 0) for p in parties)
             merged = dict(row)
-            merged[name] = sum(row[p] for p in parties)
+            merged[name] = sum(row.get(p, 0) for p in parties)
             for p in parties:
                 del merged[p]
             joined = self._allocate(merged, c)
@@ -139,7 +140,7 @@ class CoalitionDecisionEngine:
             if merged:
                 total += votes if votes * 100 < valid * 3 else 0
             else:
-                total += sum(row[p] for p in parties if row[p] * 100 < valid * 3)
+                total += sum(row.get(p, 0) for p in parties if row.get(p, 0) * 100 < valid * 3)
         return total
 
     def _impacts(self, scenario, parties):
