@@ -93,20 +93,22 @@ def test_audit_exposes_real_blockers(tmp_path, monkeypatch):
     assert "Advertencias registradas: 1" in text
 
 
-def test_callback_menu_sends_keyboard(monkeypatch):
+def test_callback_menu_edits_existing_message(monkeypatch, tmp_path):
     calls = []
+    monkeypatch.setattr(telegram_bot, "USER_STATE", tmp_path / "state.json")
     monkeypatch.setattr(telegram_bot, "_api", lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True})
     update = {
         "update_id": 7,
         "callback_query": {
             "id": "cb1",
+            "from": {"id": 42},
             "data": "cmd:/estado",
-            "message": {"chat": {"id": 123}},
+            "message": {"chat": {"id": 123}, "message_id": 77},
         },
     }
     assert telegram_bot._handle_update(update, None) == 8
     assert any(method == "answerCallbackQuery" for method, _ in calls)
-    assert any(method == "sendMessage" for method, _ in calls)
+    assert any(method == "editMessageText" for method, _ in calls)
 
 
 def test_briefing_is_the_executive_start_screen():
