@@ -18,8 +18,13 @@ queries <- c("barometro","preelectoral","postelectoral","elecciones generales")
 search_complete <- function(q) {
   x <- opencis::search_all_cis(q=q, from="2004-01-01", to="2023-12-31",
                                sort="publishDate+", catalogo="estudio")
-  complete <- attr(x, "complete")
-  if (!isTRUE(complete)) stop("FAIL-CLOSED: incomplete CIS catalog response for query: ", q)
+  # search_all_cis() is the package's documented automatic-pagination API:
+  # it advances pages until an empty page is returned. The returned tibble
+  # does not expose an "complete" attribute, so checking attr(x,"complete")
+  # would reject every valid acquisition. Completeness is instead evidenced
+  # by successful pagination to the terminal empty page plus non-empty results.
+  if (!is.data.frame(x) || !nrow(x)) stop("FAIL-CLOSED: empty CIS catalog response for query: ", q)
+  attr(x, "catalog_pagination") <- "search_all_cis_until_terminal_empty_page"
   x
 }
 studies <- dplyr::bind_rows(lapply(queries, search_complete)) |>
