@@ -83,3 +83,19 @@ CHAT = INTERFAZ.
 No buscar de nuevo fuentes ancladas. No repetir cálculos ya evidenciados. No usar memoria del chat para reconstruir estado.
 
 Siguiente acción única: desplegar el blueprint Render y materializar una URL pública verificable.
+
+
+### HUELLA DE INTELIGENCIA DE SITUACIÓN
+
+Implementado en `main`:
+- `src/situation_state.py`: contrato único `COALICION_SITUATION_STATE_V1`.
+- `config/situation_mission.json`: misión/foco fail-closed.
+- `artifacts/situation_state.json`: estado materializado actual.
+- `src/email/newsletter.py`: Brief interno conciso para revisión humana.
+- `src/alerts/situation_alerts.py`: filtro de alertas de una frase.
+- `src/web/dashboard.py`: Situation State como fuente común.
+- `.github/workflows/situation_brief.yml`: generación a las 08:00, 16:00 y 00:00 Europe/Madrid + revisión CI.
+
+Estado materializado actual: `UNCERTAINTY`. Motivo verificable: 0 observaciones territoriales 2026 materializadas.
+
+Siguiente acción única: ejecutar y verificar en GitHub Actions la batería del contrato Situation State; no marcar PASS hasta disponer de evidencia de ejecución.
