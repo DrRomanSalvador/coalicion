@@ -1,0 +1,10 @@
+{
+  "schema": "FULL_ELECTION_PIPELINE_V1",
+  "status": "BLOCKED",
+  "reason": "BLOCKED_NO_EXPLICIT_TERRITORIAL_INPUT",
+  "input_hash": "MATERIALIZED_BY_CI",
+  "policy": {
+    "national_to_territorial_inference": false,
+    "fail_closed": true
+  }
+}
