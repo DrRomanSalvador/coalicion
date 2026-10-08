@@ -1,0 +1,35 @@
+{
+  "schema": "AUTONOMOUS_REPAIR_CHECKPOINT_V1",
+  "audit_source": "Auditoría externa — 11:41, 8/10/2026",
+  "audit_findings_total": 466,
+  "repository": "DrRomanSalvador/coalicion",
+  "branch": "main",
+  "checkpoint_type": "evidence-backed",
+  "completed_in_this_checkpoint": [
+    {
+      "area": "CERTIFICATION",
+      "finding_scope": [99,100,104,105,106,107,116,117,118,454,455,456,457,458,459],
+      "commit": "95987f2eda2870a7989f91dfb3c347af67e42880",
+      "change": "master certification now separates production SEEC from MC-10000, validates the correct production draw fields, requires OOS coverage_gate.passed, validates baseline structure, and remains fail-closed."
+    },
+    {
+      "area": "VALIDATION",
+      "finding_scope": [99,100,103,116],
+      "commit": "2b4c1f7d2a1cab32e70861536b920d43839d3f55",
+      "change": "historical calibration emits NOT_CERTIFIED when its statistical gate fails instead of writing PASS and then raising an execution error."
+    },
+    {
+      "area": "SCENARIOS",
+      "finding_scope": [143],
+      "commit": "b2619db5702db52c2bad64e02a677b38cf8b9ae2",
+      "change": "projection party vote shares are normalized over nonblank party votes; blank-inclusive valid-vote total is exposed separately."
+    }
+  ],
+  "current_known_blockers_not_claimed_resolved": [
+    "SEEC_PRODUCTION",
+    "EXTERNAL_AUDIT",
+    "complete territorial seat-probability OOS certification"
+  ],
+  "execution_limit": "No local test runner is available through the current GitHub connector; no test PASS is claimed without GitHub execution evidence.",
+  "fail_closed": true
+}
