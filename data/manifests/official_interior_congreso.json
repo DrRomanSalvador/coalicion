@@ -24,5 +24,9 @@
     "historical_results_observed": true,
     "forecast_2026": false,
     "national_to_territorial_inference": false
-  }
+  },
+  "normalized_records": 322556,
+  "normalized_target": "data/official_interior_congreso_1977_2023.csv",
+  "materializer": "scripts/materialize_official_interior_dataset.py",
+  "canonical_2023": "artifacts/data/election_2023_canonical.json"
 }
