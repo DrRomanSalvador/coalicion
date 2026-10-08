@@ -23,7 +23,7 @@ jobs:
     name: "👑 Queen Gate"
     runs-on: ubuntu-latest
     outputs:
-      batches: ${{steps.matrix.outputs.batches${{
+      batches: ${{ steps.matrix.outputs.batches }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -39,7 +39,7 @@ jobs:
           path: |
             node_modules
             .cache
-          key: ${{runner.os${{-colmena-local-ai-v2-transformersjs-3.8.1-smollm2
+          key: ${{ runner.os }}-colmena-local-ai-v2-transformersjs-3.8.1-smollm2
       - name: Prepare local AI runtime
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -64,7 +64,7 @@ jobs:
           path: |
             node_modules
             .cache
-          key: ${{runner.os${{-colmena-local-ai-v2-transformersjs-3.8.1-smollm2
+          key: ${{ runner.os }}-colmena-local-ai-v2-transformersjs-3.8.1-smollm2
       - name: Queen creates authoritative plan
         run: |
           set -euo pipefail
@@ -87,14 +87,14 @@ jobs:
           retention-days: 30
 
   worker-batch:
-    name: "Workers batch ${{matrix.batch${{"
+    name: "Workers batch ${{ matrix.batch }}"
     needs: queen-gate
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       max-parallel: 1
       matrix:
-        include: ${{fromJSON(needs.queen-gate.outputs.batches)${{
+        include: ${{ fromJSON(needs.queen-gate.outputs.batches) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -108,7 +108,7 @@ jobs:
           path: |
             node_modules
             .cache
-          key: ${{runner.os${{-colmena-local-ai-v2-transformersjs-3.8.1-smollm2
+          key: ${{ runner.os }}-colmena-local-ai-v2-transformersjs-3.8.1-smollm2
           fail-on-cache-miss: true
       - uses: actions/download-artifact@v4
         with:
@@ -137,7 +137,7 @@ jobs:
           PY
       - name: Execute exactly this Queen batch
         env:
-          BATCH_JSON: ${{toJSON(matrix)${{
+          BATCH_JSON: ${{ toJSON(matrix) }}
           COLMENA_AGENT_PROVIDER: github-actions-local-transformers-js
           COLMENA_AI_AGENT_EXECUTION: "true"
           COLMENA_AGENT_MODEL: onnx-community/SmolLM2-135M-Instruct-ONNX-MHA:q4f16
@@ -187,7 +187,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: "colmena-batch-${{matrix.batch${{"
+          name: "colmena-batch-${{ matrix.batch }}"
           path: |
             worker_evidence/
             ai_runtime.log
