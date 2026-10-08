@@ -94,6 +94,7 @@ def test_audit_exposes_real_blockers(tmp_path, monkeypatch):
 
 
 def test_callback_menu_edits_existing_message(monkeypatch, tmp_path):
+    monkeypatch.setenv("TELEGRAM_ALLOWED_CHATS", "123")
     calls = []
     monkeypatch.setattr(telegram_bot, "USER_STATE", tmp_path / "state.json")
     monkeypatch.setattr(telegram_bot, "_api", lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True})
@@ -193,6 +194,7 @@ def test_send_splits_long_public_response(monkeypatch):
 
 
 def test_callback_navigation_edits_same_message_and_persists_back(monkeypatch, tmp_path):
+    monkeypatch.setenv("TELEGRAM_ALLOWED_CHATS", "123")
     calls = []
     monkeypatch.setattr(telegram_bot, "USER_STATE", tmp_path / "user_state.json")
     monkeypatch.setattr(
@@ -258,6 +260,7 @@ def test_alert_preferences_toggle_and_frequency(tmp_path, monkeypatch):
 
 
 def test_public_inline_query_returns_article(monkeypatch):
+    monkeypatch.setenv("TELEGRAM_ALLOWED_CHATS", "42")
     calls = []
     monkeypatch.setattr(telegram_bot, "_api", lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True})
     update = {"update_id": 1, "inline_query": {"id": "iq1", "query": "ponme al día", "from": {"id": 42}}}
