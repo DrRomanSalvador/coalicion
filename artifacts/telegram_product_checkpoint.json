@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "139c96bbbcfc6c5fe414bc4c66646b46e7579c77",
-  "updated_at": "2026-10-08T13:10:00+02:00",
+  "commit": "b7932d388ed605b836530a6454f9ac404f1c7ade",
+  "updated_at": "2026-10-08T13:12:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,7 +24,7 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Inspect latest phase2-product execution; if PASS, materialize actual reproducibility artifact and continue security/operation.",
+  "resume_from": "Inspect latest phase2-product run; if CI passes, continue release/demo gates.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
@@ -97,6 +97,23 @@
     "policy": {
       "same_input_same_output": true,
       "fail_closed": true
+    }
+  },
+  "phase2_priority6": {
+    "status": "IMPLEMENTED_PENDING_CI",
+    "files": [
+      "src/security/validation.py",
+      "src/monitoring/healthcheck.py",
+      "src/backup/backup_restore.py",
+      "Dockerfile",
+      "docker-compose.yml",
+      "tests/test_security.py",
+      "tests/test_docker.py",
+      "tests/test_monitoring_backup.py"
+    ],
+    "policy": {
+      "fail_closed": true,
+      "no_secret_materialization": true
     }
   }
 }
