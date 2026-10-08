@@ -79,6 +79,11 @@ def _official(path: Path) -> dict[tuple[str, str], float]:
                 raise ValueError(f"invalid official votes: {row}") from exc
             if votes < 0:
                 raise ValueError("negative official votes")
+            label = re.sub(r"[^a-z0-9 ]+", " ", row["partido"].lower()).strip()
+            # Valid electoral votes = every non-null ballot category; blank votes
+            # remain valid, while null/aggregate rows are excluded explicitly.
+            if "nulo" in label or "total" in label or label in {"abstencion", "abstenciones"}:
+                continue
             totals[(election, party)] = totals.get((election, party), 0.0) + votes
             national[election] = national.get(election, 0.0) + votes
     if set(national) != set(ELECTION_DATES):
