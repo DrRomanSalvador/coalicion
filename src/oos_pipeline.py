@@ -38,11 +38,21 @@ def _norm(v: str) -> str:
     raw = str(v).strip().lower()
     # Interior labels frequently carry the canonical acronym after " - ".
     suffix = raw.rsplit(" - ", 1)[-1].strip() if " - " in raw else raw
-    for candidate in (suffix, raw):
+    candidates = [suffix, raw]
+    for candidate in candidates:
         s = re.sub(r"[^a-z0-9 ]+", " ", candidate).strip()
         s = re.sub(r"\s+", " ", s)
         if s in ALIAS:
             return ALIAS[s]
+        # Official Interior labels often begin with the canonical acronym
+        # followed by the legal/full party name, e.g. "PSOE PARTIDO ...".
+        first = s.split(" ", 1)[0] if s else ""
+        if first in ALIAS:
+            return ALIAS[first]
+        for token in re.split(r"[/|,+]", candidate):
+            t = re.sub(r"[^a-z0-9 ]+", " ", token).strip()
+            if t in ALIAS:
+                return ALIAS[t]
     s = re.sub(r"[^a-z0-9 ]+", " ", suffix).strip()
     s = re.sub(r"\s+", " ", s)
     return s.upper().replace(" ", "_")
