@@ -8,6 +8,7 @@ on:
       - "docs/COLMENA_MISSION_CONTROL.json"
       - "scripts/colmena_queen.py"
       - "scripts/colmena_worker.py"
+      - "scripts/colmena_closure.py"
       - ".github/workflows/colmena_execute.yml"
 
 permissions:
@@ -22,7 +23,7 @@ jobs:
     name: Queen Gate
     runs-on: ubuntu-latest
     outputs:
-      plan: ${{ steps.plan.outputs.plan }}
+      batches: \${{ steps.plan.outputs.batches }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -32,11 +33,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python scripts/colmena_queen.py --ref "${GITHUB_SHA}" --output queen_approval.json
-          python - <<'PY' >> "$GITHUB_OUTPUT"
+          python scripts/colmena_queen.py --ref "\${GITHUB_SHA}" --output queen_approval.json
+          python - <<'PY' >> "\$GITHUB_OUTPUT"
           import json
           p=json.load(open("queen_approval.json",encoding="utf-8"))
-          print("plan="+json.dumps({"include":[{"id":m["id"],"title":m["title"]} for m in p["missions"]]}))
+          print("batches="+json.dumps({"include":[{"number":b["batch"],"mission_ids":json.dumps(b["mission_ids"],ensure_ascii=False)} for b in p["batches"]]},separators=(",",":")))
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -44,13 +45,13 @@ jobs:
           path: queen_approval.json
 
   workers:
-    name: Worker ${{ matrix.id }}
+    name: Worker batch \${{ matrix.number }}
     needs: queen
     if: needs.queen.result == 'success'
     strategy:
       fail-fast: false
       max-parallel: 32
-      matrix: ${{ fromJSON(needs.queen.outputs.plan) }}
+      matrix: \${{ fromJSON(needs.queen.outputs.batches) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -60,12 +61,57 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: colmena-queen-approval
-      - name: Execute atomic worker
+      - name: Execute logical atomic workers
+        shell: bash
+        env:
+          MISSION_IDS: \${{ matrix.mission_ids }}
         run: |
+          set +e
           mkdir -p worker_evidence
-          python scripts/colmena_worker.py             --mission-id "${{ matrix.id }}"             --approval queen_approval.json             --ref "${GITHUB_SHA}"             --out "worker_evidence/${{ matrix.id }}.json"
+          overall=0
+          while IFS= read -r id; do
+            python scripts/colmena_worker.py \
+              --mission-id "\$id" \
+              --approval queen_approval.json \
+              --ref "\${GITHUB_SHA}" \
+              --out "worker_evidence/\${id}.json"
+            rc=\$?
+            if [ "\$rc" -ne 0 ]; then overall=1; fi
+          done < <(python -c 'import json,os; print("\\n".join(json.loads(os.environ["MISSION_IDS"])))')
+          exit "\$overall"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: worker-evidence-${{ matrix.id }}
-          path: worker_evidence/${{ matrix.id }}.json
+          name: worker-evidence-batch-\${{ matrix.number }}
+          path: worker_evidence/*.json
+          if-no-files-found: error
+
+  closure:
+    name: Queen Closure Gate
+    needs: [queen, workers]
+    if: always() && needs.queen.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          name: colmena-queen-approval
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: worker-evidence-batch-*
+          path: worker_evidence
+          merge-multiple: true
+      - name: Validate complete closure
+        run: |
+          python scripts/colmena_closure.py \
+            --approval queen_approval.json \
+            --evidence-dir worker_evidence \
+            --out colmena_closure.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: colmena-closure
+          path: colmena_closure.json
