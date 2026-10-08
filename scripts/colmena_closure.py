@@ -13,7 +13,16 @@ def main():
     approval=json.loads(Path(a.approval).read_text(encoding="utf-8"))
     expected={m["id"] for m in approval["missions"]}
     files=sorted(Path(a.evidence_dir).glob("*.json"))
-    evidence={json.loads(p.read_text(encoding="utf-8"))["mission_id"]:json.loads(p.read_text(encoding="utf-8")) for p in files}
+    parsed=[]
+    for p in files:
+        try:
+            data=json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(data, dict) and isinstance(data.get("mission_id"), str):
+            parsed.append((p, data))
+    evidence={data["mission_id"]: data for _, data in parsed}
+    mission_files=[p for p, _ in parsed]
     missing=sorted(expected-set(evidence))
     extra=sorted(set(evidence)-expected)
     failed=sorted(k for k,v in evidence.items() if v.get("status")!="PASS")
@@ -24,7 +33,7 @@ def main():
         "schema":"COLMENA_CLOSURE_EVIDENCE_V1",
         "plan_sha256":approval["plan_sha256"],
         "expected_missions":len(expected),
-        "evidence_files":len(files),
+        "evidence_files":len(mission_files),
         "missing":missing,"extra":extra,"failed":failed,
         "status_counts":statuses,
         "status":"PASS" if closed else "BLOCKED",
