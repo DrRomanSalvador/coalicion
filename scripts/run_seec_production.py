@@ -15,13 +15,15 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--input",default="artifacts/data/cis_historical_2004_2023.csv")
     ap.add_argument("--output",default="ci_evidence/seec_production.json")
-    ap.add_argument("--draws",type=int,default=5000)
-    ap.add_argument("--tune",type=int,default=1500)
+    ap.add_argument("--draws",type=int,default=2500)
+    ap.add_argument("--tune",type=int,default=3000)
+    ap.add_argument("--chains",type=int,default=4)
     ap.add_argument("--seed",type=int,default=CANONICAL_SEED)
     args=ap.parse_args()
     if args.seed != CANONICAL_SEED:
         raise SystemExit(f"BLOCKED: seed {args.seed} does not match canonical seed {CANONICAL_SEED}")
-    if args.draws*4<MIN_DRAWS: raise SystemExit(f"BLOCKED: four-chain posterior requires >= {MIN_DRAWS} total draws")
+    if args.chains < 2: raise SystemExit("BLOCKED: production posterior requires at least 2 chains")
+    if args.draws*args.chains<MIN_DRAWS: raise SystemExit(f"BLOCKED: four-chain posterior requires >= {MIN_DRAWS} total draws")
     try:
         import pandas as pd
         import pymc as pm
@@ -59,7 +61,7 @@ def main():
         log_concentration=pm.Normal("log_concentration",mu=float(np.log(50.0)),sigma=1.0)
         concentration=pm.Deterministic("concentration",pm.math.exp(log_concentration))
         pm.Dirichlet("observed_composition",a=support*concentration+1e-6,observed=y,dims=("study","party"))
-        idata=pm.sample(draws=args.draws,tune=args.tune,chains=4,cores=4,random_seed=[args.seed,args.seed+1,args.seed+2,args.seed+3],target_accept=0.995,max_treedepth=15,init="jitter+adapt_diag",jitter_max_retries=20,progressbar=False,return_inferencedata=True)
+        idata=pm.sample(draws=args.draws,tune=args.tune,chains=args.chains,cores=min(args.chains,4),random_seed=[args.seed+i for i in range(args.chains)],target_accept=0.995,max_treedepth=15,init="jitter+adapt_diag",jitter_max_retries=20,progressbar=False,return_inferencedata=True)
     posterior=idata.posterior
     total_draws=int(posterior.sizes["chain"]*posterior.sizes["draw"])
     if total_draws<MIN_DRAWS: raise SystemExit(f"BLOCKED: posterior has only {total_draws} draws")
@@ -86,7 +88,7 @@ def main():
         "supplemental_input":"artifacts/data/cis_recent_2024_2026.csv" if recent.is_file() else None,
         "studies":len(studies),
         "parties":len(parties),
-        "chains":4,
+        "chains":args.chains,
         "draws_per_chain":args.draws,
         "total_draws":total_draws,
         "tune_per_chain":args.tune,
