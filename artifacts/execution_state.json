@@ -2,7 +2,7 @@
   "schema": "EXECUTION_STATE_V1",
   "run_id": "autonomous-20261006",
   "started_at": "2026-10-06T20:03:24Z",
-  "last_updated_at": "2026-10-06T21:55:00Z",
+  "last_updated_at": "2026-10-08",
   "current_phase": "OPERATIONAL_BETA — evidence-backed utility",
   "completed_tasks": [
     "inspección estructural",
@@ -24,9 +24,14 @@
     "contractual pytest suite passes after correcting fail-closed expectation",
     "OPERATIONAL_BETA mode activated",
     "secondary-replica eligibility made evidence-backed",
-    "product status evaluator and transparency docs added"
+    "product status evaluator and transparency docs added",
+    "CAPA_1_ITERACION_1: unificación del contrato Poll entre src/poll_ingest.py y src/poll_monitor.py",
+    "CAPA_1_ITERACION_1: hash canónico compartido para ingestión de encuestas",
+    "CAPA_1_ITERACION_1: prueba de no duplicación del contrato Poll"
   ],
-  "in_progress_tasks": [],
+  "in_progress_tasks": [
+    "CAPA_1: ingesta de encuestas — trazabilidad y normalización canónicas"
+  ],
   "blocked_tasks": [
     "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
     "PRIMARY_RECONCILIATION",
@@ -52,6 +57,9 @@
   ],
   "certificates": [],
   "next_actions": [
-    "Materialize official candidate-by-constituency 2023 dataset if available; otherwise create a documented adapter from the existing secondary dataset and run real coalition reports without inventing party totals."
+    "CAPA_1: añadir procedencia de captura (URL, timestamp, hash de contenido y calidad) al registro canónico sin duplicar modelos.",
+    "CAPA_1: ampliar extractores configurados y tests por fuente, manteniendo fail-closed.",
+    "CAPA_1: validar deduplicación de estudio frente a cambios de contenido y espejos.",
+    "Después de cerrar CAPA_1: conectar evidencia territorial y diseñar el contrato OOS antes de activar cualquier proyección."
   ]
 }
