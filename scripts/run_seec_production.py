@@ -20,6 +20,10 @@ def main():
     except Exception as exc:
         raise SystemExit(f"BLOCKED: PyMC production dependency unavailable: {exc}")
     df=pd.read_csv(args.input)
+    recent=Path("artifacts/data/cis_recent_2024_2026.csv")
+    if recent.is_file():
+        extra=pd.read_csv(recent)
+        df=pd.concat([df,extra],ignore_index=True)
     required={"study_id","study_date","party","cis_estimate_pct"}
     missing=required-set(df.columns)
     if missing: raise SystemExit(f"BLOCKED: missing columns: {sorted(missing)}")
@@ -28,7 +32,7 @@ def main():
     df=df[df["cis_estimate_pct"]>=0]
     studies=sorted(df["study_id"].astype(str).unique())
     parties=sorted(df["party"].astype(str).unique())
-    if len(studies)<4 or len(parties)<4: raise SystemExit("BLOCKED: insufficient compositional history")
+    if len(studies)<12 or len(parties)<12: raise SystemExit("BLOCKED: SEEC requires >=12 studies and >=12 parties")
     mat=np.zeros((len(studies),len(parties)))
     si={s:i for i,s in enumerate(studies)}; pi={p:i for i,p in enumerate(parties)}
     for r in df.itertuples(index=False): mat[si[str(r.study_id)],pi[str(r.party)]]+=float(r.cis_estimate_pct)
@@ -71,6 +75,7 @@ def main():
         "status":"PASS",
         "model":"hierarchical_compositional_temporal_dirichlet_logistic_normal",
         "input":args.input,
+        "supplemental_input":"artifacts/data/cis_recent_2024_2026.csv" if recent.is_file() else None,
         "studies":len(studies),
         "parties":len(parties),
         "chains":4,
