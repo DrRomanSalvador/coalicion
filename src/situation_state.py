@@ -39,6 +39,13 @@ def _read(path: Path) -> dict[str, Any]:
     return value
 
 
+def _display_path(path: Path) -> str:
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
 def _hash(value: Any) -> str:
     raw = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
     return sha256(raw.encode("utf-8")).hexdigest()
@@ -199,8 +206,8 @@ def build_situation_state(*, as_of: datetime | None = None) -> dict[str, Any]:
         },
         "source_health": source_status,
         "evidence": {
-            "observations_path": str(OBSERVATIONS.relative_to(ROOT)),
-            "source_coverage_path": str(SOURCE_COVERAGE.relative_to(ROOT)),
+            "observations_path": _display_path(OBSERVATIONS),
+            "source_coverage_path": _display_path(SOURCE_COVERAGE),
             "input_hash": _hash(inputs),
         },
         "policy": {
