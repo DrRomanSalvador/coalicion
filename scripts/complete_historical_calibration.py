@@ -38,7 +38,12 @@ def _fold_predictions(training, holdout, name):
     from src.oos_pipeline import _bias_observations, _predict_bias
     from src.context_corrections import predict as predict_context, select
     train_bias = _bias_observations(training)
-    selected_bias = _score_holdout(training, holdout)["selected_bias_correction"]
+    # With one prior election there is no internal OOS window to select a correction.
+    # Fail closed to BASE instead of manufacturing in-sample evidence.
+    if len(_election_order(training)) < 2:
+        selected_bias = "BASE"
+    else:
+        selected_bias = _score_holdout(training, holdout)["selected_bias_correction"]
     selected_context = select(training)
     out = []
     for row in holdout:
