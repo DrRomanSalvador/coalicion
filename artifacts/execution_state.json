@@ -29,15 +29,19 @@
     "CAPA_1_ITERACION_1: hash canónico compartido para ingestión de encuestas",
     "CAPA_1_ITERACION_1: prueba de no duplicación del contrato Poll",
     "completion gate automatizado en GitHub Actions",
-    "ejecución automática programada del gate cada 30 minutos y en cada push a main"
+    "ejecución automática programada del gate cada 30 minutos y en cada push a main",
+    "CAPA_1: hash semántico independiente de captura",
+    "CAPA_1: cambios de contenido de fuente separados de cambios de encuesta",
+    "RECONOCIMIENTO: matriz 2023 ya materializada en artifacts/data/election_2023_canonical.json",
+    "RECONOCIMIENTO: paquete histórico Interior recibido; materialización actual detectada como truncada a 10.700/50.700 filas"
   ],
   "in_progress_tasks": [
-    "CAPA_1: ingesta de encuestas — trazabilidad y normalización canónicas"
+    "CAPA_1: ingesta de encuestas — trazabilidad y normalización canónicas",
+    "RECUPERACIÓN: restaurar las 40.000 filas históricas faltantes del paquete Interior"
   ],
   "blocked_tasks": [
     "PRIMARY_BINARY_NOT_REPOSITORY_PINNED",
     "PRIMARY_RECONCILIATION",
-    "OFFICIAL_2023_CANDIDACY_MATRIX",
     "COALITION_REAL_CASE_CERTIFICATION",
     "OOS_CALIBRATION",
     "EXTERNAL_AUDIT"
@@ -59,10 +63,9 @@
   ],
   "certificates": [],
   "next_actions": [
-    "CAPA_1: corregir identidad semántica del hash para que la hora de captura no produzca falsos cambios.",
-    "CAPA_1: registrar cambios de contenido de fuente separadamente de cambios reales de encuesta.",
-    "CAPA_1: completar calidad y procedencia del registro canónico.",
-    "CAPA_1: validar deduplicación de estudio frente a cambios de contenido y espejos.",
-    "Después de cerrar CAPA_1: conectar evidencia territorial y diseñar el contrato OOS antes de activar cualquier proyección."
+    "RECUPERAR: restaurar el paquete Interior original de 50.700 filas; no volver a tratarlo como fuente ausente.",
+    "OOS: materializar el dataset histórico de encuestas/observaciones preelectorales y ejecutar expanding-window 2004–2023 sin fuga.",
+    "CASO REAL: ejecutar certificación reproducible una vez restaurada la matriz histórica completa.",
+    "EXTERNAL_AUDIT: pendiente de auditoría externa independiente."
   ]
 }
