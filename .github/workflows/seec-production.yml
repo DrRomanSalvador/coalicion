@@ -1,8 +1,7 @@
 name: SEEC production posterior
+# Manual fallback only. The canonical push-triggered production sampler is
+# seec-production-real.yml; full_reproducible_suite.yml also runs SEEC in CI.
 on:
-  push:
-    branches: [main]
-    paths: ["scripts/run_seec_production.py","artifacts/data/cis_historical_2004_2023.csv",".github/workflows/seec-production.yml"]
   workflow_dispatch:
 permissions: {contents: write}
 jobs:
