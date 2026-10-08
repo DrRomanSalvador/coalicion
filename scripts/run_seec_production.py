@@ -89,6 +89,10 @@ def main():
     if abs(sum(survey.values()) - 100.0) > 1e-9:
         raise RuntimeError("canonical CIS study 3411 does not sum to 100")
     parties = tuple(survey)
+    field_dates = {r.study_date for r in cis_rows}
+    if len(field_dates) != 1:
+        raise RuntimeError("canonical CIS study has inconsistent study dates")
+    field_date = next(iter(field_dates))
     if not RESULTS.is_file():
         raise RuntimeError("primary historical results are not materialized")
     provinces, historical = load_historical(parties)
@@ -96,7 +100,7 @@ def main():
     for party, share in survey.items():
         surveys.append(SurveyRow(
             poll_id="CIS-3411-2023",
-            field_date="2023-06-27",
+            field_date=field_date,
             house="CIS",
             party=party,
             estimate=share/100.0,
