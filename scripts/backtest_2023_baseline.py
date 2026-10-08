@@ -90,8 +90,13 @@ train_p, train_valid, train_blank, _ = election_matrix_by_date("2019-11-10")
 target_p, target_valid, target_blank, _ = election_matrix_by_date("2023-07-23")
 
 seat_provs=set(seats["prov"])
-if set(target_p["prov"]) != seat_provs:
-    raise SystemExit("2023 constituency scope mismatch")
+target_provs=set(target_p["prov"])
+if target_provs != seat_provs:
+    raise SystemExit(
+        "2023 constituency scope mismatch: "
+        f"missing_from_results={sorted(seat_provs-target_provs)} "
+        f"extra_in_results={sorted(target_provs-seat_provs)}"
+    )
 
 train_maps={p:dict(zip(g["party"],g["votos"])) for p,g in train_p.groupby("prov")}
 target_maps={p:dict(zip(g["party"],g["votos"])) for p,g in target_p.groupby("prov")}
