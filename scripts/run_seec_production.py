@@ -18,6 +18,7 @@ import pymc as pm
 import arviz as az
 
 from src.seec_bayesian import SurveyRow, ProvinceObservation, build_model
+from src.cis_history import load as load_cis
 
 
 RESULTS = Path("data/resultados_oficiales_2004_2023.csv")
