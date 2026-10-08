@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       failed_run_id:
-        description: "GitHub Actions run ID to retry failed jobs for"
+        description: "GitHub Actions run ID or failed job ID to retry"
         required: true
         type: string
 
@@ -33,5 +33,12 @@ jobs:
             echo "Invalid failed_run_id: $FAILED_RUN_ID"
             exit 1
           }
-          gh api --method POST "repos/$REPOSITORY/actions/runs/$FAILED_RUN_ID/rerun-failed-jobs"
-          echo "Failed jobs requeued for run $FAILED_RUN_ID."
+          RUN_ID="$FAILED_RUN_ID"
+          if ! gh run view "$RUN_ID" --repo "$REPOSITORY" >/tmp/run.json 2>/tmp/run.err; then
+            echo "Input is not a workflow-run ID; resolving it as a job ID."
+            RUN_ID="$(gh api "repos/$REPOSITORY/actions/jobs/$FAILED_RUN_ID" --jq '.run_id')"
+          fi
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]] || { echo "Unable to resolve workflow run ID"; exit 1; }
+          echo "Resolved workflow run: $RUN_ID"
+          gh run rerun "$RUN_ID" --failed --repo "$REPOSITORY"
+          echo "Failed jobs requeued for run $RUN_ID."
