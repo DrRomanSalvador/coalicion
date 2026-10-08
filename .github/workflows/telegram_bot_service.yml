@@ -8,6 +8,12 @@ on:
     branches: [main]
     paths:
       - "src/telegram_bot.py"
+      - "src/telegram_timezone.py"
+      - "src/telegram_persistence.py"
+      - "scripts/verify_telegram_integration.py"
+      - "tests/test_telegram_bot.py"
+      - "tests/test_telegram_integration.py"
+      - "tests/test_telegram_source_status.py"
       - "requirements.txt"
       - ".github/workflows/telegram_bot_service.yml"
 
