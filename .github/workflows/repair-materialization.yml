@@ -1,0 +1,55 @@
+name: Repair canonical historical materialization
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/repair-materialization.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repair-canonical-materialization
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rebuild exact canonical CSV from official parts
+        run: |
+          set -euo pipefail
+          python scripts/materialize_official_history_from_parts.py
+
+      - name: Verify canonical materialization
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          p=Path("data/resultados_oficiales_2004_2023.csv")
+          assert p.exists() and p.stat().st_size == 7721910
+          assert hashlib.sha256(p.read_bytes()).hexdigest() == "fe438253477b0b5d6976161baf1ea17879e8ad8e25691e0320752fdd642409fe"
+          print("PASS: canonical historical CSV fingerprint verified")
+          PY
+
+      - name: Commit repaired materialization
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/resultados_oficiales_2004_2023.csv data/manifests/INTERIOR_ACQUISITION.json
+          if git diff --cached --quiet; then
+            echo "Canonical materialization already exact."
+            exit 0
+          fi
+          git commit -m "fix(data): restore exact canonical historical materialization"
+          git push origin HEAD:main
