@@ -29,8 +29,12 @@ def load_state(root: Path = Path(".")):
         raise RuntimeError("METHOD_MISMATCH")
     if state.get("canonical_rng") != CANONICAL_RNG or state.get("canonical_seed") != CANONICAL_SEED:
         raise RuntimeError("SEED_MISMATCH")
-    if state.get("colmena_mode") == COLMENA_MODE:
-        pass
+    if state.get("colmena_mode") != COLMENA_MODE:
+        raise RuntimeError("COLMENA_MODE_MISMATCH")
+    if state.get("execution_gate") != "NO_NEW_WORKFLOW_ACTIVATION":
+        raise RuntimeError("EXECUTION_GATE_MISMATCH")
+    if state.get("final_test_gate") != "BLOCKED_UNTIL_179_MISSIONS_RESOLVED":
+        raise RuntimeError("FINAL_TEST_GATE_MISMATCH")
     action = state.get("next_single_action")
     if not isinstance(action, str) or not action.strip():
         raise RuntimeError("MULTIPLE_NEXT_ACTIONS")
@@ -56,7 +60,10 @@ def resume(root: Path = Path(".")):
         "last_action_result": state.get("last_action_result"),
         "open_blockers": [e["id"] for e in blockers],
         "next_single_action": state["next_single_action"],
-        "contract_status": contract["status"]
+        "contract_status": contract["status"],
+        "colmena_mode": state["colmena_mode"],
+        "execution_gate": state["execution_gate"],
+        "final_test_gate": state["final_test_gate"]
     }
 
 if __name__ == "__main__":
