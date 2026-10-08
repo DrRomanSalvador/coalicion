@@ -132,16 +132,22 @@ def supervise(approval, ref, workers_dir, state_path):
     workers = Path(workers_dir)
     workers.mkdir(parents=True, exist_ok=True)
     state_file = Path(state_path)
+    state_file.parent.mkdir(parents=True, exist_ok=True)
     state = {
-        "schema": "COLMENA_QUEEN_STATE_V2",
+        "schema": "COLMENA_QUEEN_STATE_V3",
         "status": "RUNNING",
+        "repository": "DrRomanSalvador/coalicion",
+        "branch": "main",
         "ref": ref,
+        "plan_sha256": d.get("plan_sha256"),
         "mission_count": 179,
         "completed": 0,
         "failed": 0,
         "blocked": 0,
+        "batches_total": (179 + BATCH_SIZE - 1) // BATCH_SIZE,
         "batches_completed": 0,
         "updated_at": datetime.now(timezone.utc).isoformat(),
+        "recoverable": True,
     }
 
     for start in range(0, len(missions), BATCH_SIZE):
@@ -149,30 +155,38 @@ def supervise(approval, ref, workers_dir, state_path):
         batch_failed = False
         for m in batch:
             out = workers / f"worker_{m['index']:04d}.json"
+            evidence = None
             if out.exists():
                 try:
                     existing = json.loads(out.read_text(encoding="utf-8"))
-                    if existing.get("mission_id") == m["id"] and existing.get("ref") == ref:
-                        state["completed"] += 1
-                        if existing.get("status") != "PASS":
-                            state["failed"] += 1
-                            batch_failed = True
-                        continue
+                    if (
+                        existing.get("mission_id") == m["id"]
+                        and existing.get("ref") == ref
+                        and existing.get("queen_approval") == m["approval"]
+                        and existing.get("agent_id") == m["agent_id"]
+                    ):
+                        evidence = existing
                 except Exception:
-                    pass
-            p = subprocess.run([
-                sys.executable, "scripts/colmena_worker.py",
-                "--mission-id", m["id"],
-                "--approval", approval,
-                "--ref", ref,
-                "--out", str(out),
-            ], cwd=ROOT)
-            state["completed"] += 1
-            if p.returncode:
-                state["failed"] += 1
+                    evidence = None
+            if evidence is None:
+                p = subprocess.run([
+                    sys.executable, "scripts/colmena_worker.py",
+                    "--mission-id", m["id"], "--approval", approval,
+                    "--ref", ref, "--out", str(out),
+                ], cwd=ROOT)
+                try:
+                    evidence = json.loads(out.read_text(encoding="utf-8"))
+                except Exception:
+                    evidence = {"status": "BLOCKED"}
+                if p.returncode != 0:
+                    batch_failed = True
+
+            state["completed"] += int(evidence.get("status") == "PASS")
+            state["failed"] += int(evidence.get("status") == "FAIL")
+            state["blocked"] += int(evidence.get("status") not in {"PASS", "FAIL"})
+            if evidence.get("status") != "PASS":
                 batch_failed = True
-                state["status"] = "DEGRADED"
-                break
+
         state["batches_completed"] += 1
         state["updated_at"] = datetime.now(timezone.utc).isoformat()
         state_file.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
