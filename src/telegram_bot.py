@@ -788,6 +788,10 @@ def _send_document(chat_id: int, data: bytes, filename: str, content_type: str) 
 
 
 
+def _export_text(chat_id: int, kind: str) -> None:
+    data, filename, content_type = _export_payload(kind)
+    _send_document(chat_id, data, filename, content_type)
+
 def _comparison_text(period: str = "5") -> str:
     polls = _latest_polls()
     if len(polls) < 2:
