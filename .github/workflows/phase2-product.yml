@@ -10,16 +10,20 @@ on:
       - "src/alerts/**"
       - "src/recovery/**"
       - "src/reproducibility/**"
+      - "src/reproducibility/**"
       - "src/telegram_bot.py"
       - "tests/test_*phase2*.py"
       - "tests/test_territorial_prediction_2026.py"
       - "data/surveys/current_2026/**"
       - "scripts/materialize_phase2_demo.py"
       - "scripts/verify_phase2_priority1.py"
-      - "tests/test_phase2_priority1.py tests/test_phase2_priority2.py tests/test_alerts.py tests/test_recovery.py"
+      - "tests/test_phase2_priority1.py tests/test_phase2_priority2.py tests/test_alerts.py tests/test_recovery.py tests/test_reproducibility_product.py"
       - "tests/test_phase2_priority2.py"
       - "tests/test_alerts.py"
       - "tests/test_recovery.py"
+      - "tests/test_reproducibility_product.py"
+      - "scripts/materialize_reproducibility_checkpoint.py"
+      - "artifacts/phase2_reproducibility_status.json"
       - "scripts/materialize_priority2_checkpoint.py"
       - "artifacts/phase2_priority2_status.json"
       - "artifacts/phase2_priority1_status.json"
@@ -43,6 +47,8 @@ jobs:
         run: python scripts/materialize_phase2_demo.py
       - name: Materialize Priority 2 gate
         run: python scripts/materialize_priority2_checkpoint.py
+      - name: Materialize reproducibility evidence
+        run: python scripts/materialize_reproducibility_checkpoint.py
       - name: Verify Phase 2
         run: |
           python -m pytest -q tests/test_trailability.py tests/test_full_pipeline.py tests/test_reproducibility_phase2.py tests/test_territorial_prediction_2026.py tests/test_phase2_priority1.py
@@ -59,3 +65,4 @@ jobs:
             artifacts/phase2_priority1_status.json
             artifacts/phase2_priority2_status.json
             artifacts/phase2_priority4_status.json
+            artifacts/phase2_reproducibility_status.json
