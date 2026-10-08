@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>COALICIÓN · Panel</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem}
+.card{border:1px solid #ddd;border-radius:12px;padding:1rem;margin:.75rem 0}
+pre{white-space:pre-wrap;overflow:auto}button,input{padding:.6rem;margin:.25rem}
+.badge{font-weight:700}
+</style>
+</head>
+<body>
+<h1>COALICIÓN</h1>
+<p>Panel neutral de evidencia electoral. No convierte porcentajes nacionales en escaños sin entrada territorial explícita.</p>
+<div class="card">
+<label>API base <input id="base" value="/api" size="35"></label>
+<label>API key <input id="key" type="password" size="30"></label>
+<button onclick="loadAll()">Actualizar</button>
+</div>
+<div id="cards"></div>
+<script>
+async function get(path){
+ const base=document.getElementById('base').value.replace(/\/$/,'');
+ const key=document.getElementById('key').value;
+ const r=await fetch(base+path,{headers:{'X-API-Key':key}});
+ return {status:r.status,data:await r.json()};
+}
+async function loadAll(){
+ const root=document.getElementById('cards'); root.innerHTML='';
+ for(const [path,title] of [['/estado','Estado'],['/encuestas','Encuestas'],['/territorio','Territorio 2023'],['/evidencia','Evidencia'],['/prediccion','Predicción']]){
+  const x=await get(path);
+  const div=document.createElement('div'); div.className='card';
+  div.innerHTML='<h2>'+title+' · HTTP '+x.status+'</h2><pre></pre>';
+  div.querySelector('pre').textContent=JSON.stringify(x.data,null,2);
+  root.appendChild(div);
+ }
+}
+</script>
+</body>
+</html>
