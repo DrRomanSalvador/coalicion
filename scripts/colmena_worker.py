@@ -94,7 +94,13 @@ def main():
     agent_id = m.get("agent_id")
     if agent_id != "agent-" + m["id"]:
         raise SystemExit("FAIL_CLOSED: invalid agent identity")
-    runtime = {"provider": os.environ.get("COLMENA_AGENT_PROVIDER", "github-actions-worker"), "execution_id": os.environ.get("COLMENA_AGENT_EXECUTION_ID", agent_id + ":" + a.ref), "independent": True}
+    provider = os.environ.get("COLMENA_AGENT_PROVIDER", "").strip()
+    execution_id = os.environ.get("COLMENA_AGENT_EXECUTION_ID", "").strip()
+    ai_execution = os.environ.get("COLMENA_AI_AGENT_EXECUTION", "").strip().lower() == "true"
+    runtime = {"provider": provider, "execution_id": execution_id, "independent": bool(provider and execution_id), "ai_execution": ai_execution}
+    if not runtime["independent"] or not ai_execution:
+        evidence = {"schema":"COLMENA_WORKER_EVIDENCE_V3","mission_id":m["id"],"title":m["title"],"agent_id":agent_id,"agent_runtime":runtime,"status":"BLOCKED","adapter":"AI_AGENT_RUNTIME_REQUIRED","command":None,"ref":ref,"queen_approval":m["approval"],"started_at":datetime.now(timezone.utc).isoformat(),"finished_at":datetime.now(timezone.utc).isoformat(),"source_write":False,"returncode":2,"stdout":"","stderr":"FAIL_CLOSED: real independent AI-agent runtime evidence required"}
+        return evidence
     evidence = run(m, a.ref, agent_id, runtime)
     o = Path(a.out); o.parent.mkdir(parents=True, exist_ok=True)
     o.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
