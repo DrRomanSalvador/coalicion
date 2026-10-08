@@ -35,3 +35,17 @@ def test_all_constituencies_are_analyzed():
         })],
     )
     assert len(result["decisive_constituencies"]) == 2
+
+def test_engine_requires_explicit_blank_votes():
+    with pytest.raises(ValueError, match="votos en blanco"):
+        CoalitionDecisionEngine({"A": 3})
+
+
+def test_engine_requires_legal_ceuta_rule():
+    with pytest.raises(ValueError, match="Ceuta"):
+        CoalitionDecisionEngine({"Ceuta": 1}, {"Ceuta": 0})
+
+
+def test_engine_rejects_blank_votes_with_missing_constituency():
+    with pytest.raises(ValueError, match="exactamente"):
+        CoalitionDecisionEngine({"A": 3, "B": 3}, {"A": 0})

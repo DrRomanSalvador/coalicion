@@ -75,13 +75,25 @@ class CoalitionDecisionEngine:
     def __init__(self, seats_by_constituency, blank_votes_by_constituency=None,
                  special_by_constituency=None):
         self.seats = dict(seats_by_constituency)
-        self.blank = dict(blank_votes_by_constituency or {})
+        if blank_votes_by_constituency is None:
+            raise ValueError("BLOCKED: votos en blanco explícitos requeridos")
+        self.blank = dict(blank_votes_by_constituency)
         self.special = dict(special_by_constituency or {})
         if not self.seats or any(
             isinstance(n, bool) or not isinstance(n, int) or n < 1
             for n in self.seats.values()
         ):
             raise ValueError("Magnitud electoral inválida")
+        if set(self.blank) != set(self.seats):
+            raise ValueError("BLOCKED: votos en blanco deben cubrir exactamente todas las circunscripciones")
+        if set(self.special) - set(self.seats):
+            raise ValueError("BLOCKED: regla especial para circunscripción inexistente")
+        for special in ("Ceuta", "Melilla"):
+            if special in self.seats and self.special.get(special) != special:
+                raise ValueError(f"BLOCKED: falta la regla legal de {special}")
+        for constituency, special in self.special.items():
+            if special not in {"Ceuta", "Melilla"} or constituency != special:
+                raise ValueError(f"BLOCKED: regla especial inválida para {constituency}")
 
     @staticmethod
     def generate_all_coalitions(parties: Sequence[str], min_size=2,
@@ -101,14 +113,14 @@ class CoalitionDecisionEngine:
         for c, row in scenario.votes.items():
             if any(isinstance(v, bool) or not isinstance(v, int) or v < 0 for v in row.values()):
                 raise ValueError(f"{scenario.name}/{c}: votos inválidos")
-            blank = self.blank.get(c, 0)
+            blank = self.blank[c]
             if isinstance(blank, bool) or not isinstance(blank, int) or blank < 0:
                 raise ValueError(f"{scenario.name}/{c}: votos blancos inválidos")
             if sum(row.values()) + blank <= 0:
                 raise ValueError(f"{scenario.name}/{c}: votos válidos inválidos")
 
     def _allocate(self, row, c):
-        blank = self.blank.get(c, 0)
+        blank = self.blank[c]
         valid = sum(row.values()) + blank
         result = allocate(row, self.seats[c], valid, self.special.get(c, ""), blank)
         if result.status != "OK":
@@ -135,7 +147,7 @@ class CoalitionDecisionEngine:
     def _threshold_waste(self, scenario, parties, merged):
         total = 0
         for c, row in scenario.votes.items():
-            valid = sum(row.values()) + self.blank.get(c, 0)
+            valid = sum(row.values()) + self.blank[c]
             votes = sum(row[p] for p in parties)
             if merged:
                 total += votes if votes * 100 < valid * 3 else 0

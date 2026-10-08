@@ -239,8 +239,20 @@ def shock_scenario(
     )
     validate_scenario(scenario)
     before, after = {}, {}
-    blank = blank_votes_by_constituency or {}
-    special = special_by_constituency or {}
+    if set(input_votes) != set(seats_by_constituency):
+        raise ValueError("BLOCKED: votos y magnitudes deben cubrir las mismas circunscripciones")
+    if blank_votes_by_constituency is None or set(blank_votes_by_constituency) != set(input_votes):
+        raise ValueError("BLOCKED: votos en blanco explícitos requeridos para cada circunscripción")
+    blank = dict(blank_votes_by_constituency)
+    special = dict(special_by_constituency or {})
+    if set(special) - set(input_votes):
+        raise ValueError("BLOCKED: regla especial para circunscripción inexistente")
+    for constituency, rule in special.items():
+        if rule not in {"Ceuta", "Melilla"} or constituency != rule:
+            raise ValueError(f"BLOCKED: regla especial inválida para {constituency}")
+    for constituency in ("Ceuta", "Melilla"):
+        if constituency in input_votes and special.get(constituency) != constituency:
+            raise ValueError(f"BLOCKED: falta la regla legal de {constituency}")
     shifted = apply_absolute_shift(input_votes, party, shift, distribution)
     for c, row in input_votes.items():
         a = allocate(row, seats_by_constituency[c],
