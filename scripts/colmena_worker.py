@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fail-closed executable atomic worker for the COALICION Queen."""
 from __future__ import annotations
-import argparse, hashlib, json, re, subprocess, sys, time, os
+import argparse, hashlib, json, re, subprocess, sys, time, os, urllib.request, urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -32,11 +32,11 @@ def command_for(title: str):
         return [sys.executable, "scripts/verify_historical_contracts.py"], "HISTORICAL_CONTRACTS"
     if "canonical" in t or "canónica" in t:
         return [sys.executable, "scripts/verify_canonical_2023.py"], "CANONICAL_2023"
-    if "validación histórica" in t or "histórica" in t and "validar" in t:
+    if "validación histórica" in t or ("histórica" in t and "validar" in t):
         return [sys.executable, "scripts/validate_historical_data.py"], "HISTORICAL_DATA"
     if "telegram" in t:
         return [sys.executable, "scripts/verify_telegram_integration.py"], "TELEGRAM"
-    if "estado certificación" in t or "estado" in t and "colmena" in t:
+    if "estado certificación" in t or ("estado" in t and "colmena" in t):
         return [sys.executable, "scripts/validate_colmena_state.py"], "STATE"
     if "audit" in t or "auditoría" in t:
         return [sys.executable, "scripts/audit_2023.py"], "AUDIT_2023"
@@ -63,45 +63,36 @@ def load_approval(path, mission_id, ref):
 
 def invoke_ai_agent(m, agent_id):
     model = os.environ.get("COLMENA_AGENT_MODEL", "onnx-community/SmolLM2-135M-Instruct-ONNX-MHA:q4f16").strip()
-    payload = {
-        "agent_id": agent_id,
-        "mission_id": m["id"],
-        "mission": m["title"],
-        "scope": m.get("scope", ""),
-    }
-    p = subprocess.run(
-        ["node", "scripts/colmena_local_ai.mjs"],
-        cwd=ROOT,
-        input=canon(payload),
-        text=True,
-        capture_output=True,
-        timeout=180,
-    )
-    if p.returncode != 0:
-        raise RuntimeError("LOCAL_AI_RUNTIME_ERROR: " + (p.stderr[-4000:] or p.stdout[-4000:]))
-    rows = [x for x in p.stdout.splitlines() if x.strip()]
-    if not rows:
-        raise RuntimeError("FAIL_CLOSED: empty local AI runtime response")
-    try:
+    payload = {"agent_id": agent_id, "mission_id": m["id"], "mission": m["title"], "scope": m.get("scope", "")}
+    server = os.environ.get("COLMENA_AI_SERVER_URL", "").strip()
+    if server:
+        req = urllib.request.Request(
+            server.rstrip("/") + "/infer",
+            data=canon(payload).encode(),
+            headers={"content-type":"application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=180) as resp:
+            data = json.loads(resp.read().decode())
+    else:
+        p = subprocess.run(["node", "scripts/colmena_local_ai.mjs"], cwd=ROOT, input=canon(payload), text=True, capture_output=True, timeout=180)
+        if p.returncode != 0:
+            raise RuntimeError("LOCAL_AI_RUNTIME_ERROR: " + (p.stderr[-4000:] or p.stdout[-4000:]))
+        rows = [x for x in p.stdout.splitlines() if x.strip()]
+        if not rows:
+            raise RuntimeError("FAIL_CLOSED: empty local AI runtime response")
         data = json.loads(rows[-1])
-    except json.JSONDecodeError as exc:
-        raise RuntimeError("FAIL_CLOSED: invalid local AI runtime JSON") from exc
     content = str(data.get("content", "")).strip()
     if not content:
         raise RuntimeError("FAIL_CLOSED: empty local AI runtime content")
-    return {
-        "backend": "transformers.js-local",
-        "model": model,
-        "response_sha256": sha(content),
-        "response_excerpt": content[:2000],
-    }
+    return {"backend":"transformers.js-local","model":model,"response_sha256":sha(content),"response_excerpt":content[:2000]}
+
 def run(m, ref, agent_id, runtime):
     started = datetime.now(timezone.utc).isoformat()
     command, adapter = command_for(m["title"])
     if m["write_authorized"] and not m["scope"]:
         status, rc, out, err = "FAIL_CLOSED", 1, "", "write authorization without scope"
     elif command is None and adapter == "AI_ANALYSIS":
-        # Explicit analytical execution; this does NOT claim repository verification.
         status, rc, out, err = "PASS", 0, "", "AI_ANALYSIS_EXECUTED"
     elif command is None:
         status, rc, out, err = "BLOCKED", 2, "", adapter
@@ -110,58 +101,39 @@ def run(m, ref, agent_id, runtime):
         rc, out, err = p.returncode, p.stdout[-12000:], p.stderr[-12000:]
         status = "PASS" if rc == 0 else "FAIL"
     return {
-        "schema": "COLMENA_WORKER_EVIDENCE_V3",
-        "agent_id": agent_id,
-        "agent_runtime": runtime,
-        "mission_id": m["id"], "title": m["title"], "kind": m["kind"],
-        "status": status, "adapter": adapter, "command": command,
-        "ref": ref, "queen_approval": m["approval"],
-        "started_at": started, "finished_at": datetime.now(timezone.utc).isoformat(),
-        "source_write": False, "returncode": rc, "stdout": out, "stderr": err,
+        "schema":"COLMENA_WORKER_EVIDENCE_V4","agent_id":agent_id,"agent_runtime":runtime,
+        "mission_id":m["id"],"title":m["title"],"kind":m["kind"],"status":status,"adapter":adapter,
+        "command":command,"ref":ref,"queen_approval":m["approval"],
+        "started_at":started,"finished_at":datetime.now(timezone.utc).isoformat(),
+        "source_write":False,"returncode":rc,"stdout":out,"stderr":err,
     }
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--mission-id", required=True)
-    ap.add_argument("--approval", required=True)
-    ap.add_argument("--ref", required=True)
-    ap.add_argument("--out", required=True)
-    a = ap.parse_args()
-    _, m = load_approval(Path(a.approval), a.mission_id, a.ref)
-    agent_id = m.get("agent_id")
-    if agent_id != "agent-" + m["id"]:
+    ap=argparse.ArgumentParser()
+    ap.add_argument("--mission-id",required=True); ap.add_argument("--approval",required=True)
+    ap.add_argument("--ref",required=True); ap.add_argument("--out",required=True)
+    a=ap.parse_args()
+    _,m=load_approval(Path(a.approval),a.mission_id,a.ref)
+    agent_id=m.get("agent_id")
+    if agent_id!="agent-"+m["id"]:
         raise SystemExit("FAIL_CLOSED: invalid agent identity")
-    provider = os.environ.get("COLMENA_AGENT_PROVIDER", "").strip()
-    execution_id = os.environ.get("COLMENA_AGENT_EXECUTION_ID", "").strip()
-    ai_execution = os.environ.get("COLMENA_AI_AGENT_EXECUTION", "").strip().lower() == "true"
-    runtime = {"provider": provider, "execution_id": execution_id, "independent": bool(provider and execution_id), "ai_execution": ai_execution, "model": os.environ.get("COLMENA_AGENT_MODEL", "")}
+    provider=os.environ.get("COLMENA_AGENT_PROVIDER","").strip()
+    execution_id=os.environ.get("COLMENA_AGENT_EXECUTION_ID","").strip()
+    ai_execution=os.environ.get("COLMENA_AI_AGENT_EXECUTION","").strip().lower()=="true"
+    runtime={"provider":provider,"execution_id":execution_id,"independent":bool(provider and execution_id),"ai_execution":ai_execution,"model":os.environ.get("COLMENA_AGENT_MODEL",""),"server_mode":bool(os.environ.get("COLMENA_AI_SERVER_URL","").strip())}
     if not runtime["independent"] or not ai_execution:
-        evidence = {"schema":"COLMENA_WORKER_EVIDENCE_V3","mission_id":m["id"],"title":m["title"],"agent_id":agent_id,"agent_runtime":runtime,"status":"BLOCKED","adapter":"AI_AGENT_RUNTIME_REQUIRED","command":None,"ref":ref,"queen_approval":m["approval"],"started_at":datetime.now(timezone.utc).isoformat(),"finished_at":datetime.now(timezone.utc).isoformat(),"source_write":False,"returncode":2,"stdout":"","stderr":"FAIL_CLOSED: real independent AI-agent runtime evidence required"}
+        evidence={"schema":"COLMENA_WORKER_EVIDENCE_V4","mission_id":m["id"],"title":m["title"],"agent_id":agent_id,"agent_runtime":runtime,"status":"BLOCKED","adapter":"AI_AGENT_RUNTIME_REQUIRED","command":None,"ref":a.ref,"queen_approval":m["approval"],"started_at":datetime.now(timezone.utc).isoformat(),"finished_at":datetime.now(timezone.utc).isoformat(),"source_write":False,"returncode":2,"stdout":"","stderr":"FAIL_CLOSED: real independent AI-agent runtime evidence required"}
     else:
         try:
-            ai = invoke_ai_agent(m, agent_id)
-            evidence = run(m, a.ref, agent_id, runtime)
-            evidence["ai_inference"] = ai
-            evidence["runtime_status"] = "PASS"
-            evidence["mission_status"] = (
-                "ANALYSIS_COMPLETE" if evidence.get("adapter") == "AI_ANALYSIS"
-                else evidence.get("status")
-            )
-            evidence["mission_claim"] = (
-                "agent_analysis_only" if evidence.get("adapter") == "AI_ANALYSIS"
-                else "deterministic_command_execution"
-            )
+            ai=invoke_ai_agent(m,agent_id)
+            evidence=run(m,a.ref,agent_id,runtime)
+            evidence["ai_inference"]=ai; evidence["runtime_status"]="PASS"
+            evidence["mission_status"]="ANALYSIS_COMPLETE" if evidence.get("adapter")=="AI_ANALYSIS" else evidence.get("status")
+            evidence["mission_claim"]="agent_analysis_only" if evidence.get("adapter")=="AI_ANALYSIS" else "deterministic_command_execution"
         except Exception as exc:
-            evidence = {"schema":"COLMENA_WORKER_EVIDENCE_V3","mission_id":m["id"],"title":m["title"],"agent_id":agent_id,"agent_runtime":runtime,"status":"BLOCKED","adapter":"AI_AGENT_RUNTIME_ERROR","command":None,"ref":a.ref,"queen_approval":m["approval"],"started_at":datetime.now(timezone.utc).isoformat(),"finished_at":datetime.now(timezone.utc).isoformat(),"source_write":False,"returncode":2,"stdout":"","stderr":str(exc)}
-    o = Path(a.out); o.parent.mkdir(parents=True, exist_ok=True)
-    o.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"mission_id": m["id"], "status": evidence["status"], "adapter": evidence["adapter"]}))
-    if evidence["status"] != "PASS":
-        if evidence.get("stdout"):
-            print(evidence["stdout"])
-        if evidence.get("stderr"):
-            print(evidence["stderr"], file=sys.stderr)
-    return 0 if evidence["status"] == "PASS" else 1
+            evidence={"schema":"COLMENA_WORKER_EVIDENCE_V4","mission_id":m["id"],"title":m["title"],"agent_id":agent_id,"agent_runtime":runtime,"status":"BLOCKED","adapter":"AI_AGENT_RUNTIME_ERROR","command":None,"ref":a.ref,"queen_approval":m["approval"],"started_at":datetime.now(timezone.utc).isoformat(),"finished_at":datetime.now(timezone.utc).isoformat(),"source_write":False,"returncode":2,"stdout":"","stderr":str(exc)}
+    o=Path(a.out); o.parent.mkdir(parents=True,exist_ok=True); o.write_text(json.dumps(evidence,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    print(json.dumps({"mission_id":m["id"],"status":evidence["status"],"adapter":evidence["adapter"]}))
+    return 0 if evidence["status"]=="PASS" else 1
 
-if __name__ == "__main__":
-    raise SystemExit(main())
+if __name__=="__main__": raise SystemExit(main())
