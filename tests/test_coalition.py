@@ -20,7 +20,7 @@ def test_affected_constituencies_are_exposed():
         ("P2","P3"),
     )
     assert r["decisive_constituencies"]
-    assert r["coalition"]=="P2+P3"
+    assert r["coalition"]==["P2","P3"]
 
 
 from src.coalition import CoalitionDecisionEngine, CoalitionScenario
