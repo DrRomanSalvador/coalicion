@@ -14,6 +14,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: colmena-execution-main
+  cancel-in-progress: true
+
 jobs:
   queen:
     name: Queen Gate
