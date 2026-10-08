@@ -55,6 +55,23 @@ def party_label(label: str) -> str:
     parts = str(label).split(" - ", 1)
     return parts[1].strip() if len(parts) == 2 else str(label).strip()
 
+def party_family(label: str) -> str:
+    """Stable national/coalition family used only for historical seat calibration."""
+    s = re.sub(r"[^A-Z0-9ÁÉÍÓÚÜÑ ]+", " ", str(label).upper()).strip()
+    if "PSOE" in s or s == "PSC" or "PSC " in s:
+        return "PSOE"
+    if s == "PP" or s.startswith("PP "):
+        return "PP"
+    if "VOX" in s:
+        return "VOX"
+    if any(token in s for token in (
+        "SUMAR", "PODEMOS", "UNIDAS PODEMOS", "IZQUIERDA UNIDA",
+        "IU ", "IU", "MÁS PAÍS", "MAS PAIS", "COMPROMÍS", "COMPROMIS",
+        "EN COMÚ", "EN COMU", "COMUNS", "ECP",
+    )):
+        return "SUMAR"
+    return str(label).strip()
+
 if not OFFICIAL.is_file():
     raise SystemExit(f"Missing canonical official results: {OFFICIAL}")
 if not SEATS.is_file():
@@ -254,6 +271,8 @@ historical_dates = sorted(
 )
 historical_residuals = []
 historical_new_party_residuals = []
+historical_family_residuals = []
+historical_new_family_residuals = []
 historical_pair_count = 0
 
 for previous_date, current_date in zip(historical_dates, historical_dates[1:]):
@@ -271,6 +290,22 @@ for previous_date, current_date in zip(historical_dates, historical_dates[1:]):
         historical_residuals.append(residual)
         if pv == 0 and av > 0:
             historical_new_party_residuals.append(residual)
+
+    predicted_family = {}
+    actual_family = {}
+    for party, seats_n in predicted.items():
+        family = party_family(party)
+        predicted_family[family] = predicted_family.get(family, 0) + int(seats_n)
+    for party, seats_n in actual.items():
+        family = party_family(party)
+        actual_family[family] = actual_family.get(family, 0) + int(seats_n)
+    for family in set(predicted_family) | set(actual_family):
+        pv = int(predicted_family.get(family, 0))
+        av = int(actual_family.get(family, 0))
+        residual = abs(av - pv)
+        historical_family_residuals.append(residual)
+        if pv == 0 and av > 0:
+            historical_new_family_residuals.append(residual)
 
 if historical_pair_count < 2 or len(historical_residuals) < 20:
     raise RuntimeError(
@@ -292,6 +327,14 @@ Q90_NEW_PARTY_SEATS = (
     conformal_quantile(historical_new_party_residuals, 0.90)
     if historical_new_party_residuals
     else Q90_SEATS
+)
+if len(historical_family_residuals) < 20:
+    raise RuntimeError("insufficient family-level seat residuals for calibration")
+Q90_FAMILY_SEATS = conformal_quantile(historical_family_residuals, 0.90)
+Q90_NEW_FAMILY_SEATS = (
+    conformal_quantile(historical_new_family_residuals, 0.90)
+    if historical_new_family_residuals
+    else Q90_FAMILY_SEATS
 )
 
 # Persistence point prediction for 2023. The conformal interval is calibrated
@@ -316,23 +359,32 @@ for prov, votes in train_maps.items():
     for party, seats_n in alloc.seats.items():
         point_pred_2023[party] = point_pred_2023.get(party, 0) + int(seats_n)
 
+actual_family_seats = {}
+predicted_family_seats = {}
+for party, seats_n in actual_seats.items():
+    family = party_family(party)
+    actual_family_seats[family] = actual_family_seats.get(family, 0) + int(seats_n)
+for party, seats_n in point_pred_2023.items():
+    family = party_family(party)
+    predicted_family_seats[family] = predicted_family_seats.get(family, 0) + int(seats_n)
+
 intervals={}
-winners=[p for p,s in actual_seats.items() if s>0]
+winners=[p for p,s in actual_family_seats.items() if s>0]
 covered=0
-for p in winners:
-    predicted = int(point_pred_2023.get(p, 0))
-    q = Q90_NEW_PARTY_SEATS if predicted == 0 else Q90_SEATS
+for family in winners:
+    predicted = int(predicted_family_seats.get(family, 0))
+    q = Q90_NEW_FAMILY_SEATS if predicted == 0 else Q90_FAMILY_SEATS
     lo = max(0.0, predicted - q)
     hi = min(350.0, predicted + q)
-    intervals[p]={
-        "actual": int(actual_seats[p]),
+    intervals[family]={
+        "actual": int(actual_family_seats[family]),
         "p10": float(lo),
         "p50": float(predicted),
         "p90": float(hi),
-        "interval_method": "split_conformal_absolute_seat_residual",
+        "interval_method": "split_conformal_absolute_family_seat_residual",
         "calibration_q90": float(q),
     }
-    covered += int(lo <= actual_seats[p] <= hi)
+    covered += int(lo <= actual_family_seats[family] <= hi)
 
 coverage=covered/len(winners) if winners else float("nan")
 
@@ -358,10 +410,16 @@ result={
        np.percentile(sim_seats[p],[90])[0] for p in winners
    ])) if winners else float("nan"),
    "coverage_actual_seats_in_calibrated_p10_p90_winners":coverage,
+   "coverage_unit":"NATIONAL_PARTY_FAMILY",
+   "n_2023_seat_winning_families":len(winners),
    "n_2023_seat_winning_parties":len(winners),
    "historical_conformal_pairs":historical_pair_count,
    "historical_conformal_residuals":len(historical_residuals),
    "historical_new_party_residuals":len(historical_new_party_residuals),
+   "historical_family_residuals":len(historical_family_residuals),
+   "historical_new_family_residuals":len(historical_new_family_residuals),
+   "conformal_q90_family_seats":Q90_FAMILY_SEATS,
+   "conformal_q90_new_family_seats":Q90_NEW_FAMILY_SEATS,
    "conformal_nominal_coverage":0.90,
    "conformal_q90_seats":Q90_SEATS,
    "conformal_q90_new_party_seats":Q90_NEW_PARTY_SEATS
@@ -376,6 +434,7 @@ result={
    "historical_conformal_calibration":True,
    "calibration_before_target_election":True,
    "new_party_uncertainty_calibrated":True,
+   "family_level_calibration":True,
    "calibrated_coverage_gate": bool(coverage >= 0.85)
  }
 }
