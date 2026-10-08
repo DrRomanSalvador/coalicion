@@ -56,7 +56,7 @@ def _load_input(path):
 
 
 def cmd_download(a):
-    print(download_workbook(a.output))
+    print(download_workbook(a.output, a.manifest))
 
 
 def cmd_inspect(a):
@@ -137,6 +137,7 @@ def main():
 
     d = sub.add_parser("download")
     d.add_argument("--output", default="data/raw/Elecciones-Congreso.xlsx")
+    d.add_argument("--manifest", default="data/raw/Elecciones-Congreso.manifest.json")
     d.set_defaults(fn=cmd_download)
 
     i = sub.add_parser("inspect")
