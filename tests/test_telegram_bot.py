@@ -304,3 +304,24 @@ def test_rate_limit_private_is_fail_closed(monkeypatch):
     for _ in range(10):
         assert telegram_bot._rate_allowed(update) is True
     assert telegram_bot._rate_allowed(update) is False
+
+
+
+def test_interactive_comparison_periods(tmp_path, monkeypatch):
+    observations = tmp_path / "observations.json"
+    observations.write_text(json.dumps({
+        "polls": [
+            {"publication_date": "2026-10-08", "parties": {"PP": 34.0}},
+            {"publication_date": "2026-10-07", "parties": {"PP": 33.0}},
+            {"publication_date": "2026-10-06", "parties": {"PP": 32.0}},
+            {"publication_date": "2026-10-05", "parties": {"PP": 31.0}},
+            {"publication_date": "2026-10-04", "parties": {"PP": 30.0}},
+        ]
+    }), encoding="utf-8")
+    monkeypatch.setattr(telegram_bot, "OBSERVATIONS", observations)
+    monkeypatch.setattr(telegram_bot, "STATE", tmp_path / "state.json")
+    assert "5 observaciones" in telegram_bot._comparison_text("5")
+    assert "PP: +4.0 pp" in telegram_bot._comparison_text("5")
+    labels = [b["text"] for row in telegram_bot._comparison_markup()["inline_keyboard"] for b in row]
+    assert "5 observaciones" in labels
+    assert "30 días" in labels
