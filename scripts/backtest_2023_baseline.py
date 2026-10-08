@@ -1,200 +1,208 @@
 #!/usr/bin/env python3
-from __future__ import annotations
-import hashlib, json, math
-from pathlib import Path
-from urllib.request import Request, urlopen
+"""2023 territorial baseline from canonical official Interior results.
 
+The target election is evaluated against a persistence baseline trained only
+on 2019N. Actual 2023 seats are read from the official materialization; all
+predicted seats are allocated with the canonical electoral engine.
+"""
+from __future__ import annotations
+import hashlib, json, re
+from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.electoral import allocate
+
+ROOT = Path(__file__).resolve().parents[1]
+OFFICIAL = ROOT / "data" / "resultados_oficiales_2004_2023.csv"
+SEATS = ROOT / "data" / "2023_circunscripciones_oficiales.csv"
+OUT = ROOT / "ci_evidence" / "backtest_2023_baseline.json"
 SEED = 20261006
 N_SIM = 10_000
-ROOT = Path(".audit_historico")
-DATA = ROOT / "historical_province_secondary.csv"
-SEATS_URL = "https://raw.githubusercontent.com/DrRomanSalvador/coalicion/main/data/2023_circunscripciones_oficiales.csv"
-SEATS_FILE = ROOT / "seats_2023.csv"
 
-if not DATA.exists():
-    raise SystemExit("Missing historical staged dataset")
+def norm_constituency(value: str) -> str:
+    s = re.sub(r"^\s*\d+\s*-\s*", "", str(value)).strip()
+    aliases = {
+        "Alicante/Alacant":"Alicante",
+        "Araba/Álava":"Araba/Álava",
+        "Álava/Araba":"Araba/Álava",
+        "Bizkaia":"Bizkaia",
+        "Vizcaya/Bizkaia":"Bizkaia",
+        "Castellón/Castelló":"Castellón",
+        "Guipúzcoa/Gipuzkoa":"Gipuzkoa",
+        "Islas Baleares/Illes Balears":"Illes Balears",
+        "La Coruña/A Coruña":"A Coruña",
+        "Navarra/Nafarroa":"Navarra",
+        "Orense/Ourense":"Ourense",
+        "Valencia/València":"Valencia",
+    }
+    return aliases.get(s, s)
 
-req = Request(SEATS_URL, headers={"User-Agent":"SEEC-backtest/1.0"})
-with urlopen(req, timeout=60) as resp:
-    SEATS_FILE.write_bytes(resp.read())
+def label_kind(label: str) -> str:
+    s = re.sub(r"[^a-z0-9 ]+", " ", str(label).lower()).strip()
+    if "nulo" in s:
+        return "NULL"
+    if "blanco" in s:
+        return "BLANK"
+    if "abstencion" in s:
+        return "ABSTENTION"
+    if "total" in s:
+        return "TOTAL"
+    return "PARTY"
 
-seats = pd.read_csv(SEATS_FILE)
-seats["escanos_2023"] = seats["escanos_2023"].astype(int)
+def party_label(label: str) -> str:
+    parts = str(label).split(" - ", 1)
+    return parts[1].strip() if len(parts) == 2 else str(label).strip()
+
+if not OFFICIAL.is_file():
+    raise SystemExit(f"Missing canonical official results: {OFFICIAL}")
+if not SEATS.is_file():
+    raise SystemExit(f"Missing canonical seat structure: {SEATS}")
+
+df = pd.read_csv(OFFICIAL)
+required = {"election","fecha_eleccion","circunscripcion","partido","votos","escaños"}
+if not required.issubset(df.columns):
+    raise SystemExit(f"Official results missing columns: {sorted(required-set(df.columns))}")
+df["votos"] = pd.to_numeric(df["votos"], errors="raise").astype(int)
+df["prov"] = df["circunscripcion"].map(norm_constituency)
+df["kind"] = df["partido"].map(label_kind)
+df["party"] = df["partido"].map(party_label)
+
+seats = pd.read_csv(SEATS)
+seats["escanos_2023"] = pd.to_numeric(seats["escanos_2023"], errors="raise").astype(int)
+seats["prov"] = seats["circunscripcion"].map(norm_constituency)
 if int(seats["escanos_2023"].sum()) != 350:
-    raise SystemExit("2023 seat structure does not sum to 350")
+    raise SystemExit("seat structure does not sum to 350")
 
-PROV_MAP = {
-    "Alicante/Alacant":"Alicante","Araba/Álava":"Araba/Álava","Álava/Araba":"Araba/Álava",
-    "Bizkaia":"Bizkaia","Vizcaya/Bizkaia":"Bizkaia",
-    "Castellón/Castelló":"Castellón","Guipúzcoa/Gipuzkoa":"Gipuzkoa",
-    "Islas Baleares/Illes Balears":"Illes Balears","La Coruña/A Coruña":"A Coruña",
-    "Navarra/Nafarroa":"Navarra","Orense/Ourense":"Ourense",
-    "Valencia/València":"Valencia",
-}
+def election_matrix(code: str):
+    x = df[df["election"].astype(str).eq(code)].copy()
+    if x.empty:
+        raise SystemExit(f"official election missing: {code}")
+    parties = x[x["kind"].eq("PARTY")].groupby(["prov","party"],as_index=False)["votos"].sum()
+    blanks = x[x["kind"].eq("BLANK")].groupby("prov")["votos"].sum().to_dict()
+    nulls = x[x["kind"].eq("NULL")].groupby("prov")["votos"].sum().to_dict()
+    valid = parties.groupby("prov")["votos"].sum().to_dict()
+    for prov,v in blanks.items():
+        valid[prov] = valid.get(prov,0) + int(v)
+    return parties, valid, blanks, nulls
 
-df = pd.read_csv(DATA)
-for c in ["ballots","blank_ballots","party_ballots","valid_ballots","total_ballots"]:
-    df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0.0)
-df["party"] = df["abbrev_candidacies"].fillna(df["name_candidacies"]).astype(str).str.strip()
-df["prov"] = df["prov"].astype(str).str.strip().replace(PROV_MAP)
-train = df[df["election"].eq("2019N")].copy()
-target = df[df["election"].eq("2023")].copy()
+train_p, train_valid, train_blank, _ = election_matrix("2019")
+target_p, target_valid, target_blank, _ = election_matrix("2023")
+# 2019 official election code is the November election in this materialization.
+if "2019" in df["election"].astype(str).unique():
+    dates=df.loc[df["election"].astype(str).eq("2019"),"fecha_eleccion"].astype(str).unique()
+    if "2019-11-10" not in dates:
+        raise SystemExit(f"2019 materialization is not 2019N: {sorted(dates)}")
+else:
+    raise SystemExit("2019N official results missing")
 
-if train.empty or target.empty:
-    raise SystemExit("2019N/2023 data missing")
-if set(seats["circunscripcion"]) != set(target["prov"].unique()):
-    missing = sorted(set(seats["circunscripcion"]) - set(target["prov"].unique()))
-    extra = sorted(set(target["prov"].unique()) - set(seats["circunscripcion"]))
-    raise SystemExit(f"Province mismatch. missing={missing} extra={extra}")
+seat_provs=set(seats["prov"])
+if set(target_p["prov"]) != seat_provs:
+    raise SystemExit("2023 constituency scope mismatch")
 
-# Aggregate repeated candidacy rows within each province.
-train_p = train.groupby(["prov","party"], as_index=False).agg(votes=("ballots","sum"))
-train_tot = train.groupby("prov", as_index=False).agg(valid=("valid_ballots","first"))
-target_p = target.groupby(["prov","party"], as_index=False).agg(votes=("ballots","sum"))
-target_tot = target.groupby("prov", as_index=False).agg(valid=("valid_ballots","first"))
+train_maps={p:dict(zip(g["party"],g["votos"])) for p,g in train_p.groupby("prov")}
+target_maps={p:dict(zip(g["party"],g["votos"])) for p,g in target_p.groupby("prov")}
 
-# Cross-check the secondary source's province totals against the 2023 seat file.
-cross = target_tot.merge(
-    seats[["circunscripcion","votos_validos_2023"]],
-    left_on="prov", right_on="circunscripcion", how="inner"
-)
-cross["diff_valid"] = cross["valid"] - cross["votos_validos_2023"]
-if len(cross) != 52:
-    raise SystemExit(f"2023 seat-structure crosscheck failed: cells={len(cross)}")
-valid_vote_discrepancy = float(cross["diff_valid"].abs().max())
-
-def dhondt(votes: dict[str,float], seats_n: int, valid: float) -> dict[str,int]:
-    if seats_n <= 0:
-        return {}
-    eligible = {p:v for p,v in votes.items() if v >= 0.03 * valid}
-    alloc = {p:0 for p in eligible}
-    for _ in range(seats_n):
-        if not eligible:
-            break
-        # Deterministic legal ordering: quotient descending, then total votes.
-        best = max(eligible, key=lambda p: (eligible[p] / (alloc[p] + 1), eligible[p]))
-        alloc[best] += 1
-    return alloc
-
-def special_single(votes: dict[str,float]) -> dict[str,int]:
-    if not votes:
-        return {}
-    best = max(votes, key=lambda p: (votes[p], p))
-    return {best:1}
-
-# Actual 2023 seats from the staged vote matrix.
-actual_seats: dict[str,int] = {}
-for prov, g in target_p.groupby("prov"):
-    vv = float(target_tot.loc[target_tot["prov"].eq(prov), "valid"].iloc[0])
-    seat_n = int(seats.loc[seats["circunscripcion"].eq(prov), "escanos_2023"].iloc[0])
-    votes = dict(zip(g["party"], g["votes"]))
-    alloc = special_single(votes) if prov in {"Ceuta","Melilla"} else dhondt(votes, seat_n, vv)
-    for p,s in alloc.items():
-        actual_seats[p] = actual_seats.get(p,0) + s
+# Actual seats are official certified results, not reconstructed prediction.
+actual_rows=df[(df["election"].astype(str).eq("2023")) & (df["kind"].eq("PARTY"))]
+actual_seats=actual_rows.groupby("party")["escaños"].sum().astype(int).to_dict()
 if sum(actual_seats.values()) != 350:
-    raise SystemExit(f"Derived actual 2023 seats do not sum to 350: {sum(actual_seats.values())}")
+    raise SystemExit(f"official 2023 seats do not sum to 350: {sum(actual_seats.values())}")
 
-# Strict no-leakage baseline: persistence of 2019N candidacy vote counts.
-# No 2023 turnout or 2023 vote shares are used in the prediction.
-train_maps = {}
-for prov, g in train_p.groupby("prov"):
-    train_maps[prov] = dict(zip(g["party"], g["votes"]))
-
-parties = sorted(set(target_p["party"]))
-actual_vote = target_p.groupby("party")["votes"].sum().to_dict()
-actual_valid = float(target_tot["valid"].sum())
-
-# National baseline point prediction.
-pred_vote = {}
-for prov, votes in train_maps.items():
-    for p,v in votes.items():
-        pred_vote[p] = pred_vote.get(p,0.0) + float(v)
-pred_valid = float(train_tot["valid"].sum())
-vote_rows = []
+# Persistence national vote-share baseline: only 2019N observations.
+parties=sorted(set(target_p["party"]))
+train_votes={p:0 for p in parties}
+target_votes={p:0 for p in parties}
+for prov,m in train_maps.items():
+    for p,v in m.items():
+        if p in train_votes: train_votes[p]+=int(v)
+for prov,m in target_maps.items():
+    for p,v in m.items():
+        if p in target_votes: target_votes[p]+=int(v)
+train_valid_total=sum(train_valid.values())
+target_valid_total=sum(target_valid.values())
+vote_rows=[]
 for p in parties:
-    a = actual_vote.get(p,0.0) / actual_valid * 100.0
-    b = pred_vote.get(p,0.0) / pred_valid * 100.0
-    vote_rows.append((p,a,b))
-vote_arr = np.array([[a,b] for _,a,b in vote_rows])
-vote_mae = float(np.mean(np.abs(vote_arr[:,0]-vote_arr[:,1])))
-vote_rmse = float(np.sqrt(np.mean((vote_arr[:,0]-vote_arr[:,1])**2)))
+    actual=100*target_votes[p]/target_valid_total
+    pred=100*train_votes[p]/train_valid_total
+    vote_rows.append((p,actual,pred))
+arr=np.array([[a,b] for _,a,b in vote_rows],dtype=float)
+vote_mae=float(np.mean(np.abs(arr[:,0]-arr[:,1])))
+vote_rmse=float(np.sqrt(np.mean((arr[:,0]-arr[:,1])**2)))
 
-rng = np.random.Generator(np.random.PCG64(SEED))
-sim_seats = {p: np.zeros(N_SIM, dtype=np.int16) for p in parties}
+# Exact territorial prediction engine. Ties are fail-closed; no lexicographic
+# tie-breaking is introduced by this backtest.
+def allocate_pred(votes, seat_n, valid, special):
+    result=allocate({p:int(v) for p,v in votes.items()},seat_n,int(valid),special=special)
+    if result.status!="OK":
+        raise RuntimeError(f"territorial allocation blocked: {special} {result.status} {result.tie}")
+    return result.seats
 
-# Monte Carlo: Dirichlet posterior around 2019N province shares.
+rng=np.random.Generator(np.random.PCG64(SEED))
+sim_seats={p:np.zeros(N_SIM,dtype=np.int16) for p in parties}
 for prov in sorted(train_maps):
-    votes = train_maps[prov]
-    train_valid = float(train_tot.loc[train_tot["prov"].eq(prov), "valid"].iloc[0])
-    seat_n = int(seats.loc[seats["circunscripcion"].eq(prov), "escanos_2023"].iloc[0])
-    ps = list(votes)
-    counts = np.array([max(float(votes[p]),0.0) for p in ps], dtype=float)
-    alpha = counts + 1.0
-    if prov in {"Ceuta","Melilla"}:
-        draws = rng.dirichlet(alpha, size=N_SIM)
-        for i in range(N_SIM):
-            dv = dict(zip(ps, draws[i] * train_valid))
-            alloc = special_single(dv)
-            for p,s in alloc.items():
-                if p in sim_seats: sim_seats[p][i] += s
-        continue
-    draws = rng.dirichlet(alpha, size=N_SIM)
+    votes=train_maps[prov]
+    valid=int(train_valid[prov])
+    seat_n=int(seats.loc[seats["prov"].eq(prov),"escanos_2023"].iloc[0])
+    ps=list(votes)
+    counts=np.array([max(float(votes[p]),0.0) for p in ps],dtype=float)
+    alpha=counts+1.0
+    draws=rng.dirichlet(alpha,size=N_SIM)
     for i in range(N_SIM):
-        dv = dict(zip(ps, draws[i] * train_valid))
-        alloc = dhondt(dv, seat_n, train_valid)
+        dv={p:int(round(x*valid)) for p,x in zip(ps,draws[i])}
+        # Preserve exact total after integer rounding by assigning residual to
+        # the largest sampled category.
+        residual=valid-sum(dv.values())
+        if residual:
+            winner=max(dv,key=dv.get)
+            dv[winner]+=residual
+        alloc=allocate_pred(dv,seat_n,valid,prov if prov in {"Ceuta","Melilla"} else "")
         for p,s in alloc.items():
-            if p in sim_seats: sim_seats[p][i] += s
+            if p in sim_seats: sim_seats[p][i]+=s
 
-seat_metrics = []
-for p in parties:
-    actual = actual_seats.get(p,0)
-    med = float(np.median(sim_seats[p]))
-    seat_metrics.append((p, actual, med))
+medians=np.array([float(np.median(sim_seats[p])) for p in parties])
+actual_vec=np.array([actual_seats.get(p,0) for p in parties],dtype=float)
+seat_mae=float(np.mean(np.abs(actual_vec-medians)))
+seat_rmse=float(np.sqrt(np.mean((actual_vec-medians)**2)))
 
-actual_vec = np.array([x[1] for x in seat_metrics], dtype=float)
-med_vec = np.array([x[2] for x in seat_metrics], dtype=float)
-seat_mae = float(np.mean(np.abs(actual_vec-med_vec)))
-seat_rmse = float(np.sqrt(np.mean((actual_vec-med_vec)**2)))
+intervals={}
+winners=[p for p,s in actual_seats.items() if s>0]
+covered=0
+for p in winners:
+    q=np.percentile(sim_seats[p],[10,50,90])
+    intervals[p]={"actual":int(actual_seats[p]),"p10":float(q[0]),"p50":float(q[1]),"p90":float(q[2])}
+    covered += int(q[0] <= actual_seats[p] <= q[2])
+coverage=covered/len(winners) if winners else float("nan")
 
-seat_winners = [p for p,s in actual_seats.items() if s > 0]
-covered = 0
-intervals = {}
-for p in seat_winners:
-    arr = sim_seats.get(p, np.zeros(N_SIM, dtype=np.int16))
-    p10,p50,p90 = np.percentile(arr,[10,50,90])
-    intervals[p] = {"actual":int(actual_seats[p]),"p10":float(p10),"p50":float(p50),"p90":float(p90)}
-    covered += int(p10 <= actual_seats[p] <= p90)
-coverage = covered / len(seat_winners) if seat_winners else float("nan")
-
-manifest = json.loads((ROOT/"secondary_manifest.json").read_text(encoding="utf-8"))
-result = {
-    "election":"2023",
-    "cutoff":"2019-11-10",
-    "model":"baseline_persistence_2019N",
-    "note":"Explicit baseline, not the SEEC territorial Bayesian model. Exact 2019N candidacy labels persist; no 2023 vote/turnout information is used in prediction.",
-    "source_tier":"SECONDARY_REPLICA",
-    "source_sha256":manifest["source_sha256"],
-    "seat_structure_source":SEATS_URL,
-    "seat_structure_sha256":hashlib.sha256(SEATS_FILE.read_bytes()).hexdigest(),
-    "mc_seed":SEED,
-    "rng":"numpy.PCG64",
-    "n_simulations":N_SIM,
-    "metrics":{
-        "mae_vote_national_pp":vote_mae,
-        "rmse_vote_national_pp":vote_rmse,
-        "mae_seats_median":seat_mae,
-        "rmse_seats_median":seat_rmse,
-        "coverage_actual_seats_in_p10_p90_winners":coverage,
-        "n_2023_seat_winning_parties":len(seat_winners)
-    },
-    "seat_intervals":intervals,
-    "crosscheck_2023_valid_votes_max_abs_diff":valid_vote_discrepancy,
-        "crosscheck_note":"Secondary replica differs from the official seat-file valid-vote totals; discrepancy retained as warning."
+result={
+ "election":"2023",
+ "cutoff":"2019-11-10",
+ "model":"baseline_persistence_2019N",
+ "note":"Canonical official Interior results; no 2023 votes are used in prediction. Actual 2023 seats are ground truth; predicted seats use canonical electoral allocation.",
+ "source_tier":"PRIMARY_OFFICIAL",
+ "source_sha256":hashlib.sha256(OFFICIAL.read_bytes()).hexdigest(),
+ "seat_structure_source":"data/2023_circunscripciones_oficiales.csv",
+ "seat_structure_sha256":hashlib.sha256(SEATS.read_bytes()).hexdigest(),
+ "mc_seed":SEED,
+ "rng":"numpy.PCG64",
+ "n_simulations":N_SIM,
+ "metrics":{
+   "mae_vote_national_pp":vote_mae,
+   "rmse_vote_national_pp":vote_rmse,
+   "mae_seats_median":seat_mae,
+   "rmse_seats_median":seat_rmse,
+   "coverage_actual_seats_in_p10_p90_winners":coverage,
+   "n_2023_seat_winning_parties":len(winners)
+ },
+ "seat_intervals":intervals,
+ "contracts":{
+   "official_source":True,
+   "seat_sum_350":True,
+   "no_future_vote_input":True,
+   "canonical_electoral_engine":True,
+   "absolute_ties_fail_closed":True
+ }
 }
-(ROOT/"backtest_2023_baseline.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
+OUT.parent.mkdir(parents=True,exist_ok=True)
+OUT.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 print(json.dumps(result,ensure_ascii=False,indent=2))
-
-# Mission trigger: 2026-10-06 SEEC v3.1 audit.
