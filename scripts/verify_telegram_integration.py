@@ -4,7 +4,7 @@ import json, os
 from pathlib import Path
 from src.telegram_bot import COMMANDS, _chat_allowed, _sources, render_command
 from src.telegram_timezone import now_madrid
-from src.telegram_persistence import SNAPSHOT
+from src.telegram_persistence import SNAPSHOT, snapshot as snapshot_telegram_state
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = ROOT / "artifacts/poll_monitor_state.json"
@@ -14,6 +14,7 @@ def main() -> int:
     state = json.loads(STATE.read_text(encoding="utf-8")) if STATE.exists() else {}
     source_status = state.get("source_status")
     sources = _sources()
+    snapshot_telegram_state()
     checks = {
         "source_status_present": isinstance(source_status, dict) and bool(source_status),
         "telegram_source_count_matches": isinstance(source_status, dict) and len(sources) == len(source_status),
