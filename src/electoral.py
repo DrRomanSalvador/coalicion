@@ -60,18 +60,25 @@ def dhondt(votes:Mapping[str,int], seats:int, valid_votes_total:int, blank_votes
         result[tied[0]]+=1
     return Allocation(result,"OK")
 
-def ceuta_melilla(votes:Mapping[str,int], valid_votes_total:Optional[int]=None, blank_votes:int=0)->Allocation:
+def ceuta_melilla(votes:Mapping[str,int], valid_votes_total:Optional[int]=None, blank_votes:int=0, tie_breaker:Optional[Callable[[tuple[str,...]], str]]=None)->Allocation:
     _validate_common(votes)
     if not votes: raise ValueError("sin candidaturas")
     if valid_votes_total is not None: _validate_matrix(votes,valid_votes_total,blank_votes)
     winners=[p for p,v in votes.items() if v==max(votes.values())]
-    if len(winners)>1: return Allocation({p:0 for p in votes},"EMPATE_MAYORIA_PENDIENTE",tuple(sorted(winners)))
+    if len(winners)>1:
+        tied=tuple(sorted(winners))
+        if tie_breaker is None:
+            return Allocation({p:0 for p in votes},"EMPATE_MAYORIA_PENDIENTE",tied)
+        chosen=tie_breaker(tied)
+        if chosen not in tied:
+            raise ValueError("tie_breaker devolvió una candidatura no empatada")
+        return Allocation({p:int(p==chosen) for p in votes},"OK",tied)
     return Allocation({p:int(p==winners[0]) for p in votes},"OK")
 
 def allocate(votes,seats,valid_votes_total,special="",blank_votes=0,tie_breaker=None):
     if special in {"Ceuta","Melilla"}:
         if seats!=1: raise ValueError("Ceuta/Melilla: 1 escaño")
-        return ceuta_melilla(votes,valid_votes_total,blank_votes)
+        return ceuta_melilla(votes,valid_votes_total,blank_votes,tie_breaker=tie_breaker)
     return dhondt(votes,seats,valid_votes_total,blank_votes,tie_breaker=tie_breaker)
 
 def merge_candidacies(*matrices):
