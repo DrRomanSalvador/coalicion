@@ -151,10 +151,20 @@ def load_poll_observations(path: str | Path) -> list[PollObservation]:
     if not rows:
         raise ValueError(f"dataset OOS vacío: {p}")
     cols = set(rows[0])
+    official = p.with_name("resultados_oficiales_2004_2023.csv")
+    if not official.is_file():
+        repo_official = Path(__file__).resolve().parents[1] / "data" / "resultados_oficiales_2004_2023.csv"
+        if repo_official.is_file():
+            official = repo_official
+        else:
+            raise FileNotFoundError(
+                "canonical official Interior results required for OOS: "
+                f"{official} or {repo_official}"
+            )
     if CIS_REQUIRED.issubset(cols):
-        return _canonical(as_oos_rows(p), p.with_name("resultados_oficiales_2004_2023.csv"))
+        return _canonical(as_oos_rows(p), official)
     if CANONICAL.issubset(cols):
-        return _canonical(rows, p.with_name("resultados_oficiales_2004_2023.csv"))
+        return _canonical(rows, official)
     if LEGACY.issubset(cols):
         return _legacy(rows)
     raise ValueError(f"unsupported OOS schema: {sorted(cols)}")
