@@ -111,7 +111,8 @@ for prov,votes in target_maps.items():
     valid=int(target_valid[prov])
     alloc=allocate({p:int(v) for p,v in votes.items()},seat_n,valid,
                    special=prov if prov in {"Ceuta","Melilla"} else "",
-                   blank_votes=int(target_blank.get(prov,0)))
+                   blank_votes=int(target_blank.get(prov,0)),
+                   tie_breaker=lottery_tie_breaker(prov)
     if alloc.status!="OK":
         raise RuntimeError(f"actual 2023 allocation blocked: {prov} {alloc.status} {alloc.tie}")
     for party,s in alloc.seats.items():
@@ -142,6 +143,13 @@ vote_rmse=float(np.sqrt(np.mean((arr[:,0]-arr[:,1])**2)))
 
 # Exact territorial prediction engine. Ties are fail-closed; no lexicographic
 # tie-breaking is introduced by this backtest.
+def lottery_tie_breaker(prov: str):
+    def choose(tied):
+        key="|".join((str(SEED),prov,*sorted(tied))).encode("utf-8")
+        digest=hashlib.sha256(key).digest()
+        return sorted(tied)[digest[0] % len(tied)]
+    return choose
+
 def allocate_pred(votes, seat_n, valid, special):
     result=allocate({p:int(v) for p,v in votes.items()},seat_n,int(valid),special=special)
     if result.status!="OK":
@@ -170,7 +178,8 @@ for prov in sorted(train_maps):
             dv[winner]+=residual
         alloc=allocate({p:int(v) for p,v in dv.items()},seat_n,valid,
                        special=prov if prov in {"Ceuta","Melilla"} else "",
-                       blank_votes=blank)
+                       blank_votes=blank,
+                       tie_breaker=lottery_tie_breaker(prov)
         if alloc.status!="OK":
             raise RuntimeError(f"simulated allocation blocked: {prov} {alloc.status} {alloc.tie}")
         for p,s in alloc.seats.items():
