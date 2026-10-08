@@ -363,3 +363,21 @@ def test_export_text_dispatches_document(monkeypatch):
     monkeypatch.setattr(telegram_bot, "_send_document", lambda *args: calls.append(args))
     telegram_bot._export_text(123, "polls")
     assert calls == [(123, b"data", "x.json", "application/json")]
+
+
+
+def test_situation_command_uses_canonical_state(tmp_path, monkeypatch):
+    observations = tmp_path / "observations.json"
+    observations.write_text(json.dumps({"policy": {"observed_only": True, "national_to_territorial_inference": False}, "national_poll_count": 1, "territorial_poll_count": 0, "polls": [{"poll_id": "poll-1", "publication_date": "2026-10-08", "parties": {"PP": 34.0, "PSOE": 30.0}, "source_url": "https://example.invalid/poll"}]}), encoding="utf-8")
+    coverage = tmp_path / "coverage.json"
+    coverage.write_text(json.dumps({"fail_closed": True, "primary_sources": 1, "healthy_primary_sources": 1, "unhealthy_primary_sources": [], "status": "PASS", "last_runtime_coverage": {"sources_checked": 1}}), encoding="utf-8")
+    mission = tmp_path / "mission.json"
+    mission.write_text(json.dumps({"fail_closed": True, "id": "test"}), encoding="utf-8")
+    import src.situation_state as ss
+    monkeypatch.setattr(ss, "OBSERVATIONS", observations)
+    monkeypatch.setattr(ss, "SOURCE_COVERAGE", coverage)
+    monkeypatch.setattr(ss, "MISSION", mission)
+    text = telegram_bot.render_command("/situacion")
+    assert "SALA DE SITUACIÓN" in text
+    assert "UNCERTAINTY" in text
+    assert "Observaciones territoriales 2026: 0" in text
