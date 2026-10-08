@@ -444,7 +444,7 @@ def _escanos_text() -> str:
             return "🪑 ESCAÑOS · COMPOSICIÓN MATERIALIZADA\n\n" + "\n".join(f"{p}: {s}" for p, s in rows)
     return (
         "🪑 ESCAÑOS · SITUACIÓN ACTUAL\n\n"
-        "La cifra actual de escaños requiere una distribución territorial explícita. "
+        "La cifra actual de escaños requiere evidencia provincial explícita y una distribución territorial explícita. "
         "El sistema no convierte automáticamente porcentajes nacionales en reparto territorial."
     )
 
@@ -571,7 +571,7 @@ def _territory_text() -> str:
         "Cobertura electoral: 52 circunscripciones / 350 escaños.\n\n"
         + ("🟢 Existe entrada territorial explícita en los artefactos observados."
            if explicit else
-           "ℹ️ Cobertura territorial actual limitada: los escaños solo se calculan con evidencia provincial explícita. "
+           "ℹ️ Cobertura territorial actual limitada: los escaños requieren evidencia provincial explícita y una distribución territorial explícita. "
            "No se convierte automáticamente un porcentaje nacional en reparto provincial.")
     )
 
