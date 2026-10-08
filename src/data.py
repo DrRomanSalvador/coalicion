@@ -3,18 +3,38 @@ from __future__ import annotations
 import io, re, ssl, urllib.request
 from pathlib import Path
 import json
+import hashlib
+from datetime import datetime, timezone
 from typing import Any
 import certifi
 import openpyxl
 
 OFFICIAL_URL = "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
 
-def download_workbook(destination: str | Path) -> Path:
+def download_workbook(destination: str | Path, manifest: str | Path | None = None) -> Path:
+    """Download the official Interior Congress dataset and optionally emit provenance."""
     dest = Path(destination)
     dest.parent.mkdir(parents=True, exist_ok=True)
     context = ssl.create_default_context(cafile=certifi.where())
     with urllib.request.urlopen(OFFICIAL_URL, context=context, timeout=60) as r:
-        dest.write_bytes(r.read())
+        payload = r.read()
+        content_type = r.headers.get("Content-Type", "")
+    dest.write_bytes(payload)
+    if not payload:
+        raise RuntimeError("BLOCKED: official Interior dataset is empty")
+    if manifest is not None:
+        m = Path(manifest)
+        m.parent.mkdir(parents=True, exist_ok=True)
+        m.write_text(json.dumps({
+            "schema": "OFFICIAL_SOURCE_MATERIALIZATION_V1",
+            "provider": "Ministerio del Interior",
+            "source_url": OFFICIAL_URL,
+            "retrieved_at": datetime.now(timezone.utc).isoformat(),
+            "content_type": content_type,
+            "bytes": len(payload),
+            "sha256": hashlib.sha256(payload).hexdigest(),
+            "path": str(dest),
+        }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return dest
 
 def _norm(value: Any) -> str:
