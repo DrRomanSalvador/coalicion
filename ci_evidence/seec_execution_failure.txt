@@ -1,5 +1,5 @@
 SEEC_EXECUTION_FAILURE
-sha: 150a33682332646ba06e13e4ed84e31257b493cb
+sha: b11ce5f9c980991fe4d9bcb1c034964b24c0b6ca
 Traceback (most recent call last):
   File "/home/runner/work/coalicion/coalicion/scripts/run_seec_production.py", line 7, in <module>
     from src.reproducibility_contract import ExecutionContract
