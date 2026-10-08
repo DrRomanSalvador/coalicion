@@ -26,6 +26,7 @@ def main():
     missing=sorted(expected-set(evidence))
     extra=sorted(set(evidence)-expected)
     failed=sorted(k for k,v in evidence.items() if v.get("status")!="PASS")
+    runtime_failed=sorted(k for k,v in evidence.items() if v.get("runtime_status")!="PASS")
     runtime_missing=sorted(k for k,v in evidence.items() if not (
         v.get("agent_runtime",{}).get("provider") and
         v.get("agent_runtime",{}).get("execution_id") and
@@ -37,14 +38,16 @@ def main():
     bad_agents=sorted(k for k,v in evidence.items() if v.get("agent_id") != "agent-"+k)
     statuses={}
     for v in evidence.values(): statuses[v.get("status","UNKNOWN")]=statuses.get(v.get("status","UNKNOWN"),0)+1
-    closed=(not missing and not extra and not failed and not runtime_missing and not bad_agents and len(evidence)==len(expected))
+    runtime_closed=(not missing and not extra and not runtime_missing and not bad_agents and not runtime_failed and len(evidence)==len(expected))
+    closed=runtime_closed
     result={
         "schema":"COLMENA_CLOSURE_EVIDENCE_V1",
         "plan_sha256":approval["plan_sha256"],
         "expected_missions":len(expected),
         "evidence_files":len(mission_files),
         "missing":missing,"extra":extra,"failed":failed,
-        "runtime_missing":runtime_missing,"bad_agents":bad_agents,
+        "runtime_missing":runtime_missing,"runtime_failed":runtime_failed,"bad_agents":bad_agents,
+        "mission_failures":failed,
         "status_counts":statuses,
         "status":"PASS" if closed else "BLOCKED",
         "fail_closed":True,
