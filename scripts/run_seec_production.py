@@ -38,9 +38,25 @@ def main():
     missing=required-set(df.columns)
     if missing: raise SystemExit(f"BLOCKED: missing columns: {sorted(missing)}")
     df=df.dropna(subset=["study_id","study_date","party","cis_estimate_pct"]).copy()
+    df["study_id"]=df["study_id"].astype(str).str.strip()
+    df["party"]=df["party"].astype(str).str.strip()
+    df["study_date"]=pd.to_datetime(df["study_date"],errors="coerce",utc=True)
+    if df["study_date"].isna().any():
+        raise SystemExit("BLOCKED: invalid study_date values; temporal order cannot be trusted")
+    if (df["study_id"]=="").any() or (df["party"]=="").any():
+        raise SystemExit("BLOCKED: empty study_id or party label")
     df["cis_estimate_pct"]=pd.to_numeric(df["cis_estimate_pct"],errors="coerce")
-    df=df[df["cis_estimate_pct"]>=0]
-    studies=sorted(df["study_id"].astype(str).unique())
+    if df["cis_estimate_pct"].isna().any():
+        raise SystemExit("BLOCKED: non-numeric CIS estimate")
+    if (df["cis_estimate_pct"]<0).any():
+        raise SystemExit("BLOCKED: negative CIS estimate")
+    dates_per_study=df.groupby("study_id")["study_date"].nunique()
+    if (dates_per_study!=1).any():
+        bad=dates_per_study[dates_per_study!=1].index.astype(str).tolist()
+        raise SystemExit(f"BLOCKED: study_id maps to multiple dates: {bad[:10]}")
+    # The random walk must follow fieldwork chronology, never lexical study IDs.
+    study_dates=df.groupby("study_id")["study_date"].min().sort_values(kind="stable")
+    studies=study_dates.index.astype(str).tolist()
     parties=sorted(df["party"].astype(str).unique())
     if len(studies)<12 or len(parties)<12: raise SystemExit("BLOCKED: SEEC requires >=12 studies and >=12 parties")
     mat=np.zeros((len(studies),len(parties)))
