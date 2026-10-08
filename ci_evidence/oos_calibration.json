@@ -296,6 +296,11 @@
     }
   },
   "selection_rule": "candidate correction cannot use the holdout; BASE remains admissible fallback",
+  "coverage_gate": {
+    "threshold": 0.85,
+    "observed_base_mean_coverage": 0.9629629629629629,
+    "passed": true
+  },
   "leakage_checks": {
     "field_end_before_election": true,
     "all_test_elections_use_only_prior_elections": true,
