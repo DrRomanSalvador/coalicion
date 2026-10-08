@@ -59,26 +59,26 @@ jobs:
           python scripts/run_seec_production.py --draws 2500 --tune 1000 --seed 20261008 2>&1 | tee /tmp/seec_run.log
       - name: Materialize SEEC execution failure evidence
         if: failure()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          mkdir -p ci_evidence
-          {
-            echo "SEEC_EXECUTION_FAILURE"
-            echo "sha: $GITHUB_SHA"
-            cat /tmp/seec_run.log
-          } > ci_evidence/seec_execution_failure.txt
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ci_evidence/seec_execution_failure.txt
-          git diff --cached --quiet && exit 0
-          git commit -m "ci: materialize SEEC execution failure evidence"
-          for attempt in 1 2 3 4 5; do
-            git fetch origin main
-            git rebase origin/main && git push origin HEAD:main && exit 0
-            git rebase --abort || true
-            sleep 5
-          done
-          exit 1
+          python - <<'PY'
+          import base64, json, os, pathlib, urllib.request
+          p=pathlib.Path("/tmp/seec_run.log")
+          body="SEEC_EXECUTION_FAILURE\nsha: "+os.environ["GITHUB_SHA"]+"\n"+(p.read_text(errors="replace") if p.exists() else "NO_RUN_LOG")
+          api=f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/contents/ci_evidence/seec_execution_failure.txt"
+          req=urllib.request.Request(api,headers={"Authorization":"Bearer "+os.environ["GH_TOKEN"],"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"})
+          try:
+              with urllib.request.urlopen(req) as resp: current=json.load(resp)
+              sha=current["sha"]
+          except Exception:
+              sha=None
+          payload={"message":"ci: materialize SEEC execution failure evidence","content":base64.b64encode(body.encode()).decode()}
+          if sha: payload["sha"]=sha
+          req=urllib.request.Request(api,data=json.dumps(payload).encode(),method="PUT",headers={"Authorization":"Bearer "+os.environ["GH_TOKEN"],"Accept":"application/vnd.github+json","Content-Type":"application/json","X-GitHub-Api-Version":"2022-11-28"})
+          with urllib.request.urlopen(req) as resp: print(resp.read().decode())
+          PY
       - name: Verify production gate
         run: |
           python - <<'PY'
