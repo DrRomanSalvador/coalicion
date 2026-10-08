@@ -17,11 +17,11 @@
     }
   ],
   "official_2023_matrix_present": true,
-  "official_2023_primary_evidence_present": false,
+  "official_2023_primary_evidence_present": true,
   "blockers": [
     "BLOCKED_INCOMPLETE_PRIMARY_SOURCE_CONTENT_HASH",
-    "BLOCKED_PRIMARY_2023_EVIDENCE_MISSING",
-    "BLOCKED_GENERAL_ELECTION_CONSTITUENCY_COVERAGE_52"
+    "BLOCKED_GENERAL_ELECTION_CONSTITUENCY_COVERAGE_52",
+    "BLOCKED_2023_CANONICAL_COPY_NOT_HASH_MATCHED_TO_LIVE_ENDPOINT"
   ],
   "policy": {
     "no_synthetic_values": true,
@@ -29,7 +29,7 @@
     "fail_closed": true
   },
   "execution_trigger": "CI",
-  "updated_at": "2026-10-08T15:15:00+02:00",
+  "updated_at": "2026-10-08T15:25:00+02:00",
   "workflow_revision": "2026-10-08T13:17:00+02:00",
   "territorial_observations": [
     {
@@ -53,5 +53,6 @@
       "traceability": "PRIMARY_VERIFIED",
       "hash_scope": "captured_excerpt"
     }
-  ]
+  ],
+  "official_2023_primary_source_url": "https://infoelectoral.interior.gob.es/es/elecciones-celebradas/resultados-electorales/"
 }
