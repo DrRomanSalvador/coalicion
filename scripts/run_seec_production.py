@@ -82,7 +82,7 @@ def load_historical(parties):
                 election="2023J", province=province, party=party,
                 votes=votes, valid_votes=max(1,sum(
                     int(float(r["votos"])) for r in rows
-                    if r["circunscripcion"]==province and "nulo" not in norm(r["partido"])
+                    if r["circunscripcion"]==province and "nulo" not in norm(r["partido"]) and "total" not in norm(r["partido"])
                 )), turnout=0.0))
     return provinces, observations
 
