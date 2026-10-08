@@ -9,14 +9,15 @@ on:
       - "scripts/colmena_queen.py"
       - "scripts/colmena_worker.py"
       - "scripts/colmena_local_ai.mjs"
+      - "scripts/audit_2023.py"
       - ".github/workflows/colmena_atomic_swarm.yml"
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: colmena-atomic-${{ github.run_id }}
+  cancel-in-progress: false
 
 jobs:
   plan:
