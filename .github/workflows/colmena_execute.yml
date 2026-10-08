@@ -115,6 +115,8 @@ jobs:
 
   persist:
     name: Persist Queen Checkpoint
+    permissions:
+      contents: write
     needs: [queen, workers, closure]
     if: always() && needs.queen.result == 'success'
     runs-on: ubuntu-latest
