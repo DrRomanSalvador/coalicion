@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: pip
       - run: python -m pip install --disable-pip-version-check --no-input "numpy>=2.0,<2.4" "pandas==2.3.3" "pymc==6.3.2" "arviz>=0.22,<0.24"
       - name: Run real SEEC posterior
