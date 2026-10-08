@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTROL = ROOT / "docs/COLMENA_MISSION_CONTROL.json"
-BATCH_SIZE = 5
+BATCH_SIZE = 5  # verified swarm cycle
 WRITE_WORDS = ("integración física", "conexión", "eliminación", "actualización", "crear", "release", "corregir", "materializar")
 
 
