@@ -42,7 +42,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: colmena-queen-approval
-          path: queen_approval.json
+          path: |
+            queen_approval.json
+            queen_state.json
 
   workers:
     name: Worker batch ${{ matrix.batch_number }}
