@@ -95,26 +95,32 @@ jobs:
           print("QUEEN_PLAN=PASS", "missions=179", "batches=36")
           PY
 
-      - name: Start persistent AI runtime
+      - name: Start persistent AI runtime pool (5 isolated workers)
         env:
-          COLMENA_AI_PORT: "8765"
           COLMENA_AI_DEVICE: "cpu"
         run: |
           set -euo pipefail
-          node scripts/colmena_local_ai.mjs --server > artifacts/colmena/ai_runtime.log 2>&1 &
-          echo $! > artifacts/colmena/ai_runtime.pid
+          mkdir -p artifacts/colmena/ai_runtime
+          : > artifacts/colmena/ai_runtime/pids
+          for port in 8765 8766 8767 8768 8769; do
+            COLMENA_AI_PORT="$port" node scripts/colmena_local_ai.mjs --server \
+              > "artifacts/colmena/ai_runtime/runtime_${port}.log" 2>&1 &
+            echo "$! $port" >> artifacts/colmena/ai_runtime/pids
+          done
           python - <<'PY'
           import time, urllib.request
-          for _ in range(90):
-              try:
-                  with urllib.request.urlopen("http://127.0.0.1:8765/health", timeout=3) as r:
-                      if r.status == 200:
-                          print("AI_RUNTIME_SERVER=PASS")
-                          break
-              except Exception:
-                  time.sleep(2)
-          else:
-              raise SystemExit("FAIL_CLOSED: persistent AI runtime did not become healthy")
+          ports = [8765, 8766, 8767, 8768, 8769]
+          for port in ports:
+              for _ in range(90):
+                  try:
+                      with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=3) as r:
+                          if r.status == 200:
+                              print(f"AI_RUNTIME_SERVER_{port}=PASS")
+                              break
+                  except Exception:
+                      time.sleep(2)
+              else:
+                  raise SystemExit(f"FAIL_CLOSED: AI runtime {port} did not become healthy")
           PY
 
       - name: 👑 Queen dispatches and supervises batches of 5
@@ -124,13 +130,14 @@ jobs:
           COLMENA_AI_DEVICE: "cpu"
           COLMENA_AGENT_MODEL: onnx-community/Qwen3-0.6B-ONNX:q4f16
           COLMENA_AGENT_EXECUTION_ID: ${{ github.run_id }}-${{ github.run_attempt }}-queen
-          COLMENA_AI_SERVER_URL: http://127.0.0.1:8765
+          COLMENA_AI_SERVER_POOL_SIZE: "5"
+          COLMENA_AI_SERVER_PORT_BASE: "8765"
         run: |
           set +e
           mkdir -p artifacts/colmena/workers
           python scripts/colmena_queen.py             --ref "$GITHUB_SHA"             --output artifacts/colmena/queen_approval.json             --supervise             --workers-dir artifacts/colmena/workers             --state artifacts/colmena/queen_runtime_state.json
           rc=$?
-          kill "$(cat artifacts/colmena/ai_runtime.pid)" 2>/dev/null || true
+          while read -r pid port; do kill "$pid" 2>/dev/null || true; done < artifacts/colmena/ai_runtime/pids
           exit "$rc"
 
       - name: 👑 Queen reconciles all 179 evidences fail-closed
