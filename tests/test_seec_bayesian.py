@@ -58,7 +58,7 @@ def test_model_is_joint_compositional_and_temporal():
     names = set(model.named_vars)
     assert {"national_0", "national_drift", "national_t", "province_share", "house_effect"} <= names
     assert "poll_p1" in names
-    assert "election_P1" in names
+    assert "election_0" in names
     assert model.named_vars["national_t"].eval().shape == (1, 3)
 
 
