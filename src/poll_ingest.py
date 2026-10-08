@@ -1,32 +1,18 @@
 """Validated, neutral ingestion of explicitly configured public poll feeds."""
 from __future__ import annotations
 import csv, io, json, re
-from dataclasses import dataclass
 from datetime import date
 from email.utils import parsedate_to_datetime
 from xml.etree import ElementTree as ET
 from bs4 import BeautifulSoup
 
-from .poll_monitor import normalize_party_name, poll_hash
+from .poll_monitor import Poll, canonical_poll, normalize_party_name, poll_hash
 
 ALIASES={
  "PP":"PP","PARTIDO POPULAR":"PP","PSOE":"PSOE","PARTIDO SOCIALISTA OBRERO ESPAÑOL":"PSOE",
  "SUMAR":"SUMAR","PODEMOS":"PODEMOS","VOX":"VOX","ERC":"ERC","JUNTS":"JUNTS",
  "EH BILDU":"EH BILDU","BILDU":"EH BILDU","PNV":"PNV","BNG":"BNG","CC":"CC","UPN":"UPN","PACMA":"PACMA"
 }
-@dataclass(frozen=True)
-class Poll:
-    poll_id:str
-    publication_date:str
-    pollster:str
-    source_id:str
-    source_url:str
-    parties:dict[str,float]
-    fieldwork_start:str|None=None
-    fieldwork_end:str|None=None
-    sample_size:int|None=None
-    methodology:str|None=None
-
 def _party(x): return normalize_party_name(x)
 def _date(x):
     s=str(x).strip()
@@ -141,11 +127,3 @@ def parse_source(body,source):
     if kind=="datoelectoral_html": return parse_datoelectoral_html(body,source)
     raise ValueError(f"unsupported source format: {kind}")
 
-def canonical_poll(p):
-    return {"id":p.poll_id,"publication_date":p.publication_date,"pollster":p.pollster,
-            "source_id":p.source_id,"source_url":p.source_url,"parties":dict(sorted(p.parties.items())),
-            "fieldwork_start":p.fieldwork_start,"fieldwork_end":p.fieldwork_end,"sample_size":p.sample_size,
-            "methodology":p.methodology}
-
-def poll_hash(p):
-    return hashlib.sha256(json.dumps(canonical_poll(p),ensure_ascii=False,sort_keys=True,separators=(",",":")).encode()).hexdigest()
