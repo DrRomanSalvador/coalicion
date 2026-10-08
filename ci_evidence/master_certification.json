@@ -1,8 +1,8 @@
 {
   "schema": "MASTER_CERTIFICATION_V1",
-  "status": "READY_FOR_EXTERNAL_AUDIT",
-  "certification": "READY_FOR_EXTERNAL_AUDIT",
-  "reason": "All internally resolvable gates now have executed PASS evidence: primary Interior materialization/reconciliation, OOS expanding-window calibration, OOS walk-forward, 10,000-draw Monte Carlo, and 10,000-draw SEEC territorial posterior predictive. Independent external audit remains the sole certification gate.",
+  "status": "BLOCKED",
+  "certification": "BLOCKED",
+  "reason": "OOS y MC-10000 tienen evidencia de ejecución PASS. El artefacto SEEC territorial de 10.000 draws es auxiliar y no sustituye el SEEC jerárquico PyMC de producción. La ejecución PyMC real aún no ha producido evidencia materializada; la auditoría externa independiente también sigue pendiente.",
   "required_gates": [
     "source_manifest",
     "primary_interior",
@@ -19,7 +19,7 @@
     "source_manifest": "PASS",
     "primary_interior": "PASS",
     "reconciliation": "PASS",
-    "seec_posterior": "PASS",
+    "seec_posterior": "PENDING",
     "mc_10000": "PASS",
     "oos_calibration": "PASS",
     "oos_walk_forward": "PASS",
