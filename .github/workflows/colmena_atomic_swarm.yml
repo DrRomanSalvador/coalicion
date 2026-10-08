@@ -49,16 +49,11 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  shard:
-    name: "🐝 Shard ${{ matrix.shard }} — 4 logical batches max / 20 missions max"
+  execute:
+    name: "Queen — execute and supervise 179 missions / 36 batches"
     needs: plan
     runs-on: ubuntu-22.04
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      max-parallel: 5
-      matrix:
-        shard: [0,1,2,3,4,5,6,7,8,9]
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -94,61 +89,58 @@ jobs:
         with:
           name: colmena-queen-plan
           path: artifacts/colmena
-      - name: Execute logical batches in this shard
+      - name: Start persistent AI runtime pool (5 isolated workers)
         env:
-          SHARD: ${{ matrix.shard }}
+          COLMENA_AI_DEVICE: "cpu"
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/colmena/ai_runtime
+          : > artifacts/colmena/ai_runtime/pids
+          for port in 8765 8766 8767 8768 8769; do
+            COLMENA_AI_PORT="$port" node scripts/colmena_local_ai.mjs --server > "artifacts/colmena/ai_runtime/runtime_${port}.log" 2>&1 &
+            echo "$! $port" >> artifacts/colmena/ai_runtime/pids
+          done
+          python - <<'PY'
+          import time, urllib.request
+          for port in [8765,8766,8767,8768,8769]:
+              for _ in range(90):
+                  try:
+                      with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=3) as r:
+                          if r.status == 200: break
+                  except Exception: time.sleep(2)
+              else: raise SystemExit(f"FAIL_CLOSED: AI runtime {port} unhealthy")
+          print("AI_RUNTIME_POOL=PASS size=5")
+          PY
+      - name: Queen dispatches and supervises all 36 batches
+        env:
           COLMENA_AGENT_PROVIDER: github-actions-local-transformers-js
           COLMENA_AI_AGENT_EXECUTION: "true"
           COLMENA_AI_DEVICE: "cpu"
           COLMENA_AGENT_MODEL: onnx-community/Qwen3-0.6B-ONNX:q4f16
-          COLMENA_AGENT_EXECUTION_ID: ${{ github.run_id }}-${{ github.run_attempt }}-shard-${{ matrix.shard }}
+          COLMENA_AGENT_EXECUTION_ID: ${{ github.run_id }}-${{ github.run_attempt }}-queen
+          COLMENA_AI_SERVER_POOL_SIZE: "5"
+          COLMENA_AI_SERVER_PORT_BASE: "8765"
           COLMENA_COMMAND_TIMEOUT_SECONDS: "300"
         run: |
           set -euo pipefail
-          mkdir -p artifacts/colmena/workers
-          python - <<'PY' > /tmp/shard_batches
-          import json, os
-          p=json.load(open("artifacts/colmena/queen_approval.json",encoding="utf-8"))
-          shard=int(os.environ["SHARD"])
-          for batch_no in range(shard, len(p["batches"]), 10):
-              print(batch_no, *p["batches"][batch_no]["mission_ids"])
-          PY
-          rc=0
-          while read -r batch mid1 mid2 mid3 mid4 mid5; do
-            [ -z "${batch:-}" ] && continue
-            ids="$mid1 $mid2 $mid3 $mid4 $mid5"
-            pids=""
-            for mid in $ids; do
-              [ -z "$mid" ] && continue
-              python scripts/colmena_worker.py --mission-id "$mid" --approval artifacts/colmena/queen_approval.json --ref "$GITHUB_SHA" --out "artifacts/colmena/workers/worker_${mid}.json" > "artifacts/colmena/workers/${mid}.log" 2>&1 &
-              pids="$pids $!"
-            done
-            for pid in $pids; do wait "$pid" || rc=1; done
-            echo "BATCH=$batch DONE"
-          done < /tmp/shard_batches
-          expected=$(python - <<'PY'
-          import json, os
-          p=json.load(open("artifacts/colmena/queen_approval.json",encoding="utf-8"))
-          print(sum(len(p["batches"][i]["mission_ids"]) for i in range(int(os.environ["SHARD"]),len(p["batches"]),10)))
-          PY
-          )
-          actual=$(find artifacts/colmena/workers -name 'worker_M*.json' | wc -l)
-          echo "SHARD=$SHARD EVIDENCE=$actual EXPECTED=$expected"
-          test "$actual" -eq "$expected"
-          exit "$rc"
-      - name: Upload shard evidence
+          python scripts/colmena_queen.py --ref "$GITHUB_SHA" --output artifacts/colmena/queen_approval.json --supervise --workers-dir artifacts/colmena/workers --state artifacts/colmena/queen_state.json
+      - name: Stop AI runtime pool
+        if: always()
+        run: |
+          if [ -f artifacts/colmena/ai_runtime/pids ]; then while read -r pid port; do kill "$pid" 2>/dev/null || true; done < artifacts/colmena/ai_runtime/pids; fi
+      - name: Upload execution evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: colmena-shard-${{ matrix.shard }}
-          path: artifacts/colmena/workers/
+          name: colmena-execution
+          path: artifacts/colmena/
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 30
 
   reconcile:
     name: "Queen — reconcile 179/179"
     if: always()
-    needs: [plan, shard]
+    needs: [plan, execute]
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
