@@ -1,0 +1,12 @@
+{
+  "schema": "CIS_HISTORICAL_MANIFEST_V1",
+  "path": "artifacts/data/cis_historical_2004_2023.csv",
+  "sha256": "76ad123fa60eb1b73dd9c4c559d358ad0705f7122cf694c2e5b9bfec11aa16e3",
+  "rows": 110,
+  "elections": ["2004","2008","2011","2015","2016","2019-04","2019-11","2023"],
+  "source_type": "PRIMARY_CIS",
+  "metric": "cis_estimate_pct",
+  "direct_vote_metric": "vote_direct_pct",
+  "renormalization": false,
+  "imputation": false
+}
