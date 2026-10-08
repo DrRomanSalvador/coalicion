@@ -2,6 +2,13 @@
 from __future__ import annotations
 import json, os
 from pathlib import Path
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from src.telegram_bot import COMMANDS, _chat_allowed, _sources, render_command
 from src.telegram_timezone import now_madrid
 from src.telegram_persistence import SNAPSHOT, snapshot as snapshot_telegram_state
