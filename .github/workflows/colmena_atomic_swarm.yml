@@ -15,8 +15,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: colmena-atomic-${{ github.run_id }}
+  cancel-in-progress: false
 
 jobs:
   plan:
