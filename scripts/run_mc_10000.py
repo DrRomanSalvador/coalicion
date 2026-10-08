@@ -33,7 +33,7 @@ def main():
     def norm(x):
         raw=str(x)
         key=" ".join(unicodedata.normalize("NFKD",raw).encode("ascii","ignore").decode().lower().replace("/"," ").replace(","," ").split())
-        key=re.sub(r"^\\d+\\s*[-–—:]?\\s*", "", key)
+        key=re.sub(r"^\d+\s*[-–—:]?\s*", "", key)
         if key in aliases:
             return aliases[key]
         if key in seat_by_key:
