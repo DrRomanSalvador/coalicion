@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "ae8f5fe581525a5542881c5e3da1e576a59724ed",
-  "updated_at": "2026-10-08T13:04:00+02:00",
+  "commit": "73e2a9b9f59d76b0d1327a4ffed665edf7d86f9c",
+  "updated_at": "2026-10-08T13:06:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -24,7 +24,7 @@
     "national_observations": 3,
     "territorial_observations": 0
   },
-  "resume_from": "Execute phase2-product on latest main; verify Priority 1/2 artifacts; continue to evidence acquisition and reproducibility gates.",
+  "resume_from": "Wait for latest phase2-product run; inspect failure/success; preserve blocked territorial status.",
   "last_execution": {
     "run": 37779334950,
     "validation_tests": "37 passed",
@@ -64,6 +64,7 @@
       "scripts/materialize_priority2_checkpoint.py",
       "tests/test_phase2_priority2.py",
       "artifacts/phase2_priority2_status.json"
-    ]
+    ],
+    "execution_fix": "FIXED_SCRIPT_IMPORT_PATH"
   }
 }
