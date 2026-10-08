@@ -1,0 +1,28 @@
+{
+  "schema": "EXTERNAL_AUDIT_MASTER_V1",
+  "technical_package": "READY_FOR_INDEPENDENT_SIGNOFF",
+  "independent_external_audit": "OPEN",
+  "independence_claimed": false,
+  "index": "docs/EXTERNAL_AUDIT_MASTER.md",
+  "verifier": "scripts/external_audit.py",
+  "workflow": ".github/workflows/external-audit.yml",
+  "critical_evidence": [
+    "ci_evidence/oos_calibration.json",
+    "ci_evidence/mc_10000.json",
+    "ci_evidence/seec_production.json",
+    "ci_evidence/backtest_2023_baseline.json",
+    "ci_evidence/backtest_complete_2004_2023.json",
+    "ci_evidence/poll_source_coverage.json",
+    "ci_evidence/master_certification.json"
+  ],
+  "reviewer_must_record": [
+    "auditor_identity",
+    "audit_date",
+    "audited_commit",
+    "technical_verdict",
+    "independence_declaration",
+    "limitations",
+    "signature_or_equivalent_attestation"
+  ],
+  "fail_closed": true
+}
