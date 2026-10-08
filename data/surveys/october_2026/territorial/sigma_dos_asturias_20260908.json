@@ -1,0 +1,19 @@
+{
+  "survey_id":"sigma_dos_asturias_20260908",
+  "source_id":"sigma_dos",
+  "source_tier":"PRIMARY_POLLSTER",
+  "validation":"PRIMARY_VERIFIED",
+  "scope":"territorial",
+  "territory_type":"autonomous_community",
+  "territory_name":"Principado de Asturias",
+  "fieldwork_start":"2026-08-26",
+  "fieldwork_end":"2026-09-03",
+  "publication_date":"2026-09-08",
+  "sample_size":1129,
+  "methodology":"mixta CATI/CAWI vía Panel Sigma Dos by Trust Survey; muestra proporcional por circunscripción",
+  "source_url":"https://www.sigmados.com/sondeo-especial-estimacion-de-voto-para-la-junta-general-del-principado-de-asturias-por-el-dia-de-asturias/",
+  "content_hash_scope":"captured_excerpt",
+  "content_sha256":"PENDING_CAPTURED_SOURCE_HASH",
+  "captured_excerpt":"Sigma Dos; Principado de Asturias; 1129 entrevistas; CATI/CAWI; campo 26 agosto–3 septiembre 2026; PP 32,9%, PSOE 32,4%, Vox 18,3%, IU 7,6%, Podemos 3,0%.",
+  "policy":{"not_general_election_constituency_data":true,"fail_closed":true}
+}
