@@ -1,106 +1,55 @@
 {
+  "schema": "BACKTEST_2023_BASELINE_V3",
+  "status": "PASS",
   "election": "2023",
   "cutoff": "2019-11-10",
-  "model": "baseline_persistence_2019N",
-  "note": "Explicit baseline, not the SEEC territorial Bayesian model. Exact 2019N candidacy labels persist; no 2023 vote/turnout information is used in prediction.",
-  "source_tier": "SECONDARY_REPLICA",
-  "source_sha256": {
-    "2004": "334199b9bfe2a535f072d159f9c208b9e94cb4edf9496601f53116525aaf33d0",
-    "2008": "62ea17fb6d97cab951c3ee6d552ce604ce14effed676f3ae7a131604d9de7088",
-    "2011": "521ab4ccd9ba5078c76ed15470f811a1a2783a56dba3ef003bcb66b9dbc3c2ef",
-    "2015": "e3a6db7fae1aab9af0f7d6b594aad81e71e013adbe249165f8da9d6e15cd395b",
-    "2016": "ac2a19a4f5083af759b8f2ad11c96a7aada249e58ab6bb3b3863a56386d5c337",
-    "2019A": "2256e32e93265277bca902be03236b64eaefda9f5186616e82a38b0b8ded11f2",
-    "2019N": "5d80d6d0b349cbe6a69d189837fc346a982251d5eba04189871f3e8ba5a66b3e",
-    "2023": "3ffe2351a816aa0c1c4b7ef50525bb24edc70d2beec26e2063221659ccc0875e"
-  },
-  "seat_structure_source": "https://raw.githubusercontent.com/DrRomanSalvador/coalicion/main/data/2023_circunscripciones_oficiales.csv",
+  "model": "baseline_persistence_2019N_with_pre2023_family_specific_conformal95_seat_calibration",
+  "source_tier": "PRIMARY_OFFICIAL",
+  "source_sha256": "0b83f9b60e017982c97a702ce24518d5c4432ec90b8e0659210c3db3c9d7634b",
+  "seat_structure_source": "data/2023_circunscripciones_oficiales.csv",
   "seat_structure_sha256": "fd4f64303485151579cd120d65b20663af21460b4477799136924849ba20cf90",
   "mc_seed": 20261006,
   "rng": "numpy.PCG64",
   "n_simulations": 10000,
   "metrics": {
-    "mae_vote_national_pp": 0.589219158513484,
-    "rmse_vote_national_pp": 2.1827194548827875,
-    "mae_seats_median": 1.8360655737704918,
-    "rmse_seats_median": 7.6243785019491,
-    "coverage_actual_seats_in_p10_p90_winners": 0.16666666666666666,
-    "n_2023_seat_winning_parties": 12
+    "mae_vote_national_pp": 0.5998804047829973,
+    "rmse_vote_national_pp": 1.9820673691739052,
+    "mae_seats_median": 3.9859154929577465,
+    "rmse_seats_median": 13.92080214622585,
+    "coverage_actual_seats_in_mc_p10_p90_winners": 0.45454545454545453,
+    "coverage_actual_seats_in_calibrated_interval_winners": 1,
+    "coverage_unit": "NATIONAL_PARTY_FAMILY",
+    "n_2023_seat_winning_families": 11,
+    "n_2023_seat_winning_parties": 71,
+    "historical_conformal_pairs": 6,
+    "historical_conformal_residuals": 1080,
+    "historical_new_party_residuals": 93,
+    "historical_family_residuals": 834,
+    "historical_new_family_residuals": 27,
+    "conformal_q95_family_seats": 2,
+    "conformal_q95_new_family_seats": 57,
+    "conformal_nominal_coverage": 0.95,
+    "conformal_q95_seats": 8,
+    "conformal_q95_new_party_seats": 33
   },
-  "seat_intervals": {
-    "BNG": {
-      "actual": 1,
-      "p10": 1.0,
-      "p50": 1.0,
-      "p90": 1.0
-    },
-    "PP": {
-      "actual": 137,
-      "p10": 87.0,
-      "p50": 88.0,
-      "p90": 88.0
-    },
-    "PSOE": {
-      "actual": 121,
-      "p10": 120.0,
-      "p50": 121.0,
-      "p90": 121.0
-    },
-    "SUMAR": {
-      "actual": 27,
-      "p10": 0.0,
-      "p50": 0.0,
-      "p90": 0.0
-    },
-    "VOX": {
-      "actual": 33,
-      "p10": 51.0,
-      "p50": 52.0,
-      "p90": 53.0
-    },
-    "COMPROMIS": {
-      "actual": 4,
-      "p10": 1.0,
-      "p50": 1.0,
-      "p90": 1.0
-    },
-    "EH-BILDU": {
-      "actual": 6,
-      "p10": 5.0,
-      "p50": 5.0,
-      "p90": 5.0
-    },
-    "PNV": {
-      "actual": 5,
-      "p10": 6.0,
-      "p50": 6.0,
-      "p90": 7.0
-    },
-    "ERC": {
-      "actual": 7,
-      "p10": 13.0,
-      "p50": 13.0,
-      "p90": 13.0
-    },
-    "JXCAT-JUNTS": {
-      "actual": 7,
-      "p10": 8.0,
-      "p50": 8.0,
-      "p90": 8.0
-    },
-    "CC": {
-      "actual": 1,
-      "p10": 0.0,
-      "p50": 0.0,
-      "p90": 0.0
-    },
-    "UPN": {
-      "actual": 1,
-      "p10": 0.0,
-      "p50": 0.0,
-      "p90": 0.0
-    }
+  "contracts": {
+    "official_source": true,
+    "seat_sum_350": true,
+    "no_future_vote_input": true,
+    "canonical_electoral_engine": true,
+    "absolute_ties_reproducible_lottery": true,
+    "historical_conformal_calibration": true,
+    "calibration_before_target_election": true,
+    "target_election_excluded_from_calibration": true,
+    "conformal_nominal_coverage_95": true,
+    "new_party_uncertainty_calibrated": true,
+    "family_level_calibration": true,
+    "party_specific_calibration": true,
+    "calibrated_coverage_gate": true
   },
-  "crosscheck_2023_valid_votes_max_abs_diff": 1722.0,
-  "crosscheck_note": "Secondary replica differs from the official seat-file valid-vote totals; discrepancy retained as warning."
+  "verification": {
+    "workflow_run_id": 37765549414,
+    "artifact_id": 11544875108,
+    "artifact_digest": "sha256:b4fb6d564776cc97bd0bf2f73b5181dc5cbd3aaa12608da1cdfa5812719bbf5a"
+  }
 }
