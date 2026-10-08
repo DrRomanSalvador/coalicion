@@ -1,53 +1,64 @@
+#!/usr/bin/env python3
+"""Fail-closed audit of the materialized 2023 constituency matrix."""
 from __future__ import annotations
+import hashlib, json
 from pathlib import Path
-import hashlib
-import json
-import pandas as pd
 
-ROOT = Path(".audit_2023")
-XLSX = ROOT / "Elecciones-Congreso.xlsx"
+ROOT = Path(__file__).resolve().parents[1]
+MATRIX = ROOT / "artifacts/data/election_2023_canonical.json"
+HASH = ROOT / "artifacts/data/election_2023_canonical.json.sha256"
+REPORT = ROOT / "artifacts/data/election_2023_audit.json"
 
-def norm(x):
-    return "" if pd.isna(x) else str(x).strip().upper()
+def fail(msg: str) -> None:
+    raise SystemExit("FAIL_CLOSED: " + msg)
 
-def main():
-    if not XLSX.exists():
-        raise SystemExit("Falta el XLSX oficial")
-
-    sha = hashlib.sha256(XLSX.read_bytes()).hexdigest()
-    sheets = pd.read_excel(XLSX, sheet_name=None, header=None, dtype=object)
-
+def main() -> int:
+    if not MATRIX.is_file() or MATRIX.stat().st_size == 0:
+        fail("falta matriz 2023 materializada")
+    raw = MATRIX.read_bytes()
+    actual_sha = hashlib.sha256(raw).hexdigest()
+    if HASH.is_file():
+        expected_sha = HASH.read_text(encoding="utf-8").strip().split()[0]
+        if expected_sha and expected_sha != actual_sha:
+            fail("SHA-256 de matriz no coincide")
+    data = json.loads(raw.decode("utf-8"))
+    if data.get("election") != 2023:
+        fail("elección distinta de 2023")
+    constituencies = data.get("data", {}).get("constituencies")
+    if not isinstance(constituencies, dict) or len(constituencies) != 52:
+        fail("no hay exactamente 52 circunscripciones")
+    seats = [v.get("seats") for v in constituencies.values()]
+    if any(not isinstance(x, int) or x < 1 for x in seats) or sum(seats) != 350:
+        fail("escaños inválidos o suma distinta de 350")
+    for name, row in constituencies.items():
+        parties = row.get("parties")
+        blank = row.get("blank_votes")
+        valid = row.get("valid_votes")
+        if not isinstance(parties, dict) or not parties:
+            fail(f"{name}: candidaturas ausentes")
+        if not isinstance(blank, int) or blank < 0 or not isinstance(valid, int) or valid < 0:
+            fail(f"{name}: votos inválidos")
+        if any(not isinstance(p, str) or not p or not isinstance(v, int) or v < 0 for p, v in parties.items()):
+            fail(f"{name}: candidatura/votos inválidos")
+        if sum(parties.values()) + blank != valid:
+            fail(f"{name}: votos válidos != candidaturas + blancos")
     report = {
-        "source": str(XLSX),
-        "sha256": sha,
-        "sheets": {},
+        "status": "PASS",
+        "reason": "STRUCTURAL_VALIDATION",
+        "path": str(MATRIX.relative_to(ROOT)),
+        "sha256": actual_sha,
+        "schema": data.get("schema"),
+        "source_tier": data.get("source_tier"),
+        "election": 2023,
+        "province_count": 52,
+        "seat_total": 350,
+        "candidate_votes_total": sum(sum(x["parties"].values()) for x in constituencies.values()),
+        "valid_vote_keys": len(constituencies),
     }
-
-    for name, df in sheets.items():
-        rows = []
-        for i in range(min(len(df), 100)):
-            vals = [norm(v) for v in df.iloc[i].tolist()]
-            if any("2023" in v for v in vals):
-                rows.append({"row": i + 1, "values": vals[:20]})
-        report["sheets"][name] = {
-            "rows": int(len(df)),
-            "columns": int(len(df.columns)),
-            "2023_markers": rows[:10],
-        }
-
-    (ROOT / "workbook_structure.json").write_text(
-        json.dumps(report, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-
-    with (ROOT / "workbook_structure.txt").open("w", encoding="utf-8") as f:
-        for name, info in report["sheets"].items():
-            f.write(f"\n=== {name} ===\n")
-            f.write(f"rows={info['rows']} columns={info['columns']}\n")
-            for row in info["2023_markers"]:
-                f.write(f"row={row['row']} values={row['values']}\n")
-
-    print(json.dumps(report, ensure_ascii=False, indent=2))
+    REPORT.parent.mkdir(parents=True, exist_ok=True)
+    REPORT.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(report, ensure_ascii=False))
+    return 0
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
