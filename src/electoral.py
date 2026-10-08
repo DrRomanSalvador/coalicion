@@ -2,7 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from fractions import Fraction
-from typing import Mapping, Optional
+from typing import Callable, Mapping, Optional
 
 @dataclass(frozen=True)
 class Allocation:
@@ -27,19 +27,36 @@ def _validate_matrix(votes, valid, blank):
 def _eligible(votes, valid, threshold):
     return {p:v for p,v in votes.items() if Fraction(v,valid)>=threshold}
 
-def dhondt(votes:Mapping[str,int], seats:int, valid_votes_total:int, blank_votes:int=0, threshold:Fraction=Fraction(3,100))->Allocation:
+def dhondt(votes:Mapping[str,int], seats:int, valid_votes_total:int, blank_votes:int=0, threshold:Fraction=Fraction(3,100), tie_breaker:Optional[Callable[[tuple[str,...]], str]]=None)->Allocation:
     if isinstance(seats,bool) or not isinstance(seats,int) or seats<1: raise ValueError("seats inválido")
     if not 0<=threshold<=1: raise ValueError("threshold inválido")
     _validate_matrix(votes,valid_votes_total,blank_votes)
     result={p:0 for p in votes}
     eligible=_eligible(votes,valid_votes_total,threshold)
+    tie_state: dict[frozenset[str], str] = {}
     if not eligible: return Allocation(result,"INSUFICIENTES_CANDIDATURAS")
     for _ in range(seats):
         qs={p:Fraction(v,result[p]+1) for p,v in eligible.items()}
         top=max(qs.values()); tied=[p for p,q in qs.items() if q==top]
         if len(tied)>1:
             max_votes=max(eligible[p] for p in tied); tied=[p for p in tied if eligible[p]==max_votes]
-            if len(tied)>1: return Allocation(result,"EMPATE_ABSOLUTO_PENDIENTE",tuple(sorted(tied)))
+            if len(tied)>1:
+                tied_tuple=tuple(sorted(tied))
+                if tie_breaker is None:
+                    return Allocation(result,"EMPATE_ABSOLUTO_PENDIENTE",tied_tuple)
+                if len(tied_tuple)!=2:
+                    return Allocation(result,"EMPATE_ABSOLUTO_PENDIENTE",tied_tuple)
+                key=frozenset(tied_tuple)
+                previous=tie_state.get(key)
+                if previous is None:
+                    chosen=tie_breaker(tied_tuple)
+                    if chosen not in tied_tuple:
+                        raise ValueError("tie_breaker devolvió una candidatura no empatada")
+                    tie_state[key]=chosen
+                else:
+                    chosen=tied_tuple[1] if previous==tied_tuple[0] else tied_tuple[0]
+                    tie_state[key]=chosen
+                tied=[chosen]
         result[tied[0]]+=1
     return Allocation(result,"OK")
 
@@ -51,11 +68,11 @@ def ceuta_melilla(votes:Mapping[str,int], valid_votes_total:Optional[int]=None, 
     if len(winners)>1: return Allocation({p:0 for p in votes},"EMPATE_MAYORIA_PENDIENTE",tuple(sorted(winners)))
     return Allocation({p:int(p==winners[0]) for p in votes},"OK")
 
-def allocate(votes,seats,valid_votes_total,special="",blank_votes=0):
+def allocate(votes,seats,valid_votes_total,special="",blank_votes=0,tie_breaker=None):
     if special in {"Ceuta","Melilla"}:
         if seats!=1: raise ValueError("Ceuta/Melilla: 1 escaño")
         return ceuta_melilla(votes,valid_votes_total,blank_votes)
-    return dhondt(votes,seats,valid_votes_total,blank_votes)
+    return dhondt(votes,seats,valid_votes_total,blank_votes,tie_breaker=tie_breaker)
 
 def merge_candidacies(*matrices):
     out={}
