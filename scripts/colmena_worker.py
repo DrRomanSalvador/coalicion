@@ -93,6 +93,11 @@ def main():
     o = Path(a.out); o.parent.mkdir(parents=True, exist_ok=True)
     o.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"mission_id": m["id"], "status": evidence["status"], "adapter": evidence["adapter"]}))
+    if evidence["status"] != "PASS":
+        if evidence.get("stdout"):
+            print(evidence["stdout"])
+        if evidence.get("stderr"):
+            print(evidence["stderr"], file=sys.stderr)
     return 0 if evidence["status"] == "PASS" else 1
 
 if __name__ == "__main__":
