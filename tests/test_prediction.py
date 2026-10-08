@@ -35,6 +35,6 @@ def test_share_swing_rounding_tie_is_lexicographically_stable():
     out = apply_share_swing(
         {"A": {"A": 1, "B": 1}},
         {"A": {"A": 0.0, "B": 0.0}},
-        {"A": 1.5},
+        {"A": 1.3},
     )
-    assert out["A"] == {"A": 1, "B": 1}
+    assert out["A"] == {"A": 2, "B": 1}
