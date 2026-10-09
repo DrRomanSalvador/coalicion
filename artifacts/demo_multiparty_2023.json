@@ -1,0 +1,49 @@
+{
+  "schema": "COALICION_MULTIPARTY_DEMO_V1",
+  "election": 2023,
+  "regions": ["Madrid", "Barcelona"],
+  "scenarios": [
+    {
+      "id": "fragmentado",
+      "label": "Fragmentado: candidaturas observadas",
+      "assumption": "Cada candidatura conserva su lista observada de 2023; se verifica el reparto oficial.",
+      "groups": {"Madrid": {}, "Barcelona": {}}
+    },
+    {
+      "id": "izquierda_sin_psoe",
+      "label": "Izquierda sin PSOE/PSC",
+      "assumption": "Madrid: SUMAR sigue separado del PSOE. Barcelona: ECP, ERC y CUP se agrupan; PSC permanece separado. No se modelan transferencias.",
+      "groups": {
+        "Madrid": {},
+        "Barcelona": {
+          "Bloque izquierda sin PSC": [
+            "SUMAR - EN COMÚ PODEM - SUMAR - ECP",
+            "ESQUERRA REPUBLICANA DE CATALUNYA - ERC",
+            "CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA - CUP-PR"
+          ]
+        }
+      }
+    },
+    {
+      "id": "bloque_amplio_con_psoe_psc",
+      "label": "Bloque amplio con PSOE/PSC",
+      "assumption": "Madrid: PSOE y SUMAR agregados. Barcelona: PSC, ECP, ERC y CUP agregados. Suma mecánica de votos observados, sin transferencias.",
+      "groups": {
+        "Madrid": {
+          "Bloque amplio PSOE-SUMAR": [
+            "PARTIDO SOCIALISTA OBRERO ESPAÑOL - PSOE",
+            "SUMAR - SUMAR"
+          ]
+        },
+        "Barcelona": {
+          "Bloque amplio PSC-ECP-ERC-CUP": [
+            "PARTIT DELS SOCIALISTES DE CATALUNYA (PSC-PSOE) - PSC",
+            "SUMAR - EN COMÚ PODEM - SUMAR - ECP",
+            "ESQUERRA REPUBLICANA DE CATALUNYA - ERC",
+            "CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA - CUP-PR"
+          ]
+        }
+      }
+    }
+  ]
+}
