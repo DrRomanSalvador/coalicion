@@ -147,3 +147,9 @@ def test_poll_monitor_fails_closed_after_persisting_blocked_state():
     assert "steps.monitor.outputs.monitor_exit_code" in workflow
     assert 'raise SystemExit(1 if result.get("status") == "BLOCKED" else 0)' in monitor
     assert 'payload["notification_status"]' in monitor
+
+
+def test_continuous_supervisor_retries_by_default_except_explicit_dispatch_opt_out():
+    source = (WORKFLOWS / "continuous-workflow-supervisor.yml").read_text(encoding="utf-8")
+    assert "RETRY_FAILED: ${{ github.event_name != 'workflow_dispatch' || inputs.retry_failed }}" in source
+    assert "RETRY_FAILED: ${{ inputs.retry_failed != false }}" not in source
