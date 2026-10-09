@@ -54,6 +54,9 @@ jobs:
     needs: plan
     runs-on: ubuntu-22.04
     timeout-minutes: 90
+    # Secret stays in the process environment; never echo it or write it to artifacts.
+    env:
+      HF_TOKEN: ${{ secrets.reina_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -66,6 +69,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Validate Hugging Face credential is present (never print it)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${HF_TOKEN:-}" ]]; then
+            echo "FAIL_CLOSED: secret reina_TOKEN is not available to this workflow run"
+            exit 1
+          fi
+          echo "HF_CREDENTIAL=AVAILABLE"
       - name: Restore local AI cache
         id: cache
         uses: actions/cache/restore@v4
@@ -173,6 +185,56 @@ jobs:
           payload={"schema":"COLMENA_RECONCILIATION_V10","expected":179,"observed":len(files),"unique_missions":len(observed),"logical_batches":36,"all_179_ai_runtime_pass":len(rows)==179 and all(r.get("runtime_status")=="PASS" and r.get("agent_runtime",{}).get("ai_execution") is True for r in rows),"all_179_missions_pass":len(rows)==179 and all(r.get("status")=="PASS" for r in rows),"fail_closed":True,"status":"PASS" if valid else "BLOCKED"}
           (root/"reconciliation.json").write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n")
           print(json.dumps(payload,ensure_ascii=False)); sys.exit(0 if valid else 1)
+          PY
+      - name: Persist operational state (fail-closed)
+        if: always()
+        env:
+          PLAN_RESULT: ${{ needs.plan.result }}
+          EXECUTE_RESULT: ${{ needs.execute.result }}
+          COMMIT_SHA: ${{ github.sha }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
+          WORKFLOW_RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from datetime import datetime
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+          root = Path("artifacts/colmena")
+          root.mkdir(parents=True, exist_ok=True)
+          rec_path = root / "reconciliation.json"
+          rec = json.loads(rec_path.read_text(encoding="utf-8")) if rec_path.is_file() else {}
+          workers_dir = root / "workers"
+          rows = []
+          if workers_dir.is_dir():
+              for path in sorted(workers_dir.glob("worker_*.json")):
+                  try: rows.append(json.loads(path.read_text(encoding="utf-8")))
+                  except Exception: pass
+          inference_count = sum(1 for r in rows if isinstance(r.get("ai_inference"), dict) and bool(r["ai_inference"].get("response_sha256")) and bool(r["ai_inference"].get("response_excerpt")))
+          evidence_count = sum(1 for r in rows if r.get("status") == "PASS" and r.get("runtime_status") == "PASS" and r.get("ai_inference"))
+          queen_pass = (os.environ.get("PLAN_RESULT") == "success" and os.environ.get("EXECUTE_RESULT") == "success" and rec.get("status") == "PASS" and rec.get("observed") == 179 and rec.get("unique_missions") == 179 and rec.get("all_179_ai_runtime_pass") is True and rec.get("all_179_missions_pass") is True and inference_count == 179 and evidence_count == 179)
+          state = {
+            "schema": "COALICION_OPERATIONAL_STATE_V2",
+            "status": "PASS" if queen_pass else "BLOCKED",
+            "commit": os.environ.get("COMMIT_SHA", ""),
+            "workflow": ".github/workflows/colmena_atomic_swarm.yml",
+            "workflow_run_id": os.environ.get("WORKFLOW_RUN_ID", ""),
+            "workflow_run_attempt": os.environ.get("WORKFLOW_RUN_ATTEMPT", ""),
+            "plan_result": os.environ.get("PLAN_RESULT", "unknown"),
+            "execute_result": os.environ.get("EXECUTE_RESULT", "unknown"),
+            "queen": 1 if queen_pass else 0,
+            "workers_expected": 179,
+            "workers_completed": sum(1 for r in rows if r.get("status") == "PASS" and r.get("runtime_status") == "PASS"),
+            "inferences_validated": inference_count,
+            "evidences_validated": evidence_count,
+            "queen_gate": "PASS" if queen_pass else "BLOCKED",
+            "reconciliation": rec,
+            "timestamp_europe_madrid": datetime.now(ZoneInfo("Europe/Madrid")).isoformat(),
+            "secret_value_persisted": False,
+          }
+          (root / "operational_state.json").write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+          print(json.dumps({k: state[k] for k in ("status", "workflow_run_id", "workers_expected", "workers_completed", "inferences_validated", "evidences_validated", "queen_gate", "timestamp_europe_madrid")}, ensure_ascii=False))
           PY
       - uses: actions/upload-artifact@v4
         if: always()
