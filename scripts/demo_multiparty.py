@@ -213,7 +213,7 @@ def main() -> int:
     except (DemoError, ValueError, RuntimeError, KeyError, TypeError) as exc:
         print(f"ERROR FAIL-CLOSED: {exc}", file=sys.stderr)
         return 2
-    serialized = json.dumps(result, ensure_ascii=False, indent=2) + "\\n"
+    serialized = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     try:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         temporary = args.output.with_suffix(args.output.suffix + ".tmp")
