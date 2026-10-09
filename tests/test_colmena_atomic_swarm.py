@@ -76,3 +76,47 @@ def test_seec_convergence_diagnostics_include_latent_eta_states():
     script = (ROOT / "scripts/run_seec_production.py").read_text(encoding="utf-8")
     assert 'diagnostic_variables=["temporal_sigma","log_concentration","eta0","eta"]' in script
     assert '"latent_eta_included":True' in script
+
+
+def test_unmapped_mission_analysis_cannot_be_reported_as_pass():
+    from scripts.colmena_worker import run
+
+    mission = {
+        "id": "M0004-52-circunscripciones",
+        "title": "52 circunscripciones",
+        "kind": "READ",
+        "write_authorized": False,
+        "scope": [],
+        "approval": "test-approval",
+    }
+    evidence = run(
+        mission,
+        "test-ref",
+        "agent-M0004",
+        {"provider": "test", "execution_id": "test-exec", "independent": True, "ai_execution": True},
+    )
+    assert evidence["status"] == "BLOCKED"
+    assert evidence["returncode"] == 2
+    assert "deterministic validator" in evidence["stderr"]
+
+
+def test_unapproved_change_mission_cannot_be_reported_as_pass():
+    from scripts.colmena_worker import run
+
+    mission = {
+        "id": "M0179-release-v1-0-0",
+        "title": "release v1.0.0",
+        "kind": "WRITE",
+        "write_authorized": False,
+        "scope": [],
+        "approval": "test-approval",
+    }
+    evidence = run(
+        mission,
+        "test-ref",
+        "agent-M0179",
+        {"provider": "test", "execution_id": "test-exec", "independent": True, "ai_execution": True},
+    )
+    assert evidence["status"] == "BLOCKED"
+    assert evidence["returncode"] == 2
+    assert "scoped write approval" in evidence["stderr"]
