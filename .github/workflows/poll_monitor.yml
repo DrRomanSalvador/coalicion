@@ -36,25 +36,49 @@ jobs:
           python -m pytest tests/test_poll_monitor.py tests/test_cis_monitor.py tests/test_electomania_monitor.py tests/test_dato_electoral_monitor.py tests/test_twitter_monitor.py tests/test_poll_validator.py tests/test_poll_hasher.py tests/test_poll_normalizer.py -q
 
       - name: Monitorizar fuentes
+        id: monitor
+        shell: bash
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_ALLOWED_CHATS: ${{ secrets.TELEGRAM_ALLOWED_CHATS || secrets.TELEGRAM_CHAT_ID }}
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
         run: |
           set -euo pipefail
+          set +e
           python -m src.poll_monitor
-          python scripts/materialize_estimation_inputs.py
-          python scripts/materialize_poll_source_coverage.py
+          monitor_rc=$?
+          set -e
+          echo "monitor_exit_code=$monitor_rc" >> "$GITHUB_OUTPUT"
+
+          # Snapshot the poll monitor's own state before downstream materialization.
+          # Persist this diagnostic state even when coverage/notification is BLOCKED.
+          test -f artifacts/poll_monitor_state.json || {
+            echo "::error::Poll monitor state is missing after execution."
+            exit 1
+          }
           rm -rf /tmp/poll-monitor-snapshot
           mkdir -p /tmp/poll-monitor-snapshot/surveys
           cp artifacts/poll_monitor_state.json /tmp/poll-monitor-snapshot/
-          cp artifacts/survey_history.jsonl /tmp/poll-monitor-snapshot/
-          cp ci_evidence/poll_source_coverage.json /tmp/poll-monitor-snapshot/
-          cp artifacts/estimation/observations.json /tmp/poll-monitor-snapshot/observations.json
-          cp -a artifacts/surveys/. /tmp/poll-monitor-snapshot/surveys/
+          if [[ -f artifacts/survey_history.jsonl ]]; then
+            cp artifacts/survey_history.jsonl /tmp/poll-monitor-snapshot/
+          else
+            touch /tmp/poll-monitor-snapshot/survey_history.jsonl
+          fi
+          if [[ -d artifacts/surveys ]]; then
+            cp -a artifacts/surveys/. /tmp/poll-monitor-snapshot/surveys/
+          fi
+
+          if [[ "$monitor_rc" -eq 0 ]]; then
+            python scripts/materialize_estimation_inputs.py
+            python scripts/materialize_poll_source_coverage.py
+            cp ci_evidence/poll_source_coverage.json /tmp/poll-monitor-snapshot/
+            cp artifacts/estimation/observations.json /tmp/poll-monitor-snapshot/observations.json
+          else
+            echo "::warning::Poll monitor reported BLOCKED. Derived inputs are not refreshed; state will be persisted before the final failure gate."
+          fi
 
       - name: Persistir estado con autocuración de carreras
-        if: github.ref == 'refs/heads/main'
+        if: always() && github.ref == 'refs/heads/main' && steps.monitor.outputs.monitor_exit_code != ''
         id: persist
         run: |
           set -euo pipefail
@@ -66,15 +90,21 @@ jobs:
             git reset --hard origin/main
 
             # Reaplicar el snapshot ya validado. Nunca hacemos rebase de JSON/JSONL.
+            test -f /tmp/poll-monitor-snapshot/poll_monitor_state.json || { echo "::error::Poll state snapshot missing."; exit 1; }
             cp /tmp/poll-monitor-snapshot/poll_monitor_state.json artifacts/poll_monitor_state.json
             cp /tmp/poll-monitor-snapshot/survey_history.jsonl artifacts/survey_history.jsonl
-            cp /tmp/poll-monitor-snapshot/poll_source_coverage.json ci_evidence/poll_source_coverage.json
-            cp /tmp/poll-monitor-snapshot/observations.json artifacts/estimation/observations.json
             rm -rf artifacts/surveys
             mkdir -p artifacts/surveys
             cp -a /tmp/poll-monitor-snapshot/surveys/. artifacts/surveys/
-
-            git add artifacts/poll_monitor_state.json artifacts/surveys artifacts/survey_history.jsonl artifacts/estimation/observations.json ci_evidence/poll_source_coverage.json
+            git add artifacts/poll_monitor_state.json artifacts/surveys artifacts/survey_history.jsonl
+            if [[ -f /tmp/poll-monitor-snapshot/observations.json ]]; then
+              cp /tmp/poll-monitor-snapshot/observations.json artifacts/estimation/observations.json
+              git add artifacts/estimation/observations.json
+            fi
+            if [[ -f /tmp/poll-monitor-snapshot/poll_source_coverage.json ]]; then
+              cp /tmp/poll-monitor-snapshot/poll_source_coverage.json ci_evidence/poll_source_coverage.json
+              git add ci_evidence/poll_source_coverage.json
+            fi
             if git diff --cached --quiet; then
               echo "changed=false" >> "$GITHUB_OUTPUT"
               echo "Sin cambios persistibles."
@@ -96,7 +126,7 @@ jobs:
           exit 1
 
       - name: Despertar COALMENA automáticamente
-        if: steps.persist.outputs.changed == 'true'
+        if: steps.persist.outputs.changed == 'true' && steps.monitor.outputs.monitor_exit_code == '0' && steps.monitor.outcome == 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -107,3 +137,23 @@ jobs:
             -f event_type="poll_monitor_completed" \
             -f "client_payload[commit]=${GITHUB_SHA}" \
             -f "client_payload[source]=poll_monitor"
+      - name: Fail closed after persisting monitor state
+        if: always()
+        env:
+          MONITOR_EXIT_CODE: ${{ steps.monitor.outputs.monitor_exit_code }}
+          MONITOR_OUTCOME: ${{ steps.monitor.outcome }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$MONITOR_EXIT_CODE" ]]; then
+            echo "::error::Poll monitor did not produce an exit status; refusing to report success."
+            exit 1
+          fi
+          if [[ "$MONITOR_EXIT_CODE" != "0" ]]; then
+            echo "::error::Poll monitor reported BLOCKED coverage or undelivered required alerts. State persistence was attempted before this gate."
+            exit 1
+          fi
+          if [[ "$MONITOR_OUTCOME" != "success" ]]; then
+            echo "::error::Poll monitor/materialization step failed; downstream state is not certified."
+            exit 1
+          fi
