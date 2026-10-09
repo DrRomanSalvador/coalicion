@@ -56,6 +56,8 @@ jobs:
         run: python scripts/demo_multiparty.py --output artifacts/demo_multiparty_2023.json
       - name: Validate generated JSON
         run: python -m json.tool artifacts/demo_multiparty_2023.json > /dev/null
+      - name: Require committed artifact to be reproducible
+        run: git diff --exit-code -- artifacts/demo_multiparty_2023.json
       - name: Upload reproducible demo result
         uses: actions/upload-artifact@v4
         with:
