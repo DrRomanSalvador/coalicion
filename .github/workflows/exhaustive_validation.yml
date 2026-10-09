@@ -39,6 +39,35 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
+      - name: Verify self-healer covers every workflow
+        shell: python
+        run: |
+          import re
+          from pathlib import Path
+
+          workflow_dir = Path(".github/workflows")
+          names = {}
+          for path in sorted(workflow_dir.glob("*.yml")):
+              text = path.read_text(encoding="utf-8")
+              match = re.search(r"^name:\\s*(.*?)\\s*$", text, re.MULTILINE)
+              if not match:
+                  raise SystemExit(f"Workflow lacks a top-level name: {path}")
+              name = match.group(1).strip().strip('"').strip("'")
+              if name != "Autonomous repository self-healer":
+                  names[name] = path
+
+          healer = (workflow_dir / "autonomous_self_healer.yml").read_text(encoding="utf-8")
+          block = re.search(r"(?ms)^  workflow_run:\\n(.*?)(?=^\\S|\\Z)", healer)
+          if not block:
+              raise SystemExit("Self-healer workflow_run trigger is missing.")
+          configured = {
+              item.strip().strip('"').strip("'")
+              for item in re.findall(r"^\\s+-\\s+(.+?)\\s*$", block.group(1), re.MULTILINE)
+          }
+          missing = sorted(set(names) - configured)
+          if missing:
+              raise SystemExit("Self-healer misses workflows: " + ", ".join(missing))
+          print(f"SELF_HEALER_COVERAGE=PASS ({len(names)} workflows)")
       - name: Lint all GitHub Actions workflows
         shell: bash
         run: |
