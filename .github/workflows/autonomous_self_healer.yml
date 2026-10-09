@@ -8,32 +8,7 @@ on:
         required: true
         type: string
   workflow_run:
-    workflows:
-      - completion-gate
-      - Exhaustive fail-closed validation
-      - Methodology extensions validation
-      - Product runtime smoke
-      - Historical data — canonical integration
-      - Reproducibility and Product Verification
-      - Complete backtest FINAL
-      - COALICIÓN demo end-to-end
-      - Demo multiparty 2023
-      - Methodology integration
-      - Methodology validation
-      - Product release
-      - Product pipeline 2026
-      - SEEC production real
-      - SEEC production
-      - Telegram Mini App
-      - Pytest — exhaustive suite
-      - Autonomous poll monitor
-      - Primary Interior fast materialization
-      - Colmena HF — tests aislados
-      - Real estimation pipeline
-      - Product pipeline 2026
-      - Full reproducible suite — tests + OOS + SEEC
-      - Historical CI orchestrator
-      - COALICIÓN — Colmena ligera
+    # Listen to every workflow; a static allowlist silently misses newly added workflows.
     types: [completed]
 
 permissions:
@@ -50,6 +25,7 @@ jobs:
     if: >-
       ${{ github.event_name == 'workflow_dispatch' ||
           (github.event_name == 'workflow_run' &&
+           github.event.workflow_run.name != 'Autonomous repository self-healer' &&
            github.event.workflow_run.head_branch == 'main' &&
            github.event.workflow_run.run_attempt == 1 &&
            (github.event.workflow_run.conclusion == 'failure' ||
