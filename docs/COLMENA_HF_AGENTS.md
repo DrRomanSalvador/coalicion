@@ -21,6 +21,9 @@ El comando por ID carga la misión canónica desde Mission Control y solo ejecut
 ## Persistencia duradera en GitHub
 La Reina reconcilia cada evidencia mediante `--record-result` y guarda en `docs/COLMENA_MISSION_CONTROL.json` el estado, la ruta y el SHA-256 del JSON. También actualiza `docs/COLMENA_STATE.json` con misión, agente, proveedor, hash, timestamp y metadatos del run; nunca guarda el secreto. Estos cambios solo cuentan como persistidos cuando el commit aparece en la rama invocada. Si el push falla, la ejecución debe considerarse no persistida y el artefacto de Actions es solo recuperación temporal.
 
+## Asignación persistente (sin ejecución)
+Workflow manual **COALICIÓN — Asignación persistente de misiones HF**. Solo tras aprobación explícita del usuario, permite a la Reina asignar de 1 a 5 misiones que ya tengan tarea concreta y guarda Mission Control en la rama invocada. No llama a Hugging Face.
+
 ## GitHub Actions
 Workflow manual **COALICIÓN — Agentes lógicos Hugging Face**. Introducir el ID de una misión ya asignada (por ejemplo `M0001`) y disponer del secreto cuyo nombre exacto es `Reina_token`. El workflow valida contra Mission Control, ejecuta un único agente, reconcilia el resultado y trata de persistir evidencia, Mission Control y estado en la rama invocada. Publica además una copia como artefacto de 90 días. No ejecutarlo en `main` con misiones asignadas si no se desea que el commit de evidencia llegue a `main`.
 
