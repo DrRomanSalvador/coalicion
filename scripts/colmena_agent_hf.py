@@ -61,10 +61,11 @@ def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str =
     if assigned.get("task") != task:
         raise ValueError("La tarea enviada no coincide exactamente con la tarea aprobada en Mission Control.")
     token = hf_token or os.getenv("Reina_token")
-    if not model.strip():
-        raise ValueError("El modelo HF_MODEL no puede estar vacío.")
-    if not provider.strip():
-        raise ValueError("HF_PROVIDER no puede estar vacío; usa auto o un proveedor habilitado en Hugging Face.")
+    if backend == "hf":
+        if not model.strip():
+            raise ValueError("El modelo HF_MODEL no puede estar vacío.")
+        if not provider.strip():
+            raise ValueError("HF_PROVIDER no puede estar vacío; usa auto o un proveedor habilitado en Hugging Face.")
     result: dict[str, Any] = {
         "schema": "COLMENA_AGENT_EVIDENCE_V1", "agent_id": agent_id, "mission_id": mission_id,
         "status": "BLOCKED", "provider": provider, "model": model, "backend": backend, "task": task, "executed_at": now()
