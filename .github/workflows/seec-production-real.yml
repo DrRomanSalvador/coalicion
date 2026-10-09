@@ -23,6 +23,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: seec-posterior-persistence-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   seec:
     runs-on: ubuntu-latest

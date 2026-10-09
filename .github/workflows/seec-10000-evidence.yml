@@ -5,6 +5,9 @@ on:
     paths: ["scripts/materialize_seec_posterior.py","data/resultados_oficiales_2004_2023.csv",".github/workflows/seec-10000-evidence.yml"]
   workflow_dispatch:
 permissions: {contents: write}
+concurrency:
+  group: seec-posterior-persistence-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   posterior:
     runs-on: ubuntu-latest

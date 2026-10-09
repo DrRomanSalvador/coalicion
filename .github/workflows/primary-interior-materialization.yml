@@ -15,6 +15,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: primary-interior-materialization-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   materialize:
     runs-on: ubuntu-latest

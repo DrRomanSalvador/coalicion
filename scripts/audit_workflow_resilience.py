@@ -34,6 +34,14 @@ REVIEW_PATTERNS = {
 }
 
 
+
+def permission_declarations(source: str) -> tuple[bool, bool]:
+    """Return (workflow-level, job-level) permission declarations, including inline maps."""
+    workflow_level = bool(re.search(r"(?m)^permissions:\s*(?:\{[^}]*\})?\s*(?:#.*)?$", source))
+    job_level = bool(re.search(r"(?m)^    permissions:\s*(?:\{[^}]*\})?\s*(?:#.*)?$", source))
+    return workflow_level, job_level
+
+
 def audit_self_healer_contract(source: str) -> list[str]:
     """Return missing fail-safe recovery contracts; pagination regressions are blocking."""
     checks = {
@@ -53,6 +61,14 @@ def audit_self_healer_contract(source: str) -> list[str]:
     }
     return [label for label, literal in checks.items() if literal not in source]
 
+
+
+
+def writer_without_concurrency(source: str) -> bool:
+    """Detect workflows that push commits but do not serialize writers."""
+    pushes = bool(re.search(r"(?m)^ *if +git push|^ *git push", source))
+    serialized = bool(re.search(r"(?m)^concurrency:", source))
+    return pushes and not serialized
 
 
 def audit_telegram_pages_contract(source: str) -> list[str]:
@@ -113,7 +129,7 @@ def main() -> int:
             jobs.append({
                 "id": match.group(1),
                 "has_timeout": bool(re.search(r"(?m)^\s+timeout-minutes:\s*\d+\s*$", block)),
-                "has_job_permissions": bool(re.search(r"(?m)^\s{4}permissions:\s*$", block)),
+                "has_job_permissions": bool(re.search(r"(?m)^ {4}permissions:", block)),
             })
 
         findings = []
@@ -143,13 +159,22 @@ def main() -> int:
                     {"path": relative_path, "missing_contract": item}
                     for item in missing_contracts
                 )
+        if writer_without_concurrency(source):
+            critical_findings.append({
+                "path": relative_path,
+                "missing_contract": "workflow commits to a remote branch without top-level concurrency serialization",
+            })
+
+        workflow_permissions, job_permissions = permission_declarations(source)
 
         entries.append({
             "path": relative_path,
             "name": next((line.split(":", 1)[1].strip() for line in lines
                           if line.startswith("name:")), path.stem),
             "triggers": sorted(set(trigger_names)),
-            "workflow_permissions_declared": bool(re.search(r"(?m)^permissions:\s*$", source)),
+            "workflow_permissions_declared": workflow_permissions,
+            "job_permissions_declared": job_permissions,
+            "permissions_declared": workflow_permissions or job_permissions,
             "concurrency_declared": bool(re.search(r"(?m)^concurrency:\s*$", source)),
             "jobs": jobs,
             "jobs_without_timeout": [job["id"] for job in jobs if not job["has_timeout"]],
@@ -168,6 +193,7 @@ def main() -> int:
         "workflow_count": len(entries),
         "counts": {
             "without_workflow_permissions": sum(not item["workflow_permissions_declared"] for item in entries),
+            "without_any_permissions": sum(not item["permissions_declared"] for item in entries),
             "without_concurrency": sum(not item["concurrency_declared"] for item in entries),
             "jobs_without_timeout": sum(len(item["jobs_without_timeout"]) for item in entries),
             "review_required_patterns": sum(len(item["findings"]) for item in entries),

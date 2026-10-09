@@ -3,7 +3,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from audit_workflow_resilience import audit_self_healer_contract, audit_telegram_pages_contract
+from audit_workflow_resilience import audit_self_healer_contract, audit_telegram_pages_contract, permission_declarations, writer_without_concurrency
 
 
 def test_main_self_healer_has_all_blocking_recovery_contracts():
@@ -54,3 +54,18 @@ def test_healer_sweep_bounds_candidates_and_continues_after_request_errors():
     assert "run_attempt=" in workflow and '"$run_attempt" == "1"' in workflow
     assert "RERUN_REQUEST_FAILED" in workflow
     assert "continuing sweep" in workflow
+
+
+def test_permissions_inventory_recognizes_inline_workflow_permissions():
+    assert permission_declarations("permissions: {contents: write}\njobs:\n  job:\n    runs-on: ubuntu-latest\n") == (True, False)
+
+
+def test_permissions_inventory_recognizes_job_level_permissions():
+    assert permission_declarations("jobs:\n  job:\n    permissions:\n      contents: read\n") == (False, True)
+
+
+def test_workflow_audit_blocks_unserialized_remote_writers():
+    unsafe = "jobs:\n  job:\n    steps:\n      - run: |\n          git push origin HEAD:main\n"
+    safe = "concurrency:\n  group: writer-main\n  cancel-in-progress: false\njobs:\n  job:\n    steps:\n      - run: |\n          git push origin HEAD:main\n"
+    assert writer_without_concurrency(unsafe)
+    assert not writer_without_concurrency(safe)
