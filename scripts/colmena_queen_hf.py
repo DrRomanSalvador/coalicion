@@ -104,6 +104,32 @@ def status_report() -> dict[str, Any]:
     return {**report, "missions": missions}
 
 
+def sync_state_summary(missions: list[dict[str, Any]]) -> None:
+    """Derive the persisted Colmena summary from the canonical mission ledger."""
+    state = load_json(STATE_PATH, {})
+    summary = state.get("queen_coordination")
+    if not isinstance(summary, dict):
+        summary = {}
+    counts = {status: sum(m.get("status") == status for m in missions) for status in STATUSES}
+    summary.update({
+        "mode": "QUEEN_COORDINATION_MODE + 179_AGENTS_HF",
+        "logical_agents": len(missions),
+        "completed_pass": counts["PASS"],
+        "pending": counts["PENDING"],
+        "blocked": counts["BLOCKED"],
+        "assigned": counts["ASSIGNED"],
+        "review_required": counts["REVIEW_REQUIRED"],
+        "tasks_defined": sum(
+            isinstance(m.get("task"), str) and bool(m["task"].strip()) for m in missions
+        ),
+        "source_of_truth": "docs/COLMENA_MISSION_CONTROL.json",
+        "snapshot_updated_at": now(),
+        "approval_required_before_assignment_or_execution": True,
+    })
+    state["queen_coordination"] = summary
+    save_json(STATE_PATH, state)
+
+
 def assign_next_batch(batch_size: int = 5) -> list[dict[str, Any]]:
     if not 1 <= batch_size <= 5:
         raise ValueError("El lote debe estar entre 1 y 5.")
@@ -123,6 +149,7 @@ def assign_next_batch(batch_size: int = 5) -> list[dict[str, Any]]:
     data["missions"] = missions
     data["updated_at"] = timestamp
     save_json(MISSION_CONTROL, data)
+    sync_state_summary(missions)
     print(f"Asignadas {len(batch)} misiones ejecutables (máximo 5 por lote).")
     for mission in batch:
         print(f"{mission['id']} -> {mission['agent_id']}")
@@ -170,6 +197,7 @@ def reassign_blocked(mission_id: str) -> dict[str, Any]:
     data["missions"] = missions
     data["updated_at"] = timestamp
     save_json(MISSION_CONTROL, data)
+    sync_state_summary(missions)
     print(f"Reasignación explícita: {mission_id} -> {mission['agent_id']}; historial conservado.")
     return {"mission_id": mission_id, "agent_id": mission["agent_id"], "status": mission["status"]}
 
