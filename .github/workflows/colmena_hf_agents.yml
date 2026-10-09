@@ -80,7 +80,9 @@ jobs:
           curl -fsSL https://ollama.com/install.sh | sh
           # The installer can start a system service using a different model store.
           # Stop it and launch one server bound to the cached model directory.
-          sudo systemctl stop ollama 2>/dev/null || true
+          if sudo systemctl is-active --quiet ollama; then
+            sudo systemctl stop ollama
+          fi
           mkdir -p "$HOME/.ollama/models"
           (OLLAMA_MODELS="$HOME/.ollama/models" ollama serve > /tmp/ollama.log 2>&1 &)
           for _ in $(seq 1 30); do

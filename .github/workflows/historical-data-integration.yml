@@ -40,7 +40,9 @@ jobs:
         run: |
           set -euo pipefail
           if [ -d data/official_materialization_parts ] && [ "$(find data/official_materialization_parts -name "*.csv" | wc -l)" -eq 11 ]; then
-            python scripts/materialize_official_history_from_parts.py || true
+            if ! python scripts/materialize_official_history_from_parts.py; then
+              echo "::warning::Local official-part materialization failed; the following manifest gate will reject invalid outputs and trigger official reacquisition only if necessary."
+            fi
           fi
           valid=0
           if [ -s data/resultados_oficiales_2004_2023.csv ] && [ -s data/manifests/INTERIOR_ACQUISITION.json ]; then
