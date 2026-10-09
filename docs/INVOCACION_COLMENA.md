@@ -16,7 +16,7 @@ Valida:
 
 ## Reina Hugging Face opcional
 
-Modo formal: `QUEEN_COORDINATION_MODE + 179_AGENTS_HF`. La credencial exacta es `Reina_token`. La asignación y ejecución de misiones requiere aprobación explícita del usuario; hay 5 tareas de auditoría definidas y 179 misiones aún PENDING; no se asigna ni ejecuta ninguna sin aprobación explícita.
+Modo formal: `QUEEN_COORDINATION_MODE + 179_AGENTS_HF`. La credencial exacta es `Reina_token`. La política exige aprobación explícita antes de nuevas asignaciones/ejecuciones. El conteo actual se deriva de `docs/COLMENA_MISSION_CONTROL.json` y se sincroniza al cambiar el ledger; no se deben tratar cifras históricas de esta guía como estado en tiempo real. La última ejecución registrada quedó BLOCKED por falta de créditos del proveedor HF.
 La integración complementaria está documentada en `docs/COLMENA_HF_AGENTS.md`.
 - `python scripts/colmena_queen_hf.py --status`: inspeccionar 179 slots lógicos.
 - `python scripts/colmena_queen_hf.py --assign 5`: asignar hasta cinco misiones con tarea concreta.
