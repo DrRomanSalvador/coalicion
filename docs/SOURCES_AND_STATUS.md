@@ -13,6 +13,8 @@
 - Workbook oficial del Interior: materializado en `data/raw/Elecciones-Congreso.xlsx`; SHA-256 `dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2`.
 - Histórico oficial: `data/official_interior_congreso_1977_2023.csv`, 16 elecciones, 52 circunscripciones, 322556 registros normalizados; manifest `data/manifests/official_interior_congreso.json`.
 - Matriz oficial de 2023 partido×circunscripción: MATERIALIZADA en `artifacts/data/election_2023_canonical.json`; validación: 52 circunscripciones, 350 escaños, candidaturas 24487414, blancos 200673, válidos 24688087.
+- Reconciliación votos→escaños 2023: PASS en las 52 circunscripciones, 0 discrepancias, mediante la única autoridad `src.electoral.allocate`; Ceuta y Melilla aplican su regla especial.
+- Hashes derivados: el manifest fija SHA-256 y bytes del CSV normalizado y de la matriz canónica; el sidecar `artifacts/data/election_2023_canonical.json.sha256` debe coincidir con el manifest.
 - SEEC de producción: PASS con 10000 draws; cuatro cadenas; diagnósticos sobre `eta` latente incluidos; 0 divergencias; R-hat máximo 1.00; ESS bulk/tail mínimos 1900/3000.
 - Calibración OOS: PASS con evidencia persistida en `ci_evidence/oos_calibration.json`.
 - Cobertura de transporte de fuentes configuradas: PASS; no equivale a tener todos los sondeos validados.
