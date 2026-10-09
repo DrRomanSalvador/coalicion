@@ -6,6 +6,9 @@ from pathlib import Path
 import hashlib
 import json
 
+EXPECTED_WORKBOOK_SHA256 = "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2"
+OFFICIAL_WORKBOOK_URL = "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
+
 
 @dataclass(frozen=True)
 class Gate:
@@ -190,7 +193,9 @@ def certify(root: str = "."):
         isinstance(official_manifest, dict)
         and official_manifest.get("schema") == "OFFICIAL_INTERIOR_CONGRESS_DATASET_V1"
         and official_manifest.get("status") == "READY"
+        and official_manifest.get("source_url") == OFFICIAL_WORKBOOK_URL
         and official_manifest.get("hash_scope") == "workbook_bytes"
+        and official_manifest.get("sha256") == EXPECTED_WORKBOOK_SHA256
         and len(official_manifest.get("elections", [])) == 16
         and official_manifest.get("constituencies") == 52
         and official_manifest.get("records", 0) > 0
