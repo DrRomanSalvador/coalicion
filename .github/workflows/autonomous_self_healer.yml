@@ -58,7 +58,7 @@ jobs:
 
           if [[ "$EVENT_NAME" == "workflow_run" ]]; then
             case "$EVENT_CONCLUSION" in
-              failure|timed_out|startup_failure) ;;
+              failure|cancelled|timed_out|startup_failure) ;;
               *) echo "No retry needed for conclusion=$EVENT_CONCLUSION"; exit 0 ;;
             esac
             target_id="$EVENT_RUN_ID"
