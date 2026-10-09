@@ -9,7 +9,7 @@ on:
       - "src/pipeline/**"
       - "tests/test_mvp_e2e.py"
       - "tests/test_data_collection.py"
-      - "src/data/**"
+      - "src/data.py"
       - "tests/test_full_pipeline.py"
       - "data/surveys/current_2026/**"
       - "scripts/materialize_current_surveys.py"
