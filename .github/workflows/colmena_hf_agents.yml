@@ -1,0 +1,57 @@
+name: COALICIÓN — Agentes lógicos Hugging Face
+
+on:
+  workflow_dispatch:
+    inputs:
+      mission_json:
+        description: "JSON de una misión concreta (id, agent_id, title, task)"
+        required: true
+        type: string
+      model:
+        description: "Modelo HF Inference compatible"
+        required: false
+        default: "HuggingFaceH4/zephyr-7b-beta"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: colmena-hf-agent-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  run-one-agent:
+    name: Ejecutar un agente lógico explícitamente solicitado
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar cliente HF
+        run: python -m pip install --disable-pip-version-check "huggingface_hub>=0.30,<2"
+      - name: Validar misión y ejecutar agente
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          MISSION_JSON: ${{ inputs.mission_json }}
+          HF_MODEL: ${{ inputs.model }}
+        run: |
+          python - <<'PY'
+          import json, os
+          mission = json.loads(os.environ["MISSION_JSON"])
+          if not all(isinstance(mission.get(k), str) and mission[k].strip() for k in ("id", "agent_id", "task")):
+              raise SystemExit("Misión inválida: id, agent_id y task son obligatorios.")
+          if len(mission["task"]) > 12000:
+              raise SystemExit("La tarea supera el límite de 12000 caracteres.")
+          PY
+          python scripts/colmena_agent_hf.py "$MISSION_JSON" --model "$HF_MODEL"
+      - name: Publicar evidencia de ejecución
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: colmena-hf-agent-evidence
+          path: artifacts/colmena/agents/*.json
+          if-no-files-found: ignore
+          retention-days: 14
