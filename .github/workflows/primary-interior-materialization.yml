@@ -78,6 +78,7 @@ jobs:
           cp data/manifests/INTERIOR_ACQUISITION.json ci_evidence/interior_acquisition.json
           printf 'PRIMARY_INTERIOR\n' > ci_evidence/historico_source_tier.txt
       - name: Commit primary materialization
+        if: github.ref == 'refs/heads/main'
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
