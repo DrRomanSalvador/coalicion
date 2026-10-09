@@ -155,3 +155,24 @@ def test_update_missions_are_write_gated_in_queen_and_worker():
         {"provider": "test", "execution_id": "test-exec", "independent": True, "ai_execution": True},
     )
     assert evidence["status"] == "BLOCKED"
+
+
+def test_edge_case_and_operational_missions_map_to_specific_validators():
+    from scripts.colmena_worker import command_for
+
+    cases = {
+        "normalización determinista etiquetas": "tests/test_fallback_normalization.py",
+        "prohibir datos sintéticos silenciosos": "tests/test_adversarial_audit.py",
+        "test valores negativos": "tests/test_adversarial_audit.py",
+        "test fechas inválidas": "tests/test_hardening.py",
+        "decisión.py": "tests/test_decision.py",
+        "detección elecciones": "tests/test_official_interior_workbook.py",
+        "SEEC jerárquico": "tests/test_seec_production.py",
+        "convergencia real": "tests/test_seec_production.py",
+        "CI de artefactos": "tests/test_evidence_certificate.py",
+        "ausencia de segundo D’Hondt": "tests/test_architecture_invariants.py",
+    }
+    for mission, expected_path in cases.items():
+        command, adapter = command_for(mission)
+        assert adapter == "MISSION_VALIDATOR", (mission, adapter)
+        assert expected_path in command, (mission, command)

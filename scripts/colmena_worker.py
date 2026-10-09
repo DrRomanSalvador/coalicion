@@ -92,6 +92,20 @@ def command_for(title: str):
          ("tests/test_product_contract.py", "tests/test_product_status.py", "tests/test_monitoring_backup.py", "tests/test_recovery.py")),
         (("estado/certificación", "bloqueos heredados", "pending heredados", "not_strictly_certified", "certificación honesta", "p1", "p2", "p3", "p5/p6", "p7", "p8"),
          ("tests/test_master_certification.py", "tests/test_master_certification_strict.py", "tests/test_colmena_state.py")),
+        (("normalización", "etiquetas", "duplicados", "filas divididas"),
+         ("tests/test_fallback_normalization.py", "tests/test_official_materialization_parts.py", "tests/test_electoral.py")),
+        (("sintéticos", "imputación", "corrupción", "fichero vacío", "columnas ausentes", "valores negativos", "no enteros", "totales incompatibles", "fechas inválidas", "elección inexistente", "hash incorrecto", "fail-closed", "fail_closed"),
+         ("tests/test_adversarial_audit.py", "tests/test_hardening.py", "tests/test_security.py", "tests/test_official_materialization_parts.py")),
+        (("decisión", "decision.py"),
+         ("tests/test_decision.py", "tests/test_runtime_contracts.py")),
+        (("totales nacionales", "magnitudes electorales", "detección elecciones", "16 elecciones", "código electoral"),
+         ("tests/test_election_2023_national.py", "tests/test_official_interior_workbook.py", "tests/test_structure_2026.py")),
+        (("seec", "convergencia", "diagnósticos", "muestreo", "posterior", "jerárquico"),
+         ("tests/test_seec_production.py", "tests/test_seec_bayesian.py", "tests/test_seec_v4_corrections.py")),
+        (("evidencia ci", "artefactos", "persistente", "checkpoint maestro", "workflows", "workflow", "batería final", "matriz 52xn", "matriz 52x"),
+         ("tests/test_evidence_certificate.py", "tests/test_master_certification.py", "tests/test_runtime_contracts.py", "tests/test_official_interior_workbook.py")),
+        (("electoral.py única autoridad", "ausencia de segundo d’hondt", "ausencia de segundo d'hondt"),
+         ("tests/test_architecture_invariants.py", "tests/test_electoral.py", "tests/test_electoral_differential.py")),
     )
     matched_paths = []
     for phrases, test_paths in mission_validators:
