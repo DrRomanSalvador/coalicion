@@ -85,6 +85,8 @@ def status_report() -> dict[str, Any]:
     counts = {status: sum(m["status"] == status for m in missions) for status in sorted(STATUSES)}
     report = {"total": len(missions), **{k.lower(): v for k, v in counts.items()}}
     print("COLMENA REINA — CONTROL DE MISIONES")
+    print("Modo: QUEEN_COORDINATION_MODE + 179_AGENTS_HF")
+    print("Proveedor: Hugging Face | Credencial: Reina_token")
     print(f"Slots lógicos: {report['total']}")
     for key in sorted(counts):
         print(f"{key:17}: {counts[key]}")
