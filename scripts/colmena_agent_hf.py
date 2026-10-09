@@ -8,6 +8,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 AGENTS_DIR = ROOT / "artifacts" / "colmena" / "agents"
+MISSION_CONTROL = ROOT / "docs" / "COLMENA_MISSION_CONTROL.json"
 DEFAULT_MODEL = os.getenv("HF_MODEL", "HuggingFaceH4/zephyr-7b-beta")
 
 def now() -> str:
@@ -25,6 +26,18 @@ def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str =
     task = str(mission.get("task", "")).strip()
     if not agent_id or not mission_id or not task:
         raise ValueError("La misión debe incluir id, agent_id y task no vacío.")
+    control = json.loads(MISSION_CONTROL.read_text(encoding="utf-8"))
+    missions = control.get("missions", [])
+    matches = [item for item in missions if item.get("id") == mission_id]
+    if len(matches) != 1:
+        raise ValueError(f"Misión {mission_id} inexistente o ambigua en Mission Control.")
+    assigned = matches[0]
+    if assigned.get("agent_id") != agent_id:
+        raise ValueError("agent_id no coincide con la misión canónica.")
+    if assigned.get("status") != "ASSIGNED" or assigned.get("assigned") is not True:
+        raise ValueError("La Reina no ha asignado esta misión; ejecución HF bloqueada.")
+    if assigned.get("task") != task:
+        raise ValueError("La tarea enviada no coincide exactamente con la tarea aprobada en Mission Control.")
     token = hf_token or os.getenv("Reina_token")
     if not token:
         raise RuntimeError("Falta Reina_token; no se invocará el proveedor.")
