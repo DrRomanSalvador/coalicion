@@ -168,3 +168,78 @@ def test_2023_matrix_acquisition_installs_pytest_before_invariant_suite():
     assert "python -m pytest -q tests/test_neutral_coalition.py" in source
     assert 'push:\n    branches: [main]\n    paths:\n      - ".github/workflows/acquire_matrix_2023.yml"' in source
 
+def test_auto_merge_gate_uses_testable_fail_closed_api_client():
+    workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
+    client = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
+    assert "actions: read" in workflow
+    assert "GH_TOKEN: ${{ github.token }}" in workflow
+    assert "run: python scripts/automatic_pr_integration.py" in workflow
+    assert "GitHubAPIAuthError" in client
+    assert "GitHub Actions API authentication/authorization failed" in client
+    assert "Retriying a rejected credential" not in client
+    assert "if not value" in client
+
+
+def test_auto_merge_gate_authentication_errors_fail_fast_without_waiting():
+    from types import SimpleNamespace
+
+    import pytest
+
+    from scripts.automatic_pr_integration import GitHubAPIAuthError, fetch_runs
+
+    def unauthorized_runner(*args, **kwargs):
+        assert kwargs["capture_output"] is True
+        assert kwargs["check"] is False
+        return SimpleNamespace(
+            returncode=1,
+            stdout="",
+            stderr="gh: HTTP 401: Bad credentials",
+        )
+
+    with pytest.raises(GitHubAPIAuthError, match="HTTP 401"):
+        fetch_runs("DrRomanSalvador/coalicion", "a" * 40, "123", runner=unauthorized_runner)
+
+
+def test_auto_merge_gate_403_permissions_failure_is_not_retried_as_transient():
+    from types import SimpleNamespace
+
+    import pytest
+
+    from scripts.automatic_pr_integration import GitHubAPIAuthError, fetch_runs
+
+    def forbidden_runner(*args, **kwargs):
+        return SimpleNamespace(
+            returncode=1,
+            stdout="",
+            stderr="gh: HTTP 403: Resource not accessible by integration",
+        )
+
+    with pytest.raises(GitHubAPIAuthError, match="HTTP 403"):
+        fetch_runs("DrRomanSalvador/coalicion", "b" * 40, "456", runner=forbidden_runner)
+
+
+def test_auto_merge_gate_filters_runs_to_exact_sha_and_excludes_only_current_run():
+    import json
+    from types import SimpleNamespace
+
+    from scripts.automatic_pr_integration import fetch_runs
+
+    payload = [
+        {
+            "workflow_runs": [
+                {"id": 1, "head_sha": "c" * 40, "name": "Required", "status": "completed", "conclusion": "success"},
+                {"id": 2, "head_sha": "c" * 40, "name": "Gate itself", "status": "in_progress", "conclusion": None},
+                {"id": 3, "head_sha": "d" * 40, "name": "Stale revision", "status": "completed", "conclusion": "failure"},
+            ]
+        }
+    ]
+
+    def successful_runner(args, **kwargs):
+        assert args[:4] == ["gh", "api", "--paginate", "--slurp"]
+        return SimpleNamespace(returncode=0, stdout=json.dumps(payload), stderr="")
+
+    runs = fetch_runs("DrRomanSalvador/coalicion", "c" * 40, "2", runner=successful_runner)
+    assert runs == [
+        {"id": 1, "name": "Required", "status": "completed", "conclusion": "success"}
+    ]
+
