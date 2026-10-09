@@ -116,12 +116,19 @@ def run(m, ref, agent_id, runtime):
     if m["write_authorized"] and not m["scope"]:
         status, rc, out, err = "FAIL_CLOSED", 1, "", "write authorization without scope"
     elif command is None and adapter == "WRITE_OR_CHANGE_REQUIRES_EXPLICIT_SCOPE":
-        # Read-only missions whose title mentions a change still execute as AI analysis.
-        # Only an actually authorized write may mutate code.
-        status, rc, out, err = "PASS", 0, "", "AI_ANALYSIS_EXECUTED_READ_ONLY"
-        adapter = "AI_ANALYSIS"
+        # Analysis is not a code/data change. Never close a mutation mission
+        # without a Queen-approved scope and materialized change evidence.
+        status, rc, out, err = "BLOCKED", 2, "", (
+            "FAIL_CLOSED: mission requires a scoped write approval; "
+            "AI analysis alone cannot complete a code/data mutation"
+        )
     elif command is None and adapter == "AI_ANALYSIS":
-        status, rc, out, err = "PASS", 0, "", "AI_ANALYSIS_EXECUTED"
+        # A model response is not proof that a mission was executed. Missions
+        # without a deterministic validator remain open until one is provided.
+        status, rc, out, err = "BLOCKED", 2, "", (
+            "FAIL_CLOSED: no deterministic validator is mapped to this mission; "
+            "AI analysis alone cannot establish PASS"
+        )
     elif command is None:
         status, rc, out, err = "BLOCKED", 2, "", adapter
     else:
