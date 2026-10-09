@@ -461,6 +461,7 @@ def test_poll_monitor_blocks_when_required_telegram_alert_cannot_be_delivered(tm
     monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
     monkeypatch.delenv("TELEGRAM_ALLOWED_CHATS", raising=False)
     monitor = module.PollMonitor(config_path=config_path, state_path=state_path)
+    monitor.state["baseline_completed"] = True  # Exercise a real alert, not first-run baseline suppression.
     poll = valid_poll()
     coverage = {"claim": "COBERTURA_TOTAL_VERIFICADA", "scope": "test", "total": True,
                 "sources_checked": 1, "primary_sources": 1, "discovery_sources": 0, "blockers": []}
