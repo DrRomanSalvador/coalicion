@@ -9,7 +9,7 @@ permissions:
 
 concurrency:
   group: global-repository-orchestrator
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   orchestrate:
@@ -33,6 +33,14 @@ jobs:
             started="$(date -d "$created_at" +%s)"
             if [ $((now-started)) -ge 10800 ]; then
               echo "Cancelling genuinely stuck canonical run $run_id (>=3h)."
-              gh api --method POST "repos/$REPOSITORY/actions/runs/$run_id/cancel" || true
+              if ! gh api --method POST "repos/$REPOSITORY/actions/runs/$run_id/cancel"; then
+                current_status="$(gh api "repos/$REPOSITORY/actions/runs/$run_id" --jq '.status')"
+                if [ "$current_status" = "completed" ]; then
+                  echo "Run $run_id completed before cancellation; no action needed."
+                else
+                  echo "::error::Unable to cancel stuck canonical run $run_id (status=$current_status)."
+                  exit 1
+                fi
+              fi
             fi
           done < /tmp/canonical.tsv
