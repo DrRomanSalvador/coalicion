@@ -78,7 +78,16 @@ def main() -> int:
     args = parser.parse_args()
     try:
         candidate = Path(args.mission_json)
-        raw = candidate.read_text(encoding="utf-8") if candidate.is_file() else args.mission_json
+        if candidate.is_file():
+            raw = candidate.read_text(encoding="utf-8")
+        elif re.fullmatch(r"M\\d{4}", args.mission_json):
+            control = json.loads(MISSION_CONTROL.read_text(encoding="utf-8"))
+            matches = [item for item in control.get("missions", []) if item.get("id") == args.mission_json]
+            if len(matches) != 1:
+                raise ValueError(f"Misión {args.mission_json} inexistente o ambigua en Mission Control.")
+            raw = json.dumps(matches[0], ensure_ascii=False)
+        else:
+            raw = args.mission_json
         result = run_agent(json.loads(raw), model=args.model)
     except (ValueError, OSError, json.JSONDecodeError, RuntimeError) as exc:
         print(json.dumps({"status": "BLOCKED", "error": str(exc)}, ensure_ascii=False), file=sys.stderr)
