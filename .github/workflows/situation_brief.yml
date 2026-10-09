@@ -19,7 +19,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: situation-brief-\${{ github.ref }}
+  group: situation-brief-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -38,12 +38,12 @@ jobs:
 
       - name: Generate situation state
         env:
-          PYTHONPATH: \${{ github.workspace }}
+          PYTHONPATH: ${{ github.workspace }}
         run: python scripts/generate_situation_state.py
 
       - name: Generate review briefing
         env:
-          PYTHONPATH: \${{ github.workspace }}
+          PYTHONPATH: ${{ github.workspace }}
         run: python -m src.email.newsletter
 
       - name: Install test runner
@@ -51,12 +51,12 @@ jobs:
 
       - name: Verify deterministic contracts
         env:
-          PYTHONPATH: \${{ github.workspace }}
+          PYTHONPATH: ${{ github.workspace }}
         run: python -m pytest -q tests/test_situation_state.py tests/test_operational_briefing.py tests/test_electoral_intelligence.py
 
       - name: Persist materialized state
         env:
-          PYTHONPATH: \${{ github.workspace }}
+          PYTHONPATH: ${{ github.workspace }}
         run: |
           set -euo pipefail
           git config user.name "coalicion-situation[bot]"
