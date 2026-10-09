@@ -355,3 +355,7 @@ Ejecuta `python scripts/demo_decision_analysis.py` para generar el registro audi
 
 
 Interfaz interactiva: ejecuta `python scripts/demo_decision_server.py --port 8000` y abre `http://127.0.0.1:8000/web/demo/`. Permite comparar escenarios y construir coaliciones personalizadas recalculadas por `src.electoral.allocate`, consultar cocientes y exportar el JSON. Ver `DECISION_ANALYSIS_USAGE.md`.
+
+### Despliegue de la demo
+
+`render.yaml` declara el servicio independiente `coalicion-decision-demo` con health check `/api/health`. La URL pública solo existe después de sincronizar y desplegar el blueprint en Render; no se considera desplegado hasta verificar ese endpoint.
