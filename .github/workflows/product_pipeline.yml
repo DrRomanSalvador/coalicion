@@ -24,8 +24,12 @@ on:
       - "requirements.txt"
       - ".github/workflows/product_pipeline.yml"
 
+permissions:
+  contents: read
+
 concurrency:
-  group: product-pipeline-main
+  # Keep main and each PR isolated; only supersede older runs for the same ref.
+  group: product-pipeline-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
