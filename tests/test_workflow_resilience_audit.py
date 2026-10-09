@@ -23,9 +23,9 @@ def test_audit_rejects_unpaginated_repository_wide_run_scan():
 
 def test_audit_rejects_unbounded_retry_sweep():
     workflow = (ROOT / ".github" / "workflows" / "autonomous_self_healer.yml").read_text(encoding="utf-8")
-    workflow = workflow.replace('[[ "$count" -lt 5 ]]', '[[ "$count" -lt 500 ]]')
+    workflow = workflow.replace('[[ "$count" -lt 5 && "$attempted" -lt 25 ]]', '[[ "$count" -lt 500 && "$attempted" -lt 2500 ]]')
     missing = audit_self_healer_contract(workflow)
-    assert "each sweep caps rerun requests" in missing
+    assert "each sweep caps successful reruns and candidate attempts" in missing
 
 
 def test_audit_rejects_cancelled_run_failed_jobs_only_regression():
@@ -45,3 +45,11 @@ def test_pages_audit_rejects_unavailable_implicit_enablement():
     workflow = workflow.replace("secrets.PAGES_ADMIN_TOKEN || github.token", "github.token")
     missing = audit_telegram_pages_contract(workflow)
     assert "first-time enablement uses an explicit admin token" in missing
+
+
+def test_healer_sweep_bounds_candidates_and_continues_after_request_errors():
+    workflow = (ROOT / ".github" / "workflows" / "autonomous_self_healer.yml").read_text(encoding="utf-8")
+    assert 'sort_by(.created_at)' in workflow
+    assert '[[ "$count" -lt 5 && "$attempted" -lt 25 ]]' in workflow
+    assert "RERUN_REQUEST_FAILED" in workflow
+    assert "continuing sweep" in workflow
