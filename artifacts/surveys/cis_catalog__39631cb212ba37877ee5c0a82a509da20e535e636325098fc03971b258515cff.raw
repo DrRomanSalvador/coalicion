@@ -530,7 +530,7 @@ openSelectionModal: buildESMStub('frontend-js-components-web', 'openSelectionMod
 openSimpleInputModal: buildESMStub('frontend-js-components-web', 'openSimpleInputModal'),
 openToast: buildESMStub('frontend-js-components-web', 'openToast'),
 },
-authToken: 'lQ92Ww5w',
+authToken: '4Tcdd3AW',
 currentURL: '\x2fes\x2festudios\x2fcatalogo\x3fcatalogo\x3destudio',
 currentURLEncoded: '\x252Fes\x252Festudios\x252Fcatalogo\x253Fcatalogo\x253Destudio',
 
@@ -2090,7 +2090,7 @@ Liferay.on(
 
 	
 
-	<div class="lfr-layout-structure-item-082c48ed-cf9c-a6ca-a657-53458ce184e4 lfr-layout-structure-item-container main-layout" data-layout-structure-item-id="082c48ed-cf9c-a6ca-a657-53458ce184e4"><div class="lfr-layout-structure-item-header lfr-layout-structure-item-850949ac-66eb-b8c5-b30b-4a5ef99f4dcf " data-layout-structure-item-id="850949ac-66eb-b8c5-b30b-4a5ef99f4dcf"><div id="fragment-b3d09e2b-e50f-d9ba-3bc0-d80cf1000152" ><div class="cis">
+	<div class="lfr-layout-structure-item-082c48ed-cf9c-a6ca-a657-53458ce184e4 lfr-layout-structure-item-container main-layout" data-layout-structure-item-id="082c48ed-cf9c-a6ca-a657-53458ce184e4"><div class="lfr-layout-structure-item-header lfr-layout-structure-item-850949ac-66eb-b8c5-b30b-4a5ef99f4dcf " data-layout-structure-item-id="850949ac-66eb-b8c5-b30b-4a5ef99f4dcf"><div id="fragment-f06f117a-08a2-7c6e-3f08-e38ef1916410" ><div class="cis">
   <section class="jdt-header ">
     <div class="header-desktop">
       <div class="container container-fluid container-fluid-max-xl">
@@ -2393,7 +2393,7 @@ Liferay.on(
 
 
 	
-<div class="jdt-form" id="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02_hxos">
+<div class="jdt-form" id="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02_cdxv">
     <div class="input-group">
         <div class="form-group">
             <div class="input-wrapper">
@@ -2440,7 +2440,7 @@ Liferay.on(
 		<script type="module">
 import {SearchBar as ComponentModule} from '/o/portal-search-web/__liferay__/search-bar.js';
 {
-Liferay.component('__UNNAMED_COMPONENT__cb3249ef-a22a-d38c-34ca-8f0e41389fda', new ComponentModule({"formId":"dkrk___fm","namespace":"_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg","initialKeywords":"","retainFacetSelections":false}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02'});
+Liferay.component('__UNNAMED_COMPONENT__91e7b1a7-58bb-97bf-9a1a-0a6a5f59b20b', new ComponentModule({"formId":"dkrk___fm","namespace":"_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg","initialKeywords":"","retainFacetSelections":false}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02'});
 }
 
 </script>
@@ -3765,7 +3765,7 @@ Liferay.component('__UNNAMED_COMPONENT__cb3249ef-a22a-d38c-34ca-8f0e41389fda', n
 
 
 	
-<div class="input-group" id="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02Mob_kuuz">
+<div class="input-group" id="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02Mob_pqmj">
     <div class="jdt-form">
         <div class="form-group">
             <label class="sr-only" for="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02Mob__text">Buscar</label>
@@ -3813,7 +3813,7 @@ Liferay.component('__UNNAMED_COMPONENT__cb3249ef-a22a-d38c-34ca-8f0e41389fda', n
 		<script type="module">
 import {SearchBar as ComponentModule} from '/o/portal-search-web/__liferay__/search-bar.js';
 {
-Liferay.component('__UNNAMED_COMPONENT__d4e6cf94-0e68-decf-e804-4f0cef46fc49', new ComponentModule({"formId":"wfkm___fm","namespace":"_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02Mob_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg","initialKeywords":"","retainFacetSelections":false}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02Mob'});
+Liferay.component('__UNNAMED_COMPONENT__d469196b-0969-0de6-66f2-629c5e30975f', new ComponentModule({"formId":"wfkm___fm","namespace":"_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02Mob_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg","initialKeywords":"","retainFacetSelections":false}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02Mob'});
 }
 
 </script>
@@ -5942,7 +5942,7 @@ body.modal-open .jdt-header .header-desktop {
   .cis .jdt-header .header-desktop .brand-logo {
     width: 208px;
   }
-}</style><script type="module" >const configuration = {"siteNavigationMenuId":"108099","displayStyle":"ddmTemplate_108092","siteNavigationMenuIdMobile":"108099","displayStyleMobile":"ddmTemplate_111337","variant":""}; const fragmentElement = document.querySelector('#fragment-b3d09e2b-e50f-d9ba-3bc0-d80cf1000152'); const fragmentElementId = 'fragment-b3d09e2b-e50f-d9ba-3bc0-d80cf1000152'; const fragmentEntryLinkNamespace = 'hcuv'; const fragmentNamespace = 'hcuv'; const layoutMode = 'view';function deactivateAllNavItems(){document.querySelectorAll(".navbar-nav .nav-item").forEach(function(e){e.classList.remove("active"),e.setAttribute("aria-expanded","false")})}function handleNavItemClick(e){e.classList.contains("active")?(e.classList.remove("active"),e.setAttribute("aria-expanded","false")):(deactivateAllNavItems(),e.classList.add("active"),e.setAttribute("aria-expanded","true"))}var dismissMenus=document.querySelectorAll(".jdt-header .dismiss-menu");dismissMenus.forEach(function(e){e.addEventListener("click",function(e){e.target.closest(".dropdown-holder")&&(deactivateAllNavItems(),document.querySelector(".m-listLogos").focus())}),e.addEventListener("keydown",function(t){"Space"!==t.code&&" "!==t.key||(t.preventDefault(),e.click())})});var searchForms=document.querySelectorAll(".search-form");function adjustHeightHeader(){var e=document.querySelector(".jdt-header"),t=document.querySelector(".header-desktop");e&&t&&(e.style.height="".concat(t.offsetHeight,"px"))}function adjustScrollbarWidth(){var e=globalThis.innerWidth-document.documentElement.clientWidth;document.documentElement.style.setProperty("--scrollbar-width","".concat(e,"px"))}searchForms.forEach(function(e){e.classList.add("active","show")}),document.getElementById("header_search_button")&&document.getElementById("header_search_button").addEventListener("click",function(){var e=this.parentNode.querySelector(".d-none");e&&e.classList.remove("d-none"),document.querySelector(".header-actions .search-form .form-control").focus(),this.classList.add("d-none")}),document.querySelector("#menu-mobile .btn-menu-mobile-close")&&document.querySelector("#menu-mobile .btn-menu-mobile-close").addEventListener("click",function(){document.getElementById("menu-mobile").classList.remove("show"),document.querySelectorAll(".m-menuButton").forEach(function(e){e.setAttribute("aria-expanded","false")})}),document.querySelector(".navbar-nav .nav-item")&&document.querySelectorAll(".navbar-nav .nav-item").forEach(function(e){e.onclick=function(e){var t=this.querySelector(".dropdown-holder");null!=t&&t.contains(e.target)||handleNavItemClick(this)}}),globalThis.isCloseMenuListenerAdded||(document.addEventListener("click",function(e){var t=document.querySelector(".navbar-nav"),n=document.querySelector(".dropdown-holder");t&&!t.contains(e.target)&&n&&!n.contains(e.target)&&deactivateAllNavItems()}),globalThis.isCloseMenuListenerAdded=!0),adjustHeightHeader(),globalThis.addEventListener("resize",adjustHeightHeader),adjustScrollbarWidth();;</script></div><div class="lfr-layout-structure-item-4e0310cf-707b-fbaf-d452-e2a1a2e26b52 lfr-layout-structure-item-container " data-layout-structure-item-id="4e0310cf-707b-fbaf-d452-e2a1a2e26b52"><div class="layout-content portlet-layout"id="main-content" role="main"><div class="lfr-layout-structure-item-banner-video lfr-layout-structure-item-2a0bfe7b-0de9-1485-9da4-06e8f9d48504 " data-layout-structure-item-id="2a0bfe7b-0de9-1485-9da4-06e8f9d48504"><div id="fragment-e8c2b020-1e80-1413-ed78-0c0661281ab3" > <div class="jdt-banner hero alt1 video" style="background-image: url(/documents/d/guest/cis_estudios_260x2000px);">
+}</style><script type="module" >const configuration = {"siteNavigationMenuId":"108099","displayStyle":"ddmTemplate_108092","siteNavigationMenuIdMobile":"108099","displayStyleMobile":"ddmTemplate_111337","variant":""}; const fragmentElement = document.querySelector('#fragment-f06f117a-08a2-7c6e-3f08-e38ef1916410'); const fragmentElementId = 'fragment-f06f117a-08a2-7c6e-3f08-e38ef1916410'; const fragmentEntryLinkNamespace = 'hcuv'; const fragmentNamespace = 'hcuv'; const layoutMode = 'view';function deactivateAllNavItems(){document.querySelectorAll(".navbar-nav .nav-item").forEach(function(e){e.classList.remove("active"),e.setAttribute("aria-expanded","false")})}function handleNavItemClick(e){e.classList.contains("active")?(e.classList.remove("active"),e.setAttribute("aria-expanded","false")):(deactivateAllNavItems(),e.classList.add("active"),e.setAttribute("aria-expanded","true"))}var dismissMenus=document.querySelectorAll(".jdt-header .dismiss-menu");dismissMenus.forEach(function(e){e.addEventListener("click",function(e){e.target.closest(".dropdown-holder")&&(deactivateAllNavItems(),document.querySelector(".m-listLogos").focus())}),e.addEventListener("keydown",function(t){"Space"!==t.code&&" "!==t.key||(t.preventDefault(),e.click())})});var searchForms=document.querySelectorAll(".search-form");function adjustHeightHeader(){var e=document.querySelector(".jdt-header"),t=document.querySelector(".header-desktop");e&&t&&(e.style.height="".concat(t.offsetHeight,"px"))}function adjustScrollbarWidth(){var e=globalThis.innerWidth-document.documentElement.clientWidth;document.documentElement.style.setProperty("--scrollbar-width","".concat(e,"px"))}searchForms.forEach(function(e){e.classList.add("active","show")}),document.getElementById("header_search_button")&&document.getElementById("header_search_button").addEventListener("click",function(){var e=this.parentNode.querySelector(".d-none");e&&e.classList.remove("d-none"),document.querySelector(".header-actions .search-form .form-control").focus(),this.classList.add("d-none")}),document.querySelector("#menu-mobile .btn-menu-mobile-close")&&document.querySelector("#menu-mobile .btn-menu-mobile-close").addEventListener("click",function(){document.getElementById("menu-mobile").classList.remove("show"),document.querySelectorAll(".m-menuButton").forEach(function(e){e.setAttribute("aria-expanded","false")})}),document.querySelector(".navbar-nav .nav-item")&&document.querySelectorAll(".navbar-nav .nav-item").forEach(function(e){e.onclick=function(e){var t=this.querySelector(".dropdown-holder");null!=t&&t.contains(e.target)||handleNavItemClick(this)}}),globalThis.isCloseMenuListenerAdded||(document.addEventListener("click",function(e){var t=document.querySelector(".navbar-nav"),n=document.querySelector(".dropdown-holder");t&&!t.contains(e.target)&&n&&!n.contains(e.target)&&deactivateAllNavItems()}),globalThis.isCloseMenuListenerAdded=!0),adjustHeightHeader(),globalThis.addEventListener("resize",adjustHeightHeader),adjustScrollbarWidth();;</script></div><div class="lfr-layout-structure-item-4e0310cf-707b-fbaf-d452-e2a1a2e26b52 lfr-layout-structure-item-container " data-layout-structure-item-id="4e0310cf-707b-fbaf-d452-e2a1a2e26b52"><div class="layout-content portlet-layout"id="main-content" role="main"><div class="lfr-layout-structure-item-banner-video lfr-layout-structure-item-2a0bfe7b-0de9-1485-9da4-06e8f9d48504 " data-layout-structure-item-id="2a0bfe7b-0de9-1485-9da4-06e8f9d48504"><div id="fragment-bdd8f374-ef5f-6418-37ee-0b92cbdfacbb" > <div class="jdt-banner hero alt1 video" style="background-image: url(/documents/d/guest/cis_estudios_260x2000px);">
   <div class="container container-fluid container-fluid-max-xl">
     <div class="banner-content">
       
@@ -6352,7 +6352,7 @@ Catálogo de estudios
   .cis .jdt-banner.alt1.video:not(.media-top) .container-fluid .banner-video {
     align-self: center;
   }
-}</style><script type="module" >const configuration = {}; const fragmentElement = document.querySelector('#fragment-e8c2b020-1e80-1413-ed78-0c0661281ab3'); const fragmentElementId = 'fragment-e8c2b020-1e80-1413-ed78-0c0661281ab3'; const fragmentEntryLinkNamespace = 'pcwh'; const fragmentNamespace = 'pcwh'; const layoutMode = 'view';var pendingCallbacks=[],apiLoading=!1;function onYouTubeReady(e){var n;if(null!==(n=globalThis.YT)&&void 0!==n&&n.Player)e();else if(pendingCallbacks.push(e),!apiLoading){apiLoading=!0;var a=globalThis.onYouTubeIframeAPIReady;globalThis.onYouTubeIframeAPIReady=function(){a&&a(),pendingCallbacks.forEach(function(e){return e()}),pendingCallbacks.length=0};var o=document.createElement("script");o.src="https://www.youtube.com/iframe_api",o.crossOrigin="anonymous";var i=document.getElementsByTagName("script")[0];null!=i&&i.parentNode?i.parentNode.insertBefore(o,i):document.head.appendChild(o)}}function ensureEnableJsApi(e){var n=e.getAttribute("src")||"";if(!n.includes("enablejsapi=1")){var a=n.includes("?")?"&":"?";e.src="".concat(n).concat(a,"enablejsapi=1")}}function setupBannerVideo(e,n){if(e&&n){var a=globalThis.jQuery||globalThis.$;ensureEnableJsApi(n);var o=null,i=!1,l=!1;onYouTubeReady(function(){o=new globalThis.YT.Player(n,{events:{onReady:function(){var e;(i=!0,l)&&(null===(e=o)||void 0===e||e.playVideo(),l=!1)}}})});var r=function(){var e;i?null===(e=o)||void 0===e||e.playVideo():l=!0},d=function(){var e;(l=!1,i)&&(null===(e=o)||void 0===e||e.pauseVideo())};a?a(e).on("shown.bs.modal",r).on("hidden.bs.modal",d):(e.addEventListener("shown.bs.modal",r),e.addEventListener("hidden.bs.modal",d))}}document.querySelectorAll('.jdt-banner.video .modal[id^="bannerVideo_"]').forEach(function(e){var n=e.querySelector('iframe[src*="youtube.com"]');n&&setupBannerVideo(e,n)});;</script></div><div class="lfr-layout-structure-item-spacer lfr-layout-structure-item-ade5a3af-7d7a-e5f9-0a10-89b555b90f07 " data-layout-structure-item-id="ade5a3af-7d7a-e5f9-0a10-89b555b90f07"><div id="fragment-64281a46-5379-1d52-c2e0-1be147b57f17" > <div class="jdt-spacer-6"></div></div><style >.jdt-spacer-1 {
+}</style><script type="module" >const configuration = {}; const fragmentElement = document.querySelector('#fragment-bdd8f374-ef5f-6418-37ee-0b92cbdfacbb'); const fragmentElementId = 'fragment-bdd8f374-ef5f-6418-37ee-0b92cbdfacbb'; const fragmentEntryLinkNamespace = 'pcwh'; const fragmentNamespace = 'pcwh'; const layoutMode = 'view';var pendingCallbacks=[],apiLoading=!1;function onYouTubeReady(e){var n;if(null!==(n=globalThis.YT)&&void 0!==n&&n.Player)e();else if(pendingCallbacks.push(e),!apiLoading){apiLoading=!0;var a=globalThis.onYouTubeIframeAPIReady;globalThis.onYouTubeIframeAPIReady=function(){a&&a(),pendingCallbacks.forEach(function(e){return e()}),pendingCallbacks.length=0};var o=document.createElement("script");o.src="https://www.youtube.com/iframe_api",o.crossOrigin="anonymous";var i=document.getElementsByTagName("script")[0];null!=i&&i.parentNode?i.parentNode.insertBefore(o,i):document.head.appendChild(o)}}function ensureEnableJsApi(e){var n=e.getAttribute("src")||"";if(!n.includes("enablejsapi=1")){var a=n.includes("?")?"&":"?";e.src="".concat(n).concat(a,"enablejsapi=1")}}function setupBannerVideo(e,n){if(e&&n){var a=globalThis.jQuery||globalThis.$;ensureEnableJsApi(n);var o=null,i=!1,l=!1;onYouTubeReady(function(){o=new globalThis.YT.Player(n,{events:{onReady:function(){var e;(i=!0,l)&&(null===(e=o)||void 0===e||e.playVideo(),l=!1)}}})});var r=function(){var e;i?null===(e=o)||void 0===e||e.playVideo():l=!0},d=function(){var e;(l=!1,i)&&(null===(e=o)||void 0===e||e.pauseVideo())};a?a(e).on("shown.bs.modal",r).on("hidden.bs.modal",d):(e.addEventListener("shown.bs.modal",r),e.addEventListener("hidden.bs.modal",d))}}document.querySelectorAll('.jdt-banner.video .modal[id^="bannerVideo_"]').forEach(function(e){var n=e.querySelector('iframe[src*="youtube.com"]');n&&setupBannerVideo(e,n)});;</script></div><div class="lfr-layout-structure-item-spacer lfr-layout-structure-item-ade5a3af-7d7a-e5f9-0a10-89b555b90f07 " data-layout-structure-item-id="ade5a3af-7d7a-e5f9-0a10-89b555b90f07"><div id="fragment-64281a46-5379-1d52-c2e0-1be147b57f17" > <div class="jdt-spacer-6"></div></div><style >.jdt-spacer-1 {
   height: var(--spacing-1, 2px);
 }
 @media (max-width: 991px) {
@@ -6498,7 +6498,7 @@ Catálogo de estudios
 
 .docs-story .jdt-spacer-1, .docs-story .jdt-spacer-2, .docs-story .jdt-spacer-3, .docs-story .jdt-spacer-4, .docs-story .jdt-spacer-5, .docs-story .jdt-spacer-6, .docs-story .jdt-spacer-7, .docs-story .jdt-spacer-8, .docs-story .jdt-spacer-9, .docs-story .jdt-spacer-10, .docs-story .jdt-spacer-11 {
   background-color: #333333;
-}</style></div><div class="lfr-layout-structure-item-3ec65aa8-b61d-cb1c-c0dd-e9b270750f34 lfr-layout-structure-item-container  container-fluid container-fluid-max-xl" data-layout-structure-item-id="3ec65aa8-b61d-cb1c-c0dd-e9b270750f34"><div class="lfr-layout-structure-item-com-liferay-portal-search-web-search-bar-portlet-searchbarportlet lfr-layout-structure-item-d31c2fc4-a424-901b-2d70-006ec76af441 " data-layout-structure-item-id="d31c2fc4-a424-901b-2d70-006ec76af441"><div id="fragment-ef1b4c6b-f064-fffc-da0c-e1ae60e6c416" >
+}</style></div><div class="lfr-layout-structure-item-3ec65aa8-b61d-cb1c-c0dd-e9b270750f34 lfr-layout-structure-item-container  container-fluid container-fluid-max-xl" data-layout-structure-item-id="3ec65aa8-b61d-cb1c-c0dd-e9b270750f34"><div class="lfr-layout-structure-item-com-liferay-portal-search-web-search-bar-portlet-searchbarportlet lfr-layout-structure-item-d31c2fc4-a424-901b-2d70-006ec76af441 " data-layout-structure-item-id="d31c2fc4-a424-901b-2d70-006ec76af441"><div id="fragment-aff7c6cd-9cc8-e7c1-1f61-10efea54c090" >
 
 
 
@@ -6779,7 +6779,7 @@ Catálogo de estudios
 
 
 <div class="row">
-    <div class="col-12 jdt-form jdt-search" id="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_xuxk_cjaf">
+    <div class="col-12 jdt-form jdt-search" id="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_xuxk_avft">
         <div class="search-item text-search">
             <div class="form-group">
                 <label for="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_xuxk__text">
@@ -6873,7 +6873,7 @@ Texto a buscar                    <i class="icon-info-circle icon-size-2" aria-h
         }
     });
 
-    document.getElementById('_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_xuxk_cjaf').closest('form').addEventListener("submit", function (event) {
+    document.getElementById('_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_xuxk_avft').closest('form').addEventListener("submit", function (event) {
        const btn = event.submitter || this.querySelector('.jdt-button');
        send(btn);
     });
@@ -6892,7 +6892,7 @@ Texto a buscar                    <i class="icon-info-circle icon-size-2" aria-h
             return false;
         }
 
-        const form = document.getElementById('_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_xuxk_cjaf').closest('form');
+        const form = document.getElementById('_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_xuxk_avft').closest('form');
 
         form.querySelector('input[name="start"]').value = "1";
         form.querySelector('input[name="from"]').value = "[" + convertirFechaFormatoCompleto(form.querySelector('input[name="fromDate"]').value) + " now]";
@@ -6945,7 +6945,7 @@ Texto a buscar                    <i class="icon-info-circle icon-size-2" aria-h
     }
 
     function clearForm() {
-        const form = document.getElementById('_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_xuxk_cjaf').closest('form');
+        const form = document.getElementById('_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_xuxk_avft').closest('form');
 
         form.querySelectorAll('input, select, textarea').forEach(element => {
             switch (element.type) {
@@ -7390,7 +7390,7 @@ Texto a buscar                    <i class="icon-info-circle icon-size-2" aria-h
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-cc6729cb-53c9-d5bd-83e8-8ea12d3eae68 " data-layout-structure-item-id="cc6729cb-53c9-d5bd-83e8-8ea12d3eae68"><div id="fragment-a0a02fd3-b35d-8de3-31ca-a003fde66ddc" ><link href="https://www.cis.es/o/portal-search-web/css/main.(ewQ02j$q6kw).css" rel="stylesheet" type="text/css"
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-cc6729cb-53c9-d5bd-83e8-8ea12d3eae68 " data-layout-structure-item-id="cc6729cb-53c9-d5bd-83e8-8ea12d3eae68"><div id="fragment-f2dd91ef-40bf-6027-16a2-65a6252887ef" ><link href="https://www.cis.es/o/portal-search-web/css/main.(ewQ02j$q6kw).css" rel="stylesheet" type="text/css"
  />
 
 
@@ -7760,7 +7760,7 @@ Texto a buscar                    <i class="icon-info-circle icon-size-2" aria-h
 			
 			
 				
-					<input  class="field form-control"  id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_ebsi_formDate"    name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_ebsi_formDate"     type="hidden" value="1791542097191"   />
+					<input  class="field form-control"  id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_ebsi_formDate"    name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_ebsi_formDate"     type="hidden" value="1791542153216"   />
 				
 			
 		
@@ -8283,7 +8283,7 @@ Texto a buscar                    <i class="icon-info-circle icon-size-2" aria-h
 
 
 
-</div></div><div class="lfr-layout-structure-item-content-list lfr-layout-structure-item-77b77221-cce0-dad4-065e-6dd6e465ac93 " data-layout-structure-item-id="77b77221-cce0-dad4-065e-6dd6e465ac93"><div id="fragment-dae384a6-b4da-a2e0-19b6-da554c10fa5f" > <div class="jdt-contentlist">
+</div></div><div class="lfr-layout-structure-item-content-list lfr-layout-structure-item-77b77221-cce0-dad4-065e-6dd6e465ac93 " data-layout-structure-item-id="77b77221-cce0-dad4-065e-6dd6e465ac93"><div id="fragment-6d680384-3af0-4167-fbd1-07f13aea514d" > <div class="jdt-contentlist">
   <div class="jdt-contentlist__header d-flex justify-content-between">
           <div class="jdt-spacer-9 d-block d-md-none"></div>
         <button type="button" class="jdt-button btn btn-secondary btn-md" id="filtrar-btn" onclick="window.updateChevronVisibility?.();window.equalizeTitleHeightByRow?.();">
@@ -8291,7 +8291,7 @@ Filtrar          <i class="icon-sliders-h"></i>
         </button>
       <div class="jdt-spacer-9 d-block d-md-none"></div>
       <div class="float-right">
-        <div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-sort-portlet-sortportlet lfr-layout-structure-item-7e83ff8e-2b4e-1196-c520-f680d1395844 " data-layout-structure-item-id="7e83ff8e-2b4e-1196-c520-f680d1395844"><div id="fragment-616a608d-a579-1113-ec95-743ced548683">
+        <div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-sort-portlet-sortportlet lfr-layout-structure-item-7e83ff8e-2b4e-1196-c520-f680d1395844 " data-layout-structure-item-id="7e83ff8e-2b4e-1196-c520-f680d1395844"><div id="fragment-7a407c34-1560-fb59-e8a2-ab0955a31977">
 
 
 
@@ -8661,7 +8661,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 			
 			
 				
-					<input class="field form-control" id="_com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_eyrw_formDate" name="_com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_eyrw_formDate" type="hidden" value="1791542097193">
+					<input class="field form-control" id="_com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_eyrw_formDate" name="_com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_eyrw_formDate" type="hidden" value="1791542153218">
 				
 			
 		
@@ -9159,7 +9159,7 @@ Filtrar          <i class="icon-sliders-h"></i>
       </div>
 
         <aside class="jdt-contentlist__aside">
-          <div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-81e6c54e-ad57-7090-192b-839b521bd7dd " data-layout-structure-item-id="81e6c54e-ad57-7090-192b-839b521bd7dd"><div id="fragment-aa2cc062-9f93-1573-f45e-65959f92e020">
+          <div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-81e6c54e-ad57-7090-192b-839b521bd7dd " data-layout-structure-item-id="81e6c54e-ad57-7090-192b-839b521bd7dd"><div id="fragment-62b89886-e515-de06-f5a0-0d35de56c07e">
 
 
 
@@ -9527,7 +9527,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 			
 			
 				
-					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_odpx_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_odpx_formDate" type="hidden" value="1791542097194">
+					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_odpx_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_odpx_formDate" type="hidden" value="1791542153219">
 				
 			
 		
@@ -9996,7 +9996,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-38cfa0f3-b998-601b-cc38-f6b4317f5519 " data-layout-structure-item-id="38cfa0f3-b998-601b-cc38-f6b4317f5519"><div id="fragment-dd72b43c-cbd1-f963-a7bc-7328743cda0a">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-38cfa0f3-b998-601b-cc38-f6b4317f5519 " data-layout-structure-item-id="38cfa0f3-b998-601b-cc38-f6b4317f5519"><div id="fragment-140dd2fc-d5fb-118f-4323-5ca5464799b4">
 
 
 
@@ -10364,7 +10364,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 			
 			
 				
-					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_jfgw_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_jfgw_formDate" type="hidden" value="1791542097196">
+					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_jfgw_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_jfgw_formDate" type="hidden" value="1791542153220">
 				
 			
 		
@@ -10833,7 +10833,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-eaa66a2c-59b7-0bf0-bdca-b2f90ac13a41 " data-layout-structure-item-id="eaa66a2c-59b7-0bf0-bdca-b2f90ac13a41"><div id="fragment-a291cb3b-1ee1-629c-c72b-24da0028479e">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-eaa66a2c-59b7-0bf0-bdca-b2f90ac13a41 " data-layout-structure-item-id="eaa66a2c-59b7-0bf0-bdca-b2f90ac13a41"><div id="fragment-555479d4-2d54-6e38-ddbd-e1ee8521e007">
 
 
 
@@ -11201,7 +11201,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 			
 			
 				
-					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_wrun_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_wrun_formDate" type="hidden" value="1791542097197">
+					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_wrun_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_wrun_formDate" type="hidden" value="1791542153222">
 				
 			
 		
@@ -11670,7 +11670,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-c9b10143-2cf8-9fd9-77aa-b3d9bc5eef2a " data-layout-structure-item-id="c9b10143-2cf8-9fd9-77aa-b3d9bc5eef2a"><div id="fragment-b4c43eef-b9ef-e159-ca80-f67b0d58c5b0">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-c9b10143-2cf8-9fd9-77aa-b3d9bc5eef2a " data-layout-structure-item-id="c9b10143-2cf8-9fd9-77aa-b3d9bc5eef2a"><div id="fragment-5849f9ff-093f-1c77-be4e-33d017b8a67a">
 
 
 
@@ -12038,7 +12038,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 			
 			
 				
-					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mljp_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mljp_formDate" type="hidden" value="1791542097198">
+					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mljp_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mljp_formDate" type="hidden" value="1791542153223">
 				
 			
 		
@@ -12507,7 +12507,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-163fc805-37b0-0d29-37a0-812a02abecf9 " data-layout-structure-item-id="163fc805-37b0-0d29-37a0-812a02abecf9"><div id="fragment-5ca02cdf-53a8-d3ea-4fc1-2a78e8bdd1ff">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-163fc805-37b0-0d29-37a0-812a02abecf9 " data-layout-structure-item-id="163fc805-37b0-0d29-37a0-812a02abecf9"><div id="fragment-d721a392-d6d4-c036-7e78-004aa046825c">
 
 
 
@@ -12875,7 +12875,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 			
 			
 				
-					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_skhz_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_skhz_formDate" type="hidden" value="1791542097200">
+					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_skhz_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_skhz_formDate" type="hidden" value="1791542153224">
 				
 			
 		
@@ -13344,7 +13344,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-4f821d3a-d03d-df24-857d-2914db480a64 " data-layout-structure-item-id="4f821d3a-d03d-df24-857d-2914db480a64"><div id="fragment-1509f332-11cb-5677-d20f-0b88b96a68af">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-4f821d3a-d03d-df24-857d-2914db480a64 " data-layout-structure-item-id="4f821d3a-d03d-df24-857d-2914db480a64"><div id="fragment-b7eccc62-fa3a-33b5-1f59-8c9e609facdd">
 
 
 
@@ -13712,7 +13712,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 			
 			
 				
-					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_lxrq_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_lxrq_formDate" type="hidden" value="1791542097201">
+					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_lxrq_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_lxrq_formDate" type="hidden" value="1791542153226">
 				
 			
 		
@@ -14181,7 +14181,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-d4b4f860-7467-ce4b-ef1b-16502a2a82db " data-layout-structure-item-id="d4b4f860-7467-ce4b-ef1b-16502a2a82db"><div id="fragment-70f19a2e-c888-0d0a-eab1-26872b52a4e6">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-d4b4f860-7467-ce4b-ef1b-16502a2a82db " data-layout-structure-item-id="d4b4f860-7467-ce4b-ef1b-16502a2a82db"><div id="fragment-3a48e18a-ca5d-3a1a-1495-c9d5cf374b36">
 
 
 
@@ -14549,7 +14549,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 			
 			
 				
-					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_tqdj_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_tqdj_formDate" type="hidden" value="1791542097203">
+					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_tqdj_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_tqdj_formDate" type="hidden" value="1791542153230">
 				
 			
 		
@@ -15018,7 +15018,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-6ca98d68-bdfe-8f8d-e54b-ca5fb11c891c " data-layout-structure-item-id="6ca98d68-bdfe-8f8d-e54b-ca5fb11c891c"><div id="fragment-7d9ff3fe-6939-c1ad-1751-4f987569fb03">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-6ca98d68-bdfe-8f8d-e54b-ca5fb11c891c " data-layout-structure-item-id="6ca98d68-bdfe-8f8d-e54b-ca5fb11c891c"><div id="fragment-b9f99f44-8627-17ff-896b-7e796464917d">
 
 
 
@@ -15386,7 +15386,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 			
 			
 				
-					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mhfk_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mhfk_formDate" type="hidden" value="1791542097204">
+					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mhfk_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mhfk_formDate" type="hidden" value="1791542153231">
 				
 			
 		
@@ -15855,7 +15855,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-97adbcad-148e-f8d9-8c32-5cd2707606d4 " data-layout-structure-item-id="97adbcad-148e-f8d9-8c32-5cd2707606d4"><div id="fragment-847a4c85-f1a3-4cf3-cae5-284b7e9c9077">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-97adbcad-148e-f8d9-8c32-5cd2707606d4 " data-layout-structure-item-id="97adbcad-148e-f8d9-8c32-5cd2707606d4"><div id="fragment-7c5aab73-7d49-0dc6-cd01-32d0deadddb1">
 
 
 
@@ -16223,7 +16223,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 			
 			
 				
-					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_aeki_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_aeki_formDate" type="hidden" value="1791542097215">
+					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_aeki_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_aeki_formDate" type="hidden" value="1791542153241">
 				
 			
 		
@@ -16692,7 +16692,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-ed9667e1-2661-a27e-7153-5d97a0e20960 " data-layout-structure-item-id="ed9667e1-2661-a27e-7153-5d97a0e20960"><div id="fragment-7ec9f924-07e1-957a-f337-3e2dcc49bd19">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-ed9667e1-2661-a27e-7153-5d97a0e20960 " data-layout-structure-item-id="ed9667e1-2661-a27e-7153-5d97a0e20960"><div id="fragment-e0a814ab-ec21-a055-dca9-d047d4ed77a9">
 
 
 
@@ -17060,7 +17060,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 			
 			
 				
-					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_dodn_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_dodn_formDate" type="hidden" value="1791542097220">
+					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_dodn_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_dodn_formDate" type="hidden" value="1791542153247">
 				
 			
 		
@@ -17529,7 +17529,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-client-extension-web-internal-portlet-clientextensionentryportlet-66658979392493-lxc-vocabulary-filter lfr-layout-structure-item-1835d8ea-c4b7-0233-7e1f-b0e3e879cc5e " data-layout-structure-item-id="1835d8ea-c4b7-0233-7e1f-b0e3e879cc5e"><div id="fragment-52ab0d46-bb0f-f71f-df34-b7c158b1d63d"><link href="https://www.cis.es/o/cis-lcx/assets/index.css?t=1791392334263" rel="stylesheet" type="text/css">
+</div></div><div class="lfr-layout-structure-item-com-liferay-client-extension-web-internal-portlet-clientextensionentryportlet-66658979392493-lxc-vocabulary-filter lfr-layout-structure-item-1835d8ea-c4b7-0233-7e1f-b0e3e879cc5e " data-layout-structure-item-id="1835d8ea-c4b7-0233-7e1f-b0e3e879cc5e"><div id="fragment-c9945acd-efa9-5441-55ed-cfa156e78de9"><link href="https://www.cis.es/o/cis-lcx/assets/index.css?t=1791392334263" rel="stylesheet" type="text/css">
 <link href="https://www.cis.es/o/cis-lcx/assets/checkbox-tree.css?t=1791392334263" rel="stylesheet" type="text/css">
 <link href="https://www.cis.es/o/cis-lcx/assets/rc-slider.css?t=1791392334263" rel="stylesheet" type="text/css">
 <script src="https://www.cis.es/o/cis-lcx/assets/index.js?t=1791392334263" type="module"></script>
@@ -17787,7 +17787,7 @@ Filtrar          <i class="icon-sliders-h"></i>
     </div>
 
     <div class="jdt-contentlist__list">
-      <div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-search-results-portlet-searchresultsportlet lfr-layout-structure-item-8719da94-3503-60c3-37cb-d0b3febd4219 " data-layout-structure-item-id="8719da94-3503-60c3-37cb-d0b3febd4219"><div id="fragment-3204efbd-3091-c341-a60d-ef4a4779e835">
+      <div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-search-results-portlet-searchresultsportlet lfr-layout-structure-item-8719da94-3503-60c3-37cb-d0b3febd4219 " data-layout-structure-item-id="8719da94-3503-60c3-37cb-d0b3febd4219"><div id="fragment-a73e5a38-9217-cbd9-91b1-2778fd9e4099">
 
 
 
@@ -20419,7 +20419,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-83bdb8c0-e996-edc5-8b7e-302a91684557 " data-layout-structure-item-id="83bdb8c0-e996-edc5-8b7e-302a91684557"><div id="fragment-eb7c8781-4819-72b7-6ba0-cd7414450fe8">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-83bdb8c0-e996-edc5-8b7e-302a91684557 " data-layout-structure-item-id="83bdb8c0-e996-edc5-8b7e-302a91684557"><div id="fragment-42cf5ee5-e080-97c4-2c47-8ddf719e966c">
 
 
 
@@ -20453,7 +20453,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-3be4af7b-8bbf-4f04-3e9a-8c9bf3425886 " data-layout-structure-item-id="3be4af7b-8bbf-4f04-3e9a-8c9bf3425886"><div id="fragment-6e81fcd8-8ce3-8e76-61ef-d9b50cfb3e7b">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-3be4af7b-8bbf-4f04-3e9a-8c9bf3425886 " data-layout-structure-item-id="3be4af7b-8bbf-4f04-3e9a-8c9bf3425886"><div id="fragment-ea044206-6841-a7ff-aaa5-414bf80647ae">
 
 
 
@@ -20487,7 +20487,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-21aceb10-4e14-e7d0-be8c-35704549c194 " data-layout-structure-item-id="21aceb10-4e14-e7d0-be8c-35704549c194"><div id="fragment-911ca88f-9c2d-a9f9-8a3e-ca202efd28f2">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-21aceb10-4e14-e7d0-be8c-35704549c194 " data-layout-structure-item-id="21aceb10-4e14-e7d0-be8c-35704549c194"><div id="fragment-fe95b694-48bf-1144-ac7e-5870257f3657">
 
 
 
@@ -20521,7 +20521,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-cbc073d5-9cc4-3474-4284-0bff2422ea88 " data-layout-structure-item-id="cbc073d5-9cc4-3474-4284-0bff2422ea88"><div id="fragment-ff986426-fc19-df90-c071-8f941f95ddc4">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-cbc073d5-9cc4-3474-4284-0bff2422ea88 " data-layout-structure-item-id="cbc073d5-9cc4-3474-4284-0bff2422ea88"><div id="fragment-e98be7da-7150-70b6-9041-037c5ea263e6">
 
 
 
@@ -20555,7 +20555,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-ec952b64-0e73-d0d9-2449-b88ede7b3c56 " data-layout-structure-item-id="ec952b64-0e73-d0d9-2449-b88ede7b3c56"><div id="fragment-b51dba9a-37a4-1105-23c4-e94bbed711ae">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-ec952b64-0e73-d0d9-2449-b88ede7b3c56 " data-layout-structure-item-id="ec952b64-0e73-d0d9-2449-b88ede7b3c56"><div id="fragment-fc9c6759-5215-f528-df8e-972270032ab0">
 
 
 
@@ -20589,7 +20589,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-5d2305f9-8e72-6be3-f2a8-8246991bebdf " data-layout-structure-item-id="5d2305f9-8e72-6be3-f2a8-8246991bebdf"><div id="fragment-60c2759d-e05c-b827-d2b1-0bda84519de4">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-5d2305f9-8e72-6be3-f2a8-8246991bebdf " data-layout-structure-item-id="5d2305f9-8e72-6be3-f2a8-8246991bebdf"><div id="fragment-125a1402-7efc-c6ab-d409-2256323459d9">
 
 
 
@@ -20623,7 +20623,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-6525cfab-978d-ac78-e25e-c030e90d1a28 " data-layout-structure-item-id="6525cfab-978d-ac78-e25e-c030e90d1a28"><div id="fragment-bb250bf6-1346-bde6-2a7c-8d067b245fee">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-6525cfab-978d-ac78-e25e-c030e90d1a28 " data-layout-structure-item-id="6525cfab-978d-ac78-e25e-c030e90d1a28"><div id="fragment-2b8e6cf4-f8e3-db9f-bc24-2ed03364032d">
 
 
 
@@ -20657,7 +20657,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-690832d2-dae0-9822-dae2-d506094c1a08 " data-layout-structure-item-id="690832d2-dae0-9822-dae2-d506094c1a08"><div id="fragment-97d03954-d550-2fd1-e1f9-67c4a9eb3091">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-690832d2-dae0-9822-dae2-d506094c1a08 " data-layout-structure-item-id="690832d2-dae0-9822-dae2-d506094c1a08"><div id="fragment-062878b5-0b85-3e6b-bdec-74ddb4fc9c93">
 
 
 
@@ -20691,7 +20691,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-adf82f92-4cb2-0a62-72e9-9f73fcf1e271 " data-layout-structure-item-id="adf82f92-4cb2-0a62-72e9-9f73fcf1e271"><div id="fragment-5284b34d-66f7-c549-8235-39065e5fb2ab">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-adf82f92-4cb2-0a62-72e9-9f73fcf1e271 " data-layout-structure-item-id="adf82f92-4cb2-0a62-72e9-9f73fcf1e271"><div id="fragment-aaf4c894-23b3-5363-900a-85d6191e8a65">
 
 
 
@@ -20725,7 +20725,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-search-options-portlet-searchoptionsportlet lfr-layout-structure-item-9b955aa5-a2fe-a74b-3f2a-8d646dcd0e30 " data-layout-structure-item-id="9b955aa5-a2fe-a74b-3f2a-8d646dcd0e30"><div id="fragment-149c4f34-1769-9241-3605-9f86b71ac816">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-search-options-portlet-searchoptionsportlet lfr-layout-structure-item-9b955aa5-a2fe-a74b-3f2a-8d646dcd0e30 " data-layout-structure-item-id="9b955aa5-a2fe-a74b-3f2a-8d646dcd0e30"><div id="fragment-b3c66213-f3c2-e191-b722-07dffc7304d4">
 
 
 
@@ -21084,7 +21084,7 @@ Filtrar          <i class="icon-sliders-h"></i>
   .cis .jdt-contentlist .jdt-ordering {
     margin-top: 8px;
   }
-}</style><script type="module" >const configuration = {"showActions":true,"showFilter":true}; const fragmentElement = document.querySelector('#fragment-dae384a6-b4da-a2e0-19b6-da554c10fa5f'); const fragmentElementId = 'fragment-dae384a6-b4da-a2e0-19b6-da554c10fa5f'; const fragmentEntryLinkNamespace = 'iigg'; const fragmentNamespace = 'iigg'; const layoutMode = 'view';var btn=document.getElementById("filtrar-btn"),closeBtn=document.getElementById("close-btn"),wrapper=document.querySelector(".jdt-contentlist__listwrap"),isMobile=globalThis.matchMedia("(max-width: 992px)").matches;function equalizeTitleHeightByRow(){var t=document.querySelector(".jdt-contentlist__list");if(t){var e=Array.from(t.querySelectorAll(".jdt-card.vertical"));if(0!==e.length){var i=Array.from(t.querySelectorAll(".card-content__title"));if(0!==i.length){i.forEach(function(t){return t.style.height="auto"});for(var o=e[0].offsetWidth,l=t.offsetWidth,n=Math.floor(l/o),r=function(){var t=i.slice(a,a+n),e=0;t.forEach(function(t){e=Math.max(e,t.offsetHeight)}),t.forEach(function(t){t.style.height="".concat(e,"px")})},a=0;a<i.length;a+=n)r()}}}}wrapper&&(btn&&btn.addEventListener("click",function(){isMobile?(wrapper.classList.toggle("filter-modal-active"),setTimeout(function(){document.body.style.overflow="hidden"},0)):(wrapper.classList.toggle("filter-active"),setTimeout(function(){btn.classList.toggle("active"),equalizeTitleHeightByRow()},500))}),closeBtn&&closeBtn.addEventListener("click",function(){wrapper.classList.remove("filter-modal-active"),document.body.style.overflow=""})),equalizeTitleHeightByRow(),globalThis.addEventListener("resize",equalizeTitleHeightByRow);;</script></div></div></div><div class="lfr-layout-structure-item-spacer lfr-layout-structure-item-01d719b7-fd33-72f0-e3ee-bd904b3fa33a " data-layout-structure-item-id="01d719b7-fd33-72f0-e3ee-bd904b3fa33a"><div id="fragment-30412c73-09a6-c98d-2b43-b3401a3f4763" > <div class="jdt-spacer-11"></div></div></div></div><div class="lfr-layout-structure-item-footer lfr-layout-structure-item-9805cd8b-75ce-0045-455b-c41be12cd899 " data-layout-structure-item-id="9805cd8b-75ce-0045-455b-c41be12cd899"><div id="fragment-aa5fbf8f-d5d3-b2ec-ad72-6f94bbe9d1a3" > <footer class="jdt-footer ">
+}</style><script type="module" >const configuration = {"showActions":true,"showFilter":true}; const fragmentElement = document.querySelector('#fragment-6d680384-3af0-4167-fbd1-07f13aea514d'); const fragmentElementId = 'fragment-6d680384-3af0-4167-fbd1-07f13aea514d'; const fragmentEntryLinkNamespace = 'iigg'; const fragmentNamespace = 'iigg'; const layoutMode = 'view';var btn=document.getElementById("filtrar-btn"),closeBtn=document.getElementById("close-btn"),wrapper=document.querySelector(".jdt-contentlist__listwrap"),isMobile=globalThis.matchMedia("(max-width: 992px)").matches;function equalizeTitleHeightByRow(){var t=document.querySelector(".jdt-contentlist__list");if(t){var e=Array.from(t.querySelectorAll(".jdt-card.vertical"));if(0!==e.length){var i=Array.from(t.querySelectorAll(".card-content__title"));if(0!==i.length){i.forEach(function(t){return t.style.height="auto"});for(var o=e[0].offsetWidth,l=t.offsetWidth,n=Math.floor(l/o),r=function(){var t=i.slice(a,a+n),e=0;t.forEach(function(t){e=Math.max(e,t.offsetHeight)}),t.forEach(function(t){t.style.height="".concat(e,"px")})},a=0;a<i.length;a+=n)r()}}}}wrapper&&(btn&&btn.addEventListener("click",function(){isMobile?(wrapper.classList.toggle("filter-modal-active"),setTimeout(function(){document.body.style.overflow="hidden"},0)):(wrapper.classList.toggle("filter-active"),setTimeout(function(){btn.classList.toggle("active"),equalizeTitleHeightByRow()},500))}),closeBtn&&closeBtn.addEventListener("click",function(){wrapper.classList.remove("filter-modal-active"),document.body.style.overflow=""})),equalizeTitleHeightByRow(),globalThis.addEventListener("resize",equalizeTitleHeightByRow);;</script></div></div></div><div class="lfr-layout-structure-item-spacer lfr-layout-structure-item-01d719b7-fd33-72f0-e3ee-bd904b3fa33a " data-layout-structure-item-id="01d719b7-fd33-72f0-e3ee-bd904b3fa33a"><div id="fragment-30412c73-09a6-c98d-2b43-b3401a3f4763" > <div class="jdt-spacer-11"></div></div></div></div><div class="lfr-layout-structure-item-footer lfr-layout-structure-item-9805cd8b-75ce-0045-455b-c41be12cd899 " data-layout-structure-item-id="9805cd8b-75ce-0045-455b-c41be12cd899"><div id="fragment-09c36ff8-6b03-6490-db64-571926904391" > <footer class="jdt-footer ">
   <div class="container container-fluid container-fluid-max-xl">
     <div class="d-flex justify-content-start align-items-center footer-panel flex-column flex-lg-row">
       <img src="https://www.cis.es/documents/20117/1544631/logo-cis-blanco.svg/ef0aef9a-53bc-dc5e-ff55-306153f415fe?version=1.0&amp;t=1759827159554" width="222" height="69" alt="Logo CIS" class="footer-logo" data-lfr-editable-id="logo-cis" data-lfr-editable-type="image" data-fileentryid="13556713">
@@ -21490,7 +21490,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 }
 .cis .jdt-footer .list-inline-item:not(:last-child) {
   border-right: 1px solid #ffffff; /* Color y estilo del separador */
-}</style></div></div><div class="lfr-layout-structure-item-cookie-consent lfr-layout-structure-item-94d28284-98d4-30e6-76f0-7b7aac17cc80 " data-layout-structure-item-id="94d28284-98d4-30e6-76f0-7b7aac17cc80"><div id="fragment-7b4101d3-061f-b185-36ee-f51b5c9643d7" > <div class="jdt-cookie-consent d-print-none" id="cookies">
+}</style></div></div><div class="lfr-layout-structure-item-cookie-consent lfr-layout-structure-item-94d28284-98d4-30e6-76f0-7b7aac17cc80 " data-layout-structure-item-id="94d28284-98d4-30e6-76f0-7b7aac17cc80"><div id="fragment-4397562e-1fe8-ef56-692a-632a2ae1487c" > <div class="jdt-cookie-consent d-print-none" id="cookies">
   <div class="cookie-warning hide">
     <div class="holder">
       <p class="title4 font-weight-bold">
@@ -22026,7 +22026,7 @@ Aceptar todas                  </button>
   display: block !important;
   opacity: 1 !important;
   transform: translateX(-50%) translateY(0%) !important;
-}</style><script type="module" >const configuration = {}; const fragmentElement = document.querySelector('#fragment-7b4101d3-061f-b185-36ee-f51b5c9643d7'); const fragmentElementId = 'fragment-7b4101d3-061f-b185-36ee-f51b5c9643d7'; const fragmentEntryLinkNamespace = 'dpvo'; const fragmentNamespace = 'dpvo'; const layoutMode = 'view';function hideBannerWithDelay(e){e.classList.remove("show"),e.classList.add("hide"),setTimeout(function(){e.style.display="none"},1e3)}var COOKIE_NAME="COOKIE_CONSENT",cookieBanner=document.querySelector(".cookie-warning"),analyticsOption=document.getElementById("option1");function setCookieConsent(e){document.cookie=COOKIE_NAME+"="+e+"; expires="+new Date(Date.now()+31536e6).toUTCString()+"; path=/",initCookies()}function getCookie(e){var n=document.cookie.split("; ").find(function(n){return n.startsWith(e+"=")});return n?n.split("=")[1]:void 0}function initCookies(){var e,n=getCookie(COOKIE_NAME);if(void 0!==n){var o="1"===n.charAt(0),t="1"===n.charAt(1);analyticsOption&&(analyticsOption.checked=o);var i=t?"granted":"denied";null===(e=globalThis.gtag)||void 0===e||e.call(globalThis,"consent","update",{ad_storage:i,ad_user_data:i,ad_personalization:i,analytics_storage:o?"granted":"denied"})}else setTimeout(function(){cookieBanner.classList.remove("hide"),cookieBanner.classList.add("show")},500)}document.cookie&&!document.cookie.includes(COOKIE_NAME)&&setTimeout(function(){cookieBanner.classList.remove("hide"),cookieBanner.classList.add("show")},500),document.querySelectorAll("#accept_cookies, #allow_all_cookies").forEach(function(e){e.addEventListener("click",function(){setCookieConsent("11"),hideBannerWithDelay(cookieBanner)})}),document.querySelectorAll("#cookies_preferences").forEach(function(e){e.addEventListener("click",function(){setCookieConsent(null!=analyticsOption&&analyticsOption.checked?"10":"00"),hideBannerWithDelay(cookieBanner)})}),document.querySelectorAll("#reject_cookies").forEach(function(e){e.addEventListener("click",function(){setCookieConsent("00"),hideBannerWithDelay(cookieBanner)})}),document.querySelectorAll('a[data-toggle="self-navigation"]').forEach(function(e){e.addEventListener("click",function(){this.closest(".parent-navigation").classList.add("d-none"),document.getElementById(this.dataset.target).classList.remove("d-none")})}),initCookies();;</script></div>
+}</style><script type="module" >const configuration = {}; const fragmentElement = document.querySelector('#fragment-4397562e-1fe8-ef56-692a-632a2ae1487c'); const fragmentElementId = 'fragment-4397562e-1fe8-ef56-692a-632a2ae1487c'; const fragmentEntryLinkNamespace = 'dpvo'; const fragmentNamespace = 'dpvo'; const layoutMode = 'view';function hideBannerWithDelay(e){e.classList.remove("show"),e.classList.add("hide"),setTimeout(function(){e.style.display="none"},1e3)}var COOKIE_NAME="COOKIE_CONSENT",cookieBanner=document.querySelector(".cookie-warning"),analyticsOption=document.getElementById("option1");function setCookieConsent(e){document.cookie=COOKIE_NAME+"="+e+"; expires="+new Date(Date.now()+31536e6).toUTCString()+"; path=/",initCookies()}function getCookie(e){var n=document.cookie.split("; ").find(function(n){return n.startsWith(e+"=")});return n?n.split("=")[1]:void 0}function initCookies(){var e,n=getCookie(COOKIE_NAME);if(void 0!==n){var o="1"===n.charAt(0),t="1"===n.charAt(1);analyticsOption&&(analyticsOption.checked=o);var i=t?"granted":"denied";null===(e=globalThis.gtag)||void 0===e||e.call(globalThis,"consent","update",{ad_storage:i,ad_user_data:i,ad_personalization:i,analytics_storage:o?"granted":"denied"})}else setTimeout(function(){cookieBanner.classList.remove("hide"),cookieBanner.classList.add("show")},500)}document.cookie&&!document.cookie.includes(COOKIE_NAME)&&setTimeout(function(){cookieBanner.classList.remove("hide"),cookieBanner.classList.add("show")},500),document.querySelectorAll("#accept_cookies, #allow_all_cookies").forEach(function(e){e.addEventListener("click",function(){setCookieConsent("11"),hideBannerWithDelay(cookieBanner)})}),document.querySelectorAll("#cookies_preferences").forEach(function(e){e.addEventListener("click",function(){setCookieConsent(null!=analyticsOption&&analyticsOption.checked?"10":"00"),hideBannerWithDelay(cookieBanner)})}),document.querySelectorAll("#reject_cookies").forEach(function(e){e.addEventListener("click",function(){setCookieConsent("00"),hideBannerWithDelay(cookieBanner)})}),document.querySelectorAll('a[data-toggle="self-navigation"]').forEach(function(e){e.addEventListener("click",function(){this.closest(".parent-navigation").classList.add("d-none"),document.getElementById(this.dataset.target).classList.remove("d-none")})}),initCookies();;</script></div>
 
 
 
@@ -23156,11 +23156,11 @@ var $ = AUI.$;var _ = AUI._;
 })();
 {
 const ComponentModule = ComponentModule0;
-Liferay.component('__UNNAMED_COMPONENT__4e632934-521e-ec43-833d-d755c25668c2', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_odpx_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_odpx'});
+Liferay.component('__UNNAMED_COMPONENT__4fd5e642-14a8-497c-466f-1404c0037514', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_odpx_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_odpx'});
 }
 {
 const ComponentModule = ComponentModule1;
-Liferay.component('__UNNAMED_COMPONENT__24e784e5-179d-7c40-f31c-9d9074b876cc', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_akgz_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_akgz'});
+Liferay.component('__UNNAMED_COMPONENT__d34b0fb6-4601-aa3f-9bf1-68d13979a26b', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_akgz_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_akgz'});
 }
 (function() {
 var $ = AUI.$;var _ = AUI._;
@@ -23201,7 +23201,7 @@ var $ = AUI.$;var _ = AUI._;
 })();
 {
 const ComponentModule = ComponentModule0;
-Liferay.component('__UNNAMED_COMPONENT__b9739ad0-4a75-b76b-372b-6a2a90cd74d6', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mhfk_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mhfk'});
+Liferay.component('__UNNAMED_COMPONENT__192645ff-5b9a-95a7-d65b-e589df20ae9e', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mhfk_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mhfk'});
 }
 (function() {
 var $ = AUI.$;var _ = AUI._;
@@ -23242,11 +23242,11 @@ var $ = AUI.$;var _ = AUI._;
 })();
 {
 const ComponentModule = ComponentModule0;
-Liferay.component('__UNNAMED_COMPONENT__1abd49ed-2bc7-2e61-259f-29622f3d4ea3', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_dodn_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_dodn'});
+Liferay.component('__UNNAMED_COMPONENT__6d98df5f-488f-8507-8056-c66e3f245568', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_dodn_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_dodn'});
 }
 {
 const ComponentModule = ComponentModule1;
-Liferay.component('__UNNAMED_COMPONENT__8032e2b2-f7df-3e6c-2ae0-1b788ddd7ed9', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_ibfk_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_ibfk'});
+Liferay.component('__UNNAMED_COMPONENT__cbc84f62-2197-2fcc-3e1e-2a2217ba4e1d', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_ibfk_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_ibfk'});
 }
 (function() {
 var $ = AUI.$;var _ = AUI._;
@@ -23287,7 +23287,7 @@ var $ = AUI.$;var _ = AUI._;
 })();
 {
 const ComponentModule = ComponentModule2;
-Liferay.component('__UNNAMED_COMPONENT__7745378f-c83e-a5f4-3822-07f988d1a860', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_eyrw_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_eyrw'});
+Liferay.component('__UNNAMED_COMPONENT__bc66ac9f-f46a-985f-5c82-548c106b7757', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_eyrw_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_eyrw'});
 }
 (function() {
 var $ = AUI.$;var _ = AUI._;
@@ -23328,7 +23328,7 @@ var $ = AUI.$;var _ = AUI._;
 })();
 {
 const ComponentModule = ComponentModule0;
-Liferay.component('__UNNAMED_COMPONENT__1b3d90cd-87e7-a485-6679-e3d3c04f62e1', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_lxrq_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_lxrq'});
+Liferay.component('__UNNAMED_COMPONENT__2d6669cf-ffd5-a682-a252-129d191f8c2d', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_lxrq_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_lxrq'});
 }
 (function() {
 var $ = AUI.$;var _ = AUI._;
@@ -23369,23 +23369,23 @@ var $ = AUI.$;var _ = AUI._;
 })();
 {
 const ComponentModule = ComponentModule0;
-Liferay.component('__UNNAMED_COMPONENT__9ccca413-6679-74f7-ea87-d71629007fc9', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_tqdj_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_tqdj'});
+Liferay.component('__UNNAMED_COMPONENT__2e9a2b4b-ce3e-f718-61ad-c386ab3ffa7e', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_tqdj_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_tqdj'});
 }
 {
 const ComponentModule = ComponentModule1;
-Liferay.component('__UNNAMED_COMPONENT__4982675b-c494-bb49-749e-da721d0cb02c', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_kpdz_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_kpdz'});
+Liferay.component('__UNNAMED_COMPONENT__e321ff72-efc8-de03-db1b-bc92ae3e6cdb', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_kpdz_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_kpdz'});
 }
 {
 const ComponentModule = ComponentModule1;
-Liferay.component('__UNNAMED_COMPONENT__7ea755ef-ef42-6574-780b-4e3e29c86b35', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_vqnq_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_vqnq'});
+Liferay.component('__UNNAMED_COMPONENT__fd22216e-088f-14e8-2000-9fd43e74c504', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_vqnq_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_vqnq'});
 }
 {
 const ComponentModule = ComponentModule3;
-Liferay.component('__UNNAMED_COMPONENT__6d2386f2-c7c6-1842-211f-356554348062', new ComponentModule({"formId":"xqvr___fm","namespace":"_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_xuxk_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg","initialKeywords":"","retainFacetSelections":false}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_xuxk'});
+Liferay.component('__UNNAMED_COMPONENT__763a4271-f77e-6d63-53cd-a257c2e1ae1f', new ComponentModule({"formId":"xqvr___fm","namespace":"_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_xuxk_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg","initialKeywords":"","retainFacetSelections":false}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_xuxk'});
 }
 {
 const ComponentModule = ComponentModule1;
-Liferay.component('__UNNAMED_COMPONENT__33d7a2cb-aacf-015f-1d49-3b25a9c812bd', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_litn_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_litn'});
+Liferay.component('__UNNAMED_COMPONENT__8e3c42e2-bf69-a0c5-832d-ec0d58c4dd76', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_litn_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_litn'});
 }
 (function() {
 var $ = AUI.$;var _ = AUI._;
@@ -23426,11 +23426,11 @@ var $ = AUI.$;var _ = AUI._;
 })();
 {
 const ComponentModule = ComponentModule0;
-Liferay.component('__UNNAMED_COMPONENT__90bb4e3a-21a7-4b15-0fa7-ecd36bd878c3', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_aeki_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_aeki'});
+Liferay.component('__UNNAMED_COMPONENT__f8679a74-e8b9-5bc5-d33e-be2d1f0f03cc', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_aeki_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_aeki'});
 }
 {
 const ComponentModule = ComponentModule1;
-Liferay.component('__UNNAMED_COMPONENT__92ac9ea3-8dfa-c912-8181-be1c525ead9b', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_gcir_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_gcir'});
+Liferay.component('__UNNAMED_COMPONENT__9ae2bd79-ce3d-5727-e384-a5053c003313', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_gcir_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_gcir'});
 }
 (function() {
 var $ = AUI.$;var _ = AUI._;
@@ -23471,7 +23471,7 @@ var $ = AUI.$;var _ = AUI._;
 })();
 {
 const ComponentModule = ComponentModule0;
-Liferay.component('__UNNAMED_COMPONENT__b35ca787-f6cc-c73a-700a-1069c44a8486', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_wrun_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_wrun'});
+Liferay.component('__UNNAMED_COMPONENT__d25a6a66-b399-b30d-fb81-37e9360cba29', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_wrun_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_wrun'});
 }
 (function() {
 var $ = AUI.$;var _ = AUI._;
@@ -23512,7 +23512,7 @@ var $ = AUI.$;var _ = AUI._;
 })();
 {
 const ComponentModule = ComponentModule0;
-Liferay.component('__UNNAMED_COMPONENT__a017a62a-3ee5-2351-c33c-e7a0ccabc54d', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_jfgw_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_jfgw'});
+Liferay.component('__UNNAMED_COMPONENT__a741b8ea-bb9a-6cfd-1fa1-67327929b753', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_jfgw_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_jfgw'});
 }
 (function() {
 var $ = AUI.$;var _ = AUI._;
@@ -23553,7 +23553,7 @@ var $ = AUI.$;var _ = AUI._;
 })();
 {
 const ComponentModule = ComponentModule0;
-Liferay.component('__UNNAMED_COMPONENT__72165453-dd16-0a50-b123-d682ffb9c42d', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_ebsi_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_ebsi'});
+Liferay.component('__UNNAMED_COMPONENT__1523d0be-a7b0-d437-8bba-99a285482018', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_ebsi_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_ebsi'});
 }
 (function() {
 var $ = AUI.$;var _ = AUI._;
@@ -23594,7 +23594,7 @@ var $ = AUI.$;var _ = AUI._;
 })();
 {
 const ComponentModule = ComponentModule0;
-Liferay.component('__UNNAMED_COMPONENT__ea0378c4-df4f-5916-4255-fb96cf5cc456', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mljp_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mljp'});
+Liferay.component('__UNNAMED_COMPONENT__b96a2cd0-1cdf-5fa1-2d5c-309033022dad', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mljp_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_mljp'});
 }
 (function() {
 var $ = AUI.$;var _ = AUI._;
@@ -23635,19 +23635,19 @@ var $ = AUI.$;var _ = AUI._;
 })();
 {
 const ComponentModule = ComponentModule0;
-Liferay.component('__UNNAMED_COMPONENT__1f4eb4b0-d32f-7604-6eae-b4a73459bd96', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_skhz_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_skhz'});
+Liferay.component('__UNNAMED_COMPONENT__51cb17f4-d7bb-dbd5-c9be-0d7ec0582aa2', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_skhz_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_skhz'});
 }
 {
 const ComponentModule = ComponentModule1;
-Liferay.component('__UNNAMED_COMPONENT__dc0fef33-94c3-d313-320a-58513d20e703', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_bvop_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_bvop'});
+Liferay.component('__UNNAMED_COMPONENT__7b250a56-dcf1-9653-9fdf-1018f254d313', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_bvop_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_bvop'});
 }
 {
 const ComponentModule = ComponentModule1;
-Liferay.component('__UNNAMED_COMPONENT__dda59758-dc95-50b3-1919-84f594fa24a5', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_vktf_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_vktf'});
+Liferay.component('__UNNAMED_COMPONENT__f1af2800-41e5-f30d-bd28-2036f61add71', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_vktf_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_vktf'});
 }
 {
 const ComponentModule = ComponentModule1;
-Liferay.component('__UNNAMED_COMPONENT__468ff26f-0d73-8dbf-f74c-aee284f698dc', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_ibia_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_ibia'});
+Liferay.component('__UNNAMED_COMPONENT__e5de7a76-ce84-7a87-9f1b-7344bb97a88c', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_ibia_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_ibia'});
 }
 });
 
