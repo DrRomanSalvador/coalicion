@@ -8,6 +8,12 @@ import json
 
 EXPECTED_WORKBOOK_SHA256 = "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2"
 OFFICIAL_WORKBOOK_URL = "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
+EXPECTED_ELECTIONS = [
+    "1977-06-15","1979-03-01","1982-10-28","1986-06-22",
+    "1989-10-29","1993-06-06","1996-03-03","2000-03-12",
+    "2004-03-14","2008-03-09","2011-11-20","2015-12-20",
+    "2016-06-26","2019-04-28","2019-11-10","2023-07-23",
+]
 
 
 @dataclass(frozen=True)
@@ -37,6 +43,14 @@ def _sha256(path: Path) -> str | None:
 
 def _hash_matches(path: Path, expected: str | None) -> bool:
     return bool(expected) and _sha256(path) == expected
+
+
+def _first_token(path: Path) -> str | None:
+    try:
+        tokens = path.read_text(encoding="utf-8").strip().split()
+        return tokens[0] if tokens else None
+    except OSError:
+        return None
 
 
 def certify(root: str = "."):
@@ -188,8 +202,8 @@ def certify(root: str = "."):
     normalized_path = r / "data/official_interior_congreso_1977_2023.csv"
     canonical_path = r / "artifacts/data/election_2023_canonical.json"
     canonical_sidecar_path = canonical_path.with_name(canonical_path.name + ".sha256")
-    validated = official_manifest.get("validated_2023", {}) if isinstance(official_manifest, dict) else {}
-    seat_recon = validated.get("vote_seat_reconciliation", {}) if isinstance(validated, dict) else {}
+    validated = official_manifest.get("validated_2023", {}) if isinstance(official_manifest, dict) and isinstance(official_manifest.get("validated_2023"), dict) else {}
+    seat_recon = validated.get("vote_seat_reconciliation", {}) if isinstance(validated.get("vote_seat_reconciliation"), dict) else {}
     official_dataset_ok = (
         isinstance(official_manifest, dict)
         and official_manifest.get("schema") == "OFFICIAL_INTERIOR_CONGRESS_DATASET_V1"
@@ -197,9 +211,9 @@ def certify(root: str = "."):
         and official_manifest.get("source_url") == OFFICIAL_WORKBOOK_URL
         and official_manifest.get("hash_scope") == "workbook_bytes"
         and official_manifest.get("sha256") == EXPECTED_WORKBOOK_SHA256
-        and len(official_manifest.get("elections", [])) == 16
+        and official_manifest.get("elections") == EXPECTED_ELECTIONS
         and official_manifest.get("constituencies") == 52
-        and official_manifest.get("records", 0) > 0
+        and official_manifest.get("records") == 322556
         and workbook_path.is_file()
         and _hash_matches(workbook_path, official_manifest.get("sha256"))
         and workbook_path.stat().st_size == official_manifest.get("bytes")
@@ -210,7 +224,7 @@ def certify(root: str = "."):
         and _hash_matches(canonical_path, official_manifest.get("canonical_2023_sha256"))
         and canonical_path.stat().st_size == official_manifest.get("canonical_2023_bytes")
         and canonical_sidecar_path.is_file()
-        and canonical_sidecar_path.read_text(encoding="utf-8").strip().split()[0] == official_manifest.get("canonical_2023_sha256")
+        and _first_token(canonical_sidecar_path) == official_manifest.get("canonical_2023_sha256")
         and validated.get("status") == "PASS"
         and validated.get("circunscripciones") == 52
         and validated.get("escaños") == 350
