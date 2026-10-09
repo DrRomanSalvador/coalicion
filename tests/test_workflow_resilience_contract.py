@@ -59,3 +59,12 @@ def test_oos_evidence_persistence_rechecks_tested_sha_and_retries_races():
     assert 'for attempt in 1 2 3 4 5; do' in source
     assert 'git push origin HEAD:main' in source
     assert "stale evidence will not be published" in source
+
+
+def test_colmena_agent_evidence_persistence_retries_concurrent_branch_updates():
+    source = (WORKFLOWS / "colmena_hf_agents.yml").read_text(encoding="utf-8")
+    assert 'for attempt in 1 2 3 4 5; do' in source
+    assert 'git fetch origin "$branch"' in source
+    assert 'git rebase "origin/$branch"' in source
+    assert 'git push origin "HEAD:$branch"' in source
+    assert "refusing to overwrite newer state" in source
