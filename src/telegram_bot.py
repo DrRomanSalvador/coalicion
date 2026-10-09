@@ -594,7 +594,7 @@ def _escanos_text() -> str:
                     except (TypeError, ValueError):
                         continue
             rows.sort(key=lambda x: (-x[1], x[0]))
-            if rows:
+            if rows and sum(value for _, value in rows) == 350:
                 return "🪑 ESCAÑOS · COMPOSICIÓN MATERIALIZADA Y VALIDADA\n\n" + "\n".join(f"{p}: {s}" for p, s in rows)
     return (
         "🪑 ESCAÑOS · SITUACIÓN ACTUAL\n\n"
