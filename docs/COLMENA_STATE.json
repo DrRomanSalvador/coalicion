@@ -117,18 +117,20 @@
   },
   "queen_coordination": {
     "mode": "QUEEN_COORDINATION_MODE + 179_AGENTS_HF",
-    "status": "READY_FOR_USER_APPROVAL",
+    "status": "BLOCKED_EXTERNAL_PROVIDER_CREDITS",
     "provider": "Hugging Face",
     "credential_name": "Reina_token",
     "logical_agents": 179,
     "completed_pass": 0,
-    "pending": 179,
-    "blocked": 0,
-    "assigned": 0,
+    "pending": 169,
+    "blocked": 1,
+    "assigned": 9,
     "review_required": 0,
-    "tasks_defined": 5,
+    "tasks_defined": 10,
     "approval_required_before_assignment_or_execution": true,
-    "note": "Five audit missions are defined with bounded repository context; all 179 remain PENDING and no mission has been assigned or executed."
+    "note": "Conteos derivados de COLMENA_MISSION_CONTROL.json. La última ejecución de agente quedó BLOCKED por falta de créditos del proveedor; no equivale a ejecución autónoma disponible.",
+    "source_of_truth": "docs/COLMENA_MISSION_CONTROL.json",
+    "snapshot_updated_at": "2026-10-09T13:28:11.346Z"
   },
   "last_hf_agent_execution": {
     "schema": "COLMENA_HF_EXECUTION_EVIDENCE_V1",
