@@ -15,7 +15,7 @@ permissions:
 
 concurrency:
   group: autonomous-poll-monitor-main
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   poll_monitor:
