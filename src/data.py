@@ -6,6 +6,7 @@ import json, hashlib
 from datetime import datetime, timezone
 from typing import Any
 import certifi, openpyxl
+from .electoral import allocate
 
 OFFICIAL_URL = "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
 CONSTITUENCY_HEADER = re.compile(r"^\s*(\d+)\s*-\s*(.+?)\s*$")
@@ -107,9 +108,21 @@ def load_official_constituency_matrix(path:str|Path,election_date:str|None=None)
     if len(parties)!=52 or set(parties)!=set(constituency_cols.values()): raise ValueError("official matrix lost constituency")
     if any(c not in blanks or c not in valid for c in parties): raise ValueError("official matrix lacks blank/valid rows")
     if sum(seats.values())!=350: raise ValueError(f"official observed seats do not sum to 350: {sum(seats.values())}")
+    seat_reconciliation=[]
     for constituency in parties:
         if sum(parties[constituency].values())+blanks[constituency]!=valid[constituency]: raise ValueError(f"{constituency}: candidate votes + blank votes != valid votes")
-    return {"election_date":selected,"constituencies":{c:{"seats":seats[c],"observed_seats":{p:s for p,s in sorted(observed_seats[c].items()) if s>0},"parties":dict(sorted(parties[c].items())),"blank_votes":blanks[c],"valid_votes":valid[c],"electors":electors.get(c)} for c in sorted(parties)},"validation":{"status":"PASS","circunscripciones":52,"escaños":sum(seats.values()),"candidate_votes_total":sum(sum(x.values()) for x in parties.values()),"blank_votes_total":sum(blanks.values()),"valid_votes_total":sum(valid.values())}}
+        special = constituency if constituency in {"Ceuta","Melilla"} else ""
+        allocation=allocate(parties[constituency],seats[constituency],valid[constituency],special,blanks[constituency])
+        if allocation.status!="OK":
+            raise ValueError(f"{constituency}: official D'Hondt allocation blocked: {allocation.status} {allocation.tie}")
+        expected={p:n for p,n in allocation.seats.items() if n>0}
+        observed={p:n for p,n in observed_seats[constituency].items() if n>0}
+        if expected!=observed:
+            missing=sorted(set(observed)-set(expected)); extra=sorted(set(expected)-set(observed))
+            vote_seat_diff={p:{"observed":observed.get(p,0),"calculated":expected.get(p,0)} for p in sorted(set(observed)|set(expected)) if observed.get(p,0)!=expected.get(p,0)}
+            raise ValueError(f"{constituency}: official vote-seat reconciliation failed; missing={missing}; extra={extra}; differences={vote_seat_diff}")
+        seat_reconciliation.append({"constituency":constituency,"status":"PASS","observed_seat_winners":len(observed)})
+    return {"election_date":selected,"constituencies":{c:{"seats":seats[c],"observed_seats":{p:s for p,s in sorted(observed_seats[c].items()) if s>0},"parties":dict(sorted(parties[c].items())),"blank_votes":blanks[c],"valid_votes":valid[c],"electors":electors.get(c)} for c in sorted(parties)},"validation":{"status":"PASS","circunscripciones":52,"escaños":sum(seats.values()),"candidate_votes_total":sum(sum(x.values()) for x in parties.values()),"blank_votes_total":sum(blanks.values()),"valid_votes_total":sum(valid.values()),"vote_seat_reconciliation":{"status":"PASS","constituencies":len(seat_reconciliation),"discrepancies":0,"method":"src.electoral.allocate","special_rules":["Ceuta","Melilla"]}}}
 
 def load_rows(path:str|Path,election_date:str|None=None)->list[dict[str,Any]]:
     wb=openpyxl.load_workbook(path,read_only=True,data_only=True); rows_out=[]; seen=set()
