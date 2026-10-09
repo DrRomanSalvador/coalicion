@@ -97,12 +97,14 @@ jobs:
               source = base64.b64decode(result["content"]).decode("utf-8")
               document = yaml.load(source, Loader=yaml.BaseLoader) or {}
               triggers = document.get("on", {})
-              dispatch = triggers.get("workflow_dispatch") if isinstance(triggers, dict) else None
-              if dispatch is None and isinstance(triggers, list) and "workflow_dispatch" in triggers:
+              if isinstance(triggers, dict) and "workflow_dispatch" in triggers:
+                  dispatch = triggers.get("workflow_dispatch") or {}
+              elif isinstance(triggers, list) and "workflow_dispatch" in triggers:
                   dispatch = {}
-              if dispatch is None:
+              elif triggers == "workflow_dispatch":
+                  dispatch = {}
+              else:
                   return None, {}, ["no workflow_dispatch trigger"]
-              dispatch = dispatch or {}
               specs = dispatch.get("inputs", {}) or {}
               inputs = {}
               missing = []
