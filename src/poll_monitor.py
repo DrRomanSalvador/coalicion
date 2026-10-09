@@ -683,7 +683,7 @@ class PollMonitor:
         self.state_path.write_text(json.dumps(self.state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         return path
 
-    def alert(self, payload: dict[str, Any]) -> bool:
+    def alert(self, payload: dict[str, Any]) -> bool | None:
         events = payload["new_polls"] + payload["changed_polls"]
         discoveries = payload.get("discoveries", [])
         failures = payload["failures"]
@@ -707,7 +707,7 @@ class PollMonitor:
                 if not reported.get(sid) or streaks[sid] % 12 == 0:
                     unsent_failures.append((failure, key, streaks[sid]))
         if not events and not discoveries and not unsent_failures and not recoveries:
-            return False
+            return None
         lines = ["🔔 Vigilancia electoral — actualización"]
         for d in discoveries[:10]:
             lines += ["", "🛰️ NUEVO DESCUBRIMIENTO", f"Fuente: {d['source_id']}",
@@ -767,8 +767,9 @@ class PollMonitor:
             return False
 
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        sent = False
+        all_sent = True
         for chat_id in chat_ids:
+            recipient_sent = False
             for attempt in range(2):
                 try:
                     response = self.session.post(
@@ -777,14 +778,16 @@ class PollMonitor:
                         timeout=10,
                     )
                     response.raise_for_status()
-                    sent = True
+                    recipient_sent = True
                     break
                 except requests.RequestException as exc:
                     if attempt == 1:
                         print(f"Telegram error for chat {chat_id}: {exc}", file=sys.stderr)
                     else:
                         time.sleep(1)
-        return sent
+            if not recipient_sent:
+                all_sent = False
+        return all_sent
 
 
     def run(self) -> dict[str, Any]:
@@ -827,7 +830,6 @@ class PollMonitor:
         previous_coverage = self.state.get("last_coverage")
         coverage_changed = previous_coverage != coverage
         meaningful = baseline or bool(new or changed or new_discoveries or failure_notifications or coverage_changed)
-        notification_required = bool(new or changed or new_discoveries or failure_notifications or self.state.get("recovered_sources"))
         self.state["runs"] = int(self.state.get("runs", 0)) + 1
         self.state["last_run"] = checked
         self.state["last_status"] = payload["status"]
@@ -837,14 +839,16 @@ class PollMonitor:
         self.state["last_failures"] = failures
         self.state["last_coverage"] = coverage
         self.state["total_validated"] = len(self.state["poll_hashes"])
-        notification_sent = self.alert(payload)
-        payload["notification_status"] = (
-            "SENT" if notification_sent else "BLOCKED"
-        ) if notification_required else "NOT_REQUIRED"
-        if notification_required and not notification_sent:
+        notification_result = self.alert(payload)
+        if notification_result is None:
+            payload["notification_status"] = "NOT_REQUIRED"
+        elif notification_result:
+            payload["notification_status"] = "SENT"
+        else:
+            payload["notification_status"] = "BLOCKED"
             payload["status"] = "BLOCKED"
             self.state["last_status"] = "BLOCKED"
-        meaningful = meaningful or (notification_required and not notification_sent)
+        meaningful = meaningful or (notification_result is not None)
         path = self.save(payload, meaningful=meaningful)
         print(f"Encontradas {len(polls)} encuestas validadas")
         print(f"{len(new)+len(changed)} encuestas nuevas/cambiadas")
