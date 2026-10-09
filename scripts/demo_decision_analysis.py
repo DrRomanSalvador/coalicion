@@ -94,7 +94,7 @@ def build_analysis(data_path: Path = DEFAULT_DATA, config_path: Path = DEFAULT_S
             raise DemoError(f"{region}: el reparto base no reproduce el observado.")
         region_out = {"magnitude": magnitude, "valid_votes": item["valid_votes"], "blank_votes": blank,
                       "observed_seats": item["observed_seats"], "scenarios": {}, "viability_frontier": []}
-        for p in sorted(item["observed_seats"]):
+        for p in sorted(votes):
             region_out["viability_frontier"].append(viability_frontier(votes, magnitude, blank, p))
         for scenario in scenarios:
             groups = scenario.get("groups", {}).get(region, {})
