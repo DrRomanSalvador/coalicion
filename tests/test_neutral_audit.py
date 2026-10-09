@@ -21,9 +21,13 @@ def test_canonical_matrix_passes_current_contract():
     assert r["status"]=="PASS"
     assert r["province_count"]==52 and r["seat_total"]==350
     assert r["candidate_votes_total"]==24_487_414
+    assert r["manifest_status"]=="READY"
+    assert r["vote_seat_reconciliation"]["status"]=="PASS"
+    assert r["vote_seat_reconciliation"]["discrepancies"]==0
 
 def test_canonical_contract_constants_are_pinned():
     from src.neutral_audit import EXPECTED_CANONICAL_PATH, EXPECTED_CANONICAL_SHA256, EXPECTED_CANDIDATE_VOTES
     assert EXPECTED_CANONICAL_PATH=="artifacts/data/election_2023_canonical.json"
-    assert EXPECTED_CANONICAL_SHA256=="208b7eafe18e7e88ec3ccdec3fd55b6a92cdf026649d718a7c0a84fa8ffedef9"
+    manifest=json.loads((ROOT/"data/manifests/official_interior_congreso.json").read_text(encoding="utf-8"))
+    assert EXPECTED_CANONICAL_SHA256==manifest["canonical_2023_sha256"]
     assert EXPECTED_CANDIDATE_VOTES==24_487_414
