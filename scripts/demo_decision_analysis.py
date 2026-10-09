@@ -133,8 +133,8 @@ def build_analysis(data_path: Path = DEFAULT_DATA, config_path: Path = DEFAULT_S
                     "separate_member_seats":{p:base.get(p,0) for p in members},
                     "coalition_seats":joined_count, "separate_group_seats":separate_count,
                     "seat_delta":joined_count-separate_count,
-                    "member_seat_deltas":{p:joined.get(p,0)-base.get(p,0) for p in members
-                                          if joined.get(p,0)!=base.get(p,0)},
+                    "member_seats_before_merge":{p:base.get(p,0) for p in members},
+                    "scenario_seat_delta_vs_observed":region_out["scenarios"][scenario["id"]]["seat_delta_vs_observed"],
                     "marginal_quotient_explanation":quotient,
                     "causal_scope":"Efecto aritmético de agregar listas con votos observados; no identifica transferencias ni reacción electoral.",
                     "assumption":scenario["assumption"]})
