@@ -10,9 +10,14 @@ on:
         required: false
         default: "false"
 
+concurrency:
+  group: coalicion-newsletter-send
+  cancel-in-progress: false
+
 jobs:
   newsletter:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -40,6 +45,8 @@ jobs:
           if now.hour == 8:
               import os
               if os.environ.get("NEWSLETTER_SEND","false").lower() == "true":
+                  if os.environ.get("GITHUB_REF") != "refs/heads/main":
+                      raise SystemExit("BLOCKED: production newsletter sending is allowed only from main.")
                   if not send_newsletter():
                       raise SystemExit("BLOCKED: newsletter SMTP is not configured")
           PY

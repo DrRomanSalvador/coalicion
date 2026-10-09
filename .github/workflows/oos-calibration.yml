@@ -64,6 +64,7 @@ jobs:
                   assert math.isfinite(float(metrics[key])), (model, key)
           PY
       - name: Commit genuine OOS evidence
+        if: github.ref == 'refs/heads/main'
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"

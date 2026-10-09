@@ -14,6 +14,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: completion-gate-main
+  cancel-in-progress: false
+
 jobs:
   completion-gate:
     runs-on: ubuntu-latest
@@ -73,8 +77,8 @@ jobs:
           echo "FAIL-CLOSED: unable to persist master certification evidence."
           exit 1
 
-      - name: Notify Telegram only after verified completion
-        if: success()
+      - name: Notify Telegram only after verified main-branch completion
+        if: success() && github.ref == 'refs/heads/main'
         continue-on-error: true
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -88,7 +92,8 @@ jobs:
           import os, urllib.request, urllib.parse
           token=os.environ["TELEGRAM_BOT_TOKEN"]
           chat_id=os.environ["TELEGRAM_CHAT_ID"]
-          text="✅ COALICIÓN: todos los gates internos PASS. Estado: READY_FOR_EXTERNAL_AUDIT."
+          status=json.load(open("ci_evidence/master_certification.json",encoding="utf-8"))["status"]
+          text=f"✅ COALICIÓN: todos los gates internos PASS. Estado: {status}."
           data=urllib.parse.urlencode({"chat_id":chat_id,"text":text}).encode()
           req=urllib.request.Request(f"https://api.telegram.org/bot{token}/sendMessage", data=data, method="POST")
           urllib.request.urlopen(req, timeout=15).read()

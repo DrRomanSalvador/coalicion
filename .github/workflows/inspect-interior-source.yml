@@ -17,11 +17,29 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install workbook inspection dependency
+        run: python -m pip install --disable-pip-version-check openpyxl
       - name: Test official XLSX transport
         run: |
-          set -euxo pipefail
+          set -euo pipefail
           u="https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
-          curl --fail --location --retry 2 --connect-timeout 20 --max-time 60 "$u" -o /tmp/interior.xlsx
+          expected="dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2"
+          if curl --fail --location --retry 2 --retry-all-errors --connect-timeout 20 --max-time 60 "$u" -o /tmp/interior.xlsx; then
+            transport="verified-tls"
+          else
+            rm -f /tmp/interior.xlsx
+            echo "::warning::Official endpoint TLS chain is incomplete; using pinned-content fallback."
+            curl --fail --location --retry 2 --retry-all-errors --connect-timeout 20 --max-time 60 --insecure "$u" -o /tmp/interior.xlsx
+            transport="pinned-hash-fallback"
+          fi
+          test -s /tmp/interior.xlsx
+          actual="$(sha256sum /tmp/interior.xlsx | cut -d ' ' -f1)"
+          echo "TRANSPORT=$transport"
+          echo "SHA256=$actual"
+          test "$actual" = "$expected" || { echo "::error::Official workbook hash differs from the reviewed pin."; exit 1; }
           ls -lh /tmp/interior.xlsx
           file /tmp/interior.xlsx
       - name: Inspect workbook

@@ -61,6 +61,6 @@ jobs:
           git config user.name "coalicion-colmena[bot]"
           git config user.email "coalicion-colmena[bot]@users.noreply.github.com"
           git add docs/COLMENA_MISSION_CONTROL.json
-          git diff --cached --quiet && { echo "No hay asignaciones nuevas para persistir." >&2; exit 1; }
+          git diff --cached --quiet && { echo "No hay asignaciones nuevas para persistir."; exit 0; }
           git commit -m "Persist Queen-approved Colmena HF mission assignment"
           git push origin "HEAD:${GITHUB_REF_NAME}"

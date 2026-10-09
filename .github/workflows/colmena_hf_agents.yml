@@ -77,7 +77,7 @@ jobs:
           set -euo pipefail
           curl -fsSL https://ollama.com/install.sh | sh
           (ollama serve > /tmp/ollama.log 2>&1 &)
-          for attempt in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             if curl --silent --fail http://127.0.0.1:11434/api/tags >/dev/null; then break; fi
             sleep 2
           done

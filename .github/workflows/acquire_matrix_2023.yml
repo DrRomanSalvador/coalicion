@@ -5,6 +5,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: acquire-matrix-2023
+  cancel-in-progress: false
+
 jobs:
   acquire:
     runs-on: ubuntu-latest

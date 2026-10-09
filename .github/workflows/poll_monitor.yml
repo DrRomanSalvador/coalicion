@@ -15,7 +15,7 @@ permissions:
 
 concurrency:
   group: autonomous-poll-monitor-main
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   poll_monitor:
@@ -54,6 +54,7 @@ jobs:
           cp -a artifacts/surveys/. /tmp/poll-monitor-snapshot/surveys/
 
       - name: Persistir estado con autocuración de carreras
+        if: github.ref == 'refs/heads/main'
         id: persist
         run: |
           set -euo pipefail
@@ -104,5 +105,5 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             "/repos/${GITHUB_REPOSITORY}/dispatches" \
             -f event_type="poll_monitor_completed" \
-            -f client_payload[commit]="${GITHUB_SHA}" \
-            -f client_payload[source]="poll_monitor"
+            -f "client_payload[commit]=${GITHUB_SHA}" \
+            -f "client_payload[source]=poll_monitor"

@@ -62,7 +62,7 @@ jobs:
             git fetch origin main
             git rebase origin/main && git push origin HEAD:main && exit 0
             git rebase --abort || true
-            sleep 5
+            sleep $((attempt * 5))
           done
           exit 1
       - name: Resolve canonical seed

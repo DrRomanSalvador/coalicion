@@ -26,6 +26,7 @@ concurrency:
 
 jobs:
   service:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 295
     env:
@@ -60,6 +61,7 @@ jobs:
         run: python scripts/verify_telegram_integration.py
 
       - name: Persist Telegram integration evidence before long-running service
+        if: github.ref == 'refs/heads/main'
         run: |
           set -euo pipefail
           snapshot="$(mktemp)"
@@ -99,7 +101,7 @@ jobs:
           exit "$rc"
 
       - name: Persist Telegram state
-        if: always()
+        if: always() && github.ref == 'refs/heads/main'
         run: |
           set -euo pipefail
           if [ ! -f artifacts/telegram_state.json ]; then

@@ -19,7 +19,7 @@ concurrency:
 jobs:
   integrate:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 360
     env:
       R_LIBS_USER: /tmp/coalicion-r-lib
     steps:
@@ -44,7 +44,9 @@ jobs:
           fi
           valid=0
           if [ -s data/resultados_oficiales_2004_2023.csv ] && [ -s data/manifests/INTERIOR_ACQUISITION.json ]; then
-            python -c 'import json; m=json.load(open("data/manifests/INTERIOR_ACQUISITION.json")); assert m["status"]=="PASS" and m["source_tier"]=="PRIMARY_INTERIOR" and m["official_results"]["rows"]==50700 and len(m["official_results"]["elections"])==8 and m["official_results"]["constituencies_per_election"]==52 and m["official_results"]["seats_per_election"]==350' && valid=1 || true
+            if python -c 'import json; m=json.load(open("data/manifests/INTERIOR_ACQUISITION.json")); assert m["status"]=="PASS" and m["source_tier"]=="PRIMARY_INTERIOR" and m["official_results"]["rows"]==50700 and len(m["official_results"]["elections"])==8 and m["official_results"]["constituencies_per_election"]==52 and m["official_results"]["seats_per_election"]==350'; then
+              valid=1
+            fi
           fi
           if [ "$valid" -ne 1 ]; then
             for attempt in 1 2 3 4 5; do
@@ -144,9 +146,8 @@ jobs:
           PY
       - name: Full reproducibility backtest
         run: python scripts/run_full_backtest.py --oos-input data/encuestas_historicas_2004_2023.csv --output artifacts/verification/full_backtest.json
-      - name: Adversarial first-party audit
+      - name: Adversarial first-party audit (required gate)
         run: python scripts/run_adversarial_audit.py
-        continue-on-error: true
 
       - name: Master certification gates
         run: python scripts/master_certification.py

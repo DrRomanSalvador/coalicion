@@ -96,11 +96,17 @@ def main():
         "note": "This check can only pass from genuinely independent evidence.",
     })
 
+    # The external audit is deliberately non-blocking for this first-party gate:
+    # its absence means READY_FOR_EXTERNAL_AUDIT, never that external review passed.
+    external_pass = next(c["pass"] for c in checks if c["id"] == "EXTERNAL_AUDIT")
+    blocking_checks = [c for c in checks if c["id"] != "EXTERNAL_AUDIT"]
+    blocking_failed = [c["id"] for c in blocking_checks if not c["pass"]]
     passed = sum(1 for c in checks if c["pass"])
     failed = [c["id"] for c in checks if not c["pass"]]
+    status = "FAIL" if blocking_failed else ("PASS" if external_pass else "READY_FOR_EXTERNAL_AUDIT")
     out = {
         "schema": "ADVERSARIAL_FIRST_PARTY_AUDIT_V1",
-        "status": "PASS" if not failed else "FAIL",
+        "status": status,
         "independent": False,
         "auditor": "COALICION_INTERNAL_ADVERSARIAL_REVIEW",
         "scope": "certification evidence, reproducibility gates, temporal leakage controls and external-audit integrity",
@@ -108,6 +114,10 @@ def main():
         "checks_passed": passed,
         "checks_failed": len(failed),
         "failed_checks": failed,
+        "blocking_checks_total": len(blocking_checks),
+        "blocking_checks_passed": len(blocking_checks) - len(blocking_failed),
+        "blocking_failed_checks": blocking_failed,
+        "external_audit_independently_verified": external_pass,
         "checks": checks,
         "critical_rule": "This artifact MUST NOT satisfy master_certification.external_audit.",
     }
@@ -115,7 +125,7 @@ def main():
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(out, ensure_ascii=False, indent=2))
-    raise SystemExit(0 if not failed else 1)
+    raise SystemExit(0 if not blocking_failed else 1)
 
 if __name__ == "__main__":
     main()
