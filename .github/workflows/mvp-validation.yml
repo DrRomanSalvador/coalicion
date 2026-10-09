@@ -20,6 +20,10 @@ on:
       - ".github/workflows/mvp-validation.yml"
   workflow_dispatch:
 
+concurrency:
+  group: mvp-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
