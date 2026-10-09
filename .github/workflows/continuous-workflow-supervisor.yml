@@ -13,6 +13,10 @@ on:
         required: false
         default: true
         type: boolean
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/continuous-workflow-supervisor.yml"
   schedule:
     - cron: "*/15 * * * *"
 
@@ -37,7 +41,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           CURRENT_WORKFLOW: ${{ github.workflow }}
           LOOKBACK_HOURS: ${{ inputs.lookback_hours || 24 }}
-          RETRY_FAILED: ${{ inputs.retry_failed != false }}
+          RETRY_FAILED: ${{ github.event_name != 'workflow_dispatch' || inputs.retry_failed }}
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -48,11 +52,12 @@ jobs:
           report="$RUNNER_TEMP/workflow-health.md"
           printf '# Continuous workflow health report\n\n- Repository: %s\n- Window: %s hours\n- Since (UTC): %s\n\n' "$GH_REPO" "$LOOKBACK_HOURS" "$since" > "$report"
 
-          gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100" > "$RUNNER_TEMP/workflow-runs.json"
-          runs="$(python - "$since" "$RUNNER_TEMP/workflow-runs.json" <<'PY'
+          gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100&branch=main" > "$RUNNER_TEMP/workflow-runs.json"
+          cat > "$RUNNER_TEMP/parse_workflow_runs.py" <<'PY'
           import json
           import sys
           from pathlib import Path
+
           since = sys.argv[1]
           raw = Path(sys.argv[2]).read_text(encoding="utf-8")
           decoder = json.JSONDecoder()
@@ -77,7 +82,7 @@ jobs:
                   fields = [run_id, run.get("name", "").replace("\t", " "), run.get("path", ""), run.get("status", ""), run.get("conclusion") or "", str(run.get("run_attempt", "")), run.get("html_url", "")]
                   print("\t".join(fields))
           PY
-          )"
+          runs="$(python "$RUNNER_TEMP/parse_workflow_runs.py" "$since" "$RUNNER_TEMP/workflow-runs.json")"
           total=0
           failures=0
           retried=0
@@ -91,7 +96,7 @@ jobs:
 
             [[ "$conclusion" == "failure" ]] || continue
             ((failures+=1))
-            printf "\n## Failed run %s — %s\n\n- Workflow file: \`%s\`\n- Attempt: %s\n- [Run](%s)\n" "$run_id" "$name" "$path" "$attempt" "$url" >> "$report"
+            printf '\n## Failed run %s — %s\n\n- Workflow file: %s\n- Attempt: %s\n- [Run](%s)\n' "$run_id" "$name" "$path" "$attempt" "$url" >> "$report"
 
             if [[ "$RETRY_FAILED" == "true" && "$attempt" == "1" ]]; then
               echo "Retrying failed jobs once: run=$run_id workflow=$name"
@@ -106,7 +111,7 @@ jobs:
               printf '\n- Action: retry limit reached or retries disabled; investigation required.\n' >> "$report"
               ((persistent+=1))
               issue_title="CI: persistent workflow failure #$run_id"
-              existing="$(gh issue list --repo "$GH_REPO" --state open --search "\"$issue_title\"" --json title --jq length)"
+              existing="$(gh issue list --repo "$GH_REPO" --state open --search "\"$issue_title\"" --json title --jq 'length')"
               if [[ "$existing" == "0" ]]; then
                 gh issue create --repo "$GH_REPO" --title "$issue_title" --body "$(printf 'The workflow supervisor detected a failed run that has already used its automatic retry budget.\n\n- Workflow: %s\n- File: %s\n- Run: %s\n- Attempt: %s\n\nInspect the run logs, correct the underlying cause, and add a regression test. The supervisor deliberately does not edit application code or bypass branch protections automatically.' "$name" "$path" "$url" "$attempt")" || echo "::warning::Could not create tracking issue for run $run_id"
               fi
