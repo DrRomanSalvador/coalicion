@@ -175,7 +175,7 @@ def reassign_blocked(mission_id: str) -> dict[str, Any]:
 
 
 def record_result(result_path: Path) -> dict[str, Any]:
-    """Registra una evidencia HF sin permitir que el modelo certifique PASS."""
+    """Registra evidencia HF sin permitir que el modelo certifique PASS."""
     result = load_json(result_path)
     if not isinstance(result, dict):
         raise ValueError("La evidencia debe ser un objeto JSON.")
@@ -215,6 +215,7 @@ def record_result(result_path: Path) -> dict[str, Any]:
     data["missions"] = missions
     data["updated_at"] = timestamp
     save_json(MISSION_CONTROL, data)
+    sync_state_summary(missions)
 
     state = load_json(STATE_PATH, {})
     state["last_hf_agent_execution"] = {
@@ -238,7 +239,6 @@ def record_result(result_path: Path) -> dict[str, Any]:
         "recorded_at": timestamp, "evidence_path": evidence_path,
         "evidence_sha256": evidence_sha256
     }
-
 
 
 def main() -> int:
