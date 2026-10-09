@@ -188,7 +188,7 @@ def run_demo(data_path: Path = DEFAULT_DATA, scenarios_path: Path = DEFAULT_SCEN
             if scenario["id"] == "fragmentado" and seats != item["observed_seats"]:
                 raise DemoError(f"{region}: escenario fragmentado no reproduce los escaños observados.")
             regional[region] = {
-                "votes_by_list": lists,
+                "votes_by_list": {p: v for p, v in lists.items() if v > 0},
                 "simulated_seats": seats,
                 "seat_total": sum(seats.values()),
                 "coalition_comparisons": comparison,
