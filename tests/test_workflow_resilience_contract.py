@@ -9,7 +9,7 @@ def test_self_healer_paginates_runs_for_current_main_sha():
     source = (WORKFLOWS / "autonomous_self_healer.yml").read_text(encoding="utf-8")
     assert 'gh api --paginate --slurp "repos/$REPOSITORY/actions/runs?head_sha=$main_sha&per_page=100"' in source
     assert 'select(.head_branch == "main" and .head_sha == $sha)' in source
-    assert 'select(.status == "completed" and .run_attempt == 1)' in source
+    assert 'select(.status == "completed" and .run_attempt < 3)' in source
     assert "inputs.failed_run_id || 'scheduled-sweep'" in source
     assert "cancel-in-progress: false" in source
     assert 'actions/runs?per_page=100")' not in source

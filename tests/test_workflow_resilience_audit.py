@@ -51,7 +51,7 @@ def test_healer_sweep_bounds_candidates_and_continues_after_request_errors():
     workflow = (ROOT / ".github" / "workflows" / "autonomous_self_healer.yml").read_text(encoding="utf-8")
     assert 'sort_by(.created_at)' in workflow
     assert '[[ "$count" -lt 5 && "$attempted" -lt 25 ]]' in workflow
-    assert "run_attempt=" in workflow and '"$run_attempt" == "1"' in workflow
+    assert "run_attempt=" in workflow and '"$run_attempt" -lt "$max_attempts"' in workflow
     assert "RERUN_REQUEST_FAILED" in workflow
     assert "continuing sweep" in workflow
 
