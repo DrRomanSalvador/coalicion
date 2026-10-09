@@ -153,3 +153,11 @@ def test_continuous_supervisor_retries_by_default_except_explicit_dispatch_opt_o
     source = (WORKFLOWS / "continuous-workflow-supervisor.yml").read_text(encoding="utf-8")
     assert "RETRY_FAILED: ${{ github.event_name != 'workflow_dispatch' || inputs.retry_failed }}" in source
     assert "RETRY_FAILED: ${{ inputs.retry_failed != false }}" not in source
+
+def test_continuous_supervisor_bounds_api_scan_to_configured_lookback_and_current_main_sha():
+    source = (WORKFLOWS / "continuous-workflow-supervisor.yml").read_text(encoding="utf-8")
+    assert 'commits/main' in source
+    assert 'head_sha=$main_sha&created=%3E%3D${since}' in source
+    assert "gh api --paginate" in source
+    assert 'if run.get("created_at", "") < since:' in source
+
