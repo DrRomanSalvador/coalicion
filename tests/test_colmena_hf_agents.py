@@ -8,6 +8,21 @@ import colmena_queen_hf as queen
 import colmena_agent_hf
 
 
+
+def test_validate_missions_rejects_status_assigned_mismatch():
+    missions = [
+        {"id": f"M{i:04d}", "agent_id": f"agent-{i:03d}", "status": "PENDING", "assigned": False}
+        for i in range(1, 180)
+    ]
+    missions[0].update({"status": "BLOCKED", "assigned": True})
+    try:
+        queen.validate_missions(missions)
+    except ValueError as exc:
+        assert "incoherentes" in str(exc)
+    else:
+        raise AssertionError("Debe rechazarse status/assigned incoherentes")
+
+
 def test_mission_control_initializes_179_slots_without_claiming_execution(tmp_path, monkeypatch):
     path = tmp_path / "COLMENA_MISSION_CONTROL.json"
     monkeypatch.setattr(queen, "MISSION_CONTROL", path)
@@ -108,7 +123,7 @@ def test_reassign_blocked_mission_preserves_previous_evidence_and_reopens(tmp_pa
     mission.update({
         "task": "Reintento controlado.",
         "status": "BLOCKED",
-        "assigned": True,
+        "assigned": False,
         "assigned_at": "2026-10-09T12:00:00+00:00",
         "result_recorded_at": "2026-10-09T12:01:00+00:00",
         "evidence_path": "artifacts/old.json",
@@ -122,6 +137,30 @@ def test_reassign_blocked_mission_preserves_previous_evidence_and_reopens(tmp_pa
     assert reopened["status"] == "ASSIGNED" and reopened["assigned"] is True
     assert reopened["attempt_history"][-1]["evidence_sha256"] == "abc123"
     assert reopened["attempt_history"][-1]["status"] == "BLOCKED"
+
+
+
+def test_reassign_blocked_clears_current_evidence_fields_after_archiving_metadata(tmp_path, monkeypatch):
+    path = tmp_path / "missions.json"
+    monkeypatch.setattr(queen, "MISSION_CONTROL", path)
+    missions = queen.get_missions()
+    missions[0].update({
+        "task": "Tarea de reintento",
+        "status": "BLOCKED",
+        "assigned": False,
+        "result_recorded_at": "old-time",
+        "evidence_path": "old.json",
+        "evidence_sha256": "old-hash",
+        "result_summary": "old failure",
+    })
+    queen.save_json(path, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
+    queen.reassign_blocked("M0001")
+    reopened = queen.get_missions()[0]
+    assert reopened["status"] == "ASSIGNED"
+    assert "evidence_path" not in reopened
+    assert "evidence_sha256" not in reopened
+    assert "result_recorded_at" not in reopened
+    assert reopened["attempt_history"][-1]["evidence_sha256"] == "old-hash"
 
 
 def test_reassign_blocked_refuses_non_blocked_or_taskless_mission(tmp_path, monkeypatch):
@@ -173,6 +212,56 @@ def test_agent_uses_exact_reina_token_name(tmp_path, monkeypatch):
     assert (tmp_path / "evidence" / "agent-001_M0001.json").is_file()
 
 
+
+def test_auto_provider_falls_back_only_for_unsupported_provider(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    control_path = tmp_path / "missions.json"
+    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", control_path)
+    mission = {"id": "M0001", "agent_id": "agent-001", "task": "Fallback",
+               "status": "ASSIGNED", "assigned": True, "context_paths": []}
+    control_path.write_text(json.dumps({"schema": "COLMENA_MISSION_CONTROL_V1",
+                                        "total": 179, "missions": [mission]}), encoding="utf-8")
+    attempted = []
+    class FakeClient:
+        def __init__(self, **kwargs):
+            self.provider = kwargs["provider"]
+            attempted.append(self.provider)
+        def chat_completion(self, **kwargs):
+            if self.provider == "deepinfra":
+                raise RuntimeError("model_not_supported")
+            return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content="Informe."))])
+    monkeypatch.setitem(sys.modules, "huggingface_hub", SimpleNamespace(InferenceClient=FakeClient))
+    monkeypatch.setenv("HF_PROVIDER_FALLBACKS", "deepinfra,featherless-ai")
+    result = colmena_agent_hf.run_agent(mission, hf_token="test-token", model="example/model", provider="auto")
+    assert attempted == ["deepinfra", "featherless-ai"]
+    assert result["status"] == "REVIEW_REQUIRED"
+    assert result["provider"] == "featherless-ai"
+
+
+def test_auto_provider_fallback_does_not_retry_auth_or_rate_limit_errors(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    control_path = tmp_path / "missions.json"
+    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", control_path)
+    mission = {"id": "M0001", "agent_id": "agent-001", "task": "No unsafe retries",
+               "status": "ASSIGNED", "assigned": True, "context_paths": []}
+    control_path.write_text(json.dumps({"schema": "COLMENA_MISSION_CONTROL_V1",
+                                        "total": 179, "missions": [mission]}), encoding="utf-8")
+    attempted = []
+    class FakeClient:
+        def __init__(self, **kwargs):
+            attempted.append(kwargs["provider"])
+        def chat_completion(self, **kwargs):
+            raise RuntimeError("401 Unauthorized")
+    monkeypatch.setitem(sys.modules, "huggingface_hub", SimpleNamespace(InferenceClient=FakeClient))
+    monkeypatch.setenv("HF_PROVIDER_FALLBACKS", "deepinfra,featherless-ai")
+    result = colmena_agent_hf.run_agent(mission, hf_token="test-token", model="example/model", provider="auto")
+    assert attempted == ["deepinfra"]
+    assert result["status"] == "BLOCKED"
+    assert "401 Unauthorized" in result["error"]
+
+
 def test_agent_refuses_unassigned_mission_before_provider_call(tmp_path, monkeypatch):
     monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
     monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", tmp_path / "missions.json")
@@ -216,9 +305,34 @@ def test_canonical_mission_control_has_next_five_executable_tasks():
     assert len({m["id"] for m in missions}) == 179
     next_five = [m for m in missions if m["id"] in {f"M{i:04d}" for i in range(6, 11)}]
     assert len(next_five) == 5
-    assert all(m["status"] == "PENDING" and m["assigned"] is False for m in next_five)
+    assert all(m["status"] in {"PENDING", "ASSIGNED"} for m in next_five)
+    assert all(m["assigned"] is (m["status"] == "ASSIGNED") for m in next_five)
     assert all(isinstance(m["task"], str) and m["task"].strip() for m in next_five)
     assert all(isinstance(m.get("context_paths"), list) and m["context_paths"] for m in next_five)
+
+
+def test_agent_reports_402_as_billing_block_and_does_not_try_fallback(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    control_path = tmp_path / "missions.json"
+    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", control_path)
+    mission = {"id": "M0001", "agent_id": "agent-001", "task": "Billing check",
+               "status": "ASSIGNED", "assigned": True, "context_paths": []}
+    control_path.write_text(json.dumps({"schema": "COLMENA_MISSION_CONTROL_V1",
+                                        "total": 179, "missions": [mission]}), encoding="utf-8")
+    attempted = []
+    class FakeClient:
+        def __init__(self, **kwargs):
+            attempted.append(kwargs["provider"])
+        def chat_completion(self, **kwargs):
+            raise RuntimeError("HfHubHTTPError: HTTP 402 Payment Required; You have no remaining credits.")
+    monkeypatch.setitem(sys.modules, "huggingface_hub", SimpleNamespace(InferenceClient=FakeClient))
+    monkeypatch.setenv("HF_PROVIDER_FALLBACKS", "deepinfra,featherless-ai")
+    result = colmena_agent_hf.run_agent(mission, hf_token="test-token", model="example/model", provider="auto")
+    assert attempted == ["deepinfra"]
+    assert result["status"] == "BLOCKED"
+    assert "falta de créditos" in result["error"]
+    assert result["provider"] == "deepinfra"
 
 
 def test_agent_routes_provider_and_explains_model_not_supported(tmp_path, monkeypatch):
@@ -250,5 +364,5 @@ def test_agent_routes_provider_and_explains_model_not_supported(tmp_path, monkey
     )
     assert captured["provider"] == "deepinfra"
     assert result["status"] == "BLOCKED"
-    assert "proveedores habilitados" in result["error"]
-    assert "Selecciona en Hugging Face" in result["error"]
+    assert "Ninguno acepta este modelo" in result["error"]
+    assert "HF_PROVIDER_FALLBACKS" in result["error"]
