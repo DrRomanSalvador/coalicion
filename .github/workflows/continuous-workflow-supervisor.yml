@@ -41,7 +41,6 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          # shellcheck disable=SC2016
           [[ "$LOOKBACK_HOURS" =~ ^[0-9]+$ ]] || { echo "::error::lookback_hours debe ser numérico"; exit 1; }
           (( LOOKBACK_HOURS >= 1 && LOOKBACK_HOURS <= 168 )) || { echo "::error::lookback_hours debe estar entre 1 y 168"; exit 1; }
 
@@ -50,8 +49,7 @@ jobs:
           printf '# Continuous workflow health report\n\n- Repository: %s\n- Window: %s hours\n- Since (UTC): %s\n\n' "$GH_REPO" "$LOOKBACK_HOURS" "$since" > "$report"
 
           # jq/awk filters are intentionally single-quoted; their $variables belong to those languages, not Bash.
-          # shellcheck disable=SC2016
-          runs="$(gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100" | jq -r --arg since "$since" '.workflow_runs[] | select(.created_at >= $since) | [.id,.name,.path,.status,(.conclusion // ""),.run_attempt,.html_url] | @tsv' | sort -t$'\t' -k1,1n | awk -F '\t' '!seen[$1]++')"
+          runs="$(gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100" | jq -r --arg since "$since" ".workflow_runs[] | select(.created_at >= \$since) | [.id,.name,.path,.status,(.conclusion // \"\"),.run_attempt,.html_url] | @tsv" | sort -t$'\t' -k1,1n | awk -F $'\t' "!seen[\$1]++")"
           total=0
           failures=0
           retried=0
