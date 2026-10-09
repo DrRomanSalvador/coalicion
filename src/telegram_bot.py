@@ -621,6 +621,10 @@ def _user_id(update: dict[str, Any]) -> str:
 
 def _allowed_ids() -> set[str]:
     raw = os.environ.get("TELEGRAM_ALLOWED_CHATS", "").strip()
+    # Single-operator deployments may use the already configured notification
+    # chat as their sole allowlisted chat. An absent value still denies all.
+    if not raw:
+        raw = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
     return {x.strip() for x in raw.split(",") if x.strip()}
 
 def _chat_allowed(chat_id: str) -> bool:

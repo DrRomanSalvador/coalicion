@@ -52,3 +52,16 @@ def test_internal_errors_are_translated():
     text = telegram_bot._public_text("BLOCKED_NO_TERRITORIAL_INPUT")
     assert "bloqueo" in text.lower()
     assert "COMPROBACIÓN PENDIENTE" not in text
+
+
+def test_single_notification_chat_is_a_safe_allowlist_fallback(monkeypatch):
+    monkeypatch.delenv("TELEGRAM_ALLOWED_CHATS", raising=False)
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "123")
+    assert telegram_bot._chat_allowed("123")
+    assert not telegram_bot._chat_allowed("999")
+
+
+def test_authorization_fails_closed_when_both_chat_settings_are_absent(monkeypatch):
+    monkeypatch.delenv("TELEGRAM_ALLOWED_CHATS", raising=False)
+    monkeypatch.delenv("TELEGRAM_CHAT_ID", raising=False)
+    assert not telegram_bot._chat_allowed("123")
