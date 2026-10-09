@@ -153,11 +153,36 @@ jobs:
 
       - name: Master certification gates
         run: python scripts/master_certification.py
-      - name: Commit validated materialization
+      - name: Commit validated materialization with concurrency recovery
         if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+        shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/resultados_oficiales_2004_2023.csv data/encuestas_historicas_2004_2023.csv data/manifests/HISTORICAL_DATA_MATERIALIZATION.json data/manifests/HISTORICAL_DATA_LIMITATIONS.json data/manifests/INTERIOR_ACQUISITION.json artifacts ci_evidence
-          git diff --cached --quiet || (git commit -m "Materialize and certify official Spain historical electoral data" && git push origin HEAD:main)
+          if git diff --cached --quiet; then
+            echo "Validated historical materialization is already current."
+            exit 0
+          fi
+          git commit -m "Materialize and certify official Spain historical electoral data"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            if git merge-base --is-ancestor HEAD origin/main; then
+              echo "Historical materialization commit is already present on main."
+              exit 0
+            fi
+            if ! git rebase origin/main; then
+              git rebase --abort
+              echo "::error::Historical source or evidence files changed concurrently; refusing to overwrite them. Rerun the canonical integration."
+              exit 1
+            fi
+            if git push origin HEAD:main; then
+              echo "Validated historical materialization persisted (attempt $attempt)."
+              exit 0
+            fi
+            echo "Concurrent main update; retrying historical persistence ($attempt/5)." >&2
+            sleep "$((attempt * 5))"
+          done
+          echo "::error::Unable to persist validated historical materialization after 5 retries."
+          exit 1
