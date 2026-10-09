@@ -114,5 +114,20 @@
       "demo_e2e"
     ],
     "timestamp_utc": "2026-10-09T11:53:53.910221+00:00"
+  },
+  "queen_coordination": {
+    "mode": "QUEEN_COORDINATION_MODE + 179_AGENTS_HF",
+    "status": "READY_FOR_USER_APPROVAL",
+    "provider": "Hugging Face",
+    "credential_name": "Reina_token",
+    "logical_agents": 179,
+    "completed_pass": 0,
+    "pending": 179,
+    "blocked": 0,
+    "assigned": 0,
+    "review_required": 0,
+    "tasks_defined": 0,
+    "approval_required_before_assignment_or_execution": true,
+    "note": "Mode declaration only; no mission has been assigned or executed."
   }
 }
