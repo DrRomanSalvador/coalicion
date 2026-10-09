@@ -25,9 +25,9 @@ def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str =
     task = str(mission.get("task", "")).strip()
     if not agent_id or not mission_id or not task:
         raise ValueError("La misión debe incluir id, agent_id y task no vacío.")
-    token = hf_token or os.getenv("HF_TOKEN")
+    token = hf_token or os.getenv("Reina_token")
     if not token:
-        raise RuntimeError("Falta HF_TOKEN; no se invocará el proveedor.")
+        raise RuntimeError("Falta Reina_token; no se invocará el proveedor.")
     if not model.strip():
         raise ValueError("El modelo HF_MODEL no puede estar vacío.")
     result: dict[str, Any] = {
