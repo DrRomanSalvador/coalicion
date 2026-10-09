@@ -26,8 +26,9 @@ def test_canonical_matrix_passes_current_contract():
     assert r["vote_seat_reconciliation"]["discrepancies"]==0
 
 def test_canonical_contract_constants_are_pinned():
-    from src.neutral_audit import EXPECTED_CANONICAL_PATH, EXPECTED_CANONICAL_SHA256, EXPECTED_CANDIDATE_VOTES
+    from src.neutral_audit import EXPECTED_CANONICAL_PATH, EXPECTED_CANONICAL_SHA256, EXPECTED_CANDIDATE_VOTES, EXPECTED_WORKBOOK_SHA256
     assert EXPECTED_CANONICAL_PATH=="artifacts/data/election_2023_canonical.json"
     manifest=json.loads((ROOT/"data/manifests/official_interior_congreso.json").read_text(encoding="utf-8"))
     assert EXPECTED_CANONICAL_SHA256==manifest["canonical_2023_sha256"]
+    assert EXPECTED_WORKBOOK_SHA256==manifest["sha256"]
     assert EXPECTED_CANDIDATE_VOTES==24_487_414
