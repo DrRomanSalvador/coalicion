@@ -440,7 +440,7 @@ def test_poll_monitor_does_not_rewrite_state_for_heartbeat_only(tmp_path, monkey
     monkeypatch.setattr(monitor, "fetch_all", no_change_fetch)
     monkeypatch.setattr(monitor, "detect_new", lambda polls, discoveries: ([], [], []))
     monkeypatch.setattr(monitor, "audit_coverage", lambda failures, discoveries: coverage)
-    monkeypatch.setattr(monitor, "alert", lambda payload: False)
+    monkeypatch.setattr(monitor, "alert", lambda payload: None)
 
     monitor.run()  # Initializes the baseline and writes the first durable snapshot.
     before = state_path.read_bytes()
