@@ -4911,6 +4911,16 @@
     "escaños": 350,
     "candidate_votes_total": 24487414,
     "blank_votes_total": 200673,
-    "valid_votes_total": 24688087
+    "valid_votes_total": 24688087,
+    "vote_seat_reconciliation": {
+      "status": "PASS",
+      "constituencies": 52,
+      "discrepancies": 0,
+      "method": "src.electoral.allocate",
+      "special_rules": [
+        "Ceuta",
+        "Melilla"
+      ]
+    }
   }
 }
