@@ -145,3 +145,16 @@ def test_agent_refuses_unassigned_mission_before_provider_call(tmp_path, monkeyp
         assert "no ha asignado" in str(exc)
     else:
         raise AssertionError("El agente no debe ejecutar misiones pendientes")
+
+
+def test_agent_context_paths_are_bounded_and_repo_relative(tmp_path, monkeypatch):
+    monkeypatch.setattr(colmena_agent_hf, "ROOT", tmp_path)
+    allowed = tmp_path / "safe.py"
+    allowed.write_text("def safe(): return True\n", encoding="utf-8")
+    assert "def safe" in colmena_agent_hf.load_context({"context_paths": ["safe.py"]})
+    try:
+        colmena_agent_hf.load_context({"context_paths": ["../outside.py"]})
+    except ValueError as exc:
+        assert "no permitida" in str(exc)
+    else:
+        raise AssertionError("Debe bloquear rutas fuera del repositorio")
