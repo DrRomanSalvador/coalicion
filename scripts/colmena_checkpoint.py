@@ -4,9 +4,9 @@ import json, os, subprocess, sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-def fail(message):
+def fail(message, exit_code=2):
     print("FAIL_CLOSED: " + message, file=sys.stderr)
-    raise SystemExit(2)
+    raise SystemExit(exit_code)
 
 def main():
     tested = os.environ.get("COMMIT_SHA", "").strip()
