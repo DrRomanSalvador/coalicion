@@ -54,6 +54,10 @@ def audit_canonical(path: str | Path) -> dict[str, Any]:
         return {"status":"BLOCKED","reason":"INVALID_CANONICAL_JSON","detail":str(e),"path":str(p)}
     if not isinstance(data,dict) or not isinstance(data.get("data"),dict) or not isinstance(data["data"].get("constituencies"),dict):
         return {"status":"BLOCKED","reason":"INVALID_CONSTITUENCY_MAP","path":str(p)}
+    if not isinstance(data,dict):
+        return {"status":"BLOCKED","reason":"INVALID_CANONICAL_ROOT","path":str(p)}
+    if not isinstance(data.get("data"),dict) or not isinstance(data["data"].get("constituencies"),dict):
+        return {"status":"BLOCKED","reason":"INVALID_CONSTITUENCY_MAP","path":str(p)}
     constituencies=data["data"]["constituencies"]
     if any(not isinstance(item,dict) for item in constituencies.values()):
         return {"status":"BLOCKED","reason":"INVALID_CONSTITUENCY_RECORD","path":str(p)}
@@ -73,7 +77,11 @@ def audit_canonical(path: str | Path) -> dict[str, Any]:
     recorded_hash=None
     sidecar=p.with_name(p.name + ".sha256")
     if sidecar.is_file():
-        recorded_hash=sidecar.read_text(encoding="utf-8").strip().split()[0]
+        try:
+            sidecar_tokens=sidecar.read_text(encoding="utf-8").strip().split()
+            recorded_hash=sidecar_tokens[0] if sidecar_tokens else None
+        except OSError:
+            recorded_hash=None
     try:
         manifest=json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
     except (OSError,json.JSONDecodeError):
@@ -108,7 +116,14 @@ def audit_canonical(path: str | Path) -> dict[str, Any]:
             and manifest.get("canonical_2023_bytes")==p.stat().st_size
             and manifest.get("normalized_csv_sha256")==normalized_hash
             and manifest.get("normalized_csv_bytes")==NORMALIZED_CSV_PATH.stat().st_size
-            and len(manifest.get("elections",[]))==16
+            and isinstance(manifest.get("elections"),list)
+            and manifest.get("elections")==[
+                "1977-06-15","1979-03-01","1982-10-28","1986-06-22",
+                "1989-10-29","1993-06-06","1996-03-03","2000-03-12",
+                "2004-03-14","2008-03-09","2011-11-20","2015-12-20",
+                "2016-06-26","2019-04-28","2019-11-10","2023-07-23",
+            ]
+            and manifest.get("records")==322556
             and manifest.get("constituencies")==52
         )
     structural = (
