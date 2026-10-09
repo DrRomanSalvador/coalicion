@@ -416,3 +416,18 @@ def test_situation_command_uses_canonical_state(tmp_path, monkeypatch):
     assert "SALA DE SITUACIÓN" in text
     assert "UNCERTAINTY" in text
     assert "Observaciones territoriales 2026: 0" in text
+
+
+def test_demo_does_not_present_blocked_seat_values(tmp_path, monkeypatch):
+    demo = tmp_path / "demo.json"
+    demo.write_text(json.dumps({
+        "status": "BLOCKED",
+        "national_seats": {"PARTY_A": 180},
+        "blockers": ["BLOCKED_NO_TERRITORIAL_INPUT"]
+    }), encoding="utf-8")
+    monkeypatch.setattr(telegram_bot, "DEMO_PREDICTION", demo)
+    result = telegram_bot._demo_prediction_text()
+    assert "BLOQUEADA" in result
+    assert "No se muestran escaños" in result
+    assert "PARTY_A: 180" not in result
+    assert "BLOCKED_NO_TERRITORIAL_INPUT" not in result
