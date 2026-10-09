@@ -50,7 +50,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: coalicion-demo-multiparty
+  group: coalicion-demo-multiparty-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
