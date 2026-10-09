@@ -1,9 +1,6 @@
 name: Real estimation pipeline
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Autonomous poll monitor"]
-    types: [completed]
   push:
     branches: [main]
     paths:
