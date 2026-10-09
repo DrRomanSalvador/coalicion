@@ -34,6 +34,14 @@ REVIEW_PATTERNS = {
 }
 
 
+
+def permission_declarations(source: str) -> tuple[bool, bool]:
+    """Return (workflow-level, job-level) permission declarations, including inline maps."""
+    workflow_level = bool(re.search(r"(?m)^permissions:\s*(?:\{[^}]*\})?\s*(?:#.*)?$", source))
+    job_level = bool(re.search(r"(?m)^    permissions:\s*(?:\{[^}]*\})?\s*(?:#.*)?$", source))
+    return workflow_level, job_level
+
+
 def audit_self_healer_contract(source: str) -> list[str]:
     """Return missing fail-safe recovery contracts; pagination regressions are blocking."""
     checks = {
@@ -144,6 +152,8 @@ def main() -> int:
                     for item in missing_contracts
                 )
 
+        workflow_permissions, job_permissions = permission_declarations(source)
+
         entries.append({
             "path": relative_path,
             "name": next((line.split(":", 1)[1].strip() for line in lines
@@ -168,6 +178,7 @@ def main() -> int:
         "workflow_count": len(entries),
         "counts": {
             "without_workflow_permissions": sum(not item["workflow_permissions_declared"] for item in entries),
+            "without_any_permissions": sum(not item["permissions_declared"] for item in entries),
             "without_concurrency": sum(not item["concurrency_declared"] for item in entries),
             "jobs_without_timeout": sum(len(item["jobs_without_timeout"]) for item in entries),
             "review_required_patterns": sum(len(item["findings"]) for item in entries),
