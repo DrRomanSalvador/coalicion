@@ -2,6 +2,12 @@ name: Autonomous repository self-healer
 
 on:
   workflow_dispatch:
+    inputs:
+      failed_run_id:
+        description: "Required: failed workflow run ID or failed job ID to retry"
+        required: true
+        type: string
+
 permissions:
   actions: write
   contents: read
@@ -15,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Self-heal explicitly selected failed run
+      - name: Validate and rerun explicitly selected failed run
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
@@ -23,16 +29,39 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          [[ "$FAILED_RUN_ID" =~ ^[0-9]+$ ]] || {
-            echo "Invalid failed_run_id: $FAILED_RUN_ID"
+          FAILED_RUN_ID="${FAILED_RUN_ID//[[:space:]]/}"
+          if [[ ! "$FAILED_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::failed_run_id is required and must be a numeric workflow-run ID or job ID."
             exit 1
-          }
-          RUN_ID="$FAILED_RUN_ID"
-          if ! gh run view "$RUN_ID" --repo "$REPOSITORY" >/tmp/run.json 2>/tmp/run.err; then
+          fi
+
+          RUN_ID=""
+          if gh run view "$FAILED_RUN_ID" --repo "$REPOSITORY" --json databaseId,conclusion >/tmp/run.json 2>/tmp/run.err; then
+            RUN_ID="$(jq -r '.databaseId // empty' /tmp/run.json)"
+            CONCLUSION="$(jq -r '.conclusion // empty' /tmp/run.json)"
+            if [[ "$CONCLUSION" != "failure" && "$CONCLUSION" != "cancelled" && "$CONCLUSION" != "timed_out" && "$CONCLUSION" != "startup_failure" ]]; then
+              echo "::error::Workflow run $RUN_ID is not in a rerunnable failed state (conclusion=$CONCLUSION)."
+              exit 1
+            fi
+          else
             echo "Input is not a workflow-run ID; resolving it as a job ID."
             RUN_ID="$(gh api "repos/$REPOSITORY/actions/jobs/$FAILED_RUN_ID" --jq '.run_id')"
+            [[ "$RUN_ID" =~ ^[0-9]+$ ]] || {
+              echo "::error::Could not resolve input as a workflow run or job ID."
+              exit 1
+            }
+            gh run view "$RUN_ID" --repo "$REPOSITORY" --json conclusion --jq '.conclusion' >/tmp/conclusion.txt
+            CONCLUSION="$(cat /tmp/conclusion.txt)"
+            if [[ "$CONCLUSION" != "failure" && "$CONCLUSION" != "cancelled" && "$CONCLUSION" != "timed_out" && "$CONCLUSION" != "startup_failure" ]]; then
+              echo "::error::Resolved workflow run $RUN_ID is not in a rerunnable failed state (conclusion=$CONCLUSION)."
+              exit 1
+            fi
           fi
-          [[ "$RUN_ID" =~ ^[0-9]+$ ]] || { echo "Unable to resolve workflow run ID"; exit 1; }
-          echo "Resolved workflow run: $RUN_ID"
+
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]] || {
+            echo "::error::Unable to resolve a valid workflow run ID."
+            exit 1
+          }
+          echo "Resolved failed workflow run: $RUN_ID"
           gh run rerun "$RUN_ID" --failed --repo "$REPOSITORY"
           echo "Failed jobs requeued for run $RUN_ID."
