@@ -31,7 +31,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add artifacts/data/election_2023_canonical.json artifacts/data/election_2023_matrix_acquisition.json artifacts/data/election_2023_audit.json artifacts/data/election_2023_canonical.json.sha256
+          git add artifacts/data/election_2023_canonical.json artifacts/data/election_2023_matrix_acquisition.json artifacts/data/election_2023_audit.json artifacts/data/election_2023_canonical.json.sha256 data/manifests/official_interior_congreso.json data/official_interior_congreso_1977_2023.csv
           if git diff --cached --quiet; then
             echo "NO_CHANGES"
           else
