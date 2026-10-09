@@ -99,5 +99,21 @@
     "chat_is_not_state": true,
     "coordination_rule": "Single runtime validation is authorized; repository writes remain Queen-controlled; no certification without persistent evidence."
   },
-  "coordination_rule": "One runtime validation execution is authorized. Queen remains the only repository authority; no certification without persistent evidence."
-}
+  "coordination_rule": "One runtime validation execution is authorized. Queen remains the only repository authority; no certification without persistent evidence.",
+  "last_colmena_checkpoint": {
+    "schema": "COLMENA_LIGHT_CHECKPOINT_V1",
+    "status": "PASS",
+    "workflow": ".github/workflows/colmena_atomic_swarm.yml",
+    "tested_commit": "1f241bf416f2bde201b433a17ae34ea40ffdfc71",
+    "run_id": "37925024240",
+    "run_attempt": "1",
+    "checks": [
+      "state_fail_closed",
+      "resume_gate",
+      "reproducibility_contract",
+      "core_and_coalition_regression",
+      "demo_e2e"
+    ],
+    "timestamp_utc": "2026-10-09T11:39:09.628533+00:00"
+  }
+}\n
