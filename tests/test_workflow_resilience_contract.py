@@ -161,3 +161,13 @@ def test_continuous_supervisor_bounds_api_scan_to_configured_lookback_and_curren
     assert "gh api --paginate" in source
     assert 'if run.get("created_at", "") < since:' in source
 
+
+
+def test_batch_workflow_embedded_python_compiles():
+    workflow_path = WORKFLOWS / "batch_workflow_validation.yml"
+    source = workflow_path.read_text(encoding="utf-8")
+    marker = "          python - <<'PY'\n"
+    assert marker in source
+    script = source.split(marker, 1)[1].split("\n          PY", 1)[0]
+    script = "\n".join(line[10:] if line.startswith("          ") else line for line in script.splitlines())
+    compile(script, str(workflow_path), "exec")
