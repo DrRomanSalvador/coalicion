@@ -45,7 +45,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          workflow="Historical data — canonical integration"
           workflow_file="historical-data-integration.yml"
           current_sha="$(gh api "repos/$REPO/commits/main" --jq '.sha')"
 
