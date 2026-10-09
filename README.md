@@ -73,9 +73,9 @@ Validación estructural: `tests/test_political_intelligence.py` y `.github/workf
 - Motor electoral: incorporado y endurecido en modo fail-closed.
 - Tests legales básicos: incorporados; ejecución aislada del núcleo verificada.
 - Filtro OOS anti-sesgos: en esta versión.
-- Matriz oficial completa candidatura×circunscripción 2023: pendiente de ingestión automática y validación reproducible.
+- Dataset histórico del Interior: el manifest `data/manifests/official_interior_congreso.json` registra materialización de 16 elecciones (1977–2023), 52 circunscripciones y 322.556 registros; la reconciliación 2023 declarada en el manifest es de 0 discrepancias. La auditoría independiente sigue siendo distinta de esta evidencia interna.
 - Analizador reproducible de error encuesta→resultado desde 2004: incorporado.
-- Esquema de datos históricos 2004–2023: incorporado; carga de observaciones documentadas pendiente de consolidación completa.
+- Matriz histórica normalizada: `data/official_interior_congreso_1977_2023.csv`, con SHA-256 y tamaño fijados en el manifest. Cobertura y calidad de las encuestas históricas siguen siendo una tarea separada.
 - Archivo histórico completo de encuestas y resultados: pendiente de consolidación.
 - Contexto gobierno/oposición y análisis de movimiento entre elecciones: codificado; pendiente de carga documental de observaciones.
 - Territorialización reproducible 2026: pendiente de cierre.
