@@ -103,8 +103,8 @@
     "schema": "COLMENA_LIGHT_CHECKPOINT_V1",
     "status": "PASS",
     "workflow": ".github/workflows/colmena_atomic_swarm.yml",
-    "tested_commit": "77fefe0eeb9c4455f08e671c05912651179d78bb",
-    "run_id": "37975355524",
+    "tested_commit": "8f33d11d9f5ad9980b305921c7dca29ee24447c2",
+    "run_id": "37975640527",
     "run_attempt": "1",
     "checks": [
       "state_fail_closed",
@@ -113,7 +113,7 @@
       "core_and_coalition_regression",
       "demo_e2e"
     ],
-    "timestamp_utc": "2026-10-09T18:44:43.903523+00:00"
+    "timestamp_utc": "2026-10-09T18:47:30.493752+00:00"
   },
   "queen_coordination": {
     "mode": "QUEEN_COORDINATION_MODE + 179_AGENTS_HF",
