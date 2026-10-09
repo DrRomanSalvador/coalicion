@@ -227,6 +227,10 @@ def test_workflow_does_not_self_trigger_and_persists_with_self_healing():
     assert "cp /tmp/poll-monitor-snapshot/survey_history.jsonl" in workflow
     assert "for attempt in 1 2 3 4 5" in workflow
     assert "git rebase" not in workflow
+    assert "id: monitor" in workflow
+    assert "Fail closed after persisting monitor state" in workflow
+    assert "MONITOR_EXIT_CODE" in workflow
+    assert "if: always() && github.ref == 'refs/heads/main'" in workflow
 
 
 def test_canonical_electoral_source_registry():
@@ -444,3 +448,37 @@ def test_poll_monitor_does_not_rewrite_state_for_heartbeat_only(tmp_path, monkey
     after = state_path.read_bytes()
 
     assert after == before
+
+
+def test_poll_monitor_blocks_when_required_telegram_alert_cannot_be_delivered(tmp_path, monkeypatch):
+    from src import poll_monitor as module
+
+    config_path = tmp_path / "config.json"
+    config_path.write_text(json.dumps({"sources": [], "coverage_contract": {"scope": "test"}}), encoding="utf-8")
+    state_path = tmp_path / "poll_monitor_state.json"
+    monkeypatch.setattr(module, "SURVEYS", tmp_path / "surveys")
+    monkeypatch.setattr(module, "HISTORY", tmp_path / "survey_history.jsonl")
+    monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+    monkeypatch.delenv("TELEGRAM_ALLOWED_CHATS", raising=False)
+    monitor = module.PollMonitor(config_path=config_path, state_path=state_path)
+    poll = valid_poll()
+    coverage = {"claim": "COBERTURA_TOTAL_VERIFICADA", "scope": "test", "total": True,
+                "sources_checked": 1, "primary_sources": 1, "discovery_sources": 0, "blockers": []}
+    monkeypatch.setattr(monitor, "fetch_all", lambda: ([poll], [], []))
+    monkeypatch.setattr(monitor, "detect_new", lambda polls, discoveries: (
+        [{"poll": module.canonical_poll(poll), "event_type": "NEW"}], [], []
+    ))
+    monkeypatch.setattr(monitor, "audit_coverage", lambda failures, discoveries: coverage)
+
+    result = monitor.run()
+
+    assert result["status"] == "BLOCKED"
+    assert result["notification_status"] == "BLOCKED"
+    assert monitor.state["last_status"] == "BLOCKED"
+    assert state_path.is_file()
+    assert any(json.loads(line)["status"] == "BLOCKED" for line in (tmp_path / "survey_history.jsonl").read_text(encoding="utf-8").splitlines())
+
+
+def test_poll_monitor_module_exits_nonzero_for_blocked_status():
+    source = Path("src/poll_monitor.py").read_text(encoding="utf-8")
+    assert 'raise SystemExit(1 if result.get("status") == "BLOCKED" else 0)' in source
