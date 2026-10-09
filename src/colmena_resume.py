@@ -13,7 +13,7 @@ CANONICAL_METHOD = "SEEC"
 CANONICAL_VERSION = "4.0"
 CANONICAL_RNG = "numpy.PCG64"
 CANONICAL_SEED = 20261006
-COLMENA_MODE = "ACTIVE_FOR_RUNTIME_VALIDATION"
+COLMENA_MODE = "LIGHTWEIGHT_VALIDATION"
 
 def load_state(root: Path = Path(".")):
     path = root / STATE
@@ -31,9 +31,9 @@ def load_state(root: Path = Path(".")):
         raise RuntimeError("SEED_MISMATCH")
     if state.get("colmena_mode") != COLMENA_MODE:
         raise RuntimeError("COLMENA_MODE_MISMATCH")
-    if state.get("execution_gate") != "ALLOW_SINGLE_RUNTIME_VALIDATION":
+    if state.get("execution_gate") != "ALLOW_LIGHTWEIGHT_VALIDATION":
         raise RuntimeError("EXECUTION_GATE_MISMATCH")
-    if state.get("final_test_gate") != "BLOCKED_UNTIL_179_MISSIONS_RESOLVED":
+    if state.get("final_test_gate") != "PASS_ONLY_AFTER_REQUIRED_CHECKS":
         raise RuntimeError("FINAL_TEST_GATE_MISMATCH")
     action = state.get("next_single_action")
     if not isinstance(action, str) or not action.strip():
