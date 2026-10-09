@@ -47,6 +47,18 @@ No se inventa territorialidad para candidaturas sin base comparable. Toda imputa
 
 El núcleo neutral está implementado en `src/neutral_coalition.py` y su auditoría estructural en `src/neutral_audit.py`. La matriz canónica 2023 no se fabrica: si `artifacts/data/election_2023_canonical.json` no existe o no cumple la estructura exigida, el sistema permanece **BLOCKED**. El esquema esperado está versionado en `artifacts/data/election_2023_canonical.schema.json`.
 
+## Demo ejecutable de coaliciones — generales 2023
+
+Desde la raíz del repositorio:
+
+```bash
+python scripts/demo_e2e.py
+python scripts/demo_multiparty.py
+pytest -q tests/test_demo_e2e.py tests/test_demo_multiparty.py tests/test_coalition.py tests/test_neutral_audit.py
+```
+
+La demo multiparty cubre Madrid y Barcelona y guarda el resultado en `artifacts/demo_multiparty_2023.json`; los supuestos están separados en `config/demo_multiparty_2023.json`. Incluye fragmentación observada, bloque seleccionado sin PSOE/PSC y bloque amplio con PSOE/PSC. Las agrupaciones son contrafactuales de suma mecánica de votos reales, no predicciones ni certificación electoral independiente. El workflow `.github/workflows/demo-multiparty.yml` ejecuta las pruebas focalizadas, la demo E2E existente y valida el JSON generado.
+
 ## Inteligencia electoral integrada
 
 La bibliografía oficial y de contraste está conectada mediante `config/political_intelligence_sources.json` y `src/political_intelligence.py`.
