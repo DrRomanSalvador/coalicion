@@ -63,6 +63,14 @@ def audit_self_healer_contract(source: str) -> list[str]:
 
 
 
+
+def writer_without_concurrency(source: str) -> bool:
+    """Detect workflows that push commits but do not serialize writers."""
+    pushes = bool(re.search(r"(?m)^\\s*(?:if\\s+)?git push\\b", source))
+    serialized = bool(re.search(r"(?m)^concurrency:\\s*(?:#.*)?$", source))
+    return pushes and not serialized
+
+
 def audit_telegram_pages_contract(source: str) -> list[str]:
     """Require a permission-aware Pages deployment instead of an opaque first-run 404."""
     checks = {
@@ -151,6 +159,11 @@ def main() -> int:
                     {"path": relative_path, "missing_contract": item}
                     for item in missing_contracts
                 )
+        if writer_without_concurrency(source):
+            critical_findings.append({
+                "path": relative_path,
+                "missing_contract": "workflow commits to a remote branch without top-level concurrency serialization",
+            })
 
         workflow_permissions, job_permissions = permission_declarations(source)
 
