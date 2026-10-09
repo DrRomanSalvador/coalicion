@@ -15,6 +15,8 @@ Valida:
 5. Demo E2E real: `python scripts/demo_e2e.py`.
 
 ## Reina Hugging Face opcional
+
+Modo formal: `QUEEN_COORDINATION_MODE + 179_AGENTS_HF`. La credencial exacta es `Reina_token`. La asignación y ejecución de misiones requiere aprobación explícita del usuario; el estado actual tiene 179 misiones sin tarea, por lo que no se asigna ninguna.
 La integración complementaria está documentada en `docs/COLMENA_HF_AGENTS.md`.
 - `python scripts/colmena_queen_hf.py --status`: inspeccionar 179 slots lógicos.
 - `python scripts/colmena_queen_hf.py --assign 5`: asignar hasta cinco misiones con tarea concreta.
