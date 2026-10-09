@@ -4,9 +4,9 @@ import json, os, subprocess, sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-def fail(message):
+def fail(message, exit_code=2):
     print("FAIL_CLOSED: " + message, file=sys.stderr)
-    raise SystemExit(2)
+    raise SystemExit(exit_code)
 
 def main():
     tested = os.environ.get("COMMIT_SHA", "").strip()
@@ -17,8 +17,7 @@ def main():
     subprocess.run(["git", "fetch", "origin", "main"], check=True)
     remote = subprocess.check_output(["git", "rev-parse", "origin/main"], text=True).strip()
     if remote != tested:
-        print(f"CHECKPOINT_SKIPPED_STALE_VALIDATION: tested={tested}, origin/main={remote}")
-        return
+        fail(f"stale validation: tested={tested}, origin/main={remote}", exit_code=3)
     path = Path("docs/COLMENA_STATE.json")
     try:
         state = json.loads(path.read_text(encoding="utf-8"))
