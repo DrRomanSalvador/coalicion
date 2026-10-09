@@ -154,7 +154,7 @@ def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str =
             content = response.choices[0].message.content
             result.update(provider=selected_provider, backend="hf")
         if not isinstance(content, str) or not content.strip():
-            raise RuntimeError(f"HF devolvió una respuesta vacía desde {selected_provider}.")
+            raise RuntimeError(f"El backend {backend} devolvió una respuesta vacía desde {result.get('provider', provider)}.")
         result.update(status="REVIEW_REQUIRED", response=content.strip())
     except Exception as exc:
         message = str(exc)
