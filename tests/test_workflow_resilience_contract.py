@@ -168,3 +168,14 @@ def test_2023_matrix_acquisition_installs_pytest_before_invariant_suite():
     assert "python -m pytest -q tests/test_neutral_coalition.py" in source
     assert 'push:\n    branches: [main]\n    paths:\n      - ".github/workflows/acquire_matrix_2023.yml"' in source
 
+def test_batch_workflow_uses_gh_cli_token_handling_and_reports_auth_failures_explicitly():
+    source = (WORKFLOWS / "batch_workflow_validation.yml").read_text(encoding="utf-8")
+    assert "actions: write" in source
+    assert "contents: read" in source
+    assert "GH_TOKEN: ${{ github.token }}" in source
+    assert 'command = ["gh", "api", path, "--method", method]' in source
+    assert "urllib.request.urlopen" not in source
+    assert "GitHub API authentication failed (401 Bad credentials)" in source
+    assert "GitHub API authorization failed (403)" in source
+    assert "if not token:" in source
+
