@@ -111,7 +111,26 @@ def sync_state_summary(missions: list[dict[str, Any]]) -> None:
     if not isinstance(summary, dict):
         summary = {}
     counts = {status: sum(m.get("status") == status for m in missions) for status in STATUSES}
+    last_execution = state.get("last_hf_agent_execution", {})
+    last_mission_id = last_execution.get("mission_id")
+    last_mission = next((m for m in missions if m.get("id") == last_mission_id), {})
+    last_error = str(last_mission.get("result_summary", "")).lower()
+    if counts["BLOCKED"]:
+        status = (
+            "BLOCKED_EXTERNAL_PROVIDER_CREDITS"
+            if any(token in last_error for token in ("http 402", "payment required", "no remaining credits", "falta de créditos"))
+            else "BLOCKED_MISSION_REQUIRES_REVIEW"
+        )
+    elif counts["ASSIGNED"]:
+        status = "MISSIONS_ASSIGNED"
+    elif counts["REVIEW_REQUIRED"]:
+        status = "REVIEW_REQUIRED"
+    elif counts["PENDING"]:
+        status = "READY_FOR_USER_APPROVAL"
+    else:
+        status = "NO_PENDING_MISSIONS"
     summary.update({
+        "status": status,
         "mode": "QUEEN_COORDINATION_MODE + 179_AGENTS_HF",
         "logical_agents": len(missions),
         "completed_pass": counts["PASS"],
