@@ -22,7 +22,7 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.head.ref != 'main'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 120
     steps:
       - name: Wait for every PR check and merge only a fully green revision
         env:
@@ -51,7 +51,8 @@ jobs:
               "Methodology integration",
               "Workflow resilience contract tests",
           }
-          deadline = time.monotonic() + 20 * 60
+          # Product pipeline can run for 90 minutes; leave queue and stability margin.
+          deadline = time.monotonic() + 110 * 60
           stable_signature = None
           stable_since = None
           def get_runs():
@@ -124,7 +125,7 @@ jobs:
                   )
               time.sleep(15)
           else:
-              print("Blocking merge: checks did not reach a stable all-green state within 20 minutes.", flush=True)
+              print("Blocking merge: checks did not reach a stable all-green state within 110 minutes.", flush=True)
               sys.exit(1)
           PY
           gh pr merge "$PR_NUMBER" --repo "$GH_REPO" --match-head-commit "$sha" --squash
