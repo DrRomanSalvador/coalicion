@@ -18,6 +18,7 @@ if str(ROOT) not in sys.path:
 from src.data import load_official_constituency_matrix
 
 OFFICIAL_URL="https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
+EXPECTED_WORKBOOK_SHA256="dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2"
 
 def _constituency_columns(headers):
     out={}
@@ -87,6 +88,8 @@ def main():
     payload=source.read_bytes()
     if not payload: raise SystemExit("BLOCKED: workbook oficial vacío")
     sha256=hashlib.sha256(payload).hexdigest()
+    if sha256 != EXPECTED_WORKBOOK_SHA256:
+        raise SystemExit(f"BLOCKED: official workbook SHA-256 mismatch: {sha256}")
     # Validate the canonical 2023 matrix before publishing any derived CSV.
     matrix=load_official_constituency_matrix(source,"2023-07-23")
     if matrix["validation"]["status"]!="PASS": raise SystemExit("BLOCKED: matriz oficial 2023 inválida")
