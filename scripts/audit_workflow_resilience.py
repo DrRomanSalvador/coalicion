@@ -50,6 +50,22 @@ def audit_self_healer_contract(source: str) -> list[str]:
     return [label for label, literal in checks.items() if literal not in source]
 
 
+
+def audit_telegram_pages_contract(source: str) -> list[str]:
+    """Require a permission-aware Pages deployment instead of an opaque first-run 404."""
+    checks = {
+        "workflow declares Pages deployment permissions": "pages: write",
+        "workflow declares OIDC deployment permission": "id-token: write",
+        "deployment checks Pages setup before configure-pages": "Preflight GitHub Pages configuration",
+        "first-time enablement uses an explicit admin token": "secrets.PAGES_ADMIN_TOKEN || github.token",
+        "workflow enables Pages when authorized": "enablement: true",
+        "workflow publishes the Mini App artifact": "actions/upload-pages-artifact@v3",
+        "workflow deploys the artifact": "actions/deploy-pages@v4",
+        "missing permission has an actionable diagnostic": "GITHUB_TOKEN cannot create the Pages site",
+    }
+    return [label for label, literal in checks.items() if literal not in source]
+
+
 def main() -> int:
     if not WORKFLOWS.is_dir():
         print(f"FAIL: missing workflow directory: {WORKFLOWS}", file=sys.stderr)
@@ -63,6 +79,7 @@ def main() -> int:
     read_errors = []
     critical_findings = []
     healer_seen = False
+    pages_seen = False
     for path in paths:
         try:
             source = path.read_text(encoding="utf-8")
@@ -114,6 +131,14 @@ def main() -> int:
                     {"path": relative_path, "missing_contract": item}
                     for item in missing_contracts
                 )
+        if relative_path == ".github/workflows/telegram_miniapp.yml":
+            pages_seen = True
+            missing_contracts = audit_telegram_pages_contract(source)
+            if missing_contracts:
+                critical_findings.extend(
+                    {"path": relative_path, "missing_contract": item}
+                    for item in missing_contracts
+                )
 
         entries.append({
             "path": relative_path,
@@ -129,6 +154,8 @@ def main() -> int:
 
     if not healer_seen:
         critical_findings.append({"path": ".github/workflows/autonomous_self_healer.yml", "missing_contract": "self-healer workflow is missing"})
+    if not pages_seen:
+        critical_findings.append({"path": ".github/workflows/telegram_miniapp.yml", "missing_contract": "Telegram Pages deployment workflow is missing"})
 
     payload = {
         "schema": "WORKFLOW_RESILIENCE_AUDIT_V1",

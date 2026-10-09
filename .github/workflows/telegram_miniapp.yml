@@ -23,10 +23,26 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      # Enable Pages on first deployment instead of failing with 404 when the site is not yet configured.
+      - name: Preflight GitHub Pages configuration
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PAGES_ADMIN_TOKEN: ${{ secrets.PAGES_ADMIN_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if gh api "repos/$REPOSITORY/pages" >/dev/null 2>&1; then
+            echo "GitHub Pages is already configured."
+          elif [[ -n "$PAGES_ADMIN_TOKEN" ]]; then
+            echo "GitHub Pages is absent; PAGES_ADMIN_TOKEN is available to enable it."
+          else
+            echo "::error::GitHub Pages is not enabled and GITHUB_TOKEN cannot create the Pages site. Enable Pages in repository Settings, or add a PAGES_ADMIN_TOKEN secret with repository administration/Pages permissions."
+            exit 1
+          fi
       - uses: actions/configure-pages@v5
         with:
           enablement: true
+          token: ${{ secrets.PAGES_ADMIN_TOKEN || github.token }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web/telegram

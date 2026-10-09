@@ -3,7 +3,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from audit_workflow_resilience import audit_self_healer_contract
+from audit_workflow_resilience import audit_self_healer_contract, audit_telegram_pages_contract
 
 
 def test_main_self_healer_has_all_blocking_recovery_contracts():
@@ -33,3 +33,15 @@ def test_audit_rejects_cancelled_run_failed_jobs_only_regression():
     workflow = workflow.replace('gh run rerun "$run_id" --repo "$REPOSITORY"', 'gh run rerun "$run_id" --failed --repo "$REPOSITORY"')
     missing = audit_self_healer_contract(workflow)
     assert "cancelled runs use a full rerun" in missing
+
+
+def test_telegram_pages_workflow_has_permission_aware_first_deployment():
+    workflow = (ROOT / ".github" / "workflows" / "telegram_miniapp.yml").read_text(encoding="utf-8")
+    assert audit_telegram_pages_contract(workflow) == []
+
+
+def test_pages_audit_rejects_unavailable_implicit_enablement():
+    workflow = (ROOT / ".github" / "workflows" / "telegram_miniapp.yml").read_text(encoding="utf-8")
+    workflow = workflow.replace("secrets.PAGES_ADMIN_TOKEN || github.token", "github.token")
+    missing = audit_telegram_pages_contract(workflow)
+    assert "first-time enablement uses an explicit admin token" in missing
