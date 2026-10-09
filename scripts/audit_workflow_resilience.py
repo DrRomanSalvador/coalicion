@@ -203,6 +203,14 @@ def main() -> int:
             "findings": findings,
         })
 
+    for entry in entries:
+        if not entry["permissions_declared"]:
+            critical_findings.append({"path": entry["path"], "missing_contract": "no workflow-level or job-level permissions declaration"})
+        if not entry["concurrency_declared"]:
+            critical_findings.append({"path": entry["path"], "missing_contract": "no concurrency group"})
+        for job_id in entry["jobs_without_timeout"]:
+            critical_findings.append({"path": entry["path"], "missing_contract": f"job {job_id} has no timeout-minutes"})
+
     if not healer_seen:
         critical_findings.append({"path": ".github/workflows/autonomous_self_healer.yml", "missing_contract": "self-healer workflow is missing"})
     if not pages_seen:
