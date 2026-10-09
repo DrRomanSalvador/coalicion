@@ -20,6 +20,9 @@ on:
       - "requirements.txt"
       - ".github/workflows/**"
 
+permissions:
+  contents: read
+
 concurrency:
   # Keep main validation independent from PR validation; only supersede runs for the same ref.
   group: validate-${{ github.event.pull_request.number || github.ref }}
