@@ -1,25 +1,169 @@
 {
-  "schema": "COALICION_MULTIPARTY_DEMO_V1",
+  "product": "COALICIÓN",
   "election": 2023,
-  "regions": ["Madrid", "Barcelona"],
+  "interpretation": "Simulación mecánica contrafactual; no predice transferencias ni comportamiento electoral.",
+  "official_certification": "NOT_INDEPENDENTLY_CERTIFIED",
+  "source_tier": "OFFICIAL_PRIMARY",
+  "method": "src.electoral.allocate: D’Hondt y umbral del 3%; src.coalition.coalition_decision para comparaciones de listas agrupadas.",
+  "provenance": {
+    "provider": "Ministerio del Interior / Infoelectoral",
+    "source_url": "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
+    "source_workbook_sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
+    "canonical_dataset_git_blob_sha1": "e6a164a7ca3294c36e44fa1adc6042474122bfbb",
+    "scenario_config_sha256": "58eba856d9b81c7420c7ea617573e1bf91bb0441c769cc7cd4dad5cfe9c33776"
+  },
+  "constituencies": {
+    "Madrid": {
+      "seats": 37,
+      "valid_votes": 3608673,
+      "blank_votes": 28960,
+      "observed_seats": {
+        "PARTIDO POPULAR - PP": 16,
+        "PARTIDO SOCIALISTA OBRERO ESPAÑOL - PSOE": 10,
+        "SUMAR - SUMAR": 6,
+        "VOX - VOX": 5
+      }
+    },
+    "Barcelona": {
+      "seats": 32,
+      "valid_votes": 2667478,
+      "blank_votes": 21059,
+      "observed_seats": {
+        "ESQUERRA REPUBLICANA DE CATALUNYA - ERC": 4,
+        "JUNTS PER CATALUNYA - JUNTS - JxCAT - JUNTS": 3,
+        "PARTIDO POPULAR / PARTIT POPULAR - PP": 5,
+        "PARTIT DELS SOCIALISTES DE CATALUNYA (PSC-PSOE) - PSC": 13,
+        "SUMAR - EN COMÚ PODEM - SUMAR - ECP": 5,
+        "VOX - VOX": 2
+      }
+    }
+  },
   "scenarios": [
     {
       "id": "fragmentado",
       "label": "Fragmentado: candidaturas observadas",
       "assumption": "Cada candidatura conserva su lista observada de 2023; se verifica el reparto oficial.",
-      "groups": {"Madrid": {}, "Barcelona": {}}
+      "regions": {
+        "Madrid": {
+          "votes_by_list": {
+            "FALANGE ESPAÑOLA DE LAS J.O.N.S. - FE de las JONS": 1751,
+            "FRENTE OBRERO - FO": 7652,
+            "PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE - PACMA": 21742,
+            "PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA - PCTE": 3407,
+            "PARTIDO HUMANISTA - PH": 2902,
+            "PARTIDO POPULAR - PP": 1463183,
+            "PARTIDO SOCIALISTA OBRERO ESPAÑOL - PSOE": 1004599,
+            "POR UN MUNDO MÁS JUSTO - PUM+J": 6749,
+            "RECORTES CERO - RECORTES CERO": 3784,
+            "SUMAR - SUMAR": 557780,
+            "VOX - VOX": 506164
+          },
+          "simulated_seats": {
+            "PARTIDO POPULAR - PP": 16,
+            "PARTIDO SOCIALISTA OBRERO ESPAÑOL - PSOE": 10,
+            "SUMAR - SUMAR": 6,
+            "VOX - VOX": 5
+          },
+          "seat_total": 37,
+          "coalition_comparisons": []
+        },
+        "Barcelona": {
+          "votes_by_list": {
+            "CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA - CUP-PR": 67266,
+            "ESQUERRA REPUBLICANA DE CATALUNYA - ERC": 328697,
+            "FRENTE OBRERO - FO": 6048,
+            "JUNTS PER CATALUNYA - JUNTS - JxCAT - JUNTS": 258159,
+            "PARTIDO POPULAR / PARTIT POPULAR - PP": 367519,
+            "PARTIT ANIMALISTA AMB EL MEDI AMBIENT - PACMA": 28201,
+            "PARTIT COMUNISTA DELS TREBALLADORS DE CATALUNYA - PCTC": 2858,
+            "PARTIT DELS SOCIALISTES DE CATALUNYA (PSC-PSOE) - PSC": 952347,
+            "PARTIT DEMÒCRATA EUROPEU CATALÀ-ESPAI CIU - PDeCAT-E-CiU": 24452,
+            "RECORTES CERO - RECORTES CERO": 3104,
+            "SUMAR - EN COMÚ PODEM - SUMAR - ECP": 405993,
+            "VOX - VOX": 201775
+          },
+          "simulated_seats": {
+            "ESQUERRA REPUBLICANA DE CATALUNYA - ERC": 4,
+            "JUNTS PER CATALUNYA - JUNTS - JxCAT - JUNTS": 3,
+            "PARTIDO POPULAR / PARTIT POPULAR - PP": 5,
+            "PARTIT DELS SOCIALISTES DE CATALUNYA (PSC-PSOE) - PSC": 13,
+            "SUMAR - EN COMÚ PODEM - SUMAR - ECP": 5,
+            "VOX - VOX": 2
+          },
+          "seat_total": 32,
+          "coalition_comparisons": []
+        }
+      }
     },
     {
       "id": "izquierda_sin_psoe",
       "label": "Izquierda sin PSOE/PSC",
-      "assumption": "Madrid: SUMAR sigue separado del PSOE. Barcelona: ECP, ERC y CUP se agrupan; PSC permanece separado. No se modelan transferencias.",
-      "groups": {
-        "Madrid": {},
+      "assumption": "Madrid: se agrupan SUMAR y candidaturas menores seleccionadas sin PSOE. Barcelona: se agrupan ECP, ERC, CUP y candidaturas menores seleccionadas; PSC permanece separado. La selección es un supuesto de escenario, no una clasificación oficial ni una predicción. No se modelan transferencias.",
+      "regions": {
+        "Madrid": {
+          "votes_by_list": {
+            "Bloque izquierda sin PSOE": 582274,
+            "FALANGE ESPAÑOLA DE LAS J.O.N.S. - FE de las JONS": 1751,
+            "PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE - PACMA": 21742,
+            "PARTIDO POPULAR - PP": 1463183,
+            "PARTIDO SOCIALISTA OBRERO ESPAÑOL - PSOE": 1004599,
+            "VOX - VOX": 506164
+          },
+          "simulated_seats": {
+            "Bloque izquierda sin PSOE": 6,
+            "PARTIDO POPULAR - PP": 16,
+            "PARTIDO SOCIALISTA OBRERO ESPAÑOL - PSOE": 10,
+            "VOX - VOX": 5
+          },
+          "seat_total": 37,
+          "coalition_comparisons": [
+            {
+              "members": [
+                "SUMAR - SUMAR",
+                "PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA - PCTE",
+                "PARTIDO HUMANISTA - PH",
+                "FRENTE OBRERO - FO",
+                "RECORTES CERO - RECORTES CERO",
+                "POR UN MUNDO MÁS JUSTO - PUM+J"
+              ],
+              "separate_seats": 6,
+              "coalition_seats": 6,
+              "delta": 0
+            }
+          ]
+        },
         "Barcelona": {
-          "Bloque izquierda sin PSC": [
-            "SUMAR - EN COMÚ PODEM - SUMAR - ECP",
-            "ESQUERRA REPUBLICANA DE CATALUNYA - ERC",
-            "CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA - CUP-PR"
+          "votes_by_list": {
+            "Bloque izquierda sin PSC": 813966,
+            "JUNTS PER CATALUNYA - JUNTS - JxCAT - JUNTS": 258159,
+            "PARTIDO POPULAR / PARTIT POPULAR - PP": 367519,
+            "PARTIT ANIMALISTA AMB EL MEDI AMBIENT - PACMA": 28201,
+            "PARTIT DELS SOCIALISTES DE CATALUNYA (PSC-PSOE) - PSC": 952347,
+            "PARTIT DEMÒCRATA EUROPEU CATALÀ-ESPAI CIU - PDeCAT-E-CiU": 24452,
+            "VOX - VOX": 201775
+          },
+          "simulated_seats": {
+            "Bloque izquierda sin PSC": 11,
+            "JUNTS PER CATALUNYA - JUNTS - JxCAT - JUNTS": 3,
+            "PARTIDO POPULAR / PARTIT POPULAR - PP": 4,
+            "PARTIT DELS SOCIALISTES DE CATALUNYA (PSC-PSOE) - PSC": 12,
+            "VOX - VOX": 2
+          },
+          "seat_total": 32,
+          "coalition_comparisons": [
+            {
+              "members": [
+                "SUMAR - EN COMÚ PODEM - SUMAR - ECP",
+                "ESQUERRA REPUBLICANA DE CATALUNYA - ERC",
+                "CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA - CUP-PR",
+                "FRENTE OBRERO - FO",
+                "PARTIT COMUNISTA DELS TREBALLADORS DE CATALUNYA - PCTC",
+                "RECORTES CERO - RECORTES CERO"
+              ],
+              "separate_seats": 9,
+              "coalition_seats": 11,
+              "delta": 2
+            }
           ]
         }
       }
@@ -28,19 +172,69 @@
       "id": "bloque_amplio_con_psoe_psc",
       "label": "Bloque amplio con PSOE/PSC",
       "assumption": "Madrid: PSOE y SUMAR agregados. Barcelona: PSC, ECP, ERC y CUP agregados. Suma mecánica de votos observados, sin transferencias.",
-      "groups": {
+      "regions": {
         "Madrid": {
-          "Bloque amplio PSOE-SUMAR": [
-            "PARTIDO SOCIALISTA OBRERO ESPAÑOL - PSOE",
-            "SUMAR - SUMAR"
+          "votes_by_list": {
+            "Bloque amplio PSOE-SUMAR": 1562379,
+            "FALANGE ESPAÑOLA DE LAS J.O.N.S. - FE de las JONS": 1751,
+            "FRENTE OBRERO - FO": 7652,
+            "PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE - PACMA": 21742,
+            "PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA - PCTE": 3407,
+            "PARTIDO HUMANISTA - PH": 2902,
+            "PARTIDO POPULAR - PP": 1463183,
+            "POR UN MUNDO MÁS JUSTO - PUM+J": 6749,
+            "RECORTES CERO - RECORTES CERO": 3784,
+            "VOX - VOX": 506164
+          },
+          "simulated_seats": {
+            "Bloque amplio PSOE-SUMAR": 17,
+            "PARTIDO POPULAR - PP": 15,
+            "VOX - VOX": 5
+          },
+          "seat_total": 37,
+          "coalition_comparisons": [
+            {
+              "members": [
+                "PARTIDO SOCIALISTA OBRERO ESPAÑOL - PSOE",
+                "SUMAR - SUMAR"
+              ],
+              "separate_seats": 16,
+              "coalition_seats": 17,
+              "delta": 1
+            }
           ]
         },
         "Barcelona": {
-          "Bloque amplio PSC-ECP-ERC-CUP": [
-            "PARTIT DELS SOCIALISTES DE CATALUNYA (PSC-PSOE) - PSC",
-            "SUMAR - EN COMÚ PODEM - SUMAR - ECP",
-            "ESQUERRA REPUBLICANA DE CATALUNYA - ERC",
-            "CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA - CUP-PR"
+          "votes_by_list": {
+            "Bloque amplio PSC-ECP-ERC-CUP": 1754303,
+            "FRENTE OBRERO - FO": 6048,
+            "JUNTS PER CATALUNYA - JUNTS - JxCAT - JUNTS": 258159,
+            "PARTIDO POPULAR / PARTIT POPULAR - PP": 367519,
+            "PARTIT ANIMALISTA AMB EL MEDI AMBIENT - PACMA": 28201,
+            "PARTIT COMUNISTA DELS TREBALLADORS DE CATALUNYA - PCTC": 2858,
+            "PARTIT DEMÒCRATA EUROPEU CATALÀ-ESPAI CIU - PDeCAT-E-CiU": 24452,
+            "RECORTES CERO - RECORTES CERO": 3104,
+            "VOX - VOX": 201775
+          },
+          "simulated_seats": {
+            "Bloque amplio PSC-ECP-ERC-CUP": 23,
+            "JUNTS PER CATALUNYA - JUNTS - JxCAT - JUNTS": 3,
+            "PARTIDO POPULAR / PARTIT POPULAR - PP": 4,
+            "VOX - VOX": 2
+          },
+          "seat_total": 32,
+          "coalition_comparisons": [
+            {
+              "members": [
+                "PARTIT DELS SOCIALISTES DE CATALUNYA (PSC-PSOE) - PSC",
+                "SUMAR - EN COMÚ PODEM - SUMAR - ECP",
+                "ESQUERRA REPUBLICANA DE CATALUNYA - ERC",
+                "CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA - CUP-PR"
+              ],
+              "separate_seats": 22,
+              "coalition_seats": 23,
+              "delta": 1
+            }
           ]
         }
       }
