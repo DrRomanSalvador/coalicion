@@ -39,8 +39,6 @@ def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str =
     if assigned.get("task") != task:
         raise ValueError("La tarea enviada no coincide exactamente con la tarea aprobada en Mission Control.")
     token = hf_token or os.getenv("Reina_token")
-    if not token:
-        raise RuntimeError("Falta Reina_token; no se invocará el proveedor.")
     if not model.strip():
         raise ValueError("El modelo HF_MODEL no puede estar vacío.")
     result: dict[str, Any] = {
@@ -48,6 +46,8 @@ def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str =
         "status": "BLOCKED", "provider": "huggingface", "model": model, "task": task, "executed_at": now()
     }
     try:
+        if not token:
+            raise RuntimeError("Falta Reina_token; no se invocará el proveedor.")
         from huggingface_hub import InferenceClient
         client = InferenceClient(model=model, token=token, timeout=90)
         response = client.chat_completion(messages=[
