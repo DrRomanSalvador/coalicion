@@ -29,7 +29,7 @@ permissions:
 
 concurrency:
   group: historical-ci-orchestrator
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   dispatch:
@@ -50,32 +50,44 @@ jobs:
 
           runs="$(gh run list --repo "$REPO" --workflow "$workflow_file" --limit 20             --json databaseId,status,conclusion,headSha,createdAt,updatedAt)"
 
-          if python - "$runs" "$current_sha" <<'PY'
+          set +e
+          python - "$runs" "$current_sha" <<'PY'
           import json, sys, subprocess, os
           from datetime import datetime, timezone
           runs=json.loads(sys.argv[1])
           sha=sys.argv[2]
           active={"queued","in_progress","waiting","requested","pending"}
           now=datetime.now(timezone.utc)
+          fresh_active=False
           for r in runs:
-              if r.get("status") in active:
-                  updated=r.get("updatedAt") or r.get("createdAt")
-                  age=(now-datetime.fromisoformat(updated.replace("Z","+00:00"))).total_seconds()
-                  if age < 300:
-                      print(f"HISTORICAL_ACTIVE:{r['databaseId']}:{r['status']}:age={int(age)}")
-                      raise SystemExit(0)
-                  print(f"HISTORICAL_STALE_CANCEL:{r['databaseId']}:age={int(age)}")
+              if r.get("status") not in active:
+                  continue
+              updated=r.get("updatedAt") or r.get("createdAt")
+              age=(now-datetime.fromisoformat(updated.replace("Z","+00:00"))).total_seconds()
+              if age < 300:
+                  print(f"HISTORICAL_ACTIVE:{r['databaseId']}:{r['status']}:age={int(age)}")
+                  fresh_active=True
+                  continue
+              print(f"HISTORICAL_STALE_CANCEL:{r['databaseId']}:age={int(age)}")
+              try:
                   subprocess.run(["gh","run","cancel",str(r["databaseId"]),"--repo",os.environ["REPO"]],check=True)
-                  raise SystemExit(1)
+              except subprocess.CalledProcessError as exc:
+                  print(f"FAIL_CLOSED: could not cancel stale run {r['databaseId']}: {exc}", file=sys.stderr)
+                  raise SystemExit(2)
+          if fresh_active:
+              raise SystemExit(0)
           for r in runs:
               if r.get("headSha")==sha and r.get("conclusion")=="success":
                   print(f"HISTORICAL_GREEN:{sha}")
                   raise SystemExit(0)
           raise SystemExit(1)
           PY
-          then
-            exit 0
-          fi
+          decision=$?
+          set -e
+          case "$decision" in
+            0) exit 0 ;;
+            1) ;;
+            *) echo "::error::Historical orchestration decision failed; refusing to dispatch a duplicate run."; exit "$decision" ;;
+          esac
 
           echo "No active/green historical run for $current_sha; dispatching exactly one."
-          gh workflow run "$workflow_file" --repo "$REPO" --ref main
