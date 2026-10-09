@@ -161,7 +161,7 @@ def test_escanos_requires_both_territorial_evidence_and_calibration(tmp_path, mo
             "status": "PASS",
             "calibration_status": "PASS",
             "territorial_poll_count": 1,
-            "national_seats": {"PARTY_A": 180}
+            "national_seats": {"PARTY_A": 180, "PARTY_B": 170}
         }
     }), encoding="utf-8")
     monkeypatch.setattr(telegram_bot, "SNAPSHOT", snapshot)
