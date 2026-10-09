@@ -92,3 +92,17 @@ def test_result_reconciliation_rejects_unassigned_or_wrong_agent(tmp_path, monke
         assert "no está asignada" in str(exc)
     else:
         raise AssertionError("Se rechazaba registrar una misión no asignada")
+
+
+def test_agent_uses_exact_reina_token_name(tmp_path, monkeypatch):
+    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path)
+    monkeypatch.delenv("Reina_token", raising=False)
+    monkeypatch.setenv("HF_TOKEN", "must-not-be-used")
+    try:
+        colmena_agent_hf.run_agent({
+            "id": "M0001", "agent_id": "agent-001", "task": "Prueba controlada."
+        })
+    except RuntimeError as exc:
+        assert "Reina_token" in str(exc)
+    else:
+        raise AssertionError("El agente no debe aceptar HF_TOKEN como sustituto de Reina_token")
