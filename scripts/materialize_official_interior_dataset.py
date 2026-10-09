@@ -99,7 +99,7 @@ def main():
     normalized_path=root/args.output_csv
     canonical_sha256=hashlib.sha256(out.read_bytes()).hexdigest()
     sidecar=out.with_name(out.name+".sha256")
-    sidecar.write_text(f"{canonical_sha256}  {out.name}\\n",encoding="utf-8")
+    sidecar.write_text(f"{canonical_sha256}  {out.name}\n",encoding="utf-8")
     manifest={"schema":"OFFICIAL_INTERIOR_CONGRESS_DATASET_V1","status":"READY","provider":"Ministerio del Interior / Infoelectoral","source_url":OFFICIAL_URL,"input":str(args.input),"sha256":sha256,"hash_scope":"workbook_bytes","bytes":len(payload),"normalized_csv":str(args.output_csv),"normalized_csv_sha256":hashlib.sha256(normalized_path.read_bytes()).hexdigest(),"normalized_csv_bytes":normalized_path.stat().st_size,"canonical_2023":str(args.canonical_2023),"canonical_2023_sha256":canonical_sha256,"canonical_2023_bytes":out.stat().st_size,"records":normalized["records"],"elections":normalized["elections"],"constituencies":52,"validated_2023":matrix["validation"]}
     mp=root/args.manifest; mp.parent.mkdir(parents=True,exist_ok=True)
     mp_tmp=mp.with_name(mp.name+".tmp")
