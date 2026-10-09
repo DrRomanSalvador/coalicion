@@ -36,4 +36,4 @@ jobs:
       - name: Test methodology adapters
         run: python -m pytest -q tests/test_methodology_registry.py tests/test_methodology_bridge.py tests/test_methodology_models.py
       - name: Test canonical integration
-        run: python -m pytest -q tests/test_electoral_intelligence.py tests/test_electoral_radar_adapter.py
+        run: python -m pytest -q tests/test_electoral_intelligence.py tests/test_electoral.py
