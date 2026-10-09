@@ -38,7 +38,6 @@ jobs:
           CURRENT_WORKFLOW: ${{ github.workflow }}
           LOOKBACK_HOURS: ${{ inputs.lookback_hours || '24' }}
           RETRY_FAILED: ${{ inputs.retry_failed == false && 'false' || 'true' }}
-          EVENT_NAME: ${{ github.event_name }}
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -49,7 +48,7 @@ jobs:
           report="$RUNNER_TEMP/workflow-health.md"
           printf '# Continuous workflow health report\n\n- Repository: %s\n- Window: %s hours\n- Since (UTC): %s\n\n' "$GH_REPO" "$LOOKBACK_HOURS" "$since" > "$report"
 
-          runs="$(gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100&created:>=$since" --jq '.workflow_runs[] | [.id,.name,.path,.status,.conclusion,.run_attempt,.html_url] | @tsv' | sort -t$'\t' -k1,1n | awk -F '\t' '!seen[$1]++')"
+          runs="$(gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100" | jq -r --arg since "$since" '.workflow_runs[] | select(.created_at >= $since) | [.id,.name,.path,.status,(.conclusion // ""),.run_attempt,.html_url] | @tsv' | sort -t$'\t' -k1,1n | awk -F '\t' '!seen[$1]++')"
           total=0
           failures=0
           retried=0
@@ -61,9 +60,7 @@ jobs:
             [[ "$status" == "completed" ]] || continue
             ((total+=1))
 
-            if [[ "$conclusion" != "failure" ]]; then
-              continue
-            fi
+            [[ "$conclusion" == "failure" ]] || continue
             ((failures+=1))
             printf '\n## Failed run %s — %s\n\n- Workflow file: `%s`\n- Attempt: %s\n- [Run](%s)\n' "$run_id" "$name" "$path" "$attempt" "$url" >> "$report"
 
@@ -87,8 +84,6 @@ jobs:
             fi
           done <<< "$runs"
 
-          {
-            printf '\n## Summary\n\n- Completed runs examined: %s\n- Failed runs found: %s\n- Failed runs re-queued (one retry maximum): %s\n- Failures requiring investigation: %s\n' "$total" "$failures" "$retried" "$persistent"
-          } >> "$report"
+          printf '\n## Summary\n\n- Completed runs examined: %s\n- Failed runs found: %s\n- Failed runs re-queued (one retry maximum): %s\n- Failures requiring investigation: %s\n' "$total" "$failures" "$retried" "$persistent" >> "$report"
           cat "$report" >> "$GITHUB_STEP_SUMMARY"
           echo "Audited $total completed runs; failures=$failures retries=$retried unresolved=$persistent"
