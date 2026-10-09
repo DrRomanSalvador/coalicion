@@ -6,6 +6,9 @@ on:
     workflows: ["Historical data — canonical integration"]
     types: [completed]
 
+permissions:
+  contents: read
+
 concurrency:
   group: verify-main
   cancel-in-progress: true
