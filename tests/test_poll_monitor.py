@@ -390,3 +390,23 @@ def test_context_correction_learns_government_from_training_rows():
                              "2015-12-01", "CIS", "d", governing_party="PP")
     # PP-government rows have +5/+5 training bias; PSOE-government has -5.
     assert predict("GOVERNMENT", train, target) > 30.0
+
+def test_source_fingerprint_ignores_volatile_html_but_tracks_visible_text():
+    from src.poll_monitor import source_content_fingerprint, SourceMonitor
+    source = {"id": "page", "url": "https://example.test", "format": "page", "name": "Example"}
+    first = b'<html><script>const id="abc";</script><div id="x1">Same visible text</div></html>'
+    volatile = b'<html><script>const id="xyz";</script><div id="x2">Same   visible text</div></html>'
+    changed = b'<html><script>const id="xyz";</script><div id="x2">New visible text</div></html>'
+    assert source_content_fingerprint(first, source) == source_content_fingerprint(volatile, source)
+    assert source_content_fingerprint(first, source) != source_content_fingerprint(changed, source)
+
+    class FakeSession:
+        pass
+    monitor = SourceMonitor(source, FakeSession())
+    _, d1 = monitor.parse(first)
+    _, d2 = monitor.parse(volatile)
+    _, d3 = monitor.parse(changed)
+    assert d1[0]["discovery_id"] == d2[0]["discovery_id"] == d3[0]["discovery_id"]
+    assert d1[0]["source_hash"] == d2[0]["source_hash"]
+    assert d1[0]["source_hash"] != d3[0]["source_hash"]
+
