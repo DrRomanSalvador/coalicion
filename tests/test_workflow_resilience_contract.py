@@ -98,3 +98,12 @@ def test_historical_self_healer_refuses_to_retry_a_stale_main_sha():
     assert "HISTORICAL_STALE_RUN" in source
     assert 'if [ "$run_sha" != "$current_sha" ]; then' in source
     assert 'gh run rerun "$run_id" --repo "$REPOSITORY"' in source
+
+
+def test_self_healer_reports_exhausted_failures_even_when_retryable_candidates_exist():
+    source = (WORKFLOWS / "autonomous_self_healer.yml").read_text(encoding="utf-8")
+    assert "EXHAUSTED_RETRY_BUDGET" in source
+    assert "Detect exhausted failures on every sweep" in source
+    assert 'select(.status == "completed" and .run_attempt >= 3)' in source
+    assert 'select(.status == "completed" and .run_attempt < 3)' in source
+    assert '[[ "${#candidates[@]}" -eq 0 ]]' in source
