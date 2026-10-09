@@ -59,6 +59,33 @@ jobs:
       - name: Materialize Telegram integration evidence
         run: python scripts/verify_telegram_integration.py
 
+      - name: Persist Telegram integration evidence before long-running service
+        run: |
+          set -euo pipefail
+          snapshot="$(mktemp)"
+          cp ci_evidence/telegram_integration.json "$snapshot"
+          git config user.name "coalicion-telegram-bot[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p ci_evidence
+            cp "$snapshot" ci_evidence/telegram_integration.json
+            git add ci_evidence/telegram_integration.json
+            if git diff --cached --quiet; then
+              echo "Telegram integration evidence already current."
+              exit 0
+            fi
+            git commit -m "ci: persist current Telegram integration evidence"
+            if git push origin HEAD:main; then
+              echo "Telegram integration evidence persisted before service startup."
+              exit 0
+            fi
+            echo "Concurrent main update; retrying Telegram evidence persistence ($attempt/5)."
+          done
+          echo "FAIL-CLOSED: unable to persist Telegram integration evidence."
+          exit 1
+
       - name: Run Telegram bot
         shell: bash
         run: |
