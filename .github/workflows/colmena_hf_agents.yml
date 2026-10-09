@@ -48,7 +48,7 @@ jobs:
           import json, os, re
           from pathlib import Path
           mission_id = os.environ["MISSION_ID"].strip()
-          if not re.fullmatch(r"M\\d{4}", mission_id):
+          if not re.fullmatch(r"M\d{4}", mission_id):
               raise SystemExit("mission_id inválido; formato esperado M0001.")
           control = json.loads(Path("docs/COLMENA_MISSION_CONTROL.json").read_text(encoding="utf-8"))
           matches = [m for m in control.get("missions", []) if m.get("id") == mission_id]
@@ -99,7 +99,7 @@ jobs:
             echo "No hay cambios de evidencia para persistir." >&2
             exit 1
           fi
-          git commit -m "Persist Colmena HF evidence for ${{ inputs.mission_id }}"
+          git commit -m "Persist Colmena HF evidence for $MISSION_ID"
           git push origin "HEAD:${GITHUB_REF_NAME}"
       - name: Publicar copia recuperable del artefacto
         if: always()
