@@ -9,7 +9,9 @@ def test_decision_ui_exposes_core_decision_functions():
     for expected in (
         'lang="es"',
         'COALICION_DECISION_ANALYSIS_V1',
-        'artifacts/demo_decision_analysis_2023.json',
+        '/api/analysis',
+        '/api/simulate',
+        'custom-members',
         'marginal_seat_changes',
         'viability_frontier',
         'decision_log',
