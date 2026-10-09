@@ -41,6 +41,7 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
+          # shellcheck disable=SC2016
           [[ "$LOOKBACK_HOURS" =~ ^[0-9]+$ ]] || { echo "::error::lookback_hours debe ser numérico"; exit 1; }
           (( LOOKBACK_HOURS >= 1 && LOOKBACK_HOURS <= 168 )) || { echo "::error::lookback_hours debe estar entre 1 y 168"; exit 1; }
 
