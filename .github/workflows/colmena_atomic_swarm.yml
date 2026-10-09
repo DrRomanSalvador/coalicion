@@ -108,7 +108,8 @@ jobs:
             python -m pytest -q tests/test_reproducibility_contract.py tests/test_error_registry.py tests/test_colmena_resume.py tests/test_product_contract.py tests/test_resume_error_registry_consistency.py tests/test_demo_e2e.py tests/test_coalition.py tests/test_neutral_audit.py
             python scripts/demo_e2e.py
 
-            export COMMIT_SHA="$(git rev-parse HEAD)"
+            COMMIT_SHA="$(git rev-parse HEAD)"
+            export COMMIT_SHA
             set +e
             python scripts/colmena_checkpoint.py
             checkpoint_rc=$?
