@@ -16,7 +16,7 @@ def test_decision_ui_exposes_core_decision_functions():
         'source_workbook_sha256',
         'Exportar registro JSON',
         'No se puede deducir',
-        'NOT_INDEPENDENTLY_CERTIFIED',
+        'official_certification',
     ):
         assert expected in html
 
