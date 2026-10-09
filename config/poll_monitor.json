@@ -32,7 +32,9 @@
       "url": "https://electomania.es/encuestas/",
       "format": "electomania_html",
       "coverage_role": "primary",
-      "reason": "El catálogo público contiene tablas de sondeos y JSON-LD reproducible; se usa el HTML como extractor estructurado y se conserva el endpoint AJAX fuera del flujo."
+      "reason": "El catálogo público contiene tablas de sondeos y JSON-LD reproducible; se usa el HTML como extractor estructurado y se conserva el endpoint AJAX fuera del flujo.",
+      "source_tier": "PRIMARY_POLLSTER",
+      "pollster": "Electomanía"
     },
     {
       "id": "cis_catalog",
@@ -62,7 +64,8 @@
       "alternate_urls": [
         "https://elpais.com/noticias/barometro-el-pais/",
         "https://elpais.com/noticias/encuestas/"
-      ]
+      ],
+      "source_tier": "SECONDARY_REPLICA"
     },
     {
       "id": "datoelectoral",
@@ -97,7 +100,9 @@
       "format": "national_html",
       "method": "GET",
       "coverage_role": "primary",
-      "reason": "Sustituido el endpoint EL MUNDO obsoleto por el sitio oficial de Sigma Dos."
+      "reason": "Sustituido el endpoint EL MUNDO obsoleto por el sitio oficial de Sigma Dos.",
+      "source_tier": "PRIMARY_POLLSTER",
+      "pollster": "Sigma Dos"
     },
     {
       "id": "gad3",
@@ -106,7 +111,8 @@
       "format": "national_html",
       "method": "GET",
       "pollster": "GAD3",
-      "coverage_role": "primary"
+      "coverage_role": "primary",
+      "source_tier": "PRIMARY_POLLSTER"
     },
     {
       "id": "nc_report",
@@ -115,7 +121,8 @@
       "format": "national_html",
       "method": "GET",
       "pollster": "NC Report",
-      "coverage_role": "primary"
+      "coverage_role": "primary",
+      "source_tier": "PRIMARY_POLLSTER"
     },
     {
       "id": "demoscopia",
@@ -123,7 +130,9 @@
       "url": "https://www.demoscopia.es/encuestas/",
       "format": "national_html",
       "method": "GET",
-      "coverage_role": "primary"
+      "coverage_role": "primary",
+      "source_tier": "PRIMARY_POLLSTER",
+      "pollster": "Demoscopia"
     },
     {
       "id": "celeste_tel",
@@ -132,7 +141,8 @@
       "format": "national_html",
       "method": "GET",
       "pollster": "Celeste-Tel",
-      "coverage_role": "primary"
+      "coverage_role": "primary",
+      "source_tier": "PRIMARY_POLLSTER"
     },
     {
       "id": "invymark",
@@ -169,7 +179,8 @@
       "method": "GET",
       "coverage_role": "primary",
       "reason": "Publicación de laSexta que expone explícitamente el barómetro Invymark y sus porcentajes; se usa como evidencia publicada mientras el dominio del instituto no es accesible por TLS.",
-      "pollster": "Invymark"
+      "pollster": "Invymark",
+      "source_tier": "SECONDARY_REPLICA"
     },
     {
       "id": "pollingforecast_registry",
