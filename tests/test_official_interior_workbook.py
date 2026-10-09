@@ -43,6 +43,13 @@ def test_official_2023_matrix_is_complete_and_reconciled():
         assert result["validation"]["candidate_votes_total"]==24487414
         assert result["validation"]["blank_votes_total"]==200673
         assert result["validation"]["valid_votes_total"]==24688087
+        assert result["validation"]["vote_seat_reconciliation"] == {
+            "status": "PASS",
+            "constituencies": 52,
+            "discrepancies": 0,
+            "method": "src.electoral.allocate",
+            "special_rules": ["Ceuta", "Melilla"],
+        }
         assert result["constituencies"]["Madrid"]["seats"]==37
         assert result["constituencies"]["Barcelona"]["seats"]==32
         assert result["constituencies"]["Ceuta"]["seats"]==1
