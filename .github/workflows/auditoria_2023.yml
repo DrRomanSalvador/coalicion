@@ -64,7 +64,10 @@ jobs:
           test -s "$OUT"
           sha256sum "$OUT" | tee .audit_2023/source.sha256
 
-      - name: Ejecutar auditoría 2023
+      - name: Materializar y reconciliar la fuente primaria descargada
+        run: python scripts/materialize_official_interior_dataset.py --input .audit_2023/Elecciones-Congreso.xlsx
+
+      - name: Ejecutar auditoría canónica 2023
         run: python scripts/audit_2023.py
 
       - name: Staging histórico Interior
