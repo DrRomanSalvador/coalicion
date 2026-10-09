@@ -1,251 +1,120 @@
-name: COALICION — Queen Atomic Swarm
+name: COALICIÓN — Colmena ligera
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - "docs/COLMENA_MISSION_CONTROL.json"
-      - "scripts/colmena_queen.py"
-      - "scripts/colmena_worker.py"
-      - "scripts/colmena_local_ai.mjs"
-      - "scripts/audit_2023.py"
+      - "docs/COLMENA_STATE.json"
+      - "src/colmena_resume.py"
+      - "src/reproducibility_contract.py"
+      - "src/error_registry.py"
+      - "src/coalition.py"
+      - "src/decision.py"
+      - "src/electoral.py"
+      - "scripts/demo_e2e.py"
+      - "tests/test_reproducibility_contract.py"
+      - "tests/test_error_registry.py"
+      - "tests/test_colmena_resume.py"
+      - "tests/test_product_contract.py"
+      - "tests/test_resume_error_registry_consistency.py"
+      - "tests/test_demo_e2e.py"
+      - "tests/test_coalition.py"
+      - "tests/test_neutral_audit.py"
       - ".github/workflows/colmena_atomic_swarm.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: colmena-atomic-main
-  cancel-in-progress: true
+  group: colmena-light-main
+  cancel-in-progress: false
 
 jobs:
-  plan:
-    name: "Queen — plan 179 missions / 36 logical batches"
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
+  validate:
+    if: github.actor != 'github-actions[bot]'
+    name: Checkpoint + contratos + demo E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Create and validate Queen plan
+      - name: Install minimal test dependencies
+        run: python -m pip install --disable-pip-version-check pytest numpy
+      - name: Validate persistent state (fail-closed)
         run: |
-          set -euo pipefail
-          mkdir -p artifacts/colmena
-          python scripts/colmena_queen.py --ref "$GITHUB_SHA" --output artifacts/colmena/queen_approval.json
           python - <<'PY'
           import json
-          p=json.load(open("artifacts/colmena/queen_approval.json",encoding="utf-8"))
-          assert len(p["missions"]) == 179
-          assert len(p["batches"]) == 36
-          assert [len(x["mission_ids"]) for x in p["batches"]] == [5]*35+[4]
-          print("QUEEN_PLAN=PASS missions=179 logical_batches=36")
-          PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: colmena-queen-plan
-          path: artifacts/colmena/queen_approval.json
-          if-no-files-found: error
-          retention-days: 1
-
-  execute:
-    name: "Queen — execute and supervise 179 missions / 36 batches"
-    needs: plan
-    runs-on: ubuntu-22.04
-    timeout-minutes: 350
-    # Secret stays in the process environment; never echo it or write it to artifacts.
-    env:
-      HF_TOKEN: ${{ secrets.reina_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: requirements.lock
-      - name: Install pinned Python runtime dependencies
-        run: python -m pip install --disable-pip-version-check -r requirements.lock
-      - name: Test Queen, worker approval, and secret wiring
-        run: python -m pytest -q tests/test_colmena_atomic_swarm.py
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - name: Validate Hugging Face credential is present (never print it)
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ -z "${HF_TOKEN:-}" ]]; then
-            echo "FAIL_CLOSED: secret reina_TOKEN is not available to this workflow run"
-            exit 1
-          fi
-          echo "HF_CREDENTIAL=AVAILABLE"
-      - name: Restore local AI cache
-        id: cache
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            node_modules
-            .cache
-          key: ${{ runner.os }}-colmena-local-ai-v5-transformersjs-3.8.1-qwen3
-      - name: Prepare local AI runtime
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          set -euo pipefail
-          npm init -y >/dev/null 2>&1
-          npm install --no-audit --no-fund @huggingface/transformers@3.8.1
-          node scripts/colmena_local_ai.mjs --warm
-      - name: Validate local AI runtime
-        if: steps.cache.outputs.cache-hit == 'true'
-        run: node scripts/colmena_local_ai.mjs --warm
-      - name: Download Queen approval
-        uses: actions/download-artifact@v4
-        with:
-          name: colmena-queen-plan
-          path: artifacts/colmena
-      - name: Start persistent AI runtime pool (5 isolated workers)
-        env:
-          COLMENA_AI_DEVICE: "cpu"
-        run: |
-          set -euo pipefail
-          mkdir -p artifacts/colmena/ai_runtime
-          : > artifacts/colmena/ai_runtime/pids
-          for port in 8765 8766 8767 8768 8769; do
-            COLMENA_AI_PORT="$port" node scripts/colmena_local_ai.mjs --server > "artifacts/colmena/ai_runtime/runtime_${port}.log" 2>&1 &
-            echo "$! $port" >> artifacts/colmena/ai_runtime/pids
-          done
-          python - <<'PY'
-          import time, urllib.request
-          for port in [8765,8766,8767,8768,8769]:
-              for _ in range(90):
-                  try:
-                      with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=3) as r:
-                          if r.status == 200: break
-                  except Exception: time.sleep(2)
-              else: raise SystemExit(f"FAIL_CLOSED: AI runtime {port} unhealthy")
-          print("AI_RUNTIME_POOL=PASS size=5")
-          PY
-      - name: Queen dispatches and supervises all 36 batches
-        env:
-          COLMENA_AGENT_PROVIDER: github-actions-local-transformers-js
-          COLMENA_AI_AGENT_EXECUTION: "true"
-          COLMENA_AI_DEVICE: "cpu"
-          COLMENA_AGENT_MODEL: onnx-community/Qwen3-0.6B-ONNX:q4f16
-          COLMENA_AGENT_EXECUTION_ID: ${{ github.run_id }}-${{ github.run_attempt }}-queen
-          COLMENA_AI_SERVER_POOL_SIZE: "5"
-          COLMENA_AI_SERVER_PORT_BASE: "8765"
-          COLMENA_COMMAND_TIMEOUT_SECONDS: "1200"
-          COLMENA_WORKER_TIMEOUT_SECONDS: "1500"
-        run: |
-          set -euo pipefail
-          python scripts/colmena_queen.py --ref "$GITHUB_SHA" --output artifacts/colmena/queen_approval.json --supervise --workers-dir artifacts/colmena/workers --state artifacts/colmena/queen_state.json
-      - name: Stop AI runtime pool
-        if: always()
-        run: |
-          if [ -f artifacts/colmena/ai_runtime/pids ]; then while read -r pid port; do kill "$pid" 2>/dev/null || true; done < artifacts/colmena/ai_runtime/pids; fi
-      - name: Upload execution evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: colmena-execution
-          path: artifacts/colmena/
-          if-no-files-found: error
-          retention-days: 30
-
-  reconcile:
-    name: "Queen — reconcile 179/179"
-    if: always()
-    needs: [plan, execute]
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: {python-version: "3.12"}
-      - uses: actions/download-artifact@v4
-        if: always()
-        with:
-          name: colmena-execution
-          path: artifacts/colmena
-      - name: Fail-closed reconciliation
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import json,sys
           from pathlib import Path
-          root=Path("artifacts/colmena")
-          approval=json.loads((root/"queen_approval.json").read_text())
-          expected={m["id"]:m for m in approval["missions"]}
-          files=sorted((root/"workers").glob("worker_*.json")) if (root/"workers").exists() else []
-          rows=[json.loads(p.read_text()) for p in files]
-          observed={r.get("mission_id"):r for r in rows}
-          state=json.loads((root/"queen_state.json").read_text()) if (root/"queen_state.json").exists() else {}
-          valid=len(expected)==179 and len(files)==179 and len(observed)==179 and set(expected)==set(observed) and state.get("status")=="PASS" and state.get("completed")==179 and state.get("failed")==0 and state.get("blocked")==0 and state.get("batches_completed")==36
-          for mid,m in expected.items():
-              r=observed.get(mid); rt=(r or {}).get("agent_runtime",{})
-              valid &= bool(r) and r.get("agent_id")==m["agent_id"] and r.get("title")==m["title"] and r.get("ref")==m["ref"] and r.get("queen_approval")==m["approval"] and r.get("status")=="PASS" and r.get("runtime_status")=="PASS" and rt.get("independent") is True and rt.get("ai_execution") is True and bool(rt.get("execution_id")) and isinstance(r.get("ai_inference"),dict)
-          payload={"schema":"COLMENA_RECONCILIATION_V10","expected":179,"observed":len(files),"unique_missions":len(observed),"logical_batches":36,"all_179_ai_runtime_pass":len(rows)==179 and all(r.get("runtime_status")=="PASS" and r.get("agent_runtime",{}).get("ai_execution") is True for r in rows),"all_179_missions_pass":len(rows)==179 and all(r.get("status")=="PASS" for r in rows),"fail_closed":True,"status":"PASS" if valid else "BLOCKED"}
-          (root/"reconciliation.json").write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n")
-          print(json.dumps(payload,ensure_ascii=False)); sys.exit(0 if valid else 1)
+          p = Path("docs/COLMENA_STATE.json")
+          if not p.is_file():
+              raise SystemExit("FAIL_CLOSED: docs/COLMENA_STATE.json missing")
+          state = json.loads(p.read_text(encoding="utf-8"))
+          assert state.get("schema") == "COLMENA_STATE_V1", "invalid state schema"
+          assert state.get("fail_closed") is True, "fail_closed must be true"
+          assert state.get("status") in {"SELLABLE_BETA", "OPERATIONAL_BETA"}, "unexpected product status"
+          assert isinstance(state.get("next_single_action"), str) and state["next_single_action"].strip(), "missing next action"
+          print("COLMENA_STATE=PASS")
           PY
-      - name: Persist operational state (fail-closed)
-        if: always()
+      - name: Resume from canonical checkpoint
+        run: python -m src.colmena_resume
+      - name: Verify reproducibility contract
+        run: python -m src.reproducibility_contract
+      - name: Run core, coalition and demo regression tests
+        run: >-
+          python -m pytest -q
+          tests/test_reproducibility_contract.py
+          tests/test_error_registry.py
+          tests/test_colmena_resume.py
+          tests/test_product_contract.py
+          tests/test_resume_error_registry_consistency.py
+          tests/test_demo_e2e.py
+          tests/test_coalition.py
+          tests/test_neutral_audit.py
+      - name: Execute end-to-end demo
+        run: python scripts/demo_e2e.py
+      - name: Persist successful checkpoint
+        if: success()
         env:
-          PLAN_RESULT: ${{ needs.plan.result }}
-          EXECUTE_RESULT: ${{ needs.execute.result }}
           COMMIT_SHA: ${{ github.sha }}
-          WORKFLOW_RUN_ID: ${{ github.run_id }}
-          WORKFLOW_RUN_ATTEMPT: ${{ github.run_attempt }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
           set -euo pipefail
           python - <<'PY'
           import json, os
-          from datetime import datetime
+          from datetime import datetime, timezone
           from pathlib import Path
-          from zoneinfo import ZoneInfo
-          root = Path("artifacts/colmena")
-          root.mkdir(parents=True, exist_ok=True)
-          rec_path = root / "reconciliation.json"
-          rec = json.loads(rec_path.read_text(encoding="utf-8")) if rec_path.is_file() else {}
-          workers_dir = root / "workers"
-          rows = []
-          if workers_dir.is_dir():
-              for path in sorted(workers_dir.glob("worker_*.json")):
-                  try: rows.append(json.loads(path.read_text(encoding="utf-8")))
-                  except Exception: pass
-          inference_count = sum(1 for r in rows if isinstance(r.get("ai_inference"), dict) and bool(r["ai_inference"].get("response_sha256")) and bool(r["ai_inference"].get("response_excerpt")))
-          evidence_count = sum(1 for r in rows if r.get("status") == "PASS" and r.get("runtime_status") == "PASS" and r.get("ai_inference"))
-          queen_pass = (os.environ.get("PLAN_RESULT") == "success" and os.environ.get("EXECUTE_RESULT") == "success" and rec.get("status") == "PASS" and rec.get("observed") == 179 and rec.get("unique_missions") == 179 and rec.get("all_179_ai_runtime_pass") is True and rec.get("all_179_missions_pass") is True and inference_count == 179 and evidence_count == 179)
-          state = {
-            "schema": "COALICION_OPERATIONAL_STATE_V2",
-            "status": "PASS" if queen_pass else "BLOCKED",
-            "commit": os.environ.get("COMMIT_SHA", ""),
-            "workflow": ".github/workflows/colmena_atomic_swarm.yml",
-            "workflow_run_id": os.environ.get("WORKFLOW_RUN_ID", ""),
-            "workflow_run_attempt": os.environ.get("WORKFLOW_RUN_ATTEMPT", ""),
-            "plan_result": os.environ.get("PLAN_RESULT", "unknown"),
-            "execute_result": os.environ.get("EXECUTE_RESULT", "unknown"),
-            "queen": 1 if queen_pass else 0,
-            "workers_expected": 179,
-            "workers_completed": sum(1 for r in rows if r.get("status") == "PASS" and r.get("runtime_status") == "PASS"),
-            "inferences_validated": inference_count,
-            "evidences_validated": evidence_count,
-            "queen_gate": "PASS" if queen_pass else "BLOCKED",
-            "reconciliation": rec,
-            "timestamp_europe_madrid": datetime.now(ZoneInfo("Europe/Madrid")).isoformat(),
-            "secret_value_persisted": False,
+          path = Path("docs/COLMENA_STATE.json")
+          state = json.loads(path.read_text(encoding="utf-8"))
+          state["last_colmena_checkpoint"] = {
+              "schema": "COLMENA_LIGHT_CHECKPOINT_V1",
+              "status": "PASS",
+              "workflow": ".github/workflows/colmena_atomic_swarm.yml",
+              "tested_commit": os.environ["COMMIT_SHA"],
+              "run_id": os.environ["RUN_ID"],
+              "run_attempt": os.environ["RUN_ATTEMPT"],
+              "checks": [
+                  "state_fail_closed",
+                  "resume_gate",
+                  "reproducibility_contract",
+                  "core_and_coalition_regression",
+                  "demo_e2e"
+              ],
+              "timestamp_utc": datetime.now(timezone.utc).isoformat()
           }
-          (root / "operational_state.json").write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-          print(json.dumps({k: state[k] for k in ("status", "workflow_run_id", "workers_expected", "workers_completed", "inferences_validated", "evidences_validated", "queen_gate", "timestamp_europe_madrid")}, ensure_ascii=False))
+          path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
           PY
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: colmena-swarm-final
-          path: artifacts/colmena/
-          if-no-files-found: error
-          retention-days: 30
-
-# runtime-validation-trigger-2026-10-08
-
-# master-invocation-verified
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/COLMENA_STATE.json
+          if git diff --cached --quiet; then
+            echo "CHECKPOINT_UNCHANGED=true"
+            exit 0
+          fi
+          git commit -m "chore(colmena): persist lightweight validation checkpoint"
+          git push origin HEAD:main
