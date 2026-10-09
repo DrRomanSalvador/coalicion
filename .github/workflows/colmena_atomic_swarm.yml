@@ -111,9 +111,14 @@ jobs:
             COMMIT_SHA="$(git rev-parse HEAD)"
             export COMMIT_SHA
             set +e
-            python scripts/colmena_checkpoint.py
+            checkpoint_output="$(python scripts/colmena_checkpoint.py 2>&1)"
             checkpoint_rc=$?
             set -e
+            printf '%s\n' "$checkpoint_output"
+            if grep -q '^CHECKPOINT_SKIPPED_STALE_VALIDATION:' <<<"$checkpoint_output"; then
+              echo "::notice::Validation is stale because main advanced. Skipping checkpoint persistence; the newer commit owns validation."
+              exit 0
+            fi
             if [ "$checkpoint_rc" -eq 3 ]; then
               echo "::notice::main changed during checkpoint validation; retrying against latest main."
               sleep "$((attempt * 3))"
