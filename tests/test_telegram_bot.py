@@ -132,6 +132,41 @@ def test_user_never_sees_internal_prediction_blocker():
     assert "BLOCKED_NO_TERRITORIAL_INPUT" not in text
     assert "BLOQUEADO" not in text
 
+def test_escanos_fails_closed_on_demo_or_unvalidated_projection(tmp_path, monkeypatch):
+    snapshot = tmp_path / "snapshot.json"
+    demo = tmp_path / "demo.json"
+    snapshot.write_text(json.dumps({
+        "projection": {
+            "status": "PASS",
+            "calibration_status": "PASS",
+            "territorial_poll_count": 0,
+            "national_seats": {"PARTY_A": 180}
+        }
+    }), encoding="utf-8")
+    demo.write_text(json.dumps({
+        "status": "PASS",
+        "national_seats": {"PARTY_A": 180}
+    }), encoding="utf-8")
+    monkeypatch.setattr(telegram_bot, "SNAPSHOT", snapshot)
+    monkeypatch.setattr(telegram_bot, "DEMO_PREDICTION", demo)
+    result = telegram_bot._escanos_text()
+    assert "no hay una proyección" in result.lower()
+    assert "PARTY_A: 180" not in result
+
+
+def test_escanos_requires_both_territorial_evidence_and_calibration(tmp_path, monkeypatch):
+    snapshot = tmp_path / "snapshot.json"
+    snapshot.write_text(json.dumps({
+        "projection": {
+            "status": "PASS",
+            "calibration_status": "PASS",
+            "territorial_poll_count": 1,
+            "national_seats": {"PARTY_A": 180}
+        }
+    }), encoding="utf-8")
+    monkeypatch.setattr(telegram_bot, "SNAPSHOT", snapshot)
+    assert "PARTY_A: 180" in telegram_bot._escanos_text()
+
 
 def test_menu_uses_question_language():
     markup = telegram_bot._menu_markup()
