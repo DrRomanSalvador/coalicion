@@ -29,9 +29,86 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          FAILED_RUN_ID="${FAILED_RUN_ID//[[:space:]]/}"
+          # Accept a numeric run/job ID, or extract one from pasted GitHub Actions logs/URLs.
+          if [[ ! "$FAILED_RUN_ID" =~ ^[[:space:]]*[0-9]+[[:space:]]*$ ]]; then
+            EXTRACTED_ID="$(printf '%s' "$FAILED_RUN_ID" | grep -Eo 'actions/(runs|jobs)/[0-9]+' | tail -n 1 | grep -Eo '[0-9]+
+
+          RUN_ID=""
+          if gh run view "$FAILED_RUN_ID" --repo "$REPOSITORY" --json databaseId,conclusion >/tmp/run.json 2>/tmp/run.err; then
+            RUN_ID="$(jq -r '.databaseId // empty' /tmp/run.json)"
+            CONCLUSION="$(jq -r '.conclusion // empty' /tmp/run.json)"
+            if [[ "$CONCLUSION" != "failure" && "$CONCLUSION" != "cancelled" && "$CONCLUSION" != "timed_out" && "$CONCLUSION" != "startup_failure" ]]; then
+              echo "::error::Workflow run $RUN_ID is not in a rerunnable failed state (conclusion=$CONCLUSION)."
+              exit 1
+            fi
+          else
+            echo "Input is not a workflow-run ID; resolving it as a job ID."
+            RUN_ID="$(gh api "repos/$REPOSITORY/actions/jobs/$FAILED_RUN_ID" --jq '.run_id')"
+            [[ "$RUN_ID" =~ ^[0-9]+$ ]] || {
+              echo "::error::Could not resolve input as a workflow run or job ID."
+              exit 1
+            }
+            gh run view "$RUN_ID" --repo "$REPOSITORY" --json conclusion --jq '.conclusion' >/tmp/conclusion.txt
+            CONCLUSION="$(cat /tmp/conclusion.txt)"
+            if [[ "$CONCLUSION" != "failure" && "$CONCLUSION" != "cancelled" && "$CONCLUSION" != "timed_out" && "$CONCLUSION" != "startup_failure" ]]; then
+              echo "::error::Resolved workflow run $RUN_ID is not in a rerunnable failed state (conclusion=$CONCLUSION)."
+              exit 1
+            fi
+          fi
+
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]] || {
+            echo "::error::Unable to resolve a valid workflow run ID."
+            exit 1
+          }
+          echo "Resolved failed workflow run: $RUN_ID"
+          gh run rerun "$RUN_ID" --failed --repo "$REPOSITORY"
+          echo "Failed jobs requeued for run $RUN_ID."
+ || true)"
+            if [[ -z "$EXTRACTED_ID" ]]; then
+              EXTRACTED_ID="$(printf '%s' "$FAILED_RUN_ID" | grep -Eio '(workflow[-_ ]run[-_ ]id|failed[-_ ]run[-_ ]id|run_id|job_id)[[:space:]":=]+[0-9]+' | grep -Eo '[0-9]+
+
+          RUN_ID=""
+          if gh run view "$FAILED_RUN_ID" --repo "$REPOSITORY" --json databaseId,conclusion >/tmp/run.json 2>/tmp/run.err; then
+            RUN_ID="$(jq -r '.databaseId // empty' /tmp/run.json)"
+            CONCLUSION="$(jq -r '.conclusion // empty' /tmp/run.json)"
+            if [[ "$CONCLUSION" != "failure" && "$CONCLUSION" != "cancelled" && "$CONCLUSION" != "timed_out" && "$CONCLUSION" != "startup_failure" ]]; then
+              echo "::error::Workflow run $RUN_ID is not in a rerunnable failed state (conclusion=$CONCLUSION)."
+              exit 1
+            fi
+          else
+            echo "Input is not a workflow-run ID; resolving it as a job ID."
+            RUN_ID="$(gh api "repos/$REPOSITORY/actions/jobs/$FAILED_RUN_ID" --jq '.run_id')"
+            [[ "$RUN_ID" =~ ^[0-9]+$ ]] || {
+              echo "::error::Could not resolve input as a workflow run or job ID."
+              exit 1
+            }
+            gh run view "$RUN_ID" --repo "$REPOSITORY" --json conclusion --jq '.conclusion' >/tmp/conclusion.txt
+            CONCLUSION="$(cat /tmp/conclusion.txt)"
+            if [[ "$CONCLUSION" != "failure" && "$CONCLUSION" != "cancelled" && "$CONCLUSION" != "timed_out" && "$CONCLUSION" != "startup_failure" ]]; then
+              echo "::error::Resolved workflow run $RUN_ID is not in a rerunnable failed state (conclusion=$CONCLUSION)."
+              exit 1
+            fi
+          fi
+
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]] || {
+            echo "::error::Unable to resolve a valid workflow run ID."
+            exit 1
+          }
+          echo "Resolved failed workflow run: $RUN_ID"
+          gh run rerun "$RUN_ID" --failed --repo "$REPOSITORY"
+          echo "Failed jobs requeued for run $RUN_ID."
+ | tail -n 1 || true)"
+            fi
+            if [[ -z "$EXTRACTED_ID" ]]; then
+              echo "::error::No run/job ID found. Paste only the numeric GitHub Actions run ID or job ID, or include a GitHub /actions/runs/ID or /actions/jobs/ID URL. The supplied log has timestamps but no target ID."
+              exit 1
+            fi
+            FAILED_RUN_ID="$EXTRACTED_ID"
+            echo "Extracted run/job ID from supplied text."
+          fi
+          FAILED_RUN_ID="$(printf '%s' "$FAILED_RUN_ID" | tr -d '[:space:]')"
           if [[ ! "$FAILED_RUN_ID" =~ ^[0-9]+$ ]]; then
-            echo "::error::failed_run_id is required and must be a numeric workflow-run ID or job ID."
+            echo "::error::failed_run_id must resolve to a numeric workflow-run ID or job ID."
             exit 1
           fi
 
