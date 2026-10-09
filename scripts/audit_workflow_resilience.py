@@ -54,6 +54,7 @@ def audit_self_healer_contract(source: str) -> list[str]:
         "each sweep caps successful reruns and candidate attempts": '[[ "$count" -lt 5 && "$attempted" -lt 25 ]]',
         "older candidates are processed first": "sort_by(.created_at)",
         "individual request errors are recorded": "RERUN_REQUEST_FAILED",
+        "exhausted retry budget is surfaced even with other candidates": "EXHAUSTED_RETRY_BUDGET",
         "cancelled runs use a full rerun": 'gh run rerun "$run_id" --repo "$REPOSITORY"',
         "failed runs retry failed jobs only": 'gh run rerun "$run_id" --failed --repo "$REPOSITORY"',
         "manual path rejects active runs": "queued|in_progress|waiting|requested|pending",
