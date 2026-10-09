@@ -85,7 +85,7 @@ def test_modified_scenario_config_fails_on_contract(tmp_path: Path):
 
 def test_each_scenario_conserves_votes_and_seats():
     result = run_demo()
-    dataset, constituencies, _ = load_dataset(DEFAULT_DATA)
+    _, constituencies, _ = load_dataset(DEFAULT_DATA)
     assert len(result["scenarios"]) == 3
     for scenario in result["scenarios"]:
         for region, outcome in scenario["regions"].items():
