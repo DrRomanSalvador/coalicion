@@ -526,14 +526,6 @@ def _demo_prediction_text() -> str:
     if not data:
         return "🧪 DEMO 2026\n\nNo hay predicción demo materializada."
     status = str(data.get("status", "")).upper()
-    if status not in {"PASS", "CERTIFIED"}:
-        blockers = data.get("blockers") if isinstance(data.get("blockers"), list) else []
-        return (
-            "🧪 DEMO 2026 · BLOQUEADA\n\n"
-            "No se muestran escaños: faltan entradas territoriales observadas y calibración electoral 2026.\n"
-            "No se infieren resultados provinciales a partir de sondeos nacionales.\n\n"
-            f"Limitaciones registradas: {len(blockers)}."
-        )
     seats = data.get("national_seats") if isinstance(data.get("national_seats"), dict) else {}
     rows = []
     for party, value in seats.items():
@@ -542,6 +534,31 @@ def _demo_prediction_text() -> str:
         except (TypeError, ValueError):
             pass
     rows.sort(key=lambda x: (-x[1], x[0]))
+    try:
+        observed_territorial_polls = int(data.get("observed_territorial_polls", 0))
+        seat_total = int(data.get("seat_total", 0))
+    except (TypeError, ValueError):
+        observed_territorial_polls = 0
+        seat_total = 0
+    territorial_input = str(data.get("territorial_input", "")).strip().upper()
+    calibration = str(data.get("calibration_status", "")).strip().upper()
+    valid = (
+        status in {"PASS", "CERTIFIED"}
+        and territorial_input not in {"", "NONE", "NO", "UNAVAILABLE"}
+        and observed_territorial_polls > 0
+        and calibration in {"PASS", "CERTIFIED"}
+        and seat_total == 350
+        and sum(value for _, value in rows) == 350
+    )
+    if not valid:
+        blockers = data.get("blockers") if isinstance(data.get("blockers"), list) else []
+        return (
+            "🧪 DEMO 2026 · BLOQUEADA\n\n"
+            "No se muestran escaños: faltan entradas territoriales observadas, calibración válida "
+            "o una distribución que conserve los 350 escaños.\n"
+            "No se infieren resultados provinciales a partir de sondeos nacionales.\n\n"
+            f"Limitaciones registradas: {len(blockers)}."
+        )
     lines = ["🧪 DEMO 2026 · PREDICCIÓN TERRITORIAL", "", "Modo: MODELADA · NO OFICIAL",
              "52 circunscripciones · 350 escaños",
              f"Encuestas actuales de entrada: {data.get('current_survey_count', 'n/d')}", "",
