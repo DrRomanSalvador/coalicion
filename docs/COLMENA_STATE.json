@@ -1,7 +1,7 @@
 {
   "schema": "COLMENA_STATE_V1",
   "project": "COALICIÓN",
-  "checkpoint_date": "2026-10-08",
+  "checkpoint_date": "2026-10-09",
   "methodology": "SEEC",
   "methodology_version": "4.0",
   "status": "SELLABLE_BETA",
@@ -11,27 +11,28 @@
   "minimum_mc_draws": 10000,
   "preferred_mc_draws": 50000,
   "source_anchor": {
-    "id": "INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO",
-    "document_sha256": "b5ed11be35ef4ad05b95863c907db058b9993c66e4b354892c28de0be56a13e7",
-    "manifest": "data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.json",
-    "binary": "data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_2023_JULIO.pdf",
+    "id": "INTERIOR_ELECCIONES_CONGRESO_1977_2023_XLSX",
+    "document_sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
+    "manifest": "data/manifests/official_interior_congreso.json",
+    "binary": "data/raw/Elecciones-Congreso.xlsx",
     "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH"
   },
   "blocking_errors": [],
-  "last_action": "Activar y verificar runtime IA de 179 agentes",
-  "last_action_result": "RUNTIME_VALIDATION_QUEUED",
-  "next_single_action": "Esperar y verificar la ejecución única de 179 agentes; no declarar PASS sin evidencia",
+  "last_action": "Reparar materialización del workbook oficial, baseline histórico 2023, vigilancia de encuestas y diagnósticos latentes SEEC",
+  "last_action_result": "OFFICIAL_16_ELECTION_DATASET_PASS; PYTEST_367_PASS; SEEC_10000_PASS; MASTER_CERTIFICATION_READY_FOR_EXTERNAL_AUDIT",
+  "next_single_action": "Completar la suite reproducible sobre main y cerrar únicamente los bloqueos verificables; mantener P3 y v1.0.0 bloqueados sin matriz territorial 2026 y auditoría externa independiente",
   "certification": "READY_FOR_EXTERNAL_AUDIT",
-  "data_source": "PRIMARY_INTERIOR_SUPPLIED_VALIDATED",
+  "data_source": "PRIMARY_INTERIOR_WORKBOOK_MATERIALIZED_AND_HASH_VERIFIED",
   "primary_binary": "PINNED_BY_SHA256",
   "use_allowed": true,
   "warnings": [
-    "Situation State V1 materializado.",
     "Newsletter diaria materializada como borrador editorial; requiere revisión humana antes de distribución.",
     "Dashboard consume Situation State como fuente común.",
-    "Telegram /situacion consume ahora el estado canónico Situation State.",
-    "No se declara PASS de CI hasta disponer de ejecución real y evidencia persistente.",
-    "La cobertura territorial 2026 sigue en 0 observaciones explícitas y el radar permanece UNCERTAINTY."
+    "Telegram /situacion consume el estado canónico Situation State.",
+    "El workbook oficial del Interior está materializado y fijado por SHA-256; dataset reproducible: 16 elecciones, 52 circunscripciones, 322556 registros normalizados.",
+    "SEEC de producción verificado con 10000 draws, cuatro cadenas, 0 divergencias, R-hat máximo 1.00 y ESS bulk/tail mínimos 1900/3000; los diagnósticos incluyen eta latente.",
+    "La cobertura territorial de encuestas generales 2026 sigue sin matriz explícita de 52 circunscripciones; no inferir votos provinciales ni liberar predicción de escaños.",
+    "La certificación interna está READY_FOR_EXTERNAL_AUDIT; no equivale a certificación independiente ni autoriza release v1.0.0."
   ],
   "product_mode": "SELLABLE_BETA",
   "audit_mode": "INACTIVE",
@@ -54,17 +55,38 @@
       "status": "PASS",
       "evidence": "src/projection_suite.py + tests/test_projection_suite.py + src/product_layer.py",
       "fail_closed": true
+    },
+    {
+      "id": "OFFICIAL_WORKBOOK_MATERIALIZATION",
+      "status": "PASS",
+      "evidence": "data/manifests/official_interior_congreso.json; SHA-256 dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2; 16 elecciones, 52 circunscripciones, 322556 registros",
+      "fail_closed": true
+    },
+    {
+      "id": "SEEC_LATENT_STATE_DIAGNOSTICS",
+      "status": "PASS",
+      "evidence": "GitHub Actions run 37912645972; 10000 draws; eta included; all diagnostics finite; divergences=0; R-hat=1.00; ESS bulk=1900; ESS tail=3000",
+      "fail_closed": true
+    },
+    {
+      "id": "OOS_CALIBRATION",
+      "status": "PASS",
+      "evidence": "ci_evidence/oos_calibration.json; status PASS",
+      "fail_closed": true
+    },
+    {
+      "id": "MASTER_CERTIFICATION_GATE",
+      "status": "PASS",
+      "evidence": "ci_evidence/master_certification.json; READY_FOR_EXTERNAL_AUDIT; external_audit remains FAIL/PENDING",
+      "fail_closed": true
     }
   ],
   "operational_blockers": [],
   "certification_requirements": [
-    "PRIMARY_BINARY_PINNED_OR_VERIFIABLE",
-    "HISTORICAL_CSV_MATERIALIZATION",
-    "SEEC_PRODUCTION_EXECUTION",
-    "OOS_CALIBRATION",
-    "EXTERNAL_AUDIT",
-    "POLL_SOURCE_COVERAGE",
-    "CI_MASTER_CERTIFICATION"
+    "EXTERNAL_AUDIT_INDEPENDENT",
+    "TERRITORIAL_2026_MATRIX_52_CONSTITUENCIES_OR_KEEP_P3_BLOCKED",
+    "CLOSE_ALL_179_ATOMIC_MISSIONS_WITH_PERSISTENT_EVIDENCE",
+    "V1.0.0_RELEASE_GATE_AFTER_ALL_BLOCKERS_CLOSE"
   ],
   "colmena_mode": "ACTIVE_FOR_RUNTIME_VALIDATION",
   "execution_gate": "ALLOW_SINGLE_RUNTIME_VALIDATION",
