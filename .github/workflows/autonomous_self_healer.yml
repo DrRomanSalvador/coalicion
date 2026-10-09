@@ -82,6 +82,11 @@ jobs:
           count=0
           attempted=0
           failures=0
+          if [[ "${#candidates[@]}" -gt 25 ]]; then
+            deferred=$(( ${#candidates[@]} - 25 ))
+            echo "::warning::Retry queue contains ${#candidates[@]} eligible runs; this sweep examines at most 25 and requests at most 5 reruns. $deferred remain for later sweeps."
+            echo "- Eligible runs deferred to later sweeps: $deferred." >> "$GITHUB_STEP_SUMMARY"
+          fi
           for run_id in "${candidates[@]}"; do
             [[ "$count" -lt 5 && "$attempted" -lt 25 ]] || break
             attempted=$((attempted + 1))
@@ -95,6 +100,13 @@ jobs:
             run_sha="$(jq -r '.head_sha // empty' <<<"$run_json")"
             run_attempt="$(jq -r '.run_attempt // empty' <<<"$run_json")"
             [[ "$status" == "completed" && "$run_sha" == "$main_sha" && "$run_attempt" -lt "$max_attempts" ]] || continue
+            # Main may advance while a sweep is running; never retry work made stale mid-sweep.
+            current_main_sha="$(gh api "repos/$REPOSITORY/commits/main" --jq '.sha')"
+            if [[ "$current_main_sha" != "$main_sha" ]]; then
+              echo "::notice::Main advanced during recovery sweep ($main_sha -> $current_main_sha); stopping before retrying stale runs."
+              echo "- Sweep stopped because main advanced to $current_main_sha; remaining candidates were not retried." >> "$GITHUB_STEP_SUMMARY"
+              break
+            fi
             case "$conclusion" in
               cancelled)
                 if gh run rerun "$run_id" --repo "$REPOSITORY"; then
