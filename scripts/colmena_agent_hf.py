@@ -67,8 +67,11 @@ def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str =
         result.update(status="BLOCKED", error=f"{type(exc).__name__}: {exc}")
     result["completed_at"] = now()
     evidence_path = AGENTS_DIR / f"{safe_name(agent_id)}_{safe_name(mission_id)}.json"
+    try:
+        result["evidence_path"] = str(evidence_path.relative_to(ROOT))
+    except ValueError:
+        result["evidence_path"] = str(evidence_path)
     save_evidence(evidence_path, result)
-    result["evidence_path"] = str(evidence_path.relative_to(ROOT))
     return result
 
 def main() -> int:
