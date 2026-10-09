@@ -76,10 +76,6 @@ jobs:
               raise SystemExit("Fail-closed: la misión no tiene tarea concreta.")
           print(f"Misión validada: {mission_id} -> {mission['agent_id']}")
           PY
-          set +e
-          python scripts/colmena_agent_hf.py "$MISSION_ID" --model "$HF_MODEL" --provider "$HF_PROVIDER"
-          agent_rc=$?
-          set -e
           EVIDENCE="$(python - <<'PY'
           import json, os, re
           from pathlib import Path
@@ -90,11 +86,24 @@ jobs:
           print(f"artifacts/colmena/agents/{safe(mission['agent_id'])}_{safe(mission_id)}.json")
           PY
           )"
+          # Expone el destino para persistir el historial aunque el proveedor falle.
+          echo "evidence_path=$EVIDENCE" >> "$GITHUB_OUTPUT"
+          if [ -f "$EVIDENCE" ]; then
+            HISTORY_DIR="artifacts/colmena/agents/history"
+            mkdir -p "$HISTORY_DIR"
+            HISTORY_FILE="$HISTORY_DIR/$(basename "${EVIDENCE%.json}")_run_${GITHUB_RUN_ID}_attempt_${GITHUB_RUN_ATTEMPT}.json"
+            cp "$EVIDENCE" "$HISTORY_FILE"
+            rm -f "$EVIDENCE"
+            echo "Evidencia anterior archivada: $HISTORY_FILE"
+          fi
+          set +e
+          python scripts/colmena_agent_hf.py "$MISSION_ID" --model "$HF_MODEL" --provider "$HF_PROVIDER"
+          agent_rc=$?
+          set -e
           if [ ! -f "$EVIDENCE" ]; then
-            echo "No existe evidencia JSON; no se puede reconciliar ni declarar éxito." >&2
+            echo "No se generó evidencia nueva en este intento; se rechaza cualquier resultado antiguo." >&2
             exit 2
           fi
-          echo "evidence_path=$EVIDENCE" >> "$GITHUB_OUTPUT"
           python scripts/colmena_queen_hf.py --record-result "$EVIDENCE"
           exit "$agent_rc"
       - name: Persistir evidencia y estado en la rama invocada
@@ -105,12 +114,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -f "$EVIDENCE_PATH"
           test -f docs/COLMENA_MISSION_CONTROL.json
           test -f docs/COLMENA_STATE.json
           git config user.name "coalicion-colmena[bot]"
           git config user.email "coalicion-colmena[bot]@users.noreply.github.com"
-          git add docs/COLMENA_MISSION_CONTROL.json docs/COLMENA_STATE.json "$EVIDENCE_PATH"
+          git add docs/COLMENA_MISSION_CONTROL.json docs/COLMENA_STATE.json
+          if [ -f "$EVIDENCE_PATH" ]; then git add "$EVIDENCE_PATH"; fi
+          if [ -d artifacts/colmena/agents/history ]; then git add artifacts/colmena/agents/history; fi
           if git diff --cached --quiet; then
             echo "No hay cambios de evidencia para persistir." >&2
             exit 1
