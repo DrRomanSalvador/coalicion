@@ -18,7 +18,7 @@ on:
       - "tests/**"
       - "scripts/**"
       - "requirements.txt"
-      - ".github/workflows/exhaustive_validation.yml"
+      - ".github/workflows/**"
 
 concurrency:
   group: validate-main
