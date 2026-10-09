@@ -111,14 +111,24 @@ def main():
         import arviz as az
         # Diagnose the latent temporal trajectory too; hyperparameter-only
         # diagnostics can hide non-converged party-by-study states.
-        summ=az.summary(idata,var_names=["temporal_sigma","log_concentration","eta0","eta"],round_to=None)
-        rhat_max=float(np.nanmax(summ["r_hat"].to_numpy()))
-        if not np.isfinite(rhat_max) or rhat_max>1.01: pass
+        diagnostic_variables=["temporal_sigma","log_concentration","eta0","eta"]
+        summ=az.summary(idata,var_names=diagnostic_variables,round_to=None)
+        rhat_values=summ["r_hat"].to_numpy(dtype=float)
+        ess_bulk_values=summ["ess_bulk"].to_numpy(dtype=float)
+        ess_tail_values=summ["ess_tail"].to_numpy(dtype=float)
+        # Every reported latent-state diagnostic must be finite. nanmax/nanmin
+        # alone can hide a broken eta dimension behind otherwise valid globals.
+        diagnostics_finite=bool(
+            np.isfinite(rhat_values).all()
+            and np.isfinite(ess_bulk_values).all()
+            and np.isfinite(ess_tail_values).all()
+        )
+        rhat_max=float(np.max(rhat_values)) if np.isfinite(rhat_values).all() else float("inf")
+        ess_bulk_min=float(np.min(ess_bulk_values)) if np.isfinite(ess_bulk_values).all() else 0.0
+        ess_tail_min=float(np.min(ess_tail_values)) if np.isfinite(ess_tail_values).all() else 0.0
     except ImportError: raise SystemExit("BLOCKED: ArviZ required for production diagnostics")
-    ess_bulk_min=float(np.nanmin(summ["ess_bulk"].to_numpy()))
-    ess_tail_min=float(np.nanmin(summ["ess_tail"].to_numpy()))
     # Match the master certification contract: ESS below 1000 is not production-certified.
-    convergence_passed=bool(np.isfinite(rhat_max) and rhat_max<=1.01 and np.isfinite(ess_bulk_min) and ess_bulk_min>=1000 and np.isfinite(ess_tail_min) and ess_tail_min>=1000 and div==0)
+    convergence_passed=bool(diagnostics_finite and rhat_max<=1.01 and ess_bulk_min>=1000 and ess_tail_min>=1000 and div==0)
     if not convergence_passed:
         raise SystemExit(f"BLOCKED: convergence diagnostics failed (r_hat={rhat_max!r}, ess_bulk_min={ess_bulk_min!r}, ess_tail_min={ess_tail_min!r}, divergences={div})")
     out={
@@ -142,7 +152,7 @@ def main():
         "seed":args.seed,
         "canonical_seed":CANONICAL_SEED,
         "posterior_mean_last_study":{p:float(vals[:,:,-1,i].mean()) for i,p in enumerate(parties)},
-        "diagnostics":{"divergences":div,"max_r_hat":rhat_max,"min_ess_bulk":ess_bulk_min,"min_ess_tail":ess_tail_min},
+        "diagnostics":{"variables":diagnostic_variables,"latent_eta_included":True,"all_diagnostics_finite":diagnostics_finite,"divergences":div,"max_r_hat":rhat_max,"min_ess_bulk":ess_bulk_min,"min_ess_tail":ess_tail_min},
         "convergence":{"passed":convergence_passed},
         "fail_closed":True,
         "note":"Posterior describes CIS compositional support; it is not itself an election-outcome posterior."
