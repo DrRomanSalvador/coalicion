@@ -128,7 +128,7 @@ jobs:
               "model": os.environ.get("HF_MODEL", ""), "task": mission.get("task", ""),
               "executed_at": stamp, "completed_at": stamp,
               "error": f"El proceso del agente terminó con código {rc} sin generar evidencia nueva; no se infiere éxito."
-          }, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+          }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
           PY
           fi
           python scripts/colmena_queen_hf.py --record-result "$EVIDENCE"
