@@ -49,10 +49,11 @@ jobs:
           printf '# Continuous workflow health report\n\n- Repository: %s\n- Window: %s hours\n- Since (UTC): %s\n\n' "$GH_REPO" "$LOOKBACK_HOURS" "$since" > "$report"
 
           gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100" > "$RUNNER_TEMP/workflow-runs.json"
-          runs="$(python - "$since" "$RUNNER_TEMP/workflow-runs.json" <<'PY'
+          cat > "$RUNNER_TEMP/parse_workflow_runs.py" <<'PY'
           import json
           import sys
           from pathlib import Path
+
           since = sys.argv[1]
           raw = Path(sys.argv[2]).read_text(encoding="utf-8")
           decoder = json.JSONDecoder()
@@ -77,7 +78,7 @@ jobs:
                   fields = [run_id, run.get("name", "").replace("\t", " "), run.get("path", ""), run.get("status", ""), run.get("conclusion") or "", str(run.get("run_attempt", "")), run.get("html_url", "")]
                   print("\t".join(fields))
           PY
-          )"
+          runs="$(python "$RUNNER_TEMP/parse_workflow_runs.py" "$since" "$RUNNER_TEMP/workflow-runs.json")"
           total=0
           failures=0
           retried=0
