@@ -15,7 +15,8 @@ Puedes obtenerlo mediante el Bot API, por ejemplo consultando las actualizacione
 En `DrRomanSalvador/coalicion → Settings → Secrets and variables → Actions` crea:
 
 - `TELEGRAM_BOT_TOKEN`: token entregado por @BotFather.
-- `TELEGRAM_CHAT_ID`: identificador del chat que recibirá las alertas.
+- `TELEGRAM_CHAT_ID`: chat de destino de notificaciones de workflows que usan un único destinatario.
+- `TELEGRAM_ALLOWED_CHATS`: lista separada por comas de chats autorizados a recibir alertas del monitor de encuestas. No se escriben IDs en el código.
 
 No deben aparecer en ningún archivo del repositorio.
 
