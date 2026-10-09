@@ -410,3 +410,37 @@ def test_source_fingerprint_ignores_volatile_html_but_tracks_visible_text():
     assert d1[0]["source_hash"] == d2[0]["source_hash"]
     assert d1[0]["source_hash"] != d3[0]["source_hash"]
 
+
+
+def test_poll_monitor_does_not_rewrite_state_for_heartbeat_only(tmp_path, monkeypatch):
+    from datetime import datetime, timezone
+    from src import poll_monitor as module
+
+    config_path = tmp_path / "config.json"
+    config_path.write_text(json.dumps({"sources": [], "coverage_contract": {"scope": "test"}}), encoding="utf-8")
+    state_path = tmp_path / "poll_monitor_state.json"
+    monkeypatch.setattr(module, "SURVEYS", tmp_path / "surveys")
+    monkeypatch.setattr(module, "HISTORY", tmp_path / "survey_history.jsonl")
+    monitor = module.PollMonitor(config_path=config_path, state_path=state_path)
+    coverage = {"claim": "COBERTURA_TOTAL_VERIFICADA", "scope": "test", "total": True,
+                "sources_checked": 1, "primary_sources": 1, "discovery_sources": 0, "blockers": []}
+
+    def no_change_fetch():
+        monitor.state.setdefault("source_status", {})["stable_source"] = {
+            "status": "OK", "format": "national_html", "coverage_role": "primary",
+            "source_tier": "PRIMARY_POLLSTER", "source_url": "https://example.test",
+            "raw_archived": False, "checked_at": datetime.now(timezone.utc).isoformat(),
+        }
+        return [], [], []
+
+    monkeypatch.setattr(monitor, "fetch_all", no_change_fetch)
+    monkeypatch.setattr(monitor, "detect_new", lambda polls, discoveries: ([], [], []))
+    monkeypatch.setattr(monitor, "audit_coverage", lambda failures, discoveries: coverage)
+    monkeypatch.setattr(monitor, "alert", lambda payload: False)
+
+    monitor.run()  # Initializes the baseline and writes the first durable snapshot.
+    before = state_path.read_bytes()
+    monitor.run()  # Only checked_at/run counters change; tracked state must remain stable.
+    after = state_path.read_bytes()
+
+    assert after == before
