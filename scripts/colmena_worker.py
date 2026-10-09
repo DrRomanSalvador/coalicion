@@ -47,8 +47,26 @@ def command_for(title: str):
         return [sys.executable, "scripts/audit_2023.py"], "AUDIT_2023"
     if "py_compile" in t or "compil" in t:
         return [sys.executable, "-m", "compileall", "-q", "src", "scripts"], "PY_COMPILE"
-    if any(x in t for x in ("batería completa de tests", "tests unitarios", "tests integración", "tests end-to-end", "tests seguridad", "regresión motor", "regresión coaliciones", "regresión incertidumbre", "regresión bot", "regresión monitor", "regresión telegram")):
-        return [sys.executable, "-m", "pytest", "-q"], "PYTEST"
+    # Keep independent mission checks bounded: running the entire suite for every
+    # regression mission multiplied CI work and caused incomplete worker evidence.
+    # The exhaustive suite remains a single explicit mission.
+    targeted_tests = (
+        ("tests unitarios", ("tests/test_electoral.py", "tests/test_coalition.py", "tests/test_prediction.py", "tests/test_uncertainty.py")),
+        ("tests integración", ("tests/test_full_pipeline.py", "tests/test_reconciliation.py")),
+        ("tests end-to-end", ("tests/test_mvp_e2e.py", "tests/test_product_layer.py")),
+        ("tests seguridad", ("tests/test_security.py", "tests/test_adversarial_audit.py")),
+        ("regresión motor", ("tests/test_electoral.py", "tests/test_electoral_differential.py")),
+        ("regresión coaliciones", ("tests/test_coalition.py", "tests/test_neutral_coalition.py")),
+        ("regresión incertidumbre", ("tests/test_uncertainty.py", "tests/test_seec_bayesian.py")),
+        ("regresión bot", ("tests/test_telegram_bot.py", "tests/test_telegram_evidence.py")),
+        ("regresión monitor", ("tests/test_poll_monitor.py", "tests/test_poll_ingest.py")),
+        ("regresión telegram", ("tests/test_telegram_integration.py", "tests/test_telegram_notifier.py")),
+    )
+    for phrase, test_paths in targeted_tests:
+        if phrase in t:
+            return [sys.executable, "-m", "pytest", "-q", *test_paths], "TARGETED_PYTEST"
+    if "batería completa de tests" in t:
+        return [sys.executable, "-m", "pytest", "-q"], "FULL_PYTEST"
     return None, "AI_ANALYSIS"
 
 def load_approval(path, mission_id, ref):

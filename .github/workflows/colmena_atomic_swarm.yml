@@ -53,7 +53,7 @@ jobs:
     name: "Queen — execute and supervise 179 missions / 36 batches"
     needs: plan
     runs-on: ubuntu-22.04
-    timeout-minutes: 90
+    timeout-minutes: 350
     # Secret stays in the process environment; never echo it or write it to artifacts.
     env:
       HF_TOKEN: ${{ secrets.reina_TOKEN }}
