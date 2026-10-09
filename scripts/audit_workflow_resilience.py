@@ -34,6 +34,21 @@ REVIEW_PATTERNS = {
 }
 
 
+def audit_self_healer_contract(source: str) -> list[str]:
+    """Return missing fail-safe recovery contracts; pagination regressions are blocking."""
+    checks = {
+        "query is paginated and scoped to current main SHA": r'gh api --paginate --slurp ["\\']repos/\\$REPOSITORY/actions/runs\\?head_sha=\\$main_sha&per_page=100["\\']',
+        "self-healer excludes its own workflow": r"select\\s*\\(\\.workflow_id != \\$self_id\\)",
+        "only completed first attempts on current main are eligible": r"select\\s*\\(\\.status == \\"completed\\" and \\.run_attempt == 1\\)",
+        "only current main branch/SHA is eligible": r"select\\s*\\(\\.head_branch == \\"main\\" and \\.head_sha == \\$sha\\)",
+        "each sweep caps rerun requests": r'\\[\\[ "\\$count" -lt 5 \\]\\]',
+        "cancelled runs use a full rerun": r'cancelled\\)\\s*gh run rerun "\\$run_id" --repo "\\$REPOSITORY"',
+        "failed runs retry failed jobs only": r'gh run rerun "\\$run_id" --failed --repo "\\$REPOSITORY"',
+        "manual path rejects active runs": r"queued\\|in_progress\\|waiting\\|requested\\|pending",
+        "manual path rejects unknown run states": r"unknown status",
+    }
+    return [label for label, pattern in checks.items() if not re.search(pattern, source)]
+
 def main() -> int:
     if not WORKFLOWS.is_dir():
         print(f"FAIL: missing workflow directory: {WORKFLOWS}", file=sys.stderr)
@@ -45,6 +60,8 @@ def main() -> int:
 
     entries = []
     read_errors = []
+    critical_findings = []
+    healer_seen = False
     for path in paths:
         try:
             source = path.read_text(encoding="utf-8")
@@ -87,8 +104,18 @@ def main() -> int:
                         "text": line.strip()[:240],
                         "classification": "REVIEW_REQUIRED",
                     })
+        relative_path = str(path.relative_to(ROOT))
+        if relative_path == ".github/workflows/autonomous_self_healer.yml":
+            healer_seen = True
+            missing_contracts = audit_self_healer_contract(source)
+            if missing_contracts:
+                critical_findings.extend(
+                    {"path": relative_path, "missing_contract": item}
+                    for item in missing_contracts
+                )
+
         entries.append({
-            "path": str(path.relative_to(ROOT)),
+            "path": relative_path,
             "name": next((line.split(":", 1)[1].strip() for line in lines
                           if line.startswith("name:")), path.stem),
             "triggers": sorted(set(trigger_names)),
@@ -99,9 +126,12 @@ def main() -> int:
             "findings": findings,
         })
 
+    if not healer_seen:
+        critical_findings.append({"path": ".github/workflows/autonomous_self_healer.yml", "missing_contract": "self-healer workflow is missing"})
+
     payload = {
         "schema": "WORKFLOW_RESILIENCE_AUDIT_V1",
-        "status": "PASS" if not read_errors and entries else "FAIL",
+        "status": "PASS" if not read_errors and entries and not critical_findings else "FAIL",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "workflow_count": len(entries),
         "counts": {
@@ -111,6 +141,7 @@ def main() -> int:
             "review_required_patterns": sum(len(item["findings"]) for item in entries),
         },
         "read_errors": read_errors,
+        "critical_findings": critical_findings,
         "workflows": entries,
         "limitations": [
             "Pattern matches are review prompts, not automatic proof of a defect.",
@@ -121,7 +152,7 @@ def main() -> int:
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"status": payload["status"], "workflow_count": payload["workflow_count"],
-                      "counts": payload["counts"], "output": str(OUTPUT.relative_to(ROOT)),
+                      "counts": payload["counts"], "critical_findings": len(critical_findings), "output": str(OUTPUT.relative_to(ROOT)),
                       "read_errors": read_errors}, ensure_ascii=False, indent=2))
     return 0 if payload["status"] == "PASS" else 1
 
