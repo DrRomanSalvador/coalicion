@@ -51,6 +51,11 @@ def test_assignment_is_bounded_and_only_assigns_concrete_tasks(tmp_path, monkeyp
     assert len(queen.assign_next_batch(5)) == 5
     assert len(queen.assign_next_batch(5)) == 3
     assert queen.assign_next_batch(5) == []
+    summary = json.loads((tmp_path / "state.json").read_text(encoding="utf-8"))["queen_coordination"]
+    assert summary["assigned"] == 8
+    assert summary["pending"] == 171
+    assert summary["tasks_defined"] == 8
+    assert summary["source_of_truth"] == "docs/COLMENA_MISSION_CONTROL.json"
 
 
 def test_agent_rejects_mission_without_task(tmp_path, monkeypatch):
@@ -86,6 +91,9 @@ def test_result_reconciliation_records_review_without_allowing_model_pass(tmp_pa
     persisted_state = json.loads((tmp_path / "state.json").read_text(encoding="utf-8"))
     assert persisted_state["last_hf_agent_execution"]["mission_id"] == mission["id"]
     assert persisted_state["last_hf_agent_execution"]["evidence_sha256"] == recorded["evidence_sha256"]
+    assert persisted_state["queen_coordination"]["review_required"] == 1
+    assert persisted_state["queen_coordination"]["pending"] == 178
+    assert persisted_state["queen_coordination"]["assigned"] == 0
 
     evidence.write_text(json.dumps({
         "mission_id": mission["id"], "agent_id": mission["agent_id"], "status": "PASS"
