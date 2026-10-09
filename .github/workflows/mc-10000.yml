@@ -44,6 +44,7 @@ jobs:
           assert x["sampler"].startswith("Dirichlet-multinomial")
           PY
       - name: Commit evidence with concurrent-update recovery
+        if: github.ref == 'refs/heads/main'
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
