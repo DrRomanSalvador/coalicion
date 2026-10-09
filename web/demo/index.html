@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Comparador auditable de decisiones de coalición con votos oficiales observados de 2023.">
+<title>COALICIÓN · Comparador de decisiones 2023</title>
+<style>
+:root{color-scheme:light;--ink:#17202a;--muted:#59636e;--line:#d7dde3;--paper:#fff;--wash:#f4f6f8;--accent:#1c4e80;--warn:#7a4c00}
+*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header,main,footer{max-width:1180px;margin:auto;padding:1rem}header{padding-top:2rem}h1{margin:.1rem 0;font-size:clamp(1.8rem,4vw,2.7rem)}h2{font-size:1.15rem;margin:.2rem 0 .7rem}p{margin:.4rem 0}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:1rem;margin:.8rem 0;min-width:0}.controls{display:flex;gap:.7rem;flex-wrap:wrap;align-items:end}.field{display:flex;flex-direction:column;gap:.2rem;min-width:190px}select,button{font:inherit;padding:.65rem;border:1px solid #9aa6b2;border-radius:7px;background:white;color:var(--ink)}button{cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #80b7ee;outline-offset:2px}.metric{font-size:1.8rem;font-weight:750;font-variant-numeric:tabular-nums}.status{padding:.7rem 1rem;border-left:4px solid var(--accent);background:#eaf1f8;border-radius:5px}.warning{border-left-color:var(--warn);background:#fff5df}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.92rem}th,td{text-align:left;border-bottom:1px solid var(--line);padding:.55rem;vertical-align:top}th{background:var(--wash)}.num{text-align:right;font-variant-numeric:tabular-nums}.delta{font-weight:750}.positive{color:#17653a}.negative{color:#a12727}details{margin:.4rem 0}summary{cursor:pointer;font-weight:650}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--wash);padding:.8rem;border-radius:8px;max-height:24rem;overflow:auto}.pill{display:inline-block;border:1px solid var(--line);border-radius:100px;padding:.15rem .55rem;font-size:.8rem}.empty{padding:1rem;border:1px dashed var(--line);border-radius:8px}.small{font-size:.88rem}a{color:var(--accent)}footer{padding-bottom:3rem}@media(prefers-reduced-motion:no-preference){.card{scroll-margin-top:1rem}}
+</style>
+</head>
+<body>
+<header>
+<p class="muted">COALICIÓN · HERRAMIENTA DE DECISIÓN</p>
+<h1>Comparador de coaliciones</h1>
+<p class="muted">Elecciones generales de 2023 · Madrid y Barcelona · cálculos mecánicos reproducibles</p>
+<div id="status" class="status" role="status" aria-live="polite">Cargando registro de decisión…</div>
+</header>
+<main>
+<section class="card" aria-labelledby="controls-title">
+<h2 id="controls-title">Define la comparación</h2>
+<div class="controls">
+<label class="field">Circunscripción<select id="region"><option value="Madrid">Madrid</option><option value="Barcelona">Barcelona</option></select></label>
+<label class="field">Escenario<select id="scenario"><option value="fragmentado">Candidaturas separadas (base)</option><option value="izquierda_sin_psoe">Bloque sin PSOE/PSC</option><option value="bloque_amplio_con_psoe_psc">Bloque amplio con PSOE/PSC</option></select></label>
+<button id="refresh" type="button">Recargar datos</button>
+<button id="download" type="button" disabled>Exportar registro JSON</button>
+</div>
+</section>
+<section class="grid" aria-label="Resumen de la circunscripción">
+<div class="card"><p class="muted">Escaños de la circunscripción</p><div id="magnitude" class="metric">—</div></div>
+<div class="card"><p class="muted">Votos válidos (base 2023)</p><div id="valid-votes" class="metric">—</div></div>
+<div class="card"><p class="muted">Candidaturas con escaño (base)</p><div id="parties-with-seats" class="metric">—</div></div>
+</section>
+<section class="card"><h2>Reparto: observado frente al escenario</h2><p class="muted small">Las diferencias se calculan frente al reparto observado. Una lista agrupada no equivale a una predicción del comportamiento de sus votantes.</p><div id="seat-table" class="table-wrap"><p class="empty">Esperando datos…</p></div></section>
+<section class="card"><h2>¿Qué escaños cambian y por qué?</h2><p class="muted small">El cociente marginal es una explicación aritmética del reparto bajo los votos introducidos; no demuestra transferencias ni causalidad conductual.</p><div id="marginal-table" class="table-wrap"><p class="empty">Esperando datos…</p></div></section>
+<section class="card"><h2>Coste de oportunidad de agrupar listas</h2><div id="decision-table" class="table-wrap"><p class="empty">Esperando datos…</p></div></section>
+<section class="card"><h2>Prueba tu propia coalición</h2>
+<p class="muted small">Selecciona candidaturas reales. El servidor recalcula con el motor Python canónico; no simula transferencias.</p>
+<div class="controls">
+<label class="field">Nombre de la coalición<input id="custom-label" value="Coalición personalizada" maxlength="100"></label>
+<label class="field" style="min-width:min(100%,420px);flex:1">Candidaturas (elige dos o más)<select id="custom-members" multiple size="7" style="min-height:10rem"></select></label>
+<button id="simulate-custom" type="button">Calcular escenario</button>
+</div>
+<div id="custom-result" style="margin-top:.8rem"><p class="empty">Selecciona candidaturas y calcula un escenario personalizado.</p></div>
+</section>
+<section class="card"><h2>Frontera matemática del siguiente escaño</h2><p class="muted small">Votos adicionales mínimos manteniendo fijos los votos rivales; al añadir votos también aumenta el total válido. No es probabilidad ni estimación de voto.</p><label class="field">Candidatura<select id="frontier-party"></select></label><div id="frontier-result" class="grid" style="margin-top:.8rem"></div></section>
+<section class="card"><h2>Procedencia y reproducibilidad</h2><div id="provenance"></div><details><summary>Ver registro JSON completo</summary><pre id="json-view">No cargado</pre></details></section>
+<section class="card"><h2>Qué se puede concluir — y qué no</h2>
+<ul><li>Se puede medir cómo cambia el reparto al sumar exactamente los votos observados de las listas configuradas.</li><li>Se pueden identificar las circunscripciones y los cocientes asociados a cambios de escaños.</li><li>No se puede deducir que los votantes de una lista votarían a otra candidatura coaligada.</li><li>No se estima participación, campaña, voto estratégico, rechazo a la coalición ni probabilidad de escaños.</li><li>Las agrupaciones de candidaturas menores son supuestos explícitos del escenario, no una clasificación oficial.</li></ul>
+<p class="status warning">No constituye predicción electoral ni certificación oficial independiente.</p></section>
+</main>
+<footer class="muted small">COALICIÓN · fuente y límites declarados en el registro · interfaz de lectura; los cálculos los realiza el motor Python canónico.</footer>
+<script>
+"use strict";
+const DATA_URL="/api/analysis";
+let record=null;
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n).toLocaleString("es-ES");
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const signed=n=>(n>0?"+":"")+fmt(n);
+function table(headers,rows){if(!rows.length)return '<p class="empty">No hay diferencias para esta selección.</p>';return '<table><thead><tr>'+headers.map(x=>'<th>'+esc(x)+'</th>').join("")+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map((x,i)=>'<td'+(i===row.length-1&&typeof x==="number"?' class="num"':'')+'>'+x+'</td>').join("")+'</tr>').join("")+'</tbody></table>'}
+function selectedLog(){return record.decision_log.filter(x=>x.constituency===$("region").value&&x.scenario===$("scenario").value)}
+function render(){
+ if(!record)return;
+ const region=$("region").value,scenario=$("scenario").value,r=record.regions[region],s=r.scenarios[scenario];
+ $("magnitude").textContent=fmt(r.magnitude);$("valid-votes").textContent=fmt(r.valid_votes);
+ $("parties-with-seats").textContent=fmt(Object.values(r.observed_seats).filter(n=>n>0).length);
+ const parties=[...new Set([...Object.keys(r.observed_seats),...Object.keys(s.simulated_seats)])].sort((a,b)=>(s.simulated_seats[b]||0)-(s.simulated_seats[a]||0)||a.localeCompare(b,"es"));
+ $("seat-table").innerHTML=table(["Candidatura/lista","Votos del escenario","Escaños observados","Escaños simulados","Diferencia"],parties.map(p=>{const d=(s.simulated_seats[p]||0)-(r.observed_seats[p]||0);return [esc(p),fmt(s.votes_by_list[p]||0),fmt(r.observed_seats[p]||0),fmt(s.simulated_seats[p]||0),'<span class="delta '+(d>0?'positive':d<0?'negative':'')+'">'+signed(d)+'</span>']}));
+ const marginal=s.marginal_seat_changes||[];
+ $("marginal-table").innerHTML=table(["Candidatura/lista","Antes","Después","Δ","Explicación del cociente"],marginal.map(x=>{const q=x.quotient_explanation||{};let why=q.status||"Cociente no disponible";if(q.own_last_seat_quotient)why="Último cociente propio: "+q.own_last_seat_quotient+(q.strongest_rival_next_quotient?"; siguiente rival ("+q.strongest_rival+"): "+q.strongest_rival_next_quotient:"");return [esc(x.candidacy),fmt(x.observed_seats),fmt(x.simulated_seats),'<span class="delta '+(x.delta>0?'positive':'negative')+'">'+signed(x.delta)+'</span>',esc(why)]}));
+ const logs=selectedLog();
+ $("decision-table").innerHTML=table(["Configuración agrupada","Votos agrupados","Escaños separados","Escaños juntos","Δ","Supuesto"],logs.map(x=>[esc(x.group),fmt(x.votes),fmt(x.separate_group_seats),fmt(x.coalition_seats),'<span class="delta '+(x.seat_delta>0?'positive':x.seat_delta<0?'negative':'')+'">'+signed(x.seat_delta)+'</span>',esc(x.assumption)]));
+ const frontier=r.viability_frontier||[],sel=$("frontier-party").value;
+ const f=frontier.find(x=>x.candidacy===sel);
+ $("frontier-result").innerHTML=f?'<div class="card"><p class="muted">Votos actuales</p><div class="metric">'+fmt(f.current_votes)+'</div></div><div class="card"><p class="muted">Escaños actuales → objetivo</p><div class="metric">'+fmt(f.current_seats)+' → '+fmt(f.target_seats)+'</div></div><div class="card"><p class="muted">Votos adicionales mínimos</p><div class="metric">'+fmt(f.additional_votes_minimum)+'</div><p class="small muted">Total válido aumenta en '+fmt(f.valid_vote_total_increases_by)+'.</p></div>':'<p class="empty">No hay frontera disponible.</p>';
+ $("provenance").innerHTML='<p><b>Fuente:</b> '+esc(record.provenance.provider)+' · <a href="'+esc(record.provenance.source_url)+'" target="_blank" rel="noopener noreferrer">fuente declarada</a></p><p><b>SHA-256 del workbook declarado:</b> <code>'+esc(record.provenance.source_workbook_sha256)+'</code></p><p><b>Git blob SHA-1 del dataset:</b> <code>'+esc(record.provenance.canonical_dataset_git_blob_sha1)+'</code></p><p><b>SHA-256 de configuración:</b> <code>'+esc(record.provenance.scenario_config_sha256)+'</code></p><p><b>Motor:</b> '+esc(record.method.allocation)+' · <b>Estado:</b> '+esc(record.official_certification)+'</p>';
+ $("json-view").textContent=JSON.stringify(record,null,2);
+}
+function populateFrontier(){const region=$("region").value,items=record.regions[region].viability_frontier||[];const old=$("frontier-party").value;$("frontier-party").innerHTML=items.map(x=>'<option value="'+esc(x.candidacy)+'">'+esc(x.candidacy)+'</option>').join("");if(items.some(x=>x.candidacy===old))$("frontier-party").value=old;render();loadCandidates()}
+async function loadCandidates(){try{const response=await fetch('/api/candidates?region='+encodeURIComponent($("region").value));const data=await response.json();if(!response.ok||data.schema!=="COALICION_CUSTOM_CANDIDATES_V1")throw new Error(data.error||"Catálogo no disponible");const selected=[...$("custom-members").selectedOptions].map(x=>x.value);$("custom-members").innerHTML=data.candidates.map(x=>'<option value="'+esc(x.name)+'">'+esc(x.name)+' — '+fmt(x.votes)+' votos / '+fmt(x.observed_seats)+' escaños</option>').join("");for(const o of $("custom-members").options)o.selected=selected.includes(o.value);$("custom-result").innerHTML='<p class="muted small">Catálogo de 2023 cargado: '+esc(data.region)+', '+fmt(data.magnitude)+' escaños. No es una predicción.</p>'}catch(e){$("custom-result").innerHTML='<p class="empty">No se pudo cargar el catálogo: '+esc(e.message)+'</p>'}}
+async function simulateCustom(){const members=[...$("custom-members").selectedOptions].map(x=>x.value);$("custom-result").innerHTML='<p class="muted">Calculando con el motor Python…</p>';try{const response=await fetch('/api/simulate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({region:$("region").value,label:$("custom-label").value,members})});const data=await response.json();if(!response.ok||data.status!=="OK")throw new Error(data.error||"Simulación bloqueada");const delta=data.seat_delta;const rows=[['Escaños por separado',fmt(data.seats_separate_total)],['Escaños unidos',fmt(data.seats_coalition)],['Diferencia',signed(delta)],['Votos agrupados',fmt(data.coalition_votes)],['Votos conservados',data.votes_conserved?'Sí':'NO'],['Certificación',data.official_certification]];$("custom-result").innerHTML='<div class="grid"><div class="card"><p class="muted">Escaños por separado</p><div class="metric">'+fmt(data.seats_separate_total)+'</div></div><div class="card"><p class="muted">Escaños unidos</p><div class="metric">'+fmt(data.seats_coalition)+'</div></div><div class="card"><p class="muted">Diferencia</p><div class="metric '+(delta>0?'positive':delta<0?'negative':'')+'">'+signed(delta)+'</div></div></div>'+table(['Indicador','Resultado'],rows.map(x=>[esc(x[0]),esc(x[1])]))+'<p><b>Cociente marginal:</b> '+esc(data.marginal_quotient_explanation.own_last_seat_quotient||data.marginal_quotient_explanation.status||'No disponible')+'</p><p class="status warning">Contrafactual mecánico; votos rivales fijos; cero transferencias modeladas. No es una predicción.</p><details><summary>Ver JSON del escenario</summary><pre>'+esc(JSON.stringify(data,null,2))+'</pre></details>'}catch(e){$("custom-result").innerHTML='<p class="status warning">Escenario bloqueado: '+esc(e.message)+'</p>'}}
+async function load(){ $("status").textContent="Cargando registro…";try{const response=await fetch(DATA_URL,{cache:"no-store"});if(!response.ok)throw new Error("HTTP "+response.status);const data=await response.json();if(data.schema!=="COALICION_DECISION_ANALYSIS_V1"||!data.regions||!data.provenance||!Array.isArray(data.decision_log))throw new Error("El JSON no cumple el esquema mínimo esperado.");record=data;$("download").disabled=false;$("status").textContent="Registro cargado · "+data.official_certification+" · resultados reproducibles del motor Python.";populateFrontier()}catch(e){record=null;$("download").disabled=true;$("status").textContent="DATOS NO DISPONIBLES: "+e.message+". Arranca el servidor con python scripts/demo_decision_server.py.";}}
+$("region").addEventListener("change",()=>record&&populateFrontier());$("scenario").addEventListener("change",render);$("frontier-party").addEventListener("change",render);$("refresh").addEventListener("click",load);$("simulate-custom").addEventListener("click",simulateCustom);
+$("download").addEventListener("click",()=>{if(!record)return;const blob=new Blob([JSON.stringify(record,null,2)+"\n"],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="coalicion_decision_analysis_2023.json";a.click();URL.revokeObjectURL(url)});
+load();
+</script>
+</body>
+</html>
