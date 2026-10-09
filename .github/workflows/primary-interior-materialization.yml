@@ -1,7 +1,7 @@
 name: Primary Interior fast materialization
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "17 4 * * *"
   push:
     branches: [main]
     paths:
@@ -11,7 +11,6 @@ on:
       - "src/data.py"
       - "src/electoral.py"
       - "data/official_materialization_parts/**"
-      - ".github/workflows/primary-interior-materialization.yml"
   workflow_dispatch:
 permissions:
   contents: write
@@ -80,7 +79,6 @@ jobs:
           git add data/resultados_oficiales_2004_2023.csv data/manifests/INTERIOR_ACQUISITION.json ci_evidence/interior_acquisition.json ci_evidence/historico_source_tier.txt
           git add data/official_interior_congreso_1977_2023.csv data/manifests/official_interior_congreso.json artifacts/data/election_2023_canonical.json artifacts/data/election_2023_canonical.json.sha256
           git add -f data/raw/Elecciones-Congreso.xlsx 2>/dev/null || true
-          git add .github/workflows/primary-interior-materialization.yml
           git commit -m "Materialize primary Interior historical electoral data" || exit 0
           for attempt in 1 2 3 4 5; do
             git fetch origin main
