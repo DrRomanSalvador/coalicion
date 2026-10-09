@@ -65,6 +65,7 @@ jobs:
     if: always()
     needs: [tests, oos, seec]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - run: |
           echo "tests=${{ needs.tests.result }}"
