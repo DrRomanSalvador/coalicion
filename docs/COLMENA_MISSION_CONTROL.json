@@ -1,0 +1,1619 @@
+{
+  "schema": "COLMENA_MISSION_CONTROL_V1",
+  "total": 179,
+  "mode": "LOGICAL_SLOTS",
+  "note": "Slots lógicos; no equivalen a procesos ejecutados. Definir task antes de asignar. El informe HF nunca equivale a PASS.",
+  "missions": [
+    {
+      "id": "M0001",
+      "agent_id": "agent-001",
+      "title": "Agente lógico 001",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0002",
+      "agent_id": "agent-002",
+      "title": "Agente lógico 002",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0003",
+      "agent_id": "agent-003",
+      "title": "Agente lógico 003",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0004",
+      "agent_id": "agent-004",
+      "title": "Agente lógico 004",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0005",
+      "agent_id": "agent-005",
+      "title": "Agente lógico 005",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0006",
+      "agent_id": "agent-006",
+      "title": "Agente lógico 006",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0007",
+      "agent_id": "agent-007",
+      "title": "Agente lógico 007",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0008",
+      "agent_id": "agent-008",
+      "title": "Agente lógico 008",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0009",
+      "agent_id": "agent-009",
+      "title": "Agente lógico 009",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0010",
+      "agent_id": "agent-010",
+      "title": "Agente lógico 010",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0011",
+      "agent_id": "agent-011",
+      "title": "Agente lógico 011",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0012",
+      "agent_id": "agent-012",
+      "title": "Agente lógico 012",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0013",
+      "agent_id": "agent-013",
+      "title": "Agente lógico 013",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0014",
+      "agent_id": "agent-014",
+      "title": "Agente lógico 014",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0015",
+      "agent_id": "agent-015",
+      "title": "Agente lógico 015",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0016",
+      "agent_id": "agent-016",
+      "title": "Agente lógico 016",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0017",
+      "agent_id": "agent-017",
+      "title": "Agente lógico 017",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0018",
+      "agent_id": "agent-018",
+      "title": "Agente lógico 018",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0019",
+      "agent_id": "agent-019",
+      "title": "Agente lógico 019",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0020",
+      "agent_id": "agent-020",
+      "title": "Agente lógico 020",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0021",
+      "agent_id": "agent-021",
+      "title": "Agente lógico 021",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0022",
+      "agent_id": "agent-022",
+      "title": "Agente lógico 022",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0023",
+      "agent_id": "agent-023",
+      "title": "Agente lógico 023",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0024",
+      "agent_id": "agent-024",
+      "title": "Agente lógico 024",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0025",
+      "agent_id": "agent-025",
+      "title": "Agente lógico 025",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0026",
+      "agent_id": "agent-026",
+      "title": "Agente lógico 026",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0027",
+      "agent_id": "agent-027",
+      "title": "Agente lógico 027",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0028",
+      "agent_id": "agent-028",
+      "title": "Agente lógico 028",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0029",
+      "agent_id": "agent-029",
+      "title": "Agente lógico 029",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0030",
+      "agent_id": "agent-030",
+      "title": "Agente lógico 030",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0031",
+      "agent_id": "agent-031",
+      "title": "Agente lógico 031",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0032",
+      "agent_id": "agent-032",
+      "title": "Agente lógico 032",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0033",
+      "agent_id": "agent-033",
+      "title": "Agente lógico 033",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0034",
+      "agent_id": "agent-034",
+      "title": "Agente lógico 034",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0035",
+      "agent_id": "agent-035",
+      "title": "Agente lógico 035",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0036",
+      "agent_id": "agent-036",
+      "title": "Agente lógico 036",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0037",
+      "agent_id": "agent-037",
+      "title": "Agente lógico 037",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0038",
+      "agent_id": "agent-038",
+      "title": "Agente lógico 038",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0039",
+      "agent_id": "agent-039",
+      "title": "Agente lógico 039",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0040",
+      "agent_id": "agent-040",
+      "title": "Agente lógico 040",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0041",
+      "agent_id": "agent-041",
+      "title": "Agente lógico 041",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0042",
+      "agent_id": "agent-042",
+      "title": "Agente lógico 042",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0043",
+      "agent_id": "agent-043",
+      "title": "Agente lógico 043",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0044",
+      "agent_id": "agent-044",
+      "title": "Agente lógico 044",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0045",
+      "agent_id": "agent-045",
+      "title": "Agente lógico 045",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0046",
+      "agent_id": "agent-046",
+      "title": "Agente lógico 046",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0047",
+      "agent_id": "agent-047",
+      "title": "Agente lógico 047",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0048",
+      "agent_id": "agent-048",
+      "title": "Agente lógico 048",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0049",
+      "agent_id": "agent-049",
+      "title": "Agente lógico 049",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0050",
+      "agent_id": "agent-050",
+      "title": "Agente lógico 050",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0051",
+      "agent_id": "agent-051",
+      "title": "Agente lógico 051",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0052",
+      "agent_id": "agent-052",
+      "title": "Agente lógico 052",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0053",
+      "agent_id": "agent-053",
+      "title": "Agente lógico 053",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0054",
+      "agent_id": "agent-054",
+      "title": "Agente lógico 054",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0055",
+      "agent_id": "agent-055",
+      "title": "Agente lógico 055",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0056",
+      "agent_id": "agent-056",
+      "title": "Agente lógico 056",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0057",
+      "agent_id": "agent-057",
+      "title": "Agente lógico 057",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0058",
+      "agent_id": "agent-058",
+      "title": "Agente lógico 058",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0059",
+      "agent_id": "agent-059",
+      "title": "Agente lógico 059",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0060",
+      "agent_id": "agent-060",
+      "title": "Agente lógico 060",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0061",
+      "agent_id": "agent-061",
+      "title": "Agente lógico 061",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0062",
+      "agent_id": "agent-062",
+      "title": "Agente lógico 062",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0063",
+      "agent_id": "agent-063",
+      "title": "Agente lógico 063",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0064",
+      "agent_id": "agent-064",
+      "title": "Agente lógico 064",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0065",
+      "agent_id": "agent-065",
+      "title": "Agente lógico 065",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0066",
+      "agent_id": "agent-066",
+      "title": "Agente lógico 066",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0067",
+      "agent_id": "agent-067",
+      "title": "Agente lógico 067",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0068",
+      "agent_id": "agent-068",
+      "title": "Agente lógico 068",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0069",
+      "agent_id": "agent-069",
+      "title": "Agente lógico 069",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0070",
+      "agent_id": "agent-070",
+      "title": "Agente lógico 070",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0071",
+      "agent_id": "agent-071",
+      "title": "Agente lógico 071",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0072",
+      "agent_id": "agent-072",
+      "title": "Agente lógico 072",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0073",
+      "agent_id": "agent-073",
+      "title": "Agente lógico 073",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0074",
+      "agent_id": "agent-074",
+      "title": "Agente lógico 074",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0075",
+      "agent_id": "agent-075",
+      "title": "Agente lógico 075",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0076",
+      "agent_id": "agent-076",
+      "title": "Agente lógico 076",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0077",
+      "agent_id": "agent-077",
+      "title": "Agente lógico 077",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0078",
+      "agent_id": "agent-078",
+      "title": "Agente lógico 078",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0079",
+      "agent_id": "agent-079",
+      "title": "Agente lógico 079",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0080",
+      "agent_id": "agent-080",
+      "title": "Agente lógico 080",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0081",
+      "agent_id": "agent-081",
+      "title": "Agente lógico 081",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0082",
+      "agent_id": "agent-082",
+      "title": "Agente lógico 082",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0083",
+      "agent_id": "agent-083",
+      "title": "Agente lógico 083",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0084",
+      "agent_id": "agent-084",
+      "title": "Agente lógico 084",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0085",
+      "agent_id": "agent-085",
+      "title": "Agente lógico 085",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0086",
+      "agent_id": "agent-086",
+      "title": "Agente lógico 086",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0087",
+      "agent_id": "agent-087",
+      "title": "Agente lógico 087",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0088",
+      "agent_id": "agent-088",
+      "title": "Agente lógico 088",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0089",
+      "agent_id": "agent-089",
+      "title": "Agente lógico 089",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0090",
+      "agent_id": "agent-090",
+      "title": "Agente lógico 090",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0091",
+      "agent_id": "agent-091",
+      "title": "Agente lógico 091",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0092",
+      "agent_id": "agent-092",
+      "title": "Agente lógico 092",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0093",
+      "agent_id": "agent-093",
+      "title": "Agente lógico 093",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0094",
+      "agent_id": "agent-094",
+      "title": "Agente lógico 094",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0095",
+      "agent_id": "agent-095",
+      "title": "Agente lógico 095",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0096",
+      "agent_id": "agent-096",
+      "title": "Agente lógico 096",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0097",
+      "agent_id": "agent-097",
+      "title": "Agente lógico 097",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0098",
+      "agent_id": "agent-098",
+      "title": "Agente lógico 098",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0099",
+      "agent_id": "agent-099",
+      "title": "Agente lógico 099",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0100",
+      "agent_id": "agent-100",
+      "title": "Agente lógico 100",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0101",
+      "agent_id": "agent-101",
+      "title": "Agente lógico 101",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0102",
+      "agent_id": "agent-102",
+      "title": "Agente lógico 102",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0103",
+      "agent_id": "agent-103",
+      "title": "Agente lógico 103",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0104",
+      "agent_id": "agent-104",
+      "title": "Agente lógico 104",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0105",
+      "agent_id": "agent-105",
+      "title": "Agente lógico 105",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0106",
+      "agent_id": "agent-106",
+      "title": "Agente lógico 106",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0107",
+      "agent_id": "agent-107",
+      "title": "Agente lógico 107",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0108",
+      "agent_id": "agent-108",
+      "title": "Agente lógico 108",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0109",
+      "agent_id": "agent-109",
+      "title": "Agente lógico 109",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0110",
+      "agent_id": "agent-110",
+      "title": "Agente lógico 110",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0111",
+      "agent_id": "agent-111",
+      "title": "Agente lógico 111",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0112",
+      "agent_id": "agent-112",
+      "title": "Agente lógico 112",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0113",
+      "agent_id": "agent-113",
+      "title": "Agente lógico 113",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0114",
+      "agent_id": "agent-114",
+      "title": "Agente lógico 114",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0115",
+      "agent_id": "agent-115",
+      "title": "Agente lógico 115",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0116",
+      "agent_id": "agent-116",
+      "title": "Agente lógico 116",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0117",
+      "agent_id": "agent-117",
+      "title": "Agente lógico 117",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0118",
+      "agent_id": "agent-118",
+      "title": "Agente lógico 118",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0119",
+      "agent_id": "agent-119",
+      "title": "Agente lógico 119",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0120",
+      "agent_id": "agent-120",
+      "title": "Agente lógico 120",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0121",
+      "agent_id": "agent-121",
+      "title": "Agente lógico 121",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0122",
+      "agent_id": "agent-122",
+      "title": "Agente lógico 122",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0123",
+      "agent_id": "agent-123",
+      "title": "Agente lógico 123",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0124",
+      "agent_id": "agent-124",
+      "title": "Agente lógico 124",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0125",
+      "agent_id": "agent-125",
+      "title": "Agente lógico 125",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0126",
+      "agent_id": "agent-126",
+      "title": "Agente lógico 126",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0127",
+      "agent_id": "agent-127",
+      "title": "Agente lógico 127",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0128",
+      "agent_id": "agent-128",
+      "title": "Agente lógico 128",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0129",
+      "agent_id": "agent-129",
+      "title": "Agente lógico 129",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0130",
+      "agent_id": "agent-130",
+      "title": "Agente lógico 130",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0131",
+      "agent_id": "agent-131",
+      "title": "Agente lógico 131",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0132",
+      "agent_id": "agent-132",
+      "title": "Agente lógico 132",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0133",
+      "agent_id": "agent-133",
+      "title": "Agente lógico 133",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0134",
+      "agent_id": "agent-134",
+      "title": "Agente lógico 134",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0135",
+      "agent_id": "agent-135",
+      "title": "Agente lógico 135",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0136",
+      "agent_id": "agent-136",
+      "title": "Agente lógico 136",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0137",
+      "agent_id": "agent-137",
+      "title": "Agente lógico 137",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0138",
+      "agent_id": "agent-138",
+      "title": "Agente lógico 138",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0139",
+      "agent_id": "agent-139",
+      "title": "Agente lógico 139",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0140",
+      "agent_id": "agent-140",
+      "title": "Agente lógico 140",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0141",
+      "agent_id": "agent-141",
+      "title": "Agente lógico 141",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0142",
+      "agent_id": "agent-142",
+      "title": "Agente lógico 142",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0143",
+      "agent_id": "agent-143",
+      "title": "Agente lógico 143",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0144",
+      "agent_id": "agent-144",
+      "title": "Agente lógico 144",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0145",
+      "agent_id": "agent-145",
+      "title": "Agente lógico 145",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0146",
+      "agent_id": "agent-146",
+      "title": "Agente lógico 146",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0147",
+      "agent_id": "agent-147",
+      "title": "Agente lógico 147",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0148",
+      "agent_id": "agent-148",
+      "title": "Agente lógico 148",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0149",
+      "agent_id": "agent-149",
+      "title": "Agente lógico 149",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0150",
+      "agent_id": "agent-150",
+      "title": "Agente lógico 150",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0151",
+      "agent_id": "agent-151",
+      "title": "Agente lógico 151",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0152",
+      "agent_id": "agent-152",
+      "title": "Agente lógico 152",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0153",
+      "agent_id": "agent-153",
+      "title": "Agente lógico 153",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0154",
+      "agent_id": "agent-154",
+      "title": "Agente lógico 154",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0155",
+      "agent_id": "agent-155",
+      "title": "Agente lógico 155",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0156",
+      "agent_id": "agent-156",
+      "title": "Agente lógico 156",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0157",
+      "agent_id": "agent-157",
+      "title": "Agente lógico 157",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0158",
+      "agent_id": "agent-158",
+      "title": "Agente lógico 158",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0159",
+      "agent_id": "agent-159",
+      "title": "Agente lógico 159",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0160",
+      "agent_id": "agent-160",
+      "title": "Agente lógico 160",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0161",
+      "agent_id": "agent-161",
+      "title": "Agente lógico 161",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0162",
+      "agent_id": "agent-162",
+      "title": "Agente lógico 162",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0163",
+      "agent_id": "agent-163",
+      "title": "Agente lógico 163",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0164",
+      "agent_id": "agent-164",
+      "title": "Agente lógico 164",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0165",
+      "agent_id": "agent-165",
+      "title": "Agente lógico 165",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0166",
+      "agent_id": "agent-166",
+      "title": "Agente lógico 166",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0167",
+      "agent_id": "agent-167",
+      "title": "Agente lógico 167",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0168",
+      "agent_id": "agent-168",
+      "title": "Agente lógico 168",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0169",
+      "agent_id": "agent-169",
+      "title": "Agente lógico 169",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0170",
+      "agent_id": "agent-170",
+      "title": "Agente lógico 170",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0171",
+      "agent_id": "agent-171",
+      "title": "Agente lógico 171",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0172",
+      "agent_id": "agent-172",
+      "title": "Agente lógico 172",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0173",
+      "agent_id": "agent-173",
+      "title": "Agente lógico 173",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0174",
+      "agent_id": "agent-174",
+      "title": "Agente lógico 174",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0175",
+      "agent_id": "agent-175",
+      "title": "Agente lógico 175",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0176",
+      "agent_id": "agent-176",
+      "title": "Agente lógico 176",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0177",
+      "agent_id": "agent-177",
+      "title": "Agente lógico 177",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0178",
+      "agent_id": "agent-178",
+      "title": "Agente lógico 178",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    },
+    {
+      "id": "M0179",
+      "agent_id": "agent-179",
+      "title": "Agente lógico 179",
+      "task": "",
+      "status": "PENDING",
+      "assigned": false,
+      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+    }
+  ]
+}
