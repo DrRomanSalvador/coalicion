@@ -29,3 +29,33 @@ def test_baseline_is_delegated_once_to_canonical_full_backtest():
     assert "obsolete secondary-replica staging file" in source
     assert "Delegated once to scripts/run_full_backtest.py" in source
     assert '["backtest_2023_baseline.py"]' not in source
+
+
+
+def test_run_records_timeout_instead_of_aborting_the_audit(monkeypatch):
+    import subprocess
+
+    def timeout(*args, **kwargs):
+        raise subprocess.TimeoutExpired(cmd=args[0], timeout=kwargs["timeout"], output="partial output")
+
+    monkeypatch.setattr(validation.subprocess, "run", timeout)
+    result = validation.run("slow_gate", ["fake-command"], timeout=7)
+
+    assert result.status == "FAIL"
+    assert result.returncode == 124
+    assert "timed out after 7s" in result.detail
+    assert "partial output" in result.detail
+
+
+def test_run_records_missing_executable_instead_of_aborting_the_audit(monkeypatch):
+    import subprocess
+
+    def missing(*args, **kwargs):
+        raise FileNotFoundError("missing executable")
+
+    monkeypatch.setattr(validation.subprocess, "run", missing)
+    result = validation.run("missing_gate", ["not-installed"])
+
+    assert result.status == "FAIL"
+    assert result.returncode == 127
+    assert "Could not execute command" in result.detail
