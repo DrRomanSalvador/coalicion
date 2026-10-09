@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import hashlib
 import json
+import os
 
 EXPECTED_WORKBOOK_SHA256 = "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2"
 OFFICIAL_WORKBOOK_URL = "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
@@ -267,10 +268,28 @@ def certify(root: str = "."):
     else:
         status = "BLOCKED"
 
+    evidence_paths = [
+        "ci_evidence/historico_manifest.json",
+        "ci_evidence/reconciliation.json",
+        "ci_evidence/seec_production.json",
+        "ci_evidence/mc_10000.json",
+        "ci_evidence/backtest_2023_baseline.json",
+        "ci_evidence/oos_calibration.json",
+        "ci_evidence/poll_source_coverage.json",
+        "data/manifests/official_interior_congreso.json",
+        "data/official_interior_congreso_1977_2023.csv",
+        "artifacts/data/election_2023_canonical.json",
+        "ci_evidence/external_audit.json",
+    ]
     return {
         "schema": "MASTER_CERTIFICATION_V2",
         "status": status,
         "certification": status,
+        "tested_commit": os.getenv("GITHUB_SHA") or None,
+        "tested_ref": os.getenv("GITHUB_REF") or None,
+        "evidence_sha256": {
+            path: _sha256(r / path) for path in evidence_paths if (r / path).is_file()
+        },
         "fail_closed": True,
         "gates": [g.__dict__ for g in gates],
     }
