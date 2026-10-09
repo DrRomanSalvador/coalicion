@@ -119,6 +119,9 @@ jobs:
 
           def retry_run(entry, run):
               attempt = int(run.get("run_attempt", 1))
+              if entry.get("retry_requested") and attempt == 1:
+                  entry["state"] = "waiting"
+                  return
               if attempt >= 2:
                   entry["state"] = "failed"
                   entry["reason"] = f"failed after retry budget (attempt={attempt}, conclusion={run.get('conclusion')})"
@@ -290,7 +293,7 @@ jobs:
           summary += [f"- {path}: {reason}" for path, reason in failed]
           text = "\n".join(summary) + "\n"
           print(text, flush=True)
-          with open(os.environ["STEP_SUMMARY"], "a", encoding="utf-8") as handle:
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as handle:
               handle.write(text)
 
           if failed:
