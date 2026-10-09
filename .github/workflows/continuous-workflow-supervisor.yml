@@ -1,0 +1,94 @@
+name: Continuous workflow supervisor
+
+on:
+  workflow_dispatch:
+    inputs:
+      lookback_hours:
+        description: "Horas de historial que se auditarán (1–168)"
+        required: false
+        default: "24"
+        type: string
+      retry_failed:
+        description: "Reintentar una vez ejecuciones fallidas sin reintento previo"
+        required: false
+        default: true
+        type: boolean
+  schedule:
+    - cron: "*/15 * * * *"
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+
+concurrency:
+  group: continuous-workflow-supervisor
+  cancel-in-progress: false
+
+jobs:
+  audit-and-recover:
+    name: Audit workflow health and recover safe transient failures
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Audit runs and retry once
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          CURRENT_WORKFLOW: ${{ github.workflow }}
+          LOOKBACK_HOURS: ${{ inputs.lookback_hours || '24' }}
+          RETRY_FAILED: ${{ inputs.retry_failed == false && 'false' || 'true' }}
+          EVENT_NAME: ${{ github.event_name }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          [[ "$LOOKBACK_HOURS" =~ ^[0-9]+$ ]] || { echo "::error::lookback_hours debe ser numérico"; exit 1; }
+          (( LOOKBACK_HOURS >= 1 && LOOKBACK_HOURS <= 168 )) || { echo "::error::lookback_hours debe estar entre 1 y 168"; exit 1; }
+
+          since="$(date -u -d "${LOOKBACK_HOURS} hours ago" +%Y-%m-%dT%H:%M:%SZ)"
+          report="$RUNNER_TEMP/workflow-health.md"
+          printf '# Continuous workflow health report\n\n- Repository: %s\n- Window: %s hours\n- Since (UTC): %s\n\n' "$GH_REPO" "$LOOKBACK_HOURS" "$since" > "$report"
+
+          runs="$(gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100&created:>=$since" --jq '.workflow_runs[] | [.id,.name,.path,.status,.conclusion,.run_attempt,.html_url] | @tsv' | sort -t$'\t' -k1,1n | awk -F '\t' '!seen[$1]++')"
+          total=0
+          failures=0
+          retried=0
+          persistent=0
+
+          while IFS=$'\t' read -r run_id name path status conclusion attempt url; do
+            [[ -n "${run_id:-}" ]] || continue
+            [[ "$name" == "$CURRENT_WORKFLOW" ]] && continue
+            [[ "$status" == "completed" ]] || continue
+            ((total+=1))
+
+            if [[ "$conclusion" != "failure" ]]; then
+              continue
+            fi
+            ((failures+=1))
+            printf '\n## Failed run %s — %s\n\n- Workflow file: `%s`\n- Attempt: %s\n- [Run](%s)\n' "$run_id" "$name" "$path" "$attempt" "$url" >> "$report"
+
+            if [[ "$RETRY_FAILED" == "true" && "$attempt" == "1" ]]; then
+              echo "Retrying failed jobs once: run=$run_id workflow=$name"
+              if gh api --method POST "repos/$GH_REPO/actions/runs/$run_id/rerun-failed-jobs" >/dev/null; then
+                printf '\n- Action: failed jobs re-queued for one retry.\n' >> "$report"
+                ((retried+=1))
+              else
+                printf '\n- Action: automatic retry unavailable (permissions or GitHub API); manual investigation required.\n' >> "$report"
+                ((persistent+=1))
+              fi
+            else
+              printf '\n- Action: retry limit reached or retries disabled; investigation required.\n' >> "$report"
+              ((persistent+=1))
+              issue_title="CI: persistent workflow failure #$run_id"
+              existing="$(gh issue list --repo "$GH_REPO" --state open --search "\"$issue_title\"" --json title --jq 'length')"
+              if [[ "$existing" == "0" ]]; then
+                gh issue create --repo "$GH_REPO" --title "$issue_title" --body "$(printf 'The workflow supervisor detected a failed run that has already used its automatic retry budget.\n\n- Workflow: %s\n- File: %s\n- Run: %s\n- Attempt: %s\n\nInspect the run logs, correct the underlying cause, and add a regression test. The supervisor deliberately does not edit application code or bypass branch protections automatically.' "$name" "$path" "$url" "$attempt")" || echo "::warning::Could not create tracking issue for run $run_id"
+              fi
+            fi
+          done <<< "$runs"
+
+          {
+            printf '\n## Summary\n\n- Completed runs examined: %s\n- Failed runs found: %s\n- Failed runs re-queued (one retry maximum): %s\n- Failures requiring investigation: %s\n' "$total" "$failures" "$retried" "$persistent"
+          } >> "$report"
+          cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          echo "Audited $total completed runs; failures=$failures retries=$retried unresolved=$persistent"
