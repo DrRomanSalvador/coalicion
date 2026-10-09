@@ -25,7 +25,7 @@ jobs:
   heal:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Discover and retry current-main failures (scheduled)
         if: ${{ github.event_name == 'schedule' }}
@@ -55,6 +55,15 @@ jobs:
               | .[].id
             ' <<<"$runs_json"
           )
+          # Detect exhausted failures on every sweep, including sweeps with retryable candidates.
+          exhausted="$(jq -r --arg sha "$main_sha" --argjson self_id "$self_id" '
+            [ .[] | .workflow_runs[]
+              | select(.workflow_id != $self_id)
+              | select(.head_branch == "main" and .head_sha == $sha)
+              | select(.status == "completed" and .run_attempt >= 3)
+              | select(.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out" or .conclusion == "startup_failure")
+            ] | sort_by(.created_at) | .[] | [.id, ("attempt=" + (.run_attempt|tostring)), ("conclusion=" + .conclusion), ("workflow=" + .name)] | join(" ")
+          ' <<<"$runs_json")"
           if [[ "${#candidates[@]}" -eq 0 ]]; then
             exhausted="$(jq -r --arg sha "$main_sha" --argjson self_id "$self_id" '
               [ .[] | .workflow_runs[]
@@ -127,6 +136,13 @@ jobs:
           echo "Scheduled recovery sweep finished; rerun requests=$count; candidates attempted=$attempted; request/read failures=$failures."
           if [[ "$failures" -gt 0 ]]; then
             echo "::error::One or more candidate recovery requests failed; the sweep continued to process other candidates."
+            exit 1
+          fi
+          if [[ -n "$exhausted" ]]; then
+            echo "EXHAUSTED_RETRY_BUDGET" >> "$GITHUB_STEP_SUMMARY"
+            echo "### Unresolved current-main failures — retry budget exhausted" >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\\n' "$exhausted" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "::error::Some current-main workflows remain failed after 3 attempts, although other candidates were processed."
             exit 1
           fi
       - name: Validate target and rerun failed jobs only
