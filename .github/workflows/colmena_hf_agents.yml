@@ -17,6 +17,11 @@ on:
         required: false
         default: "auto"
         type: string
+      retry_blocked:
+        description: "Reabrir explícitamente esta misión si está BLOCKED (conserva el historial)"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -47,9 +52,13 @@ jobs:
           MISSION_ID: ${{ inputs.mission_id }}
           HF_MODEL: ${{ inputs.model }}
           HF_PROVIDER: ${{ inputs.provider }}
+          RETRY_BLOCKED: ${{ inputs.retry_blocked }}
         shell: bash
         run: |
           set -euo pipefail
+          if [ "$RETRY_BLOCKED" = "true" ]; then
+            python scripts/colmena_queen_hf.py --reassign-blocked "$MISSION_ID"
+          fi
           python - <<'PY'
           import json, os, re
           from pathlib import Path
