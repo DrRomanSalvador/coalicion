@@ -3,8 +3,8 @@ name: COALICIÓN — Agentes lógicos Hugging Face
 on:
   workflow_dispatch:
     inputs:
-      mission_json:
-        description: "JSON de una misión concreta (id, agent_id, title, task)"
+      mission_id:
+        description: "ID de una misión ya asignada por la Reina (p. ej. M0001)"
         required: true
         type: string
       model:
@@ -14,7 +14,7 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: colmena-hf-agent-${{ github.workflow }}-${{ github.ref }}
@@ -22,36 +22,90 @@ concurrency:
 
 jobs:
   run-one-agent:
-    name: Ejecutar un agente lógico explícitamente solicitado
+    name: Ejecutar, reconciliar y persistir una misión asignada
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          persist-credentials: true
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Instalar cliente HF
         run: python -m pip install --disable-pip-version-check "huggingface_hub>=0.30,<2"
-      - name: Validar misión y ejecutar agente
+      - name: Validar misión canónica, ejecutar agente y reconciliar resultado
+        id: execute
         env:
           Reina_token: ${{ secrets.Reina_token }}
-          MISSION_JSON: ${{ inputs.mission_json }}
+          MISSION_ID: ${{ inputs.mission_id }}
           HF_MODEL: ${{ inputs.model }}
+        shell: bash
         run: |
+          set -euo pipefail
           python - <<'PY'
-          import json, os
-          mission = json.loads(os.environ["MISSION_JSON"])
-          if not all(isinstance(mission.get(k), str) and mission[k].strip() for k in ("id", "agent_id", "task")):
-              raise SystemExit("Misión inválida: id, agent_id y task son obligatorios.")
-          if len(mission["task"]) > 12000:
-              raise SystemExit("La tarea supera el límite de 12000 caracteres.")
+          import json, os, re
+          from pathlib import Path
+          mission_id = os.environ["MISSION_ID"].strip()
+          if not re.fullmatch(r"M\\d{4}", mission_id):
+              raise SystemExit("mission_id inválido; formato esperado M0001.")
+          control = json.loads(Path("docs/COLMENA_MISSION_CONTROL.json").read_text(encoding="utf-8"))
+          matches = [m for m in control.get("missions", []) if m.get("id") == mission_id]
+          if len(matches) != 1:
+              raise SystemExit("Misión inexistente o ambigua.")
+          mission = matches[0]
+          if mission.get("status") != "ASSIGNED" or mission.get("assigned") is not True:
+              raise SystemExit("Fail-closed: la Reina no ha asignado esta misión.")
+          if not isinstance(mission.get("task"), str) or not mission["task"].strip():
+              raise SystemExit("Fail-closed: la misión no tiene tarea concreta.")
+          print(f"Misión validada: {mission_id} -> {mission['agent_id']}")
           PY
-          python scripts/colmena_agent_hf.py "$MISSION_JSON" --model "$HF_MODEL"
-      - name: Publicar evidencia de ejecución
+          set +e
+          python scripts/colmena_agent_hf.py "$MISSION_ID" --model "$HF_MODEL"
+          agent_rc=$?
+          set -e
+          EVIDENCE="$(python - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          mission_id = os.environ["MISSION_ID"]
+          control = json.loads(Path("docs/COLMENA_MISSION_CONTROL.json").read_text(encoding="utf-8"))
+          mission = next(m for m in control["missions"] if m["id"] == mission_id)
+          safe = lambda value: re.sub(r"[^A-Za-z0-9_.-]", "_", value)
+          print(f"artifacts/colmena/agents/{safe(mission['agent_id'])}_{safe(mission_id)}.json")
+          PY
+          )"
+          if [ ! -f "$EVIDENCE" ]; then
+            echo "No existe evidencia JSON; no se puede reconciliar ni declarar éxito." >&2
+            exit 2
+          fi
+          echo "evidence_path=$EVIDENCE" >> "$GITHUB_OUTPUT"
+          python scripts/colmena_queen_hf.py --record-result "$EVIDENCE"
+          exit "$agent_rc"
+      - name: Persistir evidencia y estado en la rama invocada
+        if: always() && steps.execute.outputs.evidence_path != ''
+        env:
+          EVIDENCE_PATH: ${{ steps.execute.outputs.evidence_path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f "$EVIDENCE_PATH"
+          test -f docs/COLMENA_MISSION_CONTROL.json
+          test -f docs/COLMENA_STATE.json
+          git config user.name "coalicion-colmena[bot]"
+          git config user.email "coalicion-colmena[bot]@users.noreply.github.com"
+          git add docs/COLMENA_MISSION_CONTROL.json docs/COLMENA_STATE.json "$EVIDENCE_PATH"
+          if git diff --cached --quiet; then
+            echo "No hay cambios de evidencia para persistir." >&2
+            exit 1
+          fi
+          git commit -m "Persist Colmena HF evidence for ${{ inputs.mission_id }}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+      - name: Publicar copia recuperable del artefacto
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: colmena-hf-agent-evidence
+          name: colmena-hf-evidence-${{ inputs.mission_id }}-${{ github.run_id }}
           path: artifacts/colmena/agents/*.json
           if-no-files-found: ignore
-          retention-days: 14
+          retention-days: 90
