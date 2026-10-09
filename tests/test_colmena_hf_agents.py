@@ -50,6 +50,7 @@ def test_agent_rejects_mission_without_task(tmp_path, monkeypatch):
 def test_result_reconciliation_records_review_without_allowing_model_pass(tmp_path, monkeypatch):
     path = tmp_path / "missions.json"
     monkeypatch.setattr(queen, "MISSION_CONTROL", path)
+    monkeypatch.setattr(queen, "STATE_PATH", tmp_path / "state.json")
     missions = queen.get_missions()
     mission = missions[0]
     mission["task"] = "Revisar un contrato de prueba con evidencia."
@@ -64,6 +65,10 @@ def test_result_reconciliation_records_review_without_allowing_model_pass(tmp_pa
     recorded = queen.record_result(evidence)
     assert recorded["status"] == "REVIEW_REQUIRED"
     assert queen.get_missions()[0]["status"] == "REVIEW_REQUIRED"
+    assert recorded["evidence_sha256"]
+    persisted_state = json.loads((tmp_path / "state.json").read_text(encoding="utf-8"))
+    assert persisted_state["last_hf_agent_execution"]["mission_id"] == mission["id"]
+    assert persisted_state["last_hf_agent_execution"]["evidence_sha256"] == recorded["evidence_sha256"]
 
     evidence.write_text(json.dumps({
         "mission_id": mission["id"], "agent_id": mission["agent_id"], "status": "PASS"
@@ -95,14 +100,61 @@ def test_result_reconciliation_rejects_unassigned_or_wrong_agent(tmp_path, monke
 
 
 def test_agent_uses_exact_reina_token_name(tmp_path, monkeypatch):
-    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path)
+    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", tmp_path / "missions.json")
+    mission = {
+        "id": "M0001", "agent_id": "agent-001",
+        "task": "Prueba controlada.", "status": "ASSIGNED", "assigned": True
+    }
+    (tmp_path / "missions.json").write_text(json.dumps({
+        "schema": "COLMENA_MISSION_CONTROL_V1", "total": 179,
+        "missions": [mission] + [
+            {"id": f"M{i:04d}", "agent_id": f"agent-{i:03d}",
+             "task": "", "status": "PENDING", "assigned": False}
+            for i in range(2, 180)
+        ]
+    }), encoding="utf-8")
     monkeypatch.delenv("Reina_token", raising=False)
     monkeypatch.setenv("HF_TOKEN", "must-not-be-used")
+    result = colmena_agent_hf.run_agent({
+        "id": "M0001", "agent_id": "agent-001", "task": "Prueba controlada."
+    })
+    assert result["status"] == "BLOCKED"
+    assert "Reina_token" in result["error"]
+    assert (tmp_path / "evidence" / "agent-001_M0001.json").is_file()
+
+
+def test_agent_refuses_unassigned_mission_before_provider_call(tmp_path, monkeypatch):
+    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", tmp_path / "missions.json")
+    missions = [
+        {"id": f"M{i:04d}", "agent_id": f"agent-{i:03d}", "task": "",
+         "status": "PENDING", "assigned": False}
+        for i in range(1, 180)
+    ]
+    missions[0]["task"] = "No ejecutar si no está asignada."
+    (tmp_path / "missions.json").write_text(json.dumps({
+        "schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions
+    }), encoding="utf-8")
+    monkeypatch.setenv("Reina_token", "test-token")
     try:
         colmena_agent_hf.run_agent({
-            "id": "M0001", "agent_id": "agent-001", "task": "Prueba controlada."
+            "id": "M0001", "agent_id": "agent-001", "task": "No ejecutar si no está asignada."
         })
-    except RuntimeError as exc:
-        assert "Reina_token" in str(exc)
+    except ValueError as exc:
+        assert "no ha asignado" in str(exc)
     else:
-        raise AssertionError("El agente no debe aceptar HF_TOKEN como sustituto de Reina_token")
+        raise AssertionError("El agente no debe ejecutar misiones pendientes")
+
+
+def test_agent_context_paths_are_bounded_and_repo_relative(tmp_path, monkeypatch):
+    monkeypatch.setattr(colmena_agent_hf, "ROOT", tmp_path)
+    allowed = tmp_path / "safe.py"
+    allowed.write_text("def safe(): return True\n", encoding="utf-8")
+    assert "def safe" in colmena_agent_hf.load_context({"context_paths": ["safe.py"]})
+    try:
+        colmena_agent_hf.load_context({"context_paths": ["../outside.py"]})
+    except ValueError as exc:
+        assert "no permitida" in str(exc)
+    else:
+        raise AssertionError("Debe bloquear rutas fuera del repositorio")

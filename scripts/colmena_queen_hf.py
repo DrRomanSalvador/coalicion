@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import tempfile
@@ -12,6 +13,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 MISSION_CONTROL = ROOT / "docs" / "COLMENA_MISSION_CONTROL.json"
+STATE_PATH = ROOT / "docs" / "COLMENA_STATE.json"
 AGENTS_DIR = ROOT / "artifacts" / "colmena" / "agents"
 TOTAL_AGENTS = 179
 STATUSES = {"PENDING", "ASSIGNED", "REVIEW_REQUIRED", "PASS", "BLOCKED"}
@@ -61,7 +63,7 @@ def get_missions() -> list[dict[str, Any]]:
             "schema": "COLMENA_MISSION_CONTROL_V1",
             "total": TOTAL_AGENTS,
             "mode": "LOGICAL_SLOTS",
-            "note": "Los slots no son procesos autónomos. Una tarea requiere definición, HF_TOKEN y ejecución explícita.",
+            "note": "Los slots no son procesos autónomos. Una tarea requiere definición, Reina_token y ejecución explícita.",
             "missions": missions,
         })
     validate_missions(missions)
@@ -85,9 +87,12 @@ def status_report() -> dict[str, Any]:
     counts = {status: sum(m["status"] == status for m in missions) for status in sorted(STATUSES)}
     report = {"total": len(missions), **{k.lower(): v for k, v in counts.items()}}
     print("COLMENA REINA — CONTROL DE MISIONES")
+    print("Modo: QUEEN_COORDINATION_MODE + 179_AGENTS_HF")
+    print("Proveedor: Hugging Face | Credencial: Reina_token")
     print(f"Slots lógicos: {report['total']}")
     for key in sorted(counts):
         print(f"{key:17}: {counts[key]}")
+    print(f"Tareas definidas: {sum(bool(str(m.get('task', '')).strip()) for m in missions)}")
     print(f"Sin tarea definida: {sum(not str(m.get('task', '')).strip() for m in missions)}")
     print("Nota: slot lógico ≠ agente ejecutado; PASS requiere verificación independiente.")
     return {**report, "missions": missions}
@@ -143,9 +148,16 @@ def record_result(result_path: Path) -> dict[str, Any]:
     if mission["status"] != "ASSIGNED" or not mission.get("assigned"):
         raise ValueError(f"La misión {mission_id} no está asignada; se rechaza evidencia obsoleta o no solicitada.")
     timestamp = now()
+    evidence_file = Path(result_path).resolve()
+    try:
+        evidence_path = str(evidence_file.relative_to(ROOT.resolve()))
+    except ValueError:
+        evidence_path = str(result_path)
+    evidence_sha256 = hashlib.sha256(evidence_file.read_bytes()).hexdigest()
     mission["status"] = status
     mission["result_recorded_at"] = timestamp
-    mission["evidence_path"] = str(result_path)
+    mission["evidence_path"] = evidence_path
+    mission["evidence_sha256"] = evidence_sha256
     mission["result_summary"] = (
         str(result.get("error", ""))[:500] if status == "BLOCKED"
         else "Informe recibido; requiere revisión independiente."
@@ -154,8 +166,29 @@ def record_result(result_path: Path) -> dict[str, Any]:
     data["missions"] = missions
     data["updated_at"] = timestamp
     save_json(MISSION_CONTROL, data)
-    print(f"Resultado registrado: {mission_id} -> {status} (sin certificación automática).")
-    return {"mission_id": mission_id, "agent_id": agent_id, "status": status, "recorded_at": timestamp}
+
+    state = load_json(STATE_PATH, {})
+    state["last_hf_agent_execution"] = {
+        "schema": "COLMENA_HF_EXECUTION_EVIDENCE_V1",
+        "mission_id": mission_id,
+        "agent_id": agent_id,
+        "status": status,
+        "provider": "huggingface",
+        "evidence_path": evidence_path,
+        "evidence_sha256": evidence_sha256,
+        "recorded_at": timestamp,
+        "github_run_id": os.getenv("GITHUB_RUN_ID"),
+        "github_run_attempt": os.getenv("GITHUB_RUN_ATTEMPT"),
+        "tested_commit": os.getenv("GITHUB_SHA"),
+        "review_required_before_pass": True,
+    }
+    save_json(STATE_PATH, state)
+    print(f"Resultado registrado: {mission_id} -> {status}; evidencia SHA-256 {evidence_sha256}.")
+    return {
+        "mission_id": mission_id, "agent_id": agent_id, "status": status,
+        "recorded_at": timestamp, "evidence_path": evidence_path,
+        "evidence_sha256": evidence_sha256
+    }
 
 
 

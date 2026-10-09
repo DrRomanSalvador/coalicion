@@ -1,0 +1,66 @@
+name: COALICIÓN — Asignación persistente de misiones HF
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: "Número de misiones que la Reina puede asignar (1–5)"
+        required: true
+        default: "5"
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: colmena-hf-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  assign-batch:
+    name: Asignar y persistir un lote, sin ejecutar agentes
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validar y asignar exclusivamente mediante la Reina
+        env:
+          BATCH_SIZE: ${{ inputs.batch_size }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          try:
+              size = int(os.environ["BATCH_SIZE"])
+          except (TypeError, ValueError):
+              raise SystemExit("batch_size debe ser un entero entre 1 y 5.")
+          if not 1 <= size <= 5:
+              raise SystemExit("Fail-closed: batch_size debe estar entre 1 y 5.")
+          PY
+          before="$(python -c 'import json; d=json.load(open("docs/COLMENA_MISSION_CONTROL.json", encoding="utf-8")); print(sum(m.get("status") == "ASSIGNED" for m in d["missions"]))')"
+          python scripts/colmena_queen_hf.py --assign "$BATCH_SIZE"
+          after="$(python -c 'import json; d=json.load(open("docs/COLMENA_MISSION_CONTROL.json", encoding="utf-8")); print(sum(m.get("status") == "ASSIGNED" for m in d["missions"]))')"
+          delta=$((after - before))
+          if [ "$delta" -lt 1 ] || [ "$delta" -gt "$BATCH_SIZE" ]; then
+            echo "Fail-closed: la Reina no asignó un lote válido (delta=$delta)." >&2
+            exit 1
+          fi
+          echo "Asignación validada: $delta misión(es). No se ha invocado Hugging Face."
+      - name: Persistir asignación en la rama invocada
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          git config user.name "coalicion-colmena[bot]"
+          git config user.email "coalicion-colmena[bot]@users.noreply.github.com"
+          git add docs/COLMENA_MISSION_CONTROL.json
+          git diff --cached --quiet && { echo "No hay asignaciones nuevas para persistir." >&2; exit 1; }
+          git commit -m "Persist Queen-approved Colmena HF mission assignment"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

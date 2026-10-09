@@ -15,10 +15,14 @@ Valida:
 5. Demo E2E real: `python scripts/demo_e2e.py`.
 
 ## Reina Hugging Face opcional
+
+Modo formal: `QUEEN_COORDINATION_MODE + 179_AGENTS_HF`. La credencial exacta es `Reina_token`. La asignación y ejecución de misiones requiere aprobación explícita del usuario; hay 5 tareas de auditoría definidas y 179 misiones aún PENDING; no se asigna ni ejecuta ninguna sin aprobación explícita.
 La integración complementaria está documentada en `docs/COLMENA_HF_AGENTS.md`.
 - `python scripts/colmena_queen_hf.py --status`: inspeccionar 179 slots lógicos.
 - `python scripts/colmena_queen_hf.py --assign 5`: asignar hasta cinco misiones con tarea concreta.
+- GitHub Actions → **COALICIÓN — Asignación persistente de misiones HF**: tras la aprobación explícita, asigna un lote de 1–5 y persiste Mission Control en la rama invocada; no ejecuta agentes.
 - GitHub Actions → **COALICIÓN — Agentes lógicos Hugging Face**: ejecución manual de una misión mediante HF.
+- El workflow exige un mission_id ya asignado, usa exactamente el secreto Reina_token, reconcilia el JSON con la Reina y persiste docs/COLMENA_MISSION_CONTROL.json, docs/COLMENA_STATE.json y artifacts/colmena/agents/ mediante commit en la rama invocada; además sube un artefacto recuperable de 90 días. Un artefacto de Actions por sí solo no equivale a persistencia en Git.
 - Requiere secreto `Reina_token`; no se invoca HF ni se consumen créditos en la validación base.
 - Los 179 slots no son 179 procesos concurrentes. Cada ejecución invoca un agente explícitamente.
 - La respuesta del modelo queda en `REVIEW_REQUIRED`; no puede certificar PASS ni afirmar que ejecutó pruebas/cambió código sin evidencia.
