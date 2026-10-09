@@ -92,7 +92,7 @@ jobs:
 
             [[ "$conclusion" == "failure" ]] || continue
             ((failures+=1))
-            printf '\n## Failed run %s — %s\n\n- Workflow file: `%s`\n- Attempt: %s\n- [Run](%s)\n' "$run_id" "$name" "$path" "$attempt" "$url" >> "$report"
+            printf '\n## Failed run %s — %s\n\n- Workflow file: %s\n- Attempt: %s\n- [Run](%s)\n' "$run_id" "$name" "$path" "$attempt" "$url" >> "$report"
 
             if [[ "$RETRY_FAILED" == "true" && "$attempt" == "1" ]]; then
               echo "Retrying failed jobs once: run=$run_id workflow=$name"
