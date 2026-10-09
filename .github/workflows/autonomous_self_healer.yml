@@ -4,10 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       failed_run_id:
-        description: "Optional for manual repair: one failed workflow run ID, job ID, or Actions URL"
-        required: false
+        description: "Required for manual repair: one failed workflow run ID, job ID, or Actions URL"
+        required: true
         type: string
-        default: ""
   workflow_run:
     workflows:
       - completion-gate
