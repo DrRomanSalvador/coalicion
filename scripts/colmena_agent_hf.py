@@ -9,7 +9,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 AGENTS_DIR = ROOT / "artifacts" / "colmena" / "agents"
 MISSION_CONTROL = ROOT / "docs" / "COLMENA_MISSION_CONTROL.json"
-DEFAULT_MODEL = os.getenv("HF_MODEL", "HuggingFaceH4/zephyr-7b-beta")
+DEFAULT_MODEL = os.getenv("HF_MODEL", "Qwen/Qwen2.5-7B-Instruct")
 
 def now() -> str:
     return datetime.now(timezone.utc).isoformat()

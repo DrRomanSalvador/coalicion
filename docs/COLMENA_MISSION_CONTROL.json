@@ -2,7 +2,7 @@
   "schema": "COLMENA_MISSION_CONTROL_V1",
   "total": 179,
   "mode": "LOGICAL_SLOTS",
-  "note": "179 slots lógicos. M0001–M0005 tienen tareas de auditoría definidas y permanecen PENDING; M0006–M0179 requieren definición. Ninguna misión se asigna ni ejecuta sin aprobación explícita.",
+  "note": "179 slots lógicos; M0001–M0005 están asignadas y M0006–M0010 ya tienen tareas concretas pendientes. M0011–M0179 requieren definición. La asignación no ejecuta agentes.",
   "missions": [
     {
       "id": "M0001",
@@ -77,47 +77,70 @@
     {
       "id": "M0006",
       "agent_id": "agent-006",
-      "title": "Agente lógico 006",
-      "task": "",
+      "title": "Auditoría del contrato de asignación",
+      "task": "Audita el flujo completo de asignación entre workflow y scripts/colmena_queen_hf.py: validación de batch_size, elegibilidad, idempotencia, persistencia y comportamiento cuando no quedan tareas. Propón cambios mínimos y pruebas reproducibles; no afirmes haber ejecutado pruebas.",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
+      "context_paths": [
+        ".github/workflows/colmena_hf_assign.yml",
+        "scripts/colmena_queen_hf.py",
+        "tests/test_colmena_hf_agents.py"
+      ]
     },
     {
       "id": "M0007",
       "agent_id": "agent-007",
-      "title": "Agente lógico 007",
-      "task": "",
+      "title": "Auditoría de persistencia de evidencias",
+      "task": "Analiza los caminos de éxito y error del workflow de agentes: outputs entre pasos, variables de entorno, persistencia de JSON/estado, push y artefactos. Identifica defectos concretos y una prueba de regresión por defecto; no afirmes haber ejecutado pruebas.",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
+      "context_paths": [
+        ".github/workflows/colmena_hf_agents.yml",
+        "scripts/colmena_queen_hf.py",
+        "tests/test_colmena_hf_agents.py"
+      ]
     },
     {
       "id": "M0008",
       "agent_id": "agent-008",
-      "title": "Agente lógico 008",
-      "task": "",
+      "title": "Compatibilidad del cliente Hugging Face",
+      "task": "Revisa la integración InferenceClient/chat_completion: modelo por defecto, errores de proveedor, token, timeout y respuesta vacía. Recomienda una estrategia fail-closed que conserve evidencia BLOCKED y nunca filtre credenciales; no afirmes haber ejecutado pruebas.",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
+      "context_paths": [
+        "scripts/colmena_agent_hf.py",
+        ".github/workflows/colmena_hf_agents.yml"
+      ]
     },
     {
       "id": "M0009",
       "agent_id": "agent-009",
-      "title": "Agente lógico 009",
-      "task": "",
+      "title": "Auditoría de límites de contexto y rutas",
+      "task": "Verifica load_context y la construcción de rutas de evidencia: traversal, symlinks, rutas absolutas, número/tamaño de archivos, codificación y excepciones. Señala defectos explotables y pruebas concretas sin afirmar que se ejecutaron.",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
+      "context_paths": [
+        "scripts/colmena_agent_hf.py",
+        "tests/test_colmena_hf_agents.py"
+      ]
     },
     {
       "id": "M0010",
       "agent_id": "agent-010",
-      "title": "Agente lógico 010",
-      "task": "",
+      "title": "Auditoría de integridad de Mission Control",
+      "task": "Revisa invariantes de docs/COLMENA_MISSION_CONTROL.json y validación en la Reina: 179 IDs y agentes únicos, estados coherentes con assigned, tareas no vacías antes de asignar, transiciones válidas y rechazo de evidencia obsoleta. Enumera contradicciones concretas y pruebas propuestas.",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
+      "context_paths": [
+        "docs/COLMENA_MISSION_CONTROL.json",
+        "scripts/colmena_queen_hf.py",
+        "tests/test_colmena_hf_agents.py"
+      ]
     },
     {
       "id": "M0011",
