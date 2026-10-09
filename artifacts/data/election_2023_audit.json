@@ -2,12 +2,26 @@
   "status": "PASS",
   "reason": "STRUCTURAL_VALIDATION",
   "path": "artifacts/data/election_2023_canonical.json",
-  "sha256": "db07f35c862a1a7c620b3242d2b1ddda041b2b68765427385ae41d958b6d3cb2",
-  "schema": "ELECTION_2023_CONSTITUENCY_MATRIX_V1",
-  "source_tier": "SECONDARY_REPLICA_VERIFIED",
+  "sha256": "dd42f9fe6ba3720488a352d2e2ce6459b16d8d5deb1e50882a6e3e99a1c2cfa1",
+  "recorded_sha256": "dd42f9fe6ba3720488a352d2e2ce6459b16d8d5deb1e50882a6e3e99a1c2cfa1",
+  "schema": "ELECTION_2023_CONSTITUENCY_MATRIX_V2",
+  "source_tier": "OFFICIAL_PRIMARY",
   "election": 2023,
   "province_count": 52,
   "seat_total": 350,
   "candidate_votes_total": 24487414,
-  "valid_vote_keys": 52
+  "valid_vote_keys": 52,
+  "source_sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
+  "manifest_status": "READY",
+  "vote_seat_reconciliation": {
+    "status": "PASS",
+    "constituencies": 52,
+    "discrepancies": 0,
+    "method": "src.electoral.allocate",
+    "special_rules": [
+      "Ceuta",
+      "Melilla"
+    ],
+    "details": []
+  }
 }

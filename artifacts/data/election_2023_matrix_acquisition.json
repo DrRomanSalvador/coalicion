@@ -1,23 +1,30 @@
 {
-  "status": "READY",
-  "events": [
-    {
-      "source": "MINISTERIO_DEL_INTERIOR",
-      "status": "FAILED",
-      "error": "download failed: https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)>"
-    },
-    {
-      "source": "DATO_ELECTORAL",
-      "status": "DOWNLOADED_AND_PARSED",
-      "validation": {
-        "valid": true,
-        "errors": [],
-        "circunscripciones": 52,
-        "escaños": 350,
-        "candidate_votes_total": 24487414
-      }
+  "schema": "OFFICIAL_2023_MATRIX_ACQUISITION_V2",
+  "status": "PASS",
+  "source": "MINISTERIO_DEL_INTERIOR",
+  "source_sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
+  "canonical_sha256": "dd42f9fe6ba3720488a352d2e2ce6459b16d8d5deb1e50882a6e3e99a1c2cfa1",
+  "normalized_csv_sha256": "ece9dbb32e00af1456d7d422b35414e39f8b63ba01745c0b6a2d4b6e07da2bf3",
+  "elections": 16,
+  "constituencies": 52,
+  "validation": {
+    "status": "PASS",
+    "circunscripciones": 52,
+    "escaños": 350,
+    "candidate_votes_total": 24487414,
+    "blank_votes_total": 200673,
+    "valid_votes_total": 24688087,
+    "vote_seat_reconciliation": {
+      "status": "PASS",
+      "constituencies": 52,
+      "discrepancies": 0,
+      "method": "src.electoral.allocate",
+      "special_rules": [
+        "Ceuta",
+        "Melilla"
+      ]
     }
-  ],
-  "source_tier": "SECONDARY_REPLICA_VERIFIED",
-  "sha256": null
+  },
+  "secondary_fallback": false,
+  "fail_closed": true
 }
