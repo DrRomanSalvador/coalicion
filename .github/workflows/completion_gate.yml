@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   completion-gate:
@@ -40,6 +40,34 @@ jobs:
           assert all(g["status"] == "PASS" for g in x["gates"] if g["name"] != "external_audit")
           print("COMPLETION_GATE=PASS", x["status"])
           PY
+
+      - name: Persist verified master certification evidence
+        if: success() && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp ci_evidence/master_certification.json /tmp/master_certification.json
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p ci_evidence
+            cp /tmp/master_certification.json ci_evidence/master_certification.json
+            git add ci_evidence/master_certification.json
+            if git diff --cached --quiet; then
+              echo "Master certification evidence is already current."
+              exit 0
+            fi
+            git commit -m "ci: persist verified master certification gates"
+            if git push origin HEAD:main; then
+              echo "Master certification evidence persisted."
+              exit 0
+            fi
+            echo "Concurrent main update; retrying certification evidence persistence ($attempt/5)."
+            sleep $((attempt * 3))
+          done
+          echo "FAIL-CLOSED: unable to persist master certification evidence."
+          exit 1
 
       - name: Notify Telegram only after verified completion
         if: success()
