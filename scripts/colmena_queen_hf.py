@@ -157,6 +157,8 @@ def reassign_blocked(mission_id: str) -> dict[str, Any]:
     mission["assigned"] = True
     mission["assigned_at"] = timestamp
     mission["reassigned_at"] = timestamp
+    for stale_key in ("result_recorded_at", "evidence_path", "evidence_sha256", "result_summary"):
+        mission.pop(stale_key, None)
     mission["note"] = "Reasignada explícitamente por la Reina tras bloqueo; intento anterior conservado en attempt_history."
     data = load_json(MISSION_CONTROL, {})
     data["missions"] = missions
