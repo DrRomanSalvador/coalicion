@@ -127,6 +127,8 @@ def test_coverage_manifest_is_structurally_valid():
     by_id = {s["id"]: s for s in active}
     assert by_id["europe_elects_twitter"]["url"].endswith("/tweets")
     assert by_id["lasexta_invymark_discovery"]["url"].startswith("https://www.lasexta.com/")
+    assert by_id["lasexta_invymark_discovery"]["coverage_role"] == "discovery"
+    assert by_id["lasexta_invymark_discovery"]["source_tier"] == "SECONDARY_REPLICA"
 
 
 def test_poll_identity_ignores_source_and_values():
