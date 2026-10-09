@@ -39,6 +39,7 @@ def quotient_boundary(votes: dict[str, int], seats: dict[str, int], party: str) 
 def seats_after_extra(votes: dict[str, int], seats: int, blank: int, party: str, extra: int) -> int:
     changed = dict(votes); changed[party] = changed.get(party, 0) + extra
     result = allocate(changed, seats, sum(changed.values()) + blank, blank_votes=blank)
+    if result.status == "EMPATE_ABSOLUTO_PENDIENTE": return -1
     if result.status != "OK": raise DemoError(f"Frontera bloqueada: {result.status}")
     return result.seats.get(party, 0)
 
