@@ -1,0 +1,49 @@
+name: Demo multiparty 2023
+
+on:
+  push:
+    paths:
+      - "scripts/demo_multiparty.py"
+      - "artifacts/demo_multiparty_2023.json"
+      - "artifacts/data/election_2023_canonical.json"
+      - "src/electoral.py"
+      - "src/coalition.py"
+      - "tests/test_demo_multiparty.py"
+      - ".github/workflows/demo-multiparty.yml"
+  pull_request:
+    paths:
+      - "scripts/demo_multiparty.py"
+      - "artifacts/demo_multiparty_2023.json"
+      - "artifacts/data/election_2023_canonical.json"
+      - "src/electoral.py"
+      - "src/coalition.py"
+      - "tests/test_demo_multiparty.py"
+      - ".github/workflows/demo-multiparty.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install test dependency
+        run: python -m pip install pytest
+      - name: Run focused tests
+        run: python -m pytest -q tests/test_demo_multiparty.py
+      - name: Run demo
+        run: python scripts/demo_multiparty.py > demo_multiparty_output.json
+      - name: Validate generated JSON
+        run: python -m json.tool demo_multiparty_output.json > /dev/null
+      - name: Upload demo output
+        uses: actions/upload-artifact@v4
+        with:
+          name: coalicion-demo-multiparty-2023
+          path: demo_multiparty_output.json
+          if-no-files-found: error
