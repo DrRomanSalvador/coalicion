@@ -340,5 +340,5 @@ def test_agent_routes_provider_and_explains_model_not_supported(tmp_path, monkey
     )
     assert captured["provider"] == "deepinfra"
     assert result["status"] == "BLOCKED"
-    assert "proveedores habilitados" in result["error"]
-    assert "Selecciona en Hugging Face" in result["error"]
+    assert "Ninguno acepta este modelo" in result["error"]
+    assert "HF_PROVIDER_FALLBACKS" in result["error"]
