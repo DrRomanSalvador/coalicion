@@ -176,7 +176,7 @@ def test_auto_merge_gate_uses_testable_fail_closed_api_client():
     assert "run: python scripts/automatic_pr_integration.py" in workflow
     assert "GitHubAPIAuthError" in client
     assert "GitHub Actions API authentication/authorization failed" in client
-    assert "Retriying a rejected credential" not in client
+    assert "except GitHubAPIAuthError as exc:" in client
     assert "if not value" in client
 
 
