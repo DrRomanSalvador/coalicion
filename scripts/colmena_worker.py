@@ -14,7 +14,7 @@ def sha(s): return hashlib.sha256(s.encode()).hexdigest()
 
 def command_for(title: str):
     t = title.lower()
-    if any(x in t for x in ("release v1.0.0", "actualización", "integración física", "conexión ", "eliminación ", "crear ", "corregir ")):
+    if any(x in t for x in ("release v1.0.0", "actualización", "actualizar ", "integración física", "conexión ", "eliminación ", "crear ", "corregir ")):
         return None, "WRITE_OR_CHANGE_REQUIRES_EXPLICIT_SCOPE"
     if "muestreo pymc" in t or "seec producción" in t or "seec producción genuino" in t:
         return [sys.executable, "scripts/run_seec_production.py"], "SEEC_REAL_SAMPLING"

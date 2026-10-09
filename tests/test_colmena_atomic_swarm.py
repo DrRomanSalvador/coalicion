@@ -132,9 +132,26 @@ def test_read_only_missions_resolve_to_real_validators():
         "invariantes coalición": "tests/test_coalition.py",
         "propagación incertidumbre": "tests/test_uncertainty.py",
         "prohibir inferencia nacional-territorial": "tests/test_territorial_prediction_2026.py",
-        "actualizar estado/certificación": "tests/test_master_certification.py",
     }
     for mission, expected in cases.items():
         command, adapter = command_for(mission)
         assert adapter == "MISSION_VALIDATOR"
         assert expected in command
+
+
+def test_update_missions_are_write_gated_in_queen_and_worker():
+    from scripts.colmena_queen import classify
+    from scripts.colmena_worker import command_for, run
+
+    title = "actualizar estado/certificación"
+    assert classify(title) == "WRITE"
+    command, adapter = command_for(title)
+    assert command is None
+    assert adapter == "WRITE_OR_CHANGE_REQUIRES_EXPLICIT_SCOPE"
+    evidence = run(
+        {"id": "M0024", "title": title, "kind": "WRITE", "write_authorized": False, "scope": [], "approval": "test"},
+        "test-ref",
+        "agent-M0024",
+        {"provider": "test", "execution_id": "test-exec", "independent": True, "ai_execution": True},
+    )
+    assert evidence["status"] == "BLOCKED"

@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTROL = ROOT / "docs/COLMENA_MISSION_CONTROL.json"
 BATCH_SIZE = 5  # verified swarm cycle
 WORKER_TIMEOUT_SECONDS = int(os.environ.get("COLMENA_WORKER_TIMEOUT_SECONDS", "600"))
-WRITE_WORDS = ("integración física", "conexión", "eliminación", "actualización", "crear", "release", "corregir", "materializar")
+WRITE_WORDS = ("integración física", "conexión", "eliminación", "actualización", "actualizar", "crear", "release", "corregir", "materializar")
 
 
 def canon(x):
