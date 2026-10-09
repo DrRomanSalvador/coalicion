@@ -36,8 +36,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           CURRENT_WORKFLOW: ${{ github.workflow }}
-          LOOKBACK_HOURS: ${{ inputs.lookback_hours || '24' }}
-          RETRY_FAILED: ${{ inputs.retry_failed == false && 'false' || 'true' }}
+          LOOKBACK_HOURS: ${{ inputs.lookback_hours || 24 }}
+          RETRY_FAILED: ${{ inputs.retry_failed != false }}
         shell: bash
         run: |
           set -Eeuo pipefail
