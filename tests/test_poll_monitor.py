@@ -440,7 +440,7 @@ def test_poll_monitor_does_not_rewrite_state_for_heartbeat_only(tmp_path, monkey
     monkeypatch.setattr(monitor, "fetch_all", no_change_fetch)
     monkeypatch.setattr(monitor, "detect_new", lambda polls, discoveries: ([], [], []))
     monkeypatch.setattr(monitor, "audit_coverage", lambda failures, discoveries: coverage)
-    monkeypatch.setattr(monitor, "alert", lambda payload: None)
+    monkeypatch.setattr(monitor, "alert", lambda payload: {"status": "NOT_REQUIRED", "message_created": False, "pending_count": 0})
 
     monitor.run()  # Initializes the baseline and writes the first durable snapshot.
     before = state_path.read_bytes()
@@ -501,15 +501,32 @@ def test_poll_monitor_requires_delivery_to_every_authorized_chat(tmp_path, monke
             return None
 
     class PartialDeliverySession:
+        def __init__(self):
+            self.fail_b = True
+            self.calls = []
+
         def post(self, url, *, json, timeout):
-            if json["chat_id"] == "chat-b":
+            self.calls.append(json["chat_id"])
+            if json["chat_id"] == "chat-b" and self.fail_b:
                 raise requests.RequestException("simulated recipient failure")
             return Response()
 
-    monitor.session = PartialDeliverySession()
+    session = PartialDeliverySession()
+    monitor.session = session
     payload = {
-        "new_polls": [{"poll": module.canonical_poll(valid_poll()), "event_type": "NEW"}],
+        "new_polls": [{"poll": module.canonical_poll(valid_poll()), "poll_hash": "hash-1", "event_type": "NEW"}],
         "changed_polls": [], "discoveries": [], "failures": [],
     }
 
-    assert monitor.alert(payload) is False
+    first = monitor.alert(payload)
+    assert first["status"] == "BLOCKED"
+    assert first["pending_count"] == 1
+    assert monitor.state["pending_notifications"][0]["delivered_chat_ids"] == ["chat-a"]
+
+    # Retry only the recipient that missed the first delivery; do not duplicate to chat-a.
+    session.fail_b = False
+    second = monitor.alert({"new_polls": [], "changed_polls": [], "discoveries": [], "failures": []})
+    assert second["status"] == "SENT"
+    assert second["pending_count"] == 0
+    assert session.calls.count("chat-a") == 1
+    assert session.calls.count("chat-b") == 3
