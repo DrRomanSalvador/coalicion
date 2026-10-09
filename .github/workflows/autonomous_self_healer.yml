@@ -141,7 +141,7 @@ jobs:
           if [[ -n "$exhausted" ]]; then
             echo "EXHAUSTED_RETRY_BUDGET" >> "$GITHUB_STEP_SUMMARY"
             echo "### Unresolved current-main failures — retry budget exhausted" >> "$GITHUB_STEP_SUMMARY"
-            printf '%s\\n' "$exhausted" | tee -a "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$exhausted" | tee -a "$GITHUB_STEP_SUMMARY"
             echo "::error::Some current-main workflows remain failed after 3 attempts, although other candidates were processed."
             exit 1
           fi
