@@ -124,6 +124,30 @@ def test_reassign_blocked_mission_preserves_previous_evidence_and_reopens(tmp_pa
     assert reopened["attempt_history"][-1]["status"] == "BLOCKED"
 
 
+
+def test_reassign_blocked_clears_current_evidence_fields_after_archiving_metadata(tmp_path, monkeypatch):
+    path = tmp_path / "missions.json"
+    monkeypatch.setattr(queen, "MISSION_CONTROL", path)
+    missions = queen.get_missions()
+    missions[0].update({
+        "task": "Tarea de reintento",
+        "status": "BLOCKED",
+        "assigned": False,
+        "result_recorded_at": "old-time",
+        "evidence_path": "old.json",
+        "evidence_sha256": "old-hash",
+        "result_summary": "old failure",
+    })
+    queen.save_json(path, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
+    queen.reassign_blocked("M0001")
+    reopened = queen.get_missions()[0]
+    assert reopened["status"] == "ASSIGNED"
+    assert "evidence_path" not in reopened
+    assert "evidence_sha256" not in reopened
+    assert "result_recorded_at" not in reopened
+    assert reopened["attempt_history"][-1]["evidence_sha256"] == "old-hash"
+
+
 def test_reassign_blocked_refuses_non_blocked_or_taskless_mission(tmp_path, monkeypatch):
     path = tmp_path / "missions.json"
     monkeypatch.setattr(queen, "MISSION_CONTROL", path)
