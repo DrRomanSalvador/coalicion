@@ -40,6 +40,20 @@ Registro normativo. Cada ID tiene un único significado.
 | TOKEN_BUDGET_RISK | ERROR | Riesgo de perder contexto | PERSISTIR CHECKPOINT |
 | CERTIFICATION_WITH_OPEN_BLOCKER | BLOCKER | Se intenta certificar con bloqueos | DETENER |
 
+| PRIMARY_RECONCILIATION | BLOCKER | Reconciliación oficial electoral no verificada | DETENER |
+| SEEC_PRODUCTION_EXECUTION | BLOCKER | Ejecución SEEC de producción sin evidencia reproducible | DETENER |
+| OOS_CALIBRATION | BLOCKER | Backtest fuera de muestra o calibración requerida ausente | DETENER |
+| EXTERNAL_AUDIT | BLOCKER | Auditoría externa independiente pendiente cuando se exige certificación | DETENER release/certificación |
+| ABSOLUTE_TIE | BLOCKER | Empate absoluto sin resolución legal explícita | DETENER |
+| INVALID_VALID_VOTES | BLOCKER | Total de votos válidos inconsistente o inválido | DETENER |
+| SEAT_CONSERVATION | BLOCKER | La asignación no conserva el total legal de escaños | DETENER |
+| UNVERSIONED_DATA | BLOCKER | Dataset sin versión/hash/procedencia verificables | DETENER |
+| INVENTED_TERRITORIALITY | BLOCKER | Se inventan o infieren datos electorales territoriales no observados | DETENER |
+| MANUAL_RESULT_OVERRIDE | BLOCKER | Resultado canónico sobrescrito manualmente sin fuente y evidencia | DETENER |
+| NONDETERMINISTIC_EXECUTION | BLOCKER | Misma entrada, código y semilla no producen resultado reproducible | DETENER |
+| CI_EVIDENCE_MISSING_FOR_CONTINUITY_COMMIT | BLOCKER | Checkpoint/commit de continuidad sin evidencia CI del mismo SHA | DETENER |
+| PRIMARY_2023_MATRIX_MATERIALIZATION | BLOCKER | Matriz oficial territorial 2023 ausente, incompleta o no reconciliada | DETENER |
+
 ## Regla universal
 DETENER → IDENTIFICAR → REGISTRAR → PERSISTIR → NO PROPAGAR.
 Nunca sustituir automáticamente fuente, semilla, parámetro, metodología, archivo o evidencia.
