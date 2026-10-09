@@ -7,9 +7,9 @@ on:
         description: "Required for manual repair: one failed workflow run ID, job ID, or Actions URL"
         required: true
         type: string
-  workflow_run:
-    # Listen to every workflow; a static allowlist silently misses newly added workflows.
-    types: [completed]
+  schedule:
+    # workflow_run requires a static workflow allowlist; poll Actions instead to cover new workflows too.
+    - cron: "*/5 * * * *"
 
 permissions:
   actions: write
@@ -22,20 +22,59 @@ concurrency:
 
 jobs:
   heal:
-    if: >-
-      ${{ github.event_name == 'workflow_dispatch' ||
-          (github.event_name == 'workflow_run' &&
-           github.event.workflow_run.name != 'Autonomous repository self-healer' &&
-           github.event.workflow_run.head_branch == 'main' &&
-           github.event.workflow_run.run_attempt == 1 &&
-           (github.event.workflow_run.conclusion == 'failure' ||
-            github.event.workflow_run.conclusion == 'cancelled' ||
-            github.event.workflow_run.conclusion == 'timed_out' ||
-            github.event.workflow_run.conclusion == 'startup_failure')) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Discover and retry current-main failures (scheduled)
+        if: ${{ github.event_name == 'schedule' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          main_sha="$(gh api "repos/$REPOSITORY/commits/main" --jq '.sha')"
+          self_id="$(gh api "repos/$REPOSITORY/actions/workflows/autonomous_self_healer.yml" --jq '.id')"
+          runs_json="$(gh api "repos/$REPOSITORY/actions/runs?per_page=100")"
+          mapfile -t candidates < <(
+            jq -r --arg sha "$main_sha" --argjson self_id "$self_id" '
+              .workflow_runs[]
+              | select(.workflow_id != $self_id)
+              | select(.head_branch == "main" and .head_sha == $sha)
+              | select(.status == "completed" and .run_attempt == 1)
+              | select(.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out" or .conclusion == "startup_failure")
+              | .id
+            ' <<<"$runs_json"
+          )
+          if [[ "${#candidates[@]}" -eq 0 ]]; then
+            echo "No eligible failed workflow runs for current main ($main_sha)."
+            exit 0
+          fi
+          # Bound each sweep; later sweeps process the remainder and avoid retry storms.
+          count=0
+          for run_id in "${candidates[@]}"; do
+            [[ "$count" -lt 5 ]] || break
+            run_json="$(gh api "repos/$REPOSITORY/actions/runs/$run_id")"
+            status="$(jq -r '.status // empty' <<<"$run_json")"
+            conclusion="$(jq -r '.conclusion // empty' <<<"$run_json")"
+            run_sha="$(jq -r '.head_sha // empty' <<<"$run_json")"
+            [[ "$status" == "completed" && "$run_sha" == "$main_sha" ]] || continue
+            case "$conclusion" in
+              cancelled)
+                gh run rerun "$run_id" --repo "$REPOSITORY"
+                ;;
+              failure|timed_out|startup_failure)
+                gh run rerun "$run_id" --failed --repo "$REPOSITORY"
+                ;;
+              *) continue ;;
+            esac
+            echo "Requested recovery for run $run_id ($conclusion, SHA $run_sha)."
+            count=$((count + 1))
+          done
+          echo "Scheduled recovery sweep finished; rerun requests=$count."
       - name: Validate target and rerun failed jobs only
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
