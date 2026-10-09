@@ -91,7 +91,7 @@ jobs:
 
             [[ "$conclusion" == "failure" ]] || continue
             ((failures+=1))
-            printf '\n## Failed run %s — %s\n\n- Workflow file: `%s`\n- Attempt: %s\n- [Run](%s)\n' "$run_id" "$name" "$path" "$attempt" "$url" >> "$report"
+            printf "\n## Failed run %s — %s\n\n- Workflow file: \`%s\`\n- Attempt: %s\n- [Run](%s)\n" "$run_id" "$name" "$path" "$attempt" "$url" >> "$report"
 
             if [[ "$RETRY_FAILED" == "true" && "$attempt" == "1" ]]; then
               echo "Retrying failed jobs once: run=$run_id workflow=$name"
@@ -106,7 +106,7 @@ jobs:
               printf '\n- Action: retry limit reached or retries disabled; investigation required.\n' >> "$report"
               ((persistent+=1))
               issue_title="CI: persistent workflow failure #$run_id"
-              existing="$(gh issue list --repo "$GH_REPO" --state open --search "\"$issue_title\"" --json title --jq 'length')"
+              existing="$(gh issue list --repo "$GH_REPO" --state open --search "\"$issue_title\"" --json title --jq length)"
               if [[ "$existing" == "0" ]]; then
                 gh issue create --repo "$GH_REPO" --title "$issue_title" --body "$(printf 'The workflow supervisor detected a failed run that has already used its automatic retry budget.\n\n- Workflow: %s\n- File: %s\n- Run: %s\n- Attempt: %s\n\nInspect the run logs, correct the underlying cause, and add a regression test. The supervisor deliberately does not edit application code or bypass branch protections automatically.' "$name" "$path" "$url" "$attempt")" || echo "::warning::Could not create tracking issue for run $run_id"
               fi

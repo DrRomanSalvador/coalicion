@@ -22,7 +22,7 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.head.ref != 'main'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 120
     steps:
       - name: Wait for every PR check and merge only a fully green revision
         env:
@@ -30,6 +30,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          CURRENT_RUN_ID: ${{ github.run_id }}
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -42,6 +43,7 @@ jobs:
 
           repo = os.environ["GH_REPO"]
           sha = os.environ["HEAD_SHA"]
+          current_run_id = os.environ["CURRENT_RUN_ID"]
           required = {
               "Exhaustive fail-closed validation",
               "Methodology validation",
@@ -49,17 +51,18 @@ jobs:
               "Methodology integration",
               "Workflow resilience contract tests",
           }
-          deadline = time.monotonic() + 20 * 60
+          # Product pipeline can run for 90 minutes; leave queue and stability margin.
+          deadline = time.monotonic() + 110 * 60
           stable_signature = None
           stable_since = None
-          self_name = "Automatic pull request integration"
-
           def get_runs():
               raw = subprocess.check_output([
-                  "gh", "api",
+                  "gh", "api", "--paginate", "--slurp",
                   f"repos/{repo}/actions/runs?head_sha={sha}&per_page=100",
               ], text=True)
-              data = json.loads(raw)
+              pages = json.loads(raw)
+              if isinstance(pages, dict):
+                  pages = [pages]
               return [
                   {
                       "id": run.get("id"),
@@ -67,8 +70,10 @@ jobs:
                       "status": run.get("status", ""),
                       "conclusion": run.get("conclusion"),
                   }
-                  for run in data.get("workflow_runs", [])
-                  if run.get("name") != self_name
+                  for page in pages
+                  for run in page.get("workflow_runs", [])
+                  if run.get("head_sha") == sha
+                  and str(run.get("id", "")) != current_run_id
               ]
 
           while time.monotonic() < deadline:
@@ -120,8 +125,8 @@ jobs:
                   )
               time.sleep(15)
           else:
-              print("Blocking merge: checks did not reach a stable all-green state within 20 minutes.", flush=True)
+              print("Blocking merge: checks did not reach a stable all-green state within 110 minutes.", flush=True)
               sys.exit(1)
           PY
-          gh pr merge "$PR_NUMBER" --repo "$GH_REPO" --squash
+          gh pr merge "$PR_NUMBER" --repo "$GH_REPO" --match-head-commit "$sha" --squash
           echo "Merged only after all observed checks and the required validation workflows passed."
