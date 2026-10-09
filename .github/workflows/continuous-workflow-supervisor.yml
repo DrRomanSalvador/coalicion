@@ -52,7 +52,8 @@ jobs:
           report="$RUNNER_TEMP/workflow-health.md"
           printf '# Continuous workflow health report\n\n- Repository: %s\n- Window: %s hours\n- Since (UTC): %s\n\n' "$GH_REPO" "$LOOKBACK_HOURS" "$since" > "$report"
 
-          gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100&branch=main&created=%3E%3D${since}" > "$RUNNER_TEMP/workflow-runs.json"
+          main_sha="$(gh api "repos/$GH_REPO/commits/main" --jq '.sha')"
+          gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100&branch=main&head_sha=$main_sha&created=%3E%3D${since}" > "$RUNNER_TEMP/workflow-runs.json"
           cat > "$RUNNER_TEMP/parse_workflow_runs.py" <<'PY'
           import json
           import sys
