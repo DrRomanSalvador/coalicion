@@ -127,7 +127,12 @@ jobs:
                   entry["reason"] = f"failed after retry budget (attempt={attempt}, conclusion={run.get('conclusion')})"
                   return
               endpoint = "rerun-failed-jobs" if run.get("conclusion") == "failure" else "rerun"
-              api(f"actions/runs/{run['id']}/{endpoint}", method="POST", payload={})
+              try:
+                  api(f"actions/runs/{run['id']}/{endpoint}", method="POST", payload={})
+              except Exception as exc:
+                  entry["state"] = "failed"
+                  entry["reason"] = f"retry request failed: {exc}"
+                  return
               entry["retry_requested"] = True
               entry["state"] = "waiting"
               entry["reason"] = f"one retry requested after {run.get('conclusion')}"
@@ -217,7 +222,12 @@ jobs:
                   "branch": "main", "event": "workflow_dispatch",
                   "created": f">={batch_start}", "per_page": "100",
               })
-              recent = api(f"actions/runs?{query}").get("workflow_runs", [])
+              try:
+                  recent = api(f"actions/runs?{query}").get("workflow_runs", [])
+              except Exception as exc:
+                  print(f"RUN_LIST_RETRY:{exc}", flush=True)
+                  time.sleep(30)
+                  continue
               recent_by_id = {run["id"]: run for run in recent}
               for entry in entries:
                   if entry["state"] in {"passed", "failed"}:
@@ -300,7 +310,12 @@ jobs:
               title = f"Batch workflow validation unresolved failures ({len(failed)})"
               body = text + f"\nMain SHA at start: {main_sha}\n"
               try:
-                  api("issues", method="POST", payload={"title": title, "body": body})
+                  open_issues = api("issues?state=open&per_page=100") or []
+                  existing_issue = next((item for item in open_issues if item.get("title") == title), None)
+                  if existing_issue:
+                      print(f"ISSUE_ALREADY_OPEN:{existing_issue.get('html_url', existing_issue.get('number'))}", flush=True)
+                  else:
+                      api("issues", method="POST", payload={"title": title, "body": body})
               except Exception as exc:
                   print(f"ISSUE_CREATE_FAILED:{exc}", flush=True)
               raise SystemExit(1)
