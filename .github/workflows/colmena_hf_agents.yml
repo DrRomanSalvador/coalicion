@@ -7,6 +7,17 @@ on:
         description: "ID de una misión ya asignada por la Reina (p. ej. M0001)"
         required: true
         type: string
+      backend:
+        description: "Backend de inferencia: ollama-free (local en runner) o huggingface (créditos HF)"
+        required: true
+        default: "ollama"
+        type: choice
+        options: ["ollama", "hf"]
+      local_model:
+        description: "Modelo Ollama para el backend sin créditos HF"
+        required: true
+        default: "qwen2.5:3b"
+        type: string
       model:
         description: "Modelo HF Inference compatible"
         required: false
@@ -48,8 +59,35 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Instalar cliente HF
+      - name: Instalar cliente HF (solo backend de pago/créditos HF)
+        if: inputs.backend == 'hf'
         run: python -m pip install --disable-pip-version-check "huggingface_hub>=0.30,<2"
+      - name: Cachear modelos Ollama
+        if: inputs.backend == 'ollama'
+        uses: actions/cache@v4
+        with:
+          path: ~/.ollama/models
+          key: ollama-model-${{ runner.os }}-${{ inputs.local_model }}
+      - name: Instalar Ollama y descargar modelo abierto
+        if: inputs.backend == 'ollama'
+        env:
+          LOCAL_MODEL: ${{ inputs.local_model }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://ollama.com/install.sh | sh
+          (ollama serve > /tmp/ollama.log 2>&1 &)
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:11434/api/tags >/dev/null; then break; fi
+            sleep 2
+          done
+          curl --silent --fail http://127.0.0.1:11434/api/tags >/dev/null || {
+            cat /tmp/ollama.log
+            echo "Ollama no inició correctamente." >&2
+            exit 1
+          }
+          ollama pull "$LOCAL_MODEL"
+
       - name: Validar misión canónica, ejecutar agente y reconciliar resultado
         id: execute
         env:
@@ -59,6 +97,8 @@ jobs:
           HF_PROVIDER: ${{ inputs.provider }}
           HF_PROVIDER_FALLBACKS: ${{ inputs.provider_fallbacks }}
           RETRY_BLOCKED: ${{ inputs.retry_blocked }}
+          COLMENA_BACKEND: ${{ inputs.backend }}
+          COLMENA_LOCAL_MODEL: ${{ inputs.local_model }}
         shell: bash
         run: |
           set -euo pipefail
@@ -103,7 +143,7 @@ jobs:
             echo "Evidencia anterior archivada: $HISTORY_FILE"
           fi
           set +e
-          python scripts/colmena_agent_hf.py "$MISSION_ID" --model "$HF_MODEL" --provider "$HF_PROVIDER"
+          python scripts/colmena_agent_hf.py "$MISSION_ID" --model "$HF_MODEL" --provider "$HF_PROVIDER" --backend "$COLMENA_BACKEND" --local-model "$COLMENA_LOCAL_MODEL"
           agent_rc=$?
           set -e
           evidence_missing=0
