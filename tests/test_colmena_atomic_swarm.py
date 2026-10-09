@@ -176,3 +176,23 @@ def test_edge_case_and_operational_missions_map_to_specific_validators():
         command, adapter = command_for(mission)
         assert adapter == "MISSION_VALIDATOR", (mission, adapter)
         assert expected_path in command, (mission, command)
+
+
+def test_already_materialized_mutation_missions_use_read_only_state_validators():
+    from scripts.colmena_worker import command_for
+
+    cases = {
+        "integración física Elecciones-Congreso.xlsx": "tests/test_official_interior_workbook.py",
+        "conexión data.py dominio": "tests/test_canonical_architecture.py",
+        "eliminación transformaciones incompatibles": "tests/test_architecture_invariants.py",
+        "actualizar telegram_product_checkpoint": "tests/test_product_layer.py",
+        "actualizar estado/certificación": "tests/test_master_certification.py",
+    }
+    for mission, expected_path in cases.items():
+        command, adapter = command_for(mission)
+        assert adapter == "MISSION_STATE_VALIDATOR", (mission, adapter)
+        assert expected_path in command, (mission, command)
+
+    release_command, release_adapter = command_for("release v1.0.0")
+    assert release_command is None
+    assert release_adapter == "WRITE_OR_CHANGE_REQUIRES_EXPLICIT_SCOPE"

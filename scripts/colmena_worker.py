@@ -14,6 +14,18 @@ def sha(s): return hashlib.sha256(s.encode()).hexdigest()
 
 def command_for(title: str):
     t = title.lower()
+    # Some apparently mutating missions may already be satisfied in the
+    # repository. Verify that state read-only; never write from a worker.
+    existing_state_validators = (
+        ("integración física", ("tests/test_official_interior_workbook.py", "tests/test_official_materialization_parts.py")),
+        ("conexión data.py", ("tests/test_canonical_architecture.py", "tests/test_architecture_invariants.py")),
+        ("eliminación transformaciones", ("tests/test_architecture_invariants.py", "tests/test_canonical_architecture.py")),
+        ("actualizar telegram_product_checkpoint", ("tests/test_product_layer.py", "tests/test_telegram_evidence.py")),
+        ("actualizar estado/certificación", ("tests/test_master_certification.py", "tests/test_master_certification_strict.py", "tests/test_colmena_state.py")),
+    )
+    for phrase, test_paths in existing_state_validators:
+        if phrase in t:
+            return [sys.executable, "-m", "pytest", "-q", *test_paths], "MISSION_STATE_VALIDATOR"
     if any(x in t for x in ("release v1.0.0", "actualización", "actualizar ", "integración física", "conexión ", "eliminación ", "crear ", "corregir ")):
         return None, "WRITE_OR_CHANGE_REQUIRES_EXPLICIT_SCOPE"
     if "muestreo pymc" in t or "seec producción" in t or "seec producción genuino" in t:
