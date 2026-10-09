@@ -111,14 +111,12 @@ def test_agent_uses_exact_reina_token_name(tmp_path, monkeypatch):
     }), encoding="utf-8")
     monkeypatch.delenv("Reina_token", raising=False)
     monkeypatch.setenv("HF_TOKEN", "must-not-be-used")
-    try:
-        colmena_agent_hf.run_agent({
-            "id": "M0001", "agent_id": "agent-001", "task": "Prueba controlada."
-        })
-    except RuntimeError as exc:
-        assert "Reina_token" in str(exc)
-    else:
-        raise AssertionError("El agente no debe aceptar HF_TOKEN como sustituto de Reina_token")
+    result = colmena_agent_hf.run_agent({
+        "id": "M0001", "agent_id": "agent-001", "task": "Prueba controlada."
+    })
+    assert result["status"] == "BLOCKED"
+    assert "Reina_token" in result["error"]
+    assert (tmp_path / "evidence" / "agent-001_M0001.json").is_file()
 
 
 def test_agent_refuses_unassigned_mission_before_provider_call(tmp_path, monkeypatch):
