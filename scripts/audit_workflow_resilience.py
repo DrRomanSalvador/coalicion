@@ -47,9 +47,9 @@ def audit_self_healer_contract(source: str) -> list[str]:
     checks = {
         "query is paginated and scoped to current main SHA": 'gh api --paginate --slurp "repos/$REPOSITORY/actions/runs?head_sha=$main_sha&per_page=100"',
         "self-healer excludes its own workflow": "select(.workflow_id != $self_id)",
-        "only completed first attempts on current main are eligible": 'select(.status == "completed" and .run_attempt == 1)',
+        "only completed runs below the retry budget on current main are eligible": 'select(.status == "completed" and .run_attempt < 3)',
         "attempt number is rechecked before rerun": "run_attempt=" ,
-        "stale or already-retried candidates are skipped": '[[ "$status" == "completed" && "$run_sha" == "$main_sha" && "$run_attempt" == "1" ]] || continue',
+        "stale or over-budget candidates are skipped": '[[ "$status" == "completed" && "$run_sha" == "$main_sha" && "$run_attempt" -lt "$max_attempts" ]] || continue',
         "only current main branch/SHA is eligible": 'select(.head_branch == "main" and .head_sha == $sha)',
         "each sweep caps successful reruns and candidate attempts": '[[ "$count" -lt 5 && "$attempted" -lt 25 ]]',
         "older candidates are processed first": "sort_by(.created_at)",
