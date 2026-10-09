@@ -43,41 +43,65 @@ jobs:
           runs_json="$(gh api --paginate --slurp "repos/$REPOSITORY/actions/runs?head_sha=$main_sha&per_page=100")"
           mapfile -t candidates < <(
             jq -r --arg sha "$main_sha" --argjson self_id "$self_id" '
-              .[]
-              | .workflow_runs[]
-              | select(.workflow_id != $self_id)
-              | select(.head_branch == "main" and .head_sha == $sha)
-              | select(.status == "completed" and .run_attempt == 1)
-              | select(.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out" or .conclusion == "startup_failure")
-              | .id
+              [
+                .[] | .workflow_runs[]
+                | select(.workflow_id != $self_id)
+                | select(.head_branch == "main" and .head_sha == $sha)
+                | select(.status == "completed" and .run_attempt == 1)
+                | select(.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out" or .conclusion == "startup_failure")
+              ]
+              | sort_by(.created_at)
+              | .[].id
             ' <<<"$runs_json"
           )
           if [[ "${#candidates[@]}" -eq 0 ]]; then
             echo "No eligible failed workflow runs for current main ($main_sha)."
             exit 0
           fi
-          # Bound each sweep; the five-minute schedule drains remaining candidates without retry storms.
+          # Process oldest candidates first, bound API work and successful reruns, and
+          # continue past a single run that GitHub refuses to rerun.
           count=0
+          attempted=0
+          failures=0
           for run_id in "${candidates[@]}"; do
-            [[ "$count" -lt 5 ]] || break
-            run_json="$(gh api "repos/$REPOSITORY/actions/runs/$run_id")"
+            [[ "$count" -lt 5 && "$attempted" -lt 25 ]] || break
+            attempted=$((attempted + 1))
+            if ! run_json="$(gh api "repos/$REPOSITORY/actions/runs/$run_id" 2>&1)"; then
+              echo "::warning::Could not re-read candidate run $run_id; continuing sweep. $run_json"
+              failures=$((failures + 1))
+              continue
+            fi
             status="$(jq -r '.status // empty' <<<"$run_json")"
             conclusion="$(jq -r '.conclusion // empty' <<<"$run_json")"
             run_sha="$(jq -r '.head_sha // empty' <<<"$run_json")"
             [[ "$status" == "completed" && "$run_sha" == "$main_sha" ]] || continue
             case "$conclusion" in
               cancelled)
-                gh run rerun "$run_id" --repo "$REPOSITORY"
+                if gh run rerun "$run_id" --repo "$REPOSITORY"; then
+                  echo "Requested full recovery for cancelled run $run_id ($run_sha)."
+                  count=$((count + 1))
+                else
+                  echo "::warning::RERUN_REQUEST_FAILED run=$run_id conclusion=$conclusion; continuing sweep."
+                  failures=$((failures + 1))
+                fi
                 ;;
               failure|timed_out|startup_failure)
-                gh run rerun "$run_id" --failed --repo "$REPOSITORY"
+                if gh run rerun "$run_id" --failed --repo "$REPOSITORY"; then
+                  echo "Requested failed-job recovery for run $run_id ($run_sha)."
+                  count=$((count + 1))
+                else
+                  echo "::warning::RERUN_REQUEST_FAILED run=$run_id conclusion=$conclusion; continuing sweep."
+                  failures=$((failures + 1))
+                fi
                 ;;
               *) continue ;;
             esac
-            echo "Requested recovery for run $run_id ($conclusion, SHA $run_sha)."
-            count=$((count + 1))
           done
-          echo "Scheduled recovery sweep finished; rerun requests=$count."
+          echo "Scheduled recovery sweep finished; rerun requests=$count; candidates attempted=$attempted; request/read failures=$failures."
+          if [[ "$failures" -gt 0 ]]; then
+            echo "::error::One or more candidate recovery requests failed; the sweep continued to process other candidates."
+            exit 1
+          fi
       - name: Validate target and rerun failed jobs only
         if: ${{ github.event_name == 'workflow_dispatch' }}
         shell: bash
