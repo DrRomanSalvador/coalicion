@@ -17,7 +17,8 @@ from src.electoral import allocate
 from src.coalition import coalition_decision
 
 DEFAULT_DATA = ROOT / "artifacts/data/election_2023_canonical.json"
-DEFAULT_SCENARIOS = ROOT / "artifacts/demo_multiparty_2023.json"
+DEFAULT_SCENARIOS = ROOT / "config/demo_multiparty_2023.json"
+DEFAULT_OUTPUT = ROOT / "artifacts/demo_multiparty_2023.json"
 EXPECTED_SCHEMA = "ELECTION_2023_CONSTITUENCY_MATRIX_V2"
 EXPECTED_ELECTION = 2023
 EXPECTED_GIT_BLOB_SHA = "e6a164a7ca3294c36e44fa1adc6042474122bfbb"
@@ -136,6 +137,8 @@ def run_demo(data_path: Path = DEFAULT_DATA, scenarios_path: Path = DEFAULT_SCEN
         "product": "COALICIÓN",
         "election": EXPECTED_ELECTION,
         "interpretation": "Simulación mecánica contrafactual; no predice transferencias ni comportamiento electoral.",
+        "official_certification": "NOT_INDEPENDENTLY_CERTIFIED",
+        "source_tier": dataset["source_tier"],
         "method": "src.electoral.allocate: D’Hondt y umbral del 3%; src.coalition.coalition_decision para comparaciones de listas agrupadas.",
         "provenance": {
             "provider": dataset["source"]["provider"],
@@ -203,13 +206,23 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=DEFAULT_DATA)
     parser.add_argument("--scenarios", type=Path, default=DEFAULT_SCENARIOS)
+    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT, help="Ruta del JSON de resultados")
     args = parser.parse_args()
     try:
         result = run_demo(args.data, args.scenarios)
     except (DemoError, ValueError, RuntimeError, KeyError, TypeError) as exc:
         print(f"ERROR FAIL-CLOSED: {exc}", file=sys.stderr)
         return 2
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    serialized = json.dumps(result, ensure_ascii=False, indent=2) + "\\n"
+    try:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        temporary = args.output.with_suffix(args.output.suffix + ".tmp")
+        temporary.write_text(serialized, encoding="utf-8")
+        temporary.replace(args.output)
+    except OSError as exc:
+        print(f"ERROR: no se pudo persistir el resultado: {exc}", file=sys.stderr)
+        return 2
+    print(serialized, end="")
     return 0
 
 
