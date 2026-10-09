@@ -66,8 +66,8 @@ def audit_self_healer_contract(source: str) -> list[str]:
 
 def writer_without_concurrency(source: str) -> bool:
     """Detect workflows that push commits but do not serialize writers."""
-    pushes = bool(re.search(r"(?m)^\\s*(?:if\\s+)?git push\\b", source))
-    serialized = bool(re.search(r"(?m)^concurrency:\\s*(?:#.*)?$", source))
+    pushes = bool(re.search(r"(?m)^ *if +git push|^ *git push", source))
+    serialized = bool(re.search(r"(?m)^concurrency:", source))
     return pushes and not serialized
 
 
