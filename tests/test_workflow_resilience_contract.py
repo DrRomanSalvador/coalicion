@@ -50,3 +50,12 @@ def test_static_audit_labels_heuristics_for_human_review_not_as_certified_defect
     assert '"classification": "REVIEW_REQUIRED"' in source
     assert "Static inspection does not execute workflows" in source
     assert "actionlint/CI" in source
+
+
+def test_oos_evidence_persistence_rechecks_tested_sha_and_retries_races():
+    source = (WORKFLOWS / "oos-calibration.yml").read_text(encoding="utf-8")
+    assert 'tested_sha="$(git rev-parse HEAD)"' in source
+    assert 'git diff --name-only "$tested_sha" "$current_sha"' in source
+    assert 'for attempt in 1 2 3 4 5; do' in source
+    assert 'git push origin HEAD:main' in source
+    assert "stale evidence will not be published" in source
