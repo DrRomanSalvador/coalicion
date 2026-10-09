@@ -219,47 +219,109 @@ def supervise(approval, ref, workers_dir, state_path):
         return evidence
 
     persist()
-    batch_pending = {
-        batch_no: set(m["id"] for m in missions[start:start + BATCH_SIZE])
-        for batch_no, start in enumerate(range(0, len(missions), BATCH_SIZE), 1)
-    }
-    batch_done = {k: 0 for k in batch_pending}
-    active = set()
+    batches = [missions[i:i + BATCH_SIZE] for i in range(0, len(missions), BATCH_SIZE)]
+    state["execution_mode"] = "STRICT_SEQUENTIAL_BATCHES"
+    state["batches_total"] = len(batches)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=pool_size) as executor:
-        future_to_mission = {}
-        for m in missions:
-            future_to_mission[executor.submit(dispatch_one, m)] = m
-            active.add(m["id"])
-        for future in concurrent.futures.as_completed(future_to_mission):
-            m = future_to_mission[future]
-            active.discard(m["id"])
+    def dispatch_one(m):
+        out = workers / f"worker_{m['index']:04d}.json"
+        if out.exists():
             try:
-                evidence = future.result()
-            except Exception as exc:
-                evidence = {
-                    "status": "BLOCKED", "mission_id": m["id"], "title": m["title"],
-                    "agent_id": m["agent_id"], "ref": ref, "queen_approval": m["approval"],
-                    "returncode": 2, "stderr": f"FAIL_CLOSED: worker exception: {exc}",
-                    "agent_runtime": {
-                        "provider": os.environ.get("COLMENA_AGENT_PROVIDER", ""),
-                        "execution_id": f"{os.environ.get('COLMENA_AGENT_EXECUTION_ID', '')}-{m['id']}",
-                        "independent": True, "ai_execution": True,
-                    },
-                }
-                (workers / f"worker_{m['index']:04d}.json").write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-            status = evidence.get("status")
-            state["completed"] += int(status == "PASS")
-            state["failed"] += int(status == "FAIL")
-            state["blocked"] += int(status not in {"PASS", "FAIL"})
-            batch_no = (m["index"] - 1) // BATCH_SIZE + 1
-            batch_done[batch_no] += 1
-            if batch_done[batch_no] == len(batch_pending[batch_no]):
-                state["batches_completed"] += 1
-                print(f"QUEEN_BATCH_COMPLETE={batch_no}", flush=True)
-            state["current_batch"] = batch_no
-            state["current_missions"] = sorted(active)
-            persist()
+                existing = json.loads(out.read_text(encoding="utf-8"))
+                rt = existing.get("agent_runtime", {})
+                inf = existing.get("ai_inference", {})
+                reusable = (
+                    existing.get("mission_id") == m["id"]
+                    and existing.get("title") == m["title"]
+                    and existing.get("ref") == ref
+                    and existing.get("queen_approval") == m["approval"]
+                    and existing.get("agent_id") == m["agent_id"]
+                    and existing.get("status") == "PASS"
+                    and existing.get("runtime_status") == "PASS"
+                    and rt.get("independent") is True
+                    and rt.get("ai_execution") is True
+                    and bool(rt.get("execution_id"))
+                    and isinstance(inf, dict)
+                    and bool(inf.get("response_sha256"))
+                    and bool(inf.get("response_excerpt"))
+                )
+                if reusable:
+                    return existing
+            except Exception:
+                pass
+        env = os.environ.copy()
+        server_index = (int(m["index"]) - 1) % pool_size
+        env["COLMENA_AI_SERVER_URL"] = f"http://127.0.0.1:{int(env.get('COLMENA_AI_SERVER_PORT_BASE', '8765')) + server_index}"
+        base_execution_id = env.get("COLMENA_AGENT_EXECUTION_ID", "")
+        env["COLMENA_AGENT_EXECUTION_ID"] = f"{base_execution_id}-{m['id']}" if base_execution_id else m["id"]
+        print(f"QUEEN_DISPATCH_START={m['id']}", flush=True)
+        try:
+            p = subprocess.run(
+                [sys.executable, "scripts/colmena_worker.py", "--mission-id", m["id"], "--approval", approval, "--ref", ref, "--out", str(out)],
+                cwd=ROOT, env=env, text=True, capture_output=True, timeout=WORKER_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired as exc:
+            evidence = {
+                "schema": "COLMENA_WORKER_EVIDENCE_V4", "mission_id": m["id"],
+                "title": m["title"], "agent_id": m["agent_id"], "status": "BLOCKED",
+                "adapter": "WORKER_TIMEOUT", "command": None, "ref": ref,
+                "queen_approval": m["approval"], "returncode": 124,
+                "stdout": str(exc.stdout or "")[-4000:],
+                "stderr": f"FAIL_CLOSED: worker exceeded {WORKER_TIMEOUT_SECONDS}s timeout",
+                "agent_runtime": {
+                    "provider": env.get("COLMENA_AGENT_PROVIDER", ""),
+                    "execution_id": env.get("COLMENA_AGENT_EXECUTION_ID", ""),
+                    "independent": True, "ai_execution": True,
+                },
+            }
+            out.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+            print(f"QUEEN_WORKER_TIMEOUT={m['id']}", flush=True)
+            return evidence
+        try:
+            evidence = json.loads(out.read_text(encoding="utf-8"))
+        except Exception:
+            evidence = {"status":"BLOCKED","mission_id":m["id"],"title":m["title"],"agent_id":m["agent_id"],"ref":ref,"queen_approval":m["approval"],"returncode":p.returncode,"stdout":p.stdout[-4000:],"stderr":p.stderr[-4000:]}
+        if p.returncode != 0:
+            evidence["_worker_process_returncode"] = p.returncode
+        return evidence
+
+    for batch_no, batch in enumerate(batches, 1):
+        print(f"QUEEN_BATCH_START={batch_no}/{len(batches)} size={len(batch)}", flush=True)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(pool_size, len(batch))) as executor:
+            future_to_mission = {executor.submit(dispatch_one, m): m for m in batch}
+            for future in concurrent.futures.as_completed(future_to_mission):
+                m = future_to_mission[future]
+                try:
+                    evidence = future.result()
+                except Exception as exc:
+                    evidence = {
+                        "status": "BLOCKED", "mission_id": m["id"], "title": m["title"],
+                        "agent_id": m["agent_id"], "ref": ref, "queen_approval": m["approval"],
+                        "returncode": 2, "stderr": f"FAIL_CLOSED: worker exception: {exc}",
+                        "agent_runtime": {
+                            "provider": os.environ.get("COLMENA_AGENT_PROVIDER", ""),
+                            "execution_id": f"{os.environ.get('COLMENA_AGENT_EXECUTION_ID', '')}-{m['id']}",
+                            "independent": True, "ai_execution": True,
+                        },
+                    }
+                    (workers / f"worker_{m['index']:04d}.json").write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+                status = evidence.get("status")
+                state["completed"] += int(status == "PASS")
+                state["failed"] += int(status == "FAIL")
+                state["blocked"] += int(status not in {"PASS", "FAIL"})
+                state["current_batch"] = batch_no
+                state["current_missions"] = [x["id"] for x in batch]
+                persist()
+        batch_pass = all(
+            (json.loads((workers / f"worker_{m['index']:04d}.json").read_text(encoding="utf-8")).get("status") == "PASS")
+            for m in batch
+        )
+        if batch_pass:
+            state["batches_completed"] += 1
+            print(f"QUEEN_BATCH_COMPLETE={batch_no}/{len(batches)}", flush=True)
+        else:
+            print(f"QUEEN_BATCH_NOT_PASS={batch_no}/{len(batches)}; continuing fail-closed", flush=True)
+        persist()
 
     state["current_batch"] = None
     state["current_missions"] = []
