@@ -166,4 +166,5 @@ def test_2023_matrix_acquisition_installs_pytest_before_invariant_suite():
     install_step = source.split("      - name: Instalar dependencias de adquisición", 1)[1].split("      - name:", 1)[0]
     assert "pytest" in install_step
     assert "python -m pytest -q tests/test_neutral_coalition.py" in source
+    assert 'push:\n    branches: [main]\n    paths:\n      - ".github/workflows/acquire_matrix_2023.yml"' in source
 
