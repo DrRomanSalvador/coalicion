@@ -23,3 +23,12 @@ def test_worker_rejects_tampered_approval(tmp_path):
     ev=tmp_path/"evidence.json"
     p=subprocess.run([sys.executable,"scripts/colmena_worker.py","--mission-id",d["missions"][0]["id"],"--approval",str(out),"--ref","test-ref","--out",str(ev)],cwd=ROOT,text=True,capture_output=True)
     assert p.returncode!=0
+
+def test_workflow_binds_reina_secret_without_printing_it():
+    workflow=(ROOT/".github/workflows/colmena_atomic_swarm.yml").read_text(encoding="utf-8")
+    assert "HF_TOKEN: ${{ secrets.reina_TOKEN }}" in workflow
+    assert "if [[ -z \"${HF_TOKEN:-}\" ]]" in workflow
+    assert "echo \"${HF_TOKEN}" not in workflow
+    assert "print(\"${HF_TOKEN}" not in workflow
+    assert "Persist operational state (fail-closed)" in workflow
+    assert "timestamp_europe_madrid" in workflow
