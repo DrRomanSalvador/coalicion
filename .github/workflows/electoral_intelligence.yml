@@ -25,6 +25,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: electoral-intelligence-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   radar:
     runs-on: ubuntu-latest
