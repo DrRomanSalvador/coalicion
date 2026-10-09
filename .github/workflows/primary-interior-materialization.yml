@@ -42,6 +42,7 @@ jobs:
           test -s data/raw/Elecciones-Congreso.xlsx
           python scripts/materialize_official_interior_dataset.py
           python - <<'PY'
+          import hashlib
           import json
           from pathlib import Path
           p=Path("data/manifests/official_interior_congreso.json")
@@ -52,8 +53,16 @@ jobs:
           assert len(m["elections"]) == 16
           assert m["constituencies"] == 52
           assert m["validated_2023"]["status"] == "PASS"
-          assert Path("data/official_interior_congreso_1977_2023.csv").stat().st_size > 0
-          assert Path("artifacts/data/election_2023_canonical.json").stat().st_size > 0
+          reconciliation = m["validated_2023"]["vote_seat_reconciliation"]
+          assert reconciliation["status"] == "PASS"
+          assert reconciliation["constituencies"] == 52
+          assert reconciliation["discrepancies"] == 0
+          csv_path = Path("data/official_interior_congreso_1977_2023.csv")
+          canonical_path = Path("artifacts/data/election_2023_canonical.json")
+          assert csv_path.stat().st_size == m["normalized_csv_bytes"] > 0
+          assert hashlib.sha256(csv_path.read_bytes()).hexdigest() == m["normalized_csv_sha256"]
+          assert canonical_path.stat().st_size == m["canonical_2023_bytes"] > 0
+          assert hashlib.sha256(canonical_path.read_bytes()).hexdigest() == m["canonical_2023_sha256"]
           PY
       - run: |
           set -euo pipefail
