@@ -7,6 +7,7 @@ Comparar candidaturas observadas y agrupaciones hipotéticas en Madrid y Barcelo
 ```bash
 python scripts/demo_multiparty.py
 pytest -q tests/test_demo_multiparty.py
+# Resultado generado: artifacts/demo_multiparty_2023.json
 ```
 
 ## Escenarios
