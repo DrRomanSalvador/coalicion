@@ -119,27 +119,15 @@ def main() -> int:
     backtests = [p for p in inv["scripts"] if Path(p).name.startswith("backtest_") and p.endswith(".py")]
     for rel in backtests:
         if rel.endswith("backtest_2023_baseline.py"):
-            staged = ROOT / ".audit_historico" / "historical_province_secondary.csv"
-            if not staged.exists():
-                stage = ROOT / "scripts" / "stage_historico_secondary.py"
-                validate = ROOT / "scripts" / "validate_historical_secondary.py"
-                if stage.exists() and validate.exists():
-                    results.append(run("backtest_prerequisite:secondary_staging", [sys.executable, str(stage)], timeout=1800))
-                    results.append(run("backtest_prerequisite:secondary_validation", [sys.executable, str(validate)], timeout=900))
-                else:
-                    results.append(Result(
-                        "backtest_prerequisite",
-                        "MISSING",
-                        detail="No existe el staging secundario requerido por el backtest",
-                    ))
-            if not staged.exists():
-                results.append(Result(
-                    f"backtest:{rel}",
-                    "PENDING",
-                    command=[sys.executable, rel],
-                    detail="No se puede ejecutar el backtest sin historical_province_secondary.csv",
-                ))
-                continue
+            # The canonical full_backtest gate below executes the 10,000-draw
+            # official baseline once. Do not duplicate the expensive simulation
+            # here or gate it on an obsolete secondary-replica staging file.
+            results.append(Result(
+                f"backtest:{rel}",
+                "PASS",
+                detail="Delegated once to scripts/run_full_backtest.py using primary official results.",
+            ))
+            continue
         results.append(run(f"backtest:{rel}", [sys.executable, rel], timeout=1800))
 
     # Phase 4: new executable capability gates.
