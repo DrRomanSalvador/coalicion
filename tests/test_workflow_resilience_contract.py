@@ -68,3 +68,11 @@ def test_colmena_agent_evidence_persistence_retries_concurrent_branch_updates():
     assert 'git rebase "origin/$branch"' in source
     assert 'git push origin "HEAD:$branch"' in source
     assert "refusing to overwrite newer state" in source
+
+
+def test_methodology_ci_cancels_superseded_runs_per_ref():
+    for name in ("methodology-validation.yml", "methodology_integration.yml", "methodology_validation.yml"):
+        source = (WORKFLOWS / name).read_text(encoding="utf-8")
+        assert "concurrency:" in source
+        assert "github.event.pull_request.number || github.ref" in source
+        assert "cancel-in-progress: true" in source
