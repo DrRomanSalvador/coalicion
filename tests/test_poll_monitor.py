@@ -440,7 +440,7 @@ def test_poll_monitor_does_not_rewrite_state_for_heartbeat_only(tmp_path, monkey
     monkeypatch.setattr(monitor, "fetch_all", no_change_fetch)
     monkeypatch.setattr(monitor, "detect_new", lambda polls, discoveries: ([], [], []))
     monkeypatch.setattr(monitor, "audit_coverage", lambda failures, discoveries: coverage)
-    monkeypatch.setattr(monitor, "alert", lambda payload: False)
+    monkeypatch.setattr(monitor, "alert", lambda payload: None)
 
     monitor.run()  # Initializes the baseline and writes the first durable snapshot.
     before = state_path.read_bytes()
@@ -482,3 +482,33 @@ def test_poll_monitor_blocks_when_required_telegram_alert_cannot_be_delivered(tm
 def test_poll_monitor_module_exits_nonzero_for_blocked_status():
     source = Path("src/poll_monitor.py").read_text(encoding="utf-8")
     assert 'raise SystemExit(1 if result.get("status") == "BLOCKED" else 0)' in source
+
+
+def test_poll_monitor_requires_delivery_to_every_authorized_chat(tmp_path, monkeypatch):
+    import requests
+    from src import poll_monitor as module
+
+    config_path = tmp_path / "config.json"
+    config_path.write_text(json.dumps({"sources": [], "coverage_contract": {"scope": "test"}}), encoding="utf-8")
+    monitor = module.PollMonitor(config_path=config_path, state_path=tmp_path / "state.json")
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "test-token")
+    monkeypatch.setenv("TELEGRAM_ALLOWED_CHATS", "chat-a,chat-b")
+    monkeypatch.setattr(module.time, "sleep", lambda seconds: None)
+
+    class Response:
+        def raise_for_status(self):
+            return None
+
+    class PartialDeliverySession:
+        def post(self, url, *, json, timeout):
+            if json["chat_id"] == "chat-b":
+                raise requests.RequestException("simulated recipient failure")
+            return Response()
+
+    monitor.session = PartialDeliverySession()
+    payload = {
+        "new_polls": [{"poll": module.canonical_poll(valid_poll()), "event_type": "NEW"}],
+        "changed_polls": [], "discoveries": [], "failures": [],
+    }
+
+    assert monitor.alert(payload) is False
