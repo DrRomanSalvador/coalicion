@@ -36,3 +36,11 @@ def test_cli_writes_json_and_report(tmp_path: Path):
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert json.loads(output.read_text())["schema"] == "COALICION_DECISION_ANALYSIS_V1"
     assert "Informe ejecutivo" in report.read_text()
+
+def test_member_seats_and_scenario_deltas_are_not_conflated():
+    result, _ = build_analysis()
+    for entry in result["decision_log"]:
+        assert set(entry["member_seats_before_merge"]) == set(entry["members"])
+        expected = result["regions"][entry["constituency"]]["scenarios"][entry["scenario"]]["seat_delta_vs_observed"]
+        assert entry["scenario_seat_delta_vs_observed"] == expected
+        assert "member_seat_deltas" not in entry
