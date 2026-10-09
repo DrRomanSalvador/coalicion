@@ -129,5 +129,19 @@
     "tasks_defined": 5,
     "approval_required_before_assignment_or_execution": true,
     "note": "Five audit missions are defined with bounded repository context; all 179 remain PENDING and no mission has been assigned or executed."
+  },
+  "last_hf_agent_execution": {
+    "schema": "COLMENA_HF_EXECUTION_EVIDENCE_V1",
+    "mission_id": "M0001",
+    "agent_id": "agent-001",
+    "status": "BLOCKED",
+    "provider": "huggingface",
+    "evidence_path": "artifacts/colmena/agents/agent-001_M0001.json",
+    "evidence_sha256": "a30a4a6e87f8c101e5f80175da3bacba9a322d314ba19855ea768ee79b30fb01",
+    "recorded_at": "2026-10-09T12:54:18.929758+00:00",
+    "github_run_id": "37933083177",
+    "github_run_attempt": "1",
+    "tested_commit": "4e4d1097bf9910efa96d9ed866261faa9c9e3d33",
+    "review_required_before_pass": true
   }
 }
