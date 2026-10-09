@@ -158,3 +158,15 @@ def test_agent_context_paths_are_bounded_and_repo_relative(tmp_path, monkeypatch
         assert "no permitida" in str(exc)
     else:
         raise AssertionError("Debe bloquear rutas fuera del repositorio")
+
+
+def test_canonical_mission_control_has_next_five_executable_tasks():
+    control = json.loads((ROOT / "docs" / "COLMENA_MISSION_CONTROL.json").read_text(encoding="utf-8"))
+    missions = control["missions"]
+    assert len(missions) == 179
+    assert len({m["id"] for m in missions}) == 179
+    next_five = [m for m in missions if m["id"] in {f"M{i:04d}" for i in range(6, 11)}]
+    assert len(next_five) == 5
+    assert all(m["status"] == "PENDING" and m["assigned"] is False for m in next_five)
+    assert all(isinstance(m["task"], str) and m["task"].strip() for m in next_five)
+    assert all(isinstance(m.get("context_paths"), list) and m["context_paths"] for m in next_five)
