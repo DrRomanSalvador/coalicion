@@ -25,6 +25,7 @@ jobs:
           assert math.isfinite(x["diagnostics"]["max_r_hat"]) and x["diagnostics"]["max_r_hat"]<=1.01
           PY
       - name: Persist genuine SEEC evidence with race recovery
+        if: github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
