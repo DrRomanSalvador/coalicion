@@ -827,7 +827,7 @@ class PollMonitor:
         previous_coverage = self.state.get("last_coverage")
         coverage_changed = previous_coverage != coverage
         meaningful = baseline or bool(new or changed or new_discoveries or failure_notifications or coverage_changed)
-        path = self.save(payload, meaningful=meaningful)
+        notification_required = bool(new or changed or new_discoveries or failure_notifications or self.state.get("recovered_sources"))
         self.state["runs"] = int(self.state.get("runs", 0)) + 1
         self.state["last_run"] = checked
         self.state["last_status"] = payload["status"]
@@ -837,10 +837,18 @@ class PollMonitor:
         self.state["last_failures"] = failures
         self.state["last_coverage"] = coverage
         self.state["total_validated"] = len(self.state["poll_hashes"])
+        notification_sent = self.alert(payload)
+        payload["notification_status"] = (
+            "SENT" if notification_sent else "BLOCKED"
+        ) if notification_required else "NOT_REQUIRED"
+        if notification_required and not notification_sent:
+            payload["status"] = "BLOCKED"
+            self.state["last_status"] = "BLOCKED"
+        meaningful = meaningful or (notification_required and not notification_sent)
+        path = self.save(payload, meaningful=meaningful)
         print(f"Encontradas {len(polls)} encuestas validadas")
         print(f"{len(new)+len(changed)} encuestas nuevas/cambiadas")
         print(f"Guardado en {path}" if path else "Sin cambios persistibles.")
-        self.alert(payload)
         # alert() may update failure deduplication state. Persist only when the
         # durable snapshot changes; checked_at/run counters alone are telemetry and
         # must not generate a main-branch commit every five minutes.
@@ -854,15 +862,16 @@ class PollMonitor:
                     source_state.pop("checked_at", None)
             return snapshot
 
-        if durable_snapshot(self.state) != durable_snapshot(state_before):
+        if path is None and durable_snapshot(self.state) != durable_snapshot(state_before):
             self.state_path.parent.mkdir(parents=True, exist_ok=True)
             self.state_path.write_text(
                 json.dumps(self.state, ensure_ascii=False, indent=2) + "\n",
                 encoding="utf-8",
             )
-        else:
+        elif path is None:
             print("Sin cambios de estado persistibles; se omite la escritura del estado.")
         return payload
 
 if __name__ == "__main__":
-    PollMonitor().run()
+    result = PollMonitor().run()
+    raise SystemExit(1 if result.get("status") == "BLOCKED" else 0)
