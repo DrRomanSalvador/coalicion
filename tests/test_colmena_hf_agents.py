@@ -44,3 +44,51 @@ def test_agent_rejects_mission_without_task(tmp_path, monkeypatch):
         assert "task" in str(exc)
     else:
         raise AssertionError("La misión sin tarea debía rechazarse")
+
+
+
+def test_result_reconciliation_records_review_without_allowing_model_pass(tmp_path, monkeypatch):
+    path = tmp_path / "missions.json"
+    monkeypatch.setattr(queen, "MISSION_CONTROL", path)
+    missions = queen.get_missions()
+    mission = missions[0]
+    mission["task"] = "Revisar un contrato de prueba con evidencia."
+    mission["status"] = "ASSIGNED"
+    mission["assigned"] = True
+    queen.save_json(path, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
+    evidence = tmp_path / "evidence.json"
+    evidence.write_text(json.dumps({
+        "mission_id": mission["id"], "agent_id": mission["agent_id"],
+        "status": "REVIEW_REQUIRED", "response": "Informe generado."
+    }), encoding="utf-8")
+    recorded = queen.record_result(evidence)
+    assert recorded["status"] == "REVIEW_REQUIRED"
+    assert queen.get_missions()[0]["status"] == "REVIEW_REQUIRED"
+
+    evidence.write_text(json.dumps({
+        "mission_id": mission["id"], "agent_id": mission["agent_id"], "status": "PASS"
+    }), encoding="utf-8")
+    try:
+        queen.record_result(evidence)
+    except ValueError as exc:
+        assert "PASS" in str(exc)
+    else:
+        raise AssertionError("La Reina no debe aceptar PASS certificado por un modelo")
+
+
+def test_result_reconciliation_rejects_unassigned_or_wrong_agent(tmp_path, monkeypatch):
+    path = tmp_path / "missions.json"
+    monkeypatch.setattr(queen, "MISSION_CONTROL", path)
+    missions = queen.get_missions()
+    mission = missions[0]
+    evidence = tmp_path / "evidence.json"
+    evidence.write_text(json.dumps({
+        "mission_id": mission["id"], "agent_id": mission["agent_id"],
+        "status": "REVIEW_REQUIRED"
+    }), encoding="utf-8")
+    try:
+        queen.record_result(evidence)
+    except ValueError as exc:
+        assert "no está asignada" in str(exc)
+    else:
+        raise AssertionError("Se rechazaba registrar una misión no asignada")
