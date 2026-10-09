@@ -176,6 +176,50 @@ def certify(root: str = "."):
         "cobertura de transporte/roles materializada; no se interpreta como validación de todos los sondeos",
     ))
 
+    # Verify the actual pinned workbook and all derived bytes. A stale manifest
+    # or a missing derived hash must block certification even when older evidence
+    # files happen to be present.
+    official_manifest_path = r / "data/manifests/official_interior_congreso.json"
+    official_manifest = _read_json(official_manifest_path)
+    workbook_path = r / "data/raw/Elecciones-Congreso.xlsx"
+    normalized_path = r / "data/official_interior_congreso_1977_2023.csv"
+    canonical_path = r / "artifacts/data/election_2023_canonical.json"
+    validated = official_manifest.get("validated_2023", {}) if isinstance(official_manifest, dict) else {}
+    seat_recon = validated.get("vote_seat_reconciliation", {}) if isinstance(validated, dict) else {}
+    official_dataset_ok = (
+        isinstance(official_manifest, dict)
+        and official_manifest.get("schema") == "OFFICIAL_INTERIOR_CONGRESS_DATASET_V1"
+        and official_manifest.get("status") == "READY"
+        and official_manifest.get("hash_scope") == "workbook_bytes"
+        and len(official_manifest.get("elections", [])) == 16
+        and official_manifest.get("constituencies") == 52
+        and official_manifest.get("records", 0) > 0
+        and workbook_path.is_file()
+        and _hash_matches(workbook_path, official_manifest.get("sha256"))
+        and workbook_path.stat().st_size == official_manifest.get("bytes")
+        and normalized_path.is_file()
+        and _hash_matches(normalized_path, official_manifest.get("normalized_csv_sha256"))
+        and normalized_path.stat().st_size == official_manifest.get("normalized_csv_bytes")
+        and canonical_path.is_file()
+        and _hash_matches(canonical_path, official_manifest.get("canonical_2023_sha256"))
+        and canonical_path.stat().st_size == official_manifest.get("canonical_2023_bytes")
+        and validated.get("status") == "PASS"
+        and validated.get("circunscripciones") == 52
+        and validated.get("escaños") == 350
+        and validated.get("candidate_votes_total") == 24487414
+        and validated.get("blank_votes_total") == 200673
+        and validated.get("valid_votes_total") == 24688087
+        and seat_recon.get("status") == "PASS"
+        and seat_recon.get("constituencies") == 52
+        and seat_recon.get("discrepancies") == 0
+        and seat_recon.get("method") == "src.electoral.allocate"
+    )
+    gates.append(_gate(
+        "official_workbook_dataset",
+        official_dataset_ok,
+        "workbook primario, hashes de artefactos derivados y reconciliación votos-escaños 2023 exacta",
+    ))
+
     # Independent audit is deliberately impossible to self-certify.
     ext_path = r / "ci_evidence/external_audit.json"
     external = _read_json(ext_path)
