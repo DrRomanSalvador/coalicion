@@ -24,10 +24,43 @@ jobs:
           assert x["constituencies"]==52
           assert x["rng_algorithm"]=="numpy.PCG64"
           PY
-      - name: Persist SEEC evidence on main only
+      - name: Persist SEEC evidence on main only with race recovery
         if: github.ref == 'refs/heads/main'
+        shell: bash
         run: |
+          set -euo pipefail
+          snapshot="$(mktemp)"
+          cp ci_evidence/seec_posterior.json "$snapshot"
+          expected_input_sha="$(python -c 'import json; print(json.load(open("ci_evidence/seec_posterior.json", encoding="utf-8"))["input_sha256"])')"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ci_evidence/seec_posterior.json
-          git diff --cached --quiet || (git commit -m "ci: materialize genuine 10k SEEC posterior evidence" && git push origin HEAD:main)
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+
+            current_input_sha="$(sha256sum data/resultados_oficiales_2004_2023.csv | cut -d ' ' -f1)"
+            if [ "$current_input_sha" != "$expected_input_sha" ]; then
+              echo "::error::FAIL_CLOSED: official input changed during inference; rerun against the current main dataset."
+              exit 1
+            fi
+
+            mkdir -p ci_evidence
+            cp "$snapshot" ci_evidence/seec_posterior.json
+            git add ci_evidence/seec_posterior.json
+            if git diff --cached --quiet; then
+              echo "SEEC evidence is already current on main."
+              exit 0
+            fi
+
+            git commit -m "ci: materialize genuine 10k SEEC posterior evidence"
+            if git push origin HEAD:main; then
+              echo "SEEC evidence persisted on main (attempt $attempt)."
+              exit 0
+            fi
+            echo "Concurrent main update; retrying from the newest main (attempt $attempt)." >&2
+            sleep "$((attempt * 3))"
+          done
+
+          echo "::error::Unable to persist SEEC evidence after 5 concurrent-update retries."
+          exit 1
