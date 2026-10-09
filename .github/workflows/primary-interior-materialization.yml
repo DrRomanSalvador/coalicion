@@ -59,10 +59,13 @@ jobs:
           assert reconciliation["discrepancies"] == 0
           csv_path = Path("data/official_interior_congreso_1977_2023.csv")
           canonical_path = Path("artifacts/data/election_2023_canonical.json")
+          sidecar_path = canonical_path.with_name(canonical_path.name + ".sha256")
           assert csv_path.stat().st_size == m["normalized_csv_bytes"] > 0
           assert hashlib.sha256(csv_path.read_bytes()).hexdigest() == m["normalized_csv_sha256"]
           assert canonical_path.stat().st_size == m["canonical_2023_bytes"] > 0
-          assert hashlib.sha256(canonical_path.read_bytes()).hexdigest() == m["canonical_2023_sha256"]
+          canonical_sha = hashlib.sha256(canonical_path.read_bytes()).hexdigest()
+          assert canonical_sha == m["canonical_2023_sha256"]
+          assert sidecar_path.read_text(encoding="utf-8").strip().split()[0] == canonical_sha
           PY
       - run: |
           set -euo pipefail
@@ -75,7 +78,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/resultados_oficiales_2004_2023.csv data/manifests/INTERIOR_ACQUISITION.json ci_evidence/interior_acquisition.json ci_evidence/historico_source_tier.txt
-          git add data/official_interior_congreso_1977_2023.csv data/manifests/official_interior_congreso.json artifacts/data/election_2023_canonical.json
+          git add data/official_interior_congreso_1977_2023.csv data/manifests/official_interior_congreso.json artifacts/data/election_2023_canonical.json artifacts/data/election_2023_canonical.json.sha256
           git add -f data/raw/Elecciones-Congreso.xlsx 2>/dev/null || true
           git add .github/workflows/primary-interior-materialization.yml
           git commit -m "Materialize primary Interior historical electoral data" || exit 0
