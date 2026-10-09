@@ -7,6 +7,7 @@ on:
     paths:
       - "scripts/materialize_primary_interior.py"
       - "scripts/materialize_official_history_from_parts.py"
+      - "scripts/materialize_official_interior_dataset.py"
       - "data/official_materialization_parts/**"
       - ".github/workflows/primary-interior-materialization.yml"
   workflow_dispatch:
@@ -33,6 +34,25 @@ jobs:
           else
             python scripts/materialize_primary_interior.py
           fi
+      - name: Materialize workbook-derived historical dataset
+        run: |
+          set -euo pipefail
+          test -s data/raw/Elecciones-Congreso.xlsx
+          python scripts/materialize_official_interior_dataset.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("data/manifests/official_interior_congreso.json")
+          m=json.loads(p.read_text(encoding="utf-8"))
+          assert m["status"] == "READY"
+          assert m["sha256"] == "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2"
+          assert m["bytes"] == Path("data/raw/Elecciones-Congreso.xlsx").stat().st_size
+          assert len(m["elections"]) == 16
+          assert m["constituencies"] == 52
+          assert m["validated_2023"]["status"] == "PASS"
+          assert Path("data/official_interior_congreso_1977_2023.csv").stat().st_size > 0
+          assert Path("artifacts/data/election_2023_canonical.json").stat().st_size > 0
+          PY
       - run: |
           set -euo pipefail
           mkdir -p ci_evidence
@@ -44,6 +64,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/resultados_oficiales_2004_2023.csv data/manifests/INTERIOR_ACQUISITION.json ci_evidence/interior_acquisition.json ci_evidence/historico_source_tier.txt
+          git add data/official_interior_congreso_1977_2023.csv data/manifests/official_interior_congreso.json artifacts/data/election_2023_canonical.json
           git add -f data/raw/Elecciones-Congreso.xlsx 2>/dev/null || true
           git add .github/workflows/primary-interior-materialization.yml
           git commit -m "Materialize primary Interior historical electoral data" || exit 0
