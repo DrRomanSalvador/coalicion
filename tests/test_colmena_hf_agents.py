@@ -8,6 +8,21 @@ import colmena_queen_hf as queen
 import colmena_agent_hf
 
 
+
+def test_validate_missions_rejects_status_assigned_mismatch():
+    missions = [
+        {"id": f"M{i:04d}", "agent_id": f"agent-{i:03d}", "status": "PENDING", "assigned": False}
+        for i in range(1, 180)
+    ]
+    missions[0].update({"status": "BLOCKED", "assigned": True})
+    try:
+        queen.validate_missions(missions)
+    except ValueError as exc:
+        assert "incoherentes" in str(exc)
+    else:
+        raise AssertionError("Debe rechazarse status/assigned incoherentes")
+
+
 def test_mission_control_initializes_179_slots_without_claiming_execution(tmp_path, monkeypatch):
     path = tmp_path / "COLMENA_MISSION_CONTROL.json"
     monkeypatch.setattr(queen, "MISSION_CONTROL", path)
