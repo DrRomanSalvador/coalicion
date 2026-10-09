@@ -19,6 +19,9 @@ def test_decision_log_explains_deltas():
         assert entry["causal_scope"] and entry["marginal_quotient_explanation"]
     madrid = next(x for x in result["decision_log"] if x["constituency"] == "Madrid" and x["scenario"] == "bloque_amplio_con_psoe_psc")
     assert madrid["seat_delta"] == 1
+    regional = result["regions"]["Madrid"]["scenarios"]["bloque_amplio_con_psoe_psc"]
+    assert regional["marginal_seat_changes"]
+    assert all("quotient_explanation" in item for item in regional["marginal_seat_changes"])
 
 def test_frontier_holds_rival_votes_fixed():
     result = viability_frontier({"A": 400, "B": 350, "C": 250}, 3, 0, "B")
