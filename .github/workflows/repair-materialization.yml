@@ -33,12 +33,22 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          import hashlib
+          import hashlib, json
           from pathlib import Path
-          p=Path("data/resultados_oficiales_2004_2023.csv")
-          assert p.exists() and p.stat().st_size == 7721910
-          assert hashlib.sha256(p.read_bytes()).hexdigest() == "fe438253477b0b5d6976161baf1ea17879e8ad8e25691e0320752fdd642409fe"
-          print("PASS: canonical historical CSV fingerprint verified")
+          p = Path("data/resultados_oficiales_2004_2023.csv")
+          manifest = json.loads(Path("data/manifests/INTERIOR_ACQUISITION.json").read_text(encoding="utf-8"))
+          assert p.is_file() and p.stat().st_size > 1000, "canonical CSV missing or empty"
+          assert manifest.get("status") == "PASS", "official acquisition manifest is not PASS"
+          assert manifest.get("source_tier") == "PRIMARY_INTERIOR", "non-primary source cannot be canonical"
+          official = manifest.get("official_results", {})
+          assert official.get("rows") == 50700, "unexpected canonical row count"
+          assert len(official.get("elections", [])) == 8, "unexpected election count"
+          assert official.get("constituencies_per_election") == 52, "unexpected constituency count"
+          assert official.get("seats_per_election") == 350, "unexpected seat count"
+          actual_sha = hashlib.sha256(p.read_bytes()).hexdigest()
+          assert actual_sha == manifest.get("derived_csv_sha256"), "CSV SHA-256 does not match acquisition manifest"
+          assert p.stat().st_size == manifest.get("derived_csv_bytes"), "CSV size does not match acquisition manifest"
+          print(f"PASS: canonical official CSV verified against manifest ({actual_sha})")
           PY
 
       - name: Commit repaired materialization
