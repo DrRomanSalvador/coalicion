@@ -114,7 +114,14 @@ def build_analysis(data_path: Path = DEFAULT_DATA, config_path: Path = DEFAULT_S
                 "assumption": scenario["assumption"], "votes_by_list": {p:v for p,v in lists.items() if v},
                 "simulated_seats": {p:n for p,n in allocation.items() if n},
                 "seat_delta_vs_observed": {p: allocation.get(p,0)-base.get(p,0)
-                    for p in sorted(set(base)|set(allocation)) if allocation.get(p,0)!=base.get(p,0)}}
+                    for p in sorted(set(base)|set(allocation)) if allocation.get(p,0)!=base.get(p,0)},
+                "marginal_seat_changes": [
+                    {"candidacy":p, "observed_seats":base.get(p,0), "simulated_seats":allocation.get(p,0),
+                     "delta":allocation.get(p,0)-base.get(p,0),
+                     "quotient_explanation":(quotient_boundary(lists, allocation, p) if p in lists and allocation.get(p,0)>base.get(p,0)
+                         else quotient_boundary(votes, base, p) if p in votes and base.get(p,0)>allocation.get(p,0)
+                         else {"status":"LIST_ABSORBED_IN_GROUP" if p in votes and p not in lists else "NO_SEAT_CHANGE"})}
+                    for p in sorted(set(base)|set(allocation)) if allocation.get(p,0)!=base.get(p,0)]}
             for label, members in groups.items():
                 coalition_votes = dict(votes); coalition_votes[label] = sum(votes[p] for p in members)
                 for p in members: del coalition_votes[p]
