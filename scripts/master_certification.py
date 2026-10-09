@@ -187,6 +187,7 @@ def certify(root: str = "."):
     workbook_path = r / "data/raw/Elecciones-Congreso.xlsx"
     normalized_path = r / "data/official_interior_congreso_1977_2023.csv"
     canonical_path = r / "artifacts/data/election_2023_canonical.json"
+    canonical_sidecar_path = canonical_path.with_name(canonical_path.name + ".sha256")
     validated = official_manifest.get("validated_2023", {}) if isinstance(official_manifest, dict) else {}
     seat_recon = validated.get("vote_seat_reconciliation", {}) if isinstance(validated, dict) else {}
     official_dataset_ok = (
@@ -208,6 +209,8 @@ def certify(root: str = "."):
         and canonical_path.is_file()
         and _hash_matches(canonical_path, official_manifest.get("canonical_2023_sha256"))
         and canonical_path.stat().st_size == official_manifest.get("canonical_2023_bytes")
+        and canonical_sidecar_path.is_file()
+        and canonical_sidecar_path.read_text(encoding="utf-8").strip().split()[0] == official_manifest.get("canonical_2023_sha256")
         and validated.get("status") == "PASS"
         and validated.get("circunscripciones") == 52
         and validated.get("escaños") == 350
