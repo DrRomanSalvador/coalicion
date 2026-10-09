@@ -1,10 +1,41 @@
 from __future__ import annotations
 from pathlib import Path
 import json
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.master_certification import certify
 
 
 def product_status(root="."):
     r = Path(root)
+    master = certify(str(r))
+    if master.get("status") in {"READY_FOR_EXTERNAL_AUDIT", "CERTIFIED"}:
+        manifest = json.loads((r / "data/manifests/official_interior_congreso.json").read_text(encoding="utf-8"))
+        return {
+            "status": "SELLABLE_BETA",
+            "certification": master["status"],
+            "use_allowed": True,
+            "data_source": "PRIMARY_INTERIOR_WORKBOOK",
+            "prediction_status": "BLOCKED_NO_VALIDATED_52_CONSTITUENCY_2026_MATRIX",
+            "evidence": {
+                "workbook_sha256": manifest["sha256"],
+                "historical_elections": len(manifest["elections"]),
+                "constituencies": manifest["constituencies"],
+                "normalized_records": manifest["records"],
+                "seat_reconciliation": manifest["validated_2023"]["vote_seat_reconciliation"],
+                "master_certification": master["status"],
+            },
+            "warnings": [
+                "Producto beta vendible para auditoría histórica y simulación aritmética; no equivale a certificación externa.",
+                "La predicción de escaños 2026 permanece bloqueada sin matriz territorial explícita y validada de las 52 circunscripciones.",
+                "No se infieren votos provinciales desde porcentajes nacionales.",
+            ],
+        }
+
     primary_matrix = r / "artifacts/data/election_2023_canonical.json"
     primary_cert = r / "artifacts/audit/certificate_2023.json"
     primary_validation = r / "artifacts/audit/validation_2023.json"
