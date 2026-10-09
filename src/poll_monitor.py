@@ -857,7 +857,7 @@ class PollMonitor:
         if durable_snapshot(self.state) != durable_snapshot(state_before):
             self.state_path.parent.mkdir(parents=True, exist_ok=True)
             self.state_path.write_text(
-                json.dumps(self.state, ensure_ascii=False, indent=2) + "\\n",
+                json.dumps(self.state, ensure_ascii=False, indent=2) + "\n",
                 encoding="utf-8",
             )
         else:
