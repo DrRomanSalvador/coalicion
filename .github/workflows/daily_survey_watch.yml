@@ -12,14 +12,9 @@ concurrency:
   group: daily-survey-watch
   cancel-in-progress: false
 
-concurrency:
-  group: daily-survey-watch
-  cancel-in-progress: false
-
 jobs:
   watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
