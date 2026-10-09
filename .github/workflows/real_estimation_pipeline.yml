@@ -46,7 +46,7 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           mkdir -p artifacts/estimation
-          if [ ! -s artifacts/estimation/observations.json ] || ! cmp -s /tmp/estimation-state/observations.json artifacts/estimation/observations.json; then
+          if [ -s artifacts/estimation/observations.json ] && ! cmp -s /tmp/estimation-state/observations.json artifacts/estimation/observations.json; then
             echo "::error::FAIL_CLOSED: canonical observations changed after estimation; refusing to overwrite newer poll data with a stale snapshot."
             exit 1
           fi
