@@ -1,0 +1,141 @@
+name: Repository-wide self-regulation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+concurrency:
+  group: repository-self-regulation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Detect, diagnose and validate the exact repository revision
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      REPOSITORY: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Checkout the exact revision under test
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install locked runtime and test dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          if [[ -f requirements.lock ]]; then
+            python -m pip install -r requirements.lock
+          elif [[ -f requirements.txt ]]; then
+            python -m pip install -r requirements.txt
+          else
+            echo "::error::No requirements.lock or requirements.txt; cannot validate dependencies."
+            exit 1
+          fi
+          python -m pip install pytest
+
+      - name: Assert checkout is the requested commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          if [[ "$actual" != "$EXPECTED_SHA" ]]; then
+            echo "::error::Checkout SHA mismatch: expected=$EXPECTED_SHA actual=$actual"
+            exit 1
+          fi
+          printf 'TESTED_COMMIT=%s\n' "$actual" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Compile all Python source, scripts and tests
+        run: python -m compileall -q .
+
+      - name: Audit all workflow resilience contracts
+        run: python scripts/audit_workflow_resilience.py
+
+      - name: Lint every GitHub Actions workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="1.7.12"
+          archive="actionlint_${version}_linux_amd64.tar.gz"
+          curl --fail --location --retry 3 --retry-all-errors \
+            "https://github.com/rhysd/actionlint/releases/download/v${version}/${archive}" \
+            --output "/tmp/${archive}"
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  /tmp/${archive}" | sha256sum --check
+          tar -xzf "/tmp/${archive}" -C /tmp actionlint
+          /tmp/actionlint -color .github/workflows/*.yml
+
+      - name: Run complete repository regression and fail-closed gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest -q
+          python scripts/autonomous_fix_and_validate.py --strict
+
+      - name: Revalidate exact revision after all tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          [[ "$actual" == "$EXPECTED_SHA" ]] || {
+            echo "::error::Working tree revision changed during validation: expected=$EXPECTED_SHA actual=$actual"
+            exit 1
+          }
+          if [[ "$GITHUB_EVENT_NAME" != "pull_request" && "$GITHUB_REF" == "refs/heads/main" ]]; then
+            git fetch --no-tags origin main
+            current_main="$(git rev-parse origin/main)"
+            if [[ "$current_main" != "$EXPECTED_SHA" ]]; then
+              echo "::error::Stale validation: tested=$EXPECTED_SHA current_main=$current_main"
+              exit 1
+            fi
+          fi
+          echo "Exact-commit validation completed for $EXPECTED_SHA." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload diagnostics even when validation fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: repository-self-regulation-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          path: |
+            artifacts/verification/autonomous_validation.json
+            artifacts/verification/workflow_resilience_audit.json
+            ci_evidence/master_certification.json
+
+      - name: Open one tracked remediation issue for this failed commit
+        if: failure() && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="[self-regulation] unresolved validation failure ${EXPECTED_SHA:0:12}"
+          existing="$(gh issue list --repo "$REPOSITORY" --state open --search "$title in:title" --json title --jq 'length')"
+          if [[ "$existing" == "0" ]]; then
+            gh issue create --repo "$REPOSITORY" --title "$title" --body "$(printf '## Repository-wide validation blocked\n\n- Tested commit: %s\n- Run: %s\n- Trigger: %s\n\nThe exact-commit gate failed. Inspect the run logs and uploaded diagnostic artifact, identify the root cause, implement a reviewed correction on a branch/PR, add regression coverage, and rerun the complete gate. Do not mark the repository healthy or bypass a failed gate.\n' "$EXPECTED_SHA" "$RUN_URL" "$GITHUB_EVENT_NAME")"
+          else
+            echo "An open remediation issue already tracks this commit."
+          fi
