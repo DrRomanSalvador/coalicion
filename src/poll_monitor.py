@@ -436,11 +436,11 @@ class PollMonitor:
             return {"schema":"POLL_MONITOR_STATE_V3","poll_hashes":{},
                     "poll_identities":{},"discovery_hashes":{},"source_hashes":{},"failure_hashes":{},
                     "failure_streaks": {}, "failure_reported": {}, "recovered_sources": [], "poll_versions": {},
-                    "runs":0,"total_validated":0,"baseline_completed":False}
+                    "runs":0,"total_validated":0,"baseline_completed":False,"pending_notifications":[]}
         state = json.loads(self.state_path.read_text(encoding="utf-8"))
         # Migrate persisted state from V2 without discarding accumulated hashes.
         state["schema"] = "POLL_MONITOR_STATE_V3"
-        for key, default in {"poll_hashes": {}, "poll_identities": {}, "discovery_hashes": {}, "source_hashes": {}, "failure_hashes": {}, "runs": 0, "total_validated": 0, "baseline_completed": False, "poll_versions": {}}.items():
+        for key, default in {"poll_hashes": {}, "poll_identities": {}, "discovery_hashes": {}, "source_hashes": {}, "failure_hashes": {}, "runs": 0, "total_validated": 0, "baseline_completed": False, "poll_versions": {}, "pending_notifications": []}.items():
             state.setdefault(key, default)
         return state
 
@@ -683,21 +683,20 @@ class PollMonitor:
         self.state_path.write_text(json.dumps(self.state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         return path
 
-    def alert(self, payload: dict[str, Any]) -> bool | None:
+    def alert(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Queue notifications durably and retry per recipient until fully delivered."""
         events = payload["new_polls"] + payload["changed_polls"]
         discoveries = payload.get("discoveries", [])
         failures = payload["failures"]
-        # Health alerts are actionable incidents, not per-run noise:
-        # initial alert at 3 failures, reminder every 12 failures, recovery
-        # only after a previously escalated outage actually recovers.
-        unsent_failures = []
         recoveries = self.state.pop("recovered_sources", [])
         streaks = self.state.setdefault("failure_streaks", {})
         reported = self.state.setdefault("failure_reported", {})
         source_roles = {
-            s["id"]: s.get("coverage_role", "discovery")
-            for s in self.config.get("sources", [])
+            source["id"]: source.get("coverage_role", "discovery")
+            for source in self.config.get("sources", [])
         }
+
+        unsent_failures = []
         for failure in failures:
             sid = failure["source_id"]
             key = hashlib.sha256(json.dumps(failure, sort_keys=True).encode()).hexdigest()
@@ -706,89 +705,174 @@ class PollMonitor:
             if source_roles.get(sid) == "primary" and streaks[sid] >= 3:
                 if not reported.get(sid) or streaks[sid] % 12 == 0:
                     unsent_failures.append((failure, key, streaks[sid]))
-        if not events and not discoveries and not unsent_failures and not recoveries:
-            return None
-        lines = ["🔔 Vigilancia electoral — actualización"]
-        for d in discoveries[:10]:
-            lines += ["", "🛰️ NUEVO DESCUBRIMIENTO", f"Fuente: {d['source_id']}",
-                      f"Título: {d['title']}", f"Enlace: {d['link']}",
-                      f"Estado: {d['validation']}"]
-        for e in events[:10]:
-            p = e["poll"]
-            changed = e.get("event_type") == "CORRECTION_OR_REPUBLICATION"
-            label = "CORRECCIÓN/REPUBLICACIÓN" if changed else "NUEVA"
-            lines += ["", f"Estado: {label}",
-                      f"Fuente: {p['source_id']}", f"Encuestadora: {p['pollster']}",
-                      f"Publicación: {p['publication_date']}",
-                      "Estimaciones: " + ", ".join(f"{k} {v:g}%" for k,v in sorted(p["parties"].items()))]
-            versions = self.state.get("poll_versions", {}).get(p.get("poll_id"), [])
-            previous = versions[-2].get("poll", {}).get("parties", {}) if changed and len(versions) >= 2 else {}
-            if previous:
-                deltas = []
-                for party in sorted(set(p["parties"]) | set(previous)):
-                    try:
-                        delta = float(p["parties"].get(party, 0)) - float(previous.get(party, 0))
-                    except (TypeError, ValueError):
-                        continue
-                    if abs(delta) >= 0.05:
-                        deltas.append((abs(delta), party, delta))
-                deltas.sort(reverse=True)
-                if deltas:
-                    lines.append("Cambios vs versión anterior: " + ", ".join(
-                        f"{party} {delta:+.1f} pp" for _, party, delta in deltas[:6]
-                    ))
-                else:
-                    lines.append("Cambios vs versión anterior: sin variación cuantificable.")
-            elif changed:
-                lines.append("Cambios: versión anterior no materializada; se conserva el evento sin inferir diferencias.")
-        for f, key, streak in unsent_failures[:10]:
-            self.state.setdefault("failure_reported", {})[f["source_id"]] = key
-            lines += ["", f"⚠️ SALUD DE FUENTE: {f['source_id']}",
-                      f"Incidencia persistente durante {streak} ejecuciones consecutivas.",
-                      "Acción: revisar la ruta primaria/adaptador; no se sustituye por datos no verificados.",
-                      f"Error: {f['error']}"]
-        for recovery in recoveries[:10]:
-            self.state.setdefault("failure_reported", {}).pop(recovery["source_id"], None)
-            lines += ["", f"✅ FUENTE RECUPERADA: {recovery['source_id']}",
-                      f"Había fallado {recovery['previous_streak']} ejecuciones consecutivas.",
-                      f"Ruta operativa: {recovery['resolved_url']}"]
-        text = "\n".join(lines)[:4090]
-        token = os.environ.get("TELEGRAM_BOT_TOKEN")
-        if not token:
-            print("Telegram no configurado; alerta registrada pero no enviada.")
-            return False
 
-        # Scheduled monitor alerts use only explicit authorized destinations.
-        # The main bot is the sole getUpdates consumer.
-        raw_chats = os.environ.get("TELEGRAM_ALLOWED_CHATS", "").strip()
-        chat_ids = [x.strip() for x in raw_chats.split(",") if x.strip()]
-        if not chat_ids:
-            print("Telegram: TELEGRAM_ALLOWED_CHATS is empty; fail-closed.")
-            return False
+        pending = self.state.get("pending_notifications", [])
+        if not isinstance(pending, list):
+            raise RuntimeError("INVALID_PENDING_NOTIFICATION_OUTBOX")
 
-        url = f"https://api.telegram.org/bot{token}/sendMessage"
-        all_sent = True
-        for chat_id in chat_ids:
-            recipient_sent = False
-            for attempt in range(2):
-                try:
-                    response = self.session.post(
-                        url,
-                        json={"chat_id": chat_id, "text": text},
-                        timeout=10,
-                    )
-                    response.raise_for_status()
-                    recipient_sent = True
-                    break
-                except requests.RequestException as exc:
-                    if attempt == 1:
-                        print(f"Telegram error for chat {chat_id}: {exc}", file=sys.stderr)
+        message_created = False
+        if events or discoveries or unsent_failures or recoveries:
+            lines = ["🔔 Vigilancia electoral — actualización"]
+            for discovery in discoveries[:10]:
+                lines += ["", "🛰️ NUEVO DESCUBRIMIENTO",
+                          f"Fuente: {discovery['source_id']}",
+                          f"Título: {discovery['title']}",
+                          f"Enlace: {discovery['link']}",
+                          f"Estado: {discovery['validation']}"]
+            for event in events[:10]:
+                poll = event["poll"]
+                changed = event.get("event_type") == "CORRECTION_OR_REPUBLICATION"
+                label = "CORRECCIÓN/REPUBLICACIÓN" if changed else "NUEVA"
+                lines += ["", f"Estado: {label}",
+                          f"Fuente: {poll['source_id']}",
+                          f"Encuestadora: {poll['pollster']}",
+                          f"Publicación: {poll['publication_date']}",
+                          "Estimaciones: " + ", ".join(
+                              f"{party} {value:g}%" for party, value in sorted(poll["parties"].items())
+                          )]
+                versions = self.state.get("poll_versions", {}).get(poll.get("poll_id"), [])
+                previous = (
+                    versions[-2].get("poll", {}).get("parties", {})
+                    if changed and len(versions) >= 2 else {}
+                )
+                if previous:
+                    deltas = []
+                    for party in sorted(set(poll["parties"]) | set(previous)):
+                        try:
+                            delta = float(poll["parties"].get(party, 0)) - float(previous.get(party, 0))
+                        except (TypeError, ValueError):
+                            continue
+                        if abs(delta) >= 0.05:
+                            deltas.append((abs(delta), party, delta))
+                    deltas.sort(reverse=True)
+                    if deltas:
+                        lines.append("Cambios vs versión anterior: " + ", ".join(
+                            f"{party} {delta:+.1f} pp" for _, party, delta in deltas[:6]
+                        ))
                     else:
-                        time.sleep(1)
-            if not recipient_sent:
-                all_sent = False
-        return all_sent
+                        lines.append("Cambios vs versión anterior: sin variación cuantificable.")
+                elif changed:
+                    lines.append("Cambios: versión anterior no materializada; se conserva el evento sin inferir diferencias.")
 
+            failure_markers = []
+            for failure, key, streak in unsent_failures[:10]:
+                failure_markers.append({"source_id": failure["source_id"], "key": key})
+                lines += ["", f"⚠️ SALUD DE FUENTE: {failure['source_id']}",
+                          f"Incidencia persistente durante {streak} ejecuciones consecutivas.",
+                          "Acción: revisar la ruta primaria/adaptador; no se sustituye por datos no verificados.",
+                          f"Error: {failure['error']}"]
+            recovery_sources = []
+            for recovery in recoveries[:10]:
+                recovery_sources.append(recovery["source_id"])
+                lines += ["", f"✅ FUENTE RECUPERADA: {recovery['source_id']}",
+                          f"Había fallado {recovery['previous_streak']} ejecuciones consecutivas.",
+                          f"Ruta operativa: {recovery['resolved_url']}"]
+            message_text = "\n".join(lines)[:4090]
+
+            identity = {
+                "poll_events": [
+                    {"poll_id": event.get("poll", {}).get("poll_id"),
+                     "poll_hash": event.get("poll_hash"),
+                     "event_type": event.get("event_type")}
+                    for event in events
+                ],
+                "discoveries": [
+                    {"source_id": item.get("source_id"),
+                     "discovery_id": item.get("discovery_id"),
+                     "source_hash": item.get("source_hash")}
+                    for item in discoveries
+                ],
+                "failures": failure_markers,
+                "recoveries": [
+                    {"source_id": recovery.get("source_id"),
+                     "previous_streak": recovery.get("previous_streak")}
+                    for recovery in recoveries
+                ],
+            }
+            dedupe_key = hashlib.sha256(json.dumps(
+                identity, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            ).encode("utf-8")).hexdigest()
+            raw_chats = os.environ.get("TELEGRAM_ALLOWED_CHATS", "").strip()
+            target_chat_ids = [item.strip() for item in raw_chats.split(",") if item.strip()]
+            pending = self.state.setdefault("pending_notifications", [])
+            if not any(item.get("id") == dedupe_key for item in pending):
+                pending.append({
+                    "id": dedupe_key,
+                    "text": message_text,
+                    "target_chat_ids": target_chat_ids,
+                    "delivered_chat_ids": [],
+                    "failure_markers": failure_markers,
+                    "recovery_sources": recovery_sources,
+                })
+                message_created = True
+
+        had_pending = bool(pending)
+        if not pending:
+            return {
+                "status": "SENT" if message_created else "NOT_REQUIRED",
+                "message_created": message_created,
+                "pending_count": 0,
+            }
+
+        token = os.environ.get("TELEGRAM_BOT_TOKEN")
+        raw_chats = os.environ.get("TELEGRAM_ALLOWED_CHATS", "").strip()
+        authorized_chat_ids = [item.strip() for item in raw_chats.split(",") if item.strip()]
+        if not token:
+            print("Telegram no configurado; las alertas permanecen en la cola pendiente.")
+        if not authorized_chat_ids:
+            print("Telegram: TELEGRAM_ALLOWED_CHATS is empty; fail-closed.")
+
+        url = f"https://api.telegram.org/bot{token}/sendMessage" if token else None
+        for item in list(pending):
+            targets = item.get("target_chat_ids") or []
+            # Current authorization is authoritative; removed chats are never sent to.
+            targets = [chat_id for chat_id in targets if chat_id in authorized_chat_ids]
+            if not targets:
+                targets = authorized_chat_ids.copy()
+            item["target_chat_ids"] = targets
+            delivered = set(item.get("delivered_chat_ids", [])) & set(targets)
+
+            if not token or not targets:
+                item["delivered_chat_ids"] = sorted(delivered)
+                continue
+
+            for chat_id in targets:
+                if chat_id in delivered:
+                    continue
+                recipient_sent = False
+                for attempt in range(2):
+                    try:
+                        response = self.session.post(
+                            url,
+                            json={"chat_id": chat_id, "text": item["text"]},
+                            timeout=10,
+                        )
+                        response.raise_for_status()
+                        recipient_sent = True
+                        delivered.add(chat_id)
+                        break
+                    except requests.RequestException as exc:
+                        if attempt == 1:
+                            print(f"Telegram error for chat {chat_id}: {exc}", file=sys.stderr)
+                        else:
+                            time.sleep(1)
+                if not recipient_sent:
+                    continue
+            item["delivered_chat_ids"] = sorted(delivered)
+
+            if targets and all(chat_id in delivered for chat_id in targets):
+                for marker in item.get("failure_markers", []):
+                    reported[marker["source_id"]] = marker["key"]
+                for source_id in item.get("recovery_sources", []):
+                    reported.pop(source_id, None)
+                pending.remove(item)
+
+        self.state["pending_notifications"] = pending
+        return {
+            "status": "SENT" if not pending and had_pending else ("BLOCKED" if pending else "NOT_REQUIRED"),
+            "message_created": message_created,
+            "pending_count": len(pending),
+        }
 
     def run(self) -> dict[str, Any]:
         # Compare durable state, not per-run heartbeat metadata. Otherwise a no-op
@@ -840,15 +924,11 @@ class PollMonitor:
         self.state["last_coverage"] = coverage
         self.state["total_validated"] = len(self.state["poll_hashes"])
         notification_result = self.alert(payload)
-        if notification_result is None:
-            payload["notification_status"] = "NOT_REQUIRED"
-        elif notification_result:
-            payload["notification_status"] = "SENT"
-        else:
-            payload["notification_status"] = "BLOCKED"
+        payload["notification_status"] = notification_result["status"]
+        if notification_result["status"] == "BLOCKED":
             payload["status"] = "BLOCKED"
             self.state["last_status"] = "BLOCKED"
-        meaningful = meaningful or (notification_result is not None)
+        meaningful = meaningful or notification_result["message_created"]
         path = self.save(payload, meaningful=meaningful)
         print(f"Encontradas {len(polls)} encuestas validadas")
         print(f"{len(new)+len(changed)} encuestas nuevas/cambiadas")
