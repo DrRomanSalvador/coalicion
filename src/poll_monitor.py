@@ -81,6 +81,15 @@ def poll_hash(poll: Poll) -> str:
 def canonical_poll(poll: Poll) -> dict[str, Any]:
     return asdict(poll)
 
+def apply_source_tier(polls: list[Poll], source: dict[str, Any]) -> list[Poll]:
+    """Apply provenance only when the source registry declares a valid tier."""
+    tier = source.get("source_tier")
+    if tier not in {"PRIMARY_CIS", "PRIMARY_POLLSTER", "SECONDARY_REPLICA"}:
+        return polls
+    for poll in polls:
+        object.__setattr__(poll, "source_tier", tier)
+    return polls
+
 def poll_identity(poll: Poll) -> str:
     """Stable study identity independent of mirror/source and published values."""
     payload = {
@@ -451,6 +460,7 @@ class PollMonitor:
                 digest = hashlib.sha256(body).hexdigest()
                 previous_source_hash = self.state.setdefault("source_hashes", {}).get(source["id"])
                 p, d = monitor.parse(body)
+                p = apply_source_tier(p, source)
                 previous_poll_hashes = self.state.setdefault("poll_hashes", {})
                 previous_versions = self.state.setdefault("poll_versions", {})
                 changed_polls = []
