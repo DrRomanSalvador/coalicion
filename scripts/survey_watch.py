@@ -15,6 +15,20 @@ POLL_REPORT=ROOT/"artifacts/neutral_poll_report.json"
 
 def sha256(b): return hashlib.sha256(b).hexdigest()
 def load(p,d): return json.loads(p.read_text(encoding="utf-8")) if p.exists() else d
+
+def _stable_poll_id(record):
+    """Accept both canonical Poll.poll_id and report-schema id fields."""
+    value = record.get("id") or record.get("poll_id")
+    return str(value).strip() if value else None
+
+def _report_record(record):
+    """Normalize a poll for neutral report schema without losing provenance."""
+    normalized = dict(record)
+    stable_id = _stable_poll_id(normalized)
+    if stable_id:
+        normalized["id"] = stable_id
+    return normalized
+
 def fetch(url):
     req=urllib.request.Request(url,headers={"User-Agent":"coalicion-neutral-survey-watch/3.0"})
     with urllib.request.urlopen(req,timeout=30) as r: return r.read()
@@ -66,18 +80,20 @@ def main():
         by_id={}
         quarantined=0
         for x in existing:
-            stable_id=x.get("id")
+            normalized = _report_record(x) if isinstance(x, dict) else {}
+            stable_id = _stable_poll_id(normalized)
             if stable_id:
-                by_id[str(stable_id)]=x
+                by_id[stable_id] = normalized
             else:
                 quarantined += 1
         for e in poll_events:
-            poll=e.get("poll") or {}
-            stable_id=poll.get("id")
+            poll = e.get("poll") or {}
+            normalized = _report_record(poll) if isinstance(poll, dict) else {}
+            stable_id = _stable_poll_id(normalized)
             if not stable_id:
                 events.append({"severity":"CRITICAL","status":"INVALID_POLL_RECORD","source_id":e.get("source_id")})
                 continue
-            by_id[str(stable_id)]=poll
+            by_id[stable_id] = normalized
         if quarantined:
             events.append({"severity":"WARNING","status":"QUARANTINED_MALFORMED_REPORT_RECORDS","count":quarantined})
         from scripts.build_poll_report import build
