@@ -99,6 +99,55 @@ def test_result_reconciliation_rejects_unassigned_or_wrong_agent(tmp_path, monke
         raise AssertionError("Se rechazaba registrar una misión no asignada")
 
 
+
+def test_reassign_blocked_mission_preserves_previous_evidence_and_reopens(tmp_path, monkeypatch):
+    path = tmp_path / "missions.json"
+    monkeypatch.setattr(queen, "MISSION_CONTROL", path)
+    missions = queen.get_missions()
+    mission = missions[0]
+    mission.update({
+        "task": "Reintento controlado.",
+        "status": "BLOCKED",
+        "assigned": True,
+        "assigned_at": "2026-10-09T12:00:00+00:00",
+        "result_recorded_at": "2026-10-09T12:01:00+00:00",
+        "evidence_path": "artifacts/old.json",
+        "evidence_sha256": "abc123",
+        "result_summary": "Proveedor no disponible",
+    })
+    queen.save_json(path, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
+    result = queen.reassign_blocked("M0001")
+    reopened = queen.get_missions()[0]
+    assert result["status"] == "ASSIGNED"
+    assert reopened["status"] == "ASSIGNED" and reopened["assigned"] is True
+    assert reopened["attempt_history"][-1]["evidence_sha256"] == "abc123"
+    assert reopened["attempt_history"][-1]["status"] == "BLOCKED"
+
+
+def test_reassign_blocked_refuses_non_blocked_or_taskless_mission(tmp_path, monkeypatch):
+    path = tmp_path / "missions.json"
+    monkeypatch.setattr(queen, "MISSION_CONTROL", path)
+    missions = queen.get_missions()
+    missions[0].update({"task": "Tarea concreta", "status": "ASSIGNED", "assigned": True})
+    queen.save_json(path, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
+    try:
+        queen.reassign_blocked("M0001")
+    except ValueError as exc:
+        assert "BLOCKED" in str(exc)
+    else:
+        raise AssertionError("No debe reabrirse una misión que no esté BLOCKED")
+
+    missions = queen.get_missions()
+    missions[0].update({"task": "", "status": "BLOCKED", "assigned": False})
+    queen.save_json(path, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
+    try:
+        queen.reassign_blocked("M0001")
+    except ValueError as exc:
+        assert "sin tarea concreta" in str(exc)
+    else:
+        raise AssertionError("No debe reabrirse una misión sin tarea")
+
+
 def test_agent_uses_exact_reina_token_name(tmp_path, monkeypatch):
     monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
     monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", tmp_path / "missions.json")
