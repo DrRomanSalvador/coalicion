@@ -120,3 +120,24 @@ def test_unapproved_change_mission_cannot_be_reported_as_pass():
     assert evidence["status"] == "BLOCKED"
     assert evidence["returncode"] == 2
     assert "scoped write approval" in evidence["stderr"]
+
+
+def test_read_only_missions_resolve_to_real_validators():
+    from scripts.colmena_worker import command_for
+
+    cases = {
+        "52 circunscripciones": "tests/test_electoral.py",
+        "manifest procedencia": "tests/test_official_interior_workbook.py",
+        "invariantes matemáticos": "tests/test_architecture_invariants.py",
+        "invariantes coalición": "tests/test_coalition.py",
+        "propagación incertidumbre": "tests/test_uncertainty.py",
+        "prohibir inferencia nacional-territorial": "tests/test_territorial_prediction_2026.py",
+        "actualizar estado/certificación": None,
+    }
+    for mission, expected in cases.items():
+        command, adapter = command_for(mission)
+        if expected is None:
+            assert adapter == "WRITE_OR_CHANGE_REQUIRES_EXPLICIT_SCOPE"
+        else:
+            assert adapter == "MISSION_VALIDATOR"
+            assert expected in command

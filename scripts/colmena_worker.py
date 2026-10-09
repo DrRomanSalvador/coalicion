@@ -67,6 +67,35 @@ def command_for(title: str):
         return [sys.executable, "scripts/verify_telegram_integration.py"], "TELEGRAM"
     if "batería completa de tests" in t:
         return [sys.executable, "-m", "pytest", "-q"], "FULL_PYTEST"
+
+    # Deterministic, bounded validators for non-mutating atomic missions.
+    # These are checks, not a substitute for the explicitly authorized changes
+    # required by missions classified as WRITE.
+    mission_validators = (
+        (("circunscripci", "escaño", "ceuta", "melilla", "d'hondt", "d’hondt", "umbral", "candidatura", "votos", "electores", "empate"),
+         ("tests/test_electoral.py", "tests/test_electoral_differential.py")),
+        (("workbook", "hash sha-256", "manifest", "procedencia", "integridad workbook", "columnas", "hojas", "elecciones históricas", "fechas electorales", "códigos electorales", "materialización"),
+         ("tests/test_official_interior_workbook.py", "tests/test_official_materialization_parts.py")),
+        (("data.py", "prediction", "predicción", "contratos de tipos", "arquitectura", "lectores antiguos", "transformaciones incompatibles", "invariantes", "sum seats", "sum shares", "aditividad", "no aditividad", "trazabilidad", "versionado", "reproducibilidad", "determinismo", "regeneración"),
+         ("tests/test_architecture_invariants.py", "tests/test_canonical_architecture.py", "tests/test_reproducibility_contract.py")),
+        (("coalition", "coalición"),
+         ("tests/test_coalition.py", "tests/test_neutral_coalition.py")),
+        (("incertidumbre", "probabilidades", "probabilística", "intervalos", "field_date", "drift", "house effects", "leakage", "train-test", "composicional", "multinomial"),
+         ("tests/test_uncertainty.py", "tests/test_probabilistic_calibration.py", "tests/test_temporal_decay.py")),
+        (("territorial", "nacional-provincial", "nacional-territorial", "autonómicas", "encuestas territoriales", "matriz general 2026"),
+         ("tests/test_territorial_prediction_2026.py", "tests/test_structure_2026.py", "tests/test_territorial_data_collection.py")),
+        (("telegram",),
+         ("tests/test_telegram_integration.py", "tests/test_telegram_bot.py")),
+        (("monitor", "encuestas", "fuente de encuestas", "fuentes de encuestas", "poll"),
+         ("tests/test_poll_monitor.py", "tests/test_poll_ingest.py", "tests/test_poll_validator.py")),
+        (("quickstart", "documentación", "demo", "release notes", "changelog", "artefactos obsoletos", "rutas antiguas", "referencias módulos eliminados", "imports", "healthcheck", "backup", "recovery"),
+         ("tests/test_product_contract.py", "tests/test_product_status.py", "tests/test_monitoring_backup.py", "tests/test_recovery.py")),
+        (("estado/certificación", "bloqueos heredados", "pending heredados", "not_strictly_certified", "certificación honesta", "p1", "p2", "p3", "p5/p6", "p7", "p8"),
+         ("tests/test_master_certification.py", "tests/test_master_certification_strict.py", "tests/test_colmena_state.py")),
+    )
+    for phrases, test_paths in mission_validators:
+        if any(phrase in t for phrase in phrases):
+            return [sys.executable, "-m", "pytest", "-q", *test_paths], "MISSION_VALIDATOR"
     return None, "AI_ANALYSIS"
 
 def load_approval(path, mission_id, ref):
