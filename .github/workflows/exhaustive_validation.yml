@@ -21,7 +21,8 @@ on:
       - ".github/workflows/**"
 
 concurrency:
-  group: validate-main
+  # Keep main validation independent from PR validation; only supersede runs for the same ref.
+  group: validate-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
