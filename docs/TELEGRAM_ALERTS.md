@@ -16,7 +16,7 @@ En `DrRomanSalvador/coalicion → Settings → Secrets and variables → Actions
 
 - `TELEGRAM_BOT_TOKEN`: token entregado por @BotFather.
 - `TELEGRAM_CHAT_ID`: chat de destino de notificaciones de workflows que usan un único destinatario.
-- `TELEGRAM_ALLOWED_CHATS`: lista separada por comas de chats autorizados a recibir alertas del monitor de encuestas. No se escriben IDs en el código.
+- `TELEGRAM_ALLOWED_CHATS`: lista separada por comas de chats autorizados a recibir alertas del monitor de encuestas. Si falta, el workflow usa `TELEGRAM_CHAT_ID` como destino único. No se escriben IDs en el código.
 
 No deben aparecer en ningún archivo del repositorio.
 
