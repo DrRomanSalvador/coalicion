@@ -3,30 +3,38 @@
   "status": "READY",
   "provider": "Ministerio del Interior / Infoelectoral",
   "source_url": "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx",
-  "official_downloads": "https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/index.html",
+  "input": "data/raw/Elecciones-Congreso.xlsx",
   "sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
-  "hash_scope": "uploaded_official_workbook_bytes",
+  "hash_scope": "workbook_bytes",
   "bytes": 1151199,
-  "historical_elections": 16,
-  "historical_range": [
+  "normalized_csv": "data/official_interior_congreso_1977_2023.csv",
+  "canonical_2023": "artifacts/data/election_2023_canonical.json",
+  "records": 322556,
+  "elections": [
     "1977-06-15",
+    "1979-03-01",
+    "1982-10-28",
+    "1986-06-22",
+    "1989-10-29",
+    "1993-06-06",
+    "1996-03-03",
+    "2000-03-12",
+    "2004-03-14",
+    "2008-03-09",
+    "2011-11-20",
+    "2015-12-20",
+    "2016-06-26",
+    "2019-04-28",
+    "2019-11-10",
     "2023-07-23"
   ],
   "constituencies": 52,
-  "validation_2023": {
+  "validated_2023": {
     "status": "PASS",
+    "circunscripciones": 52,
+    "escaños": 350,
     "candidate_votes_total": 24487414,
     "blank_votes_total": 200673,
-    "valid_votes_total": 24688087,
-    "seats_total": 350
-  },
-  "policy": {
-    "historical_results_observed": true,
-    "forecast_2026": false,
-    "national_to_territorial_inference": false
-  },
-  "normalized_records": 322556,
-  "normalized_target": "data/official_interior_congreso_1977_2023.csv",
-  "materializer": "scripts/materialize_official_interior_dataset.py",
-  "canonical_2023": "artifacts/data/election_2023_canonical.json"
+    "valid_votes_total": 24688087
+  }
 }
