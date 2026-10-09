@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: verify-main
-  cancel-in-progress: true
+  group: verify-${{ github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: false
 
 jobs:
   verify:
