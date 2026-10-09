@@ -90,6 +90,18 @@ def apply_source_tier(polls: list[Poll], source: dict[str, Any]) -> list[Poll]:
         object.__setattr__(poll, "source_tier", tier)
     return polls
 
+
+def source_content_fingerprint(body: bytes, source: dict[str, Any]) -> str:
+    """Hash meaningful visible HTML text, not volatile markup IDs or embedded scripts."""
+    kind = source.get("format", "page")
+    if kind not in {"page", "national_html", "electomania_html", "datoelectoral_html"}:
+        return hashlib.sha256(body).hexdigest()
+    soup = BeautifulSoup(body, "lxml")
+    for tag in soup(["script", "style", "noscript", "svg"]):
+        tag.decompose()
+    visible_text = re.sub(r"\s+", " ", soup.get_text(" ", strip=True)).strip()
+    return hashlib.sha256(visible_text.encode("utf-8")).hexdigest()
+
 def poll_identity(poll: Poll) -> str:
     """Stable study identity independent of mirror/source and published values."""
     payload = {
@@ -384,13 +396,16 @@ class SourceMonitor:
             return ElectomaniaMonitor(self.source, self.session).parse(body)
         if kind == "national_html":
             return parse_national_html(body, self.source), []
-        # Generic pages are monitored by cryptographic fingerprint only.
+        # Generic pages use a stable identity; meaningful visible text is fingerprinted separately.
         return [], [{
-            "discovery_id": hashlib.sha256(body).hexdigest(),
+            "discovery_id": hashlib.sha256(
+                f"{self.source['id']}::{self.source['url']}".encode("utf-8")
+            ).hexdigest(),
             "title": self.source.get("name", self.source["id"]),
             "link": self.source["url"],
             "publication_raw": "",
             "source_id": self.source["id"],
+            "source_hash": source_content_fingerprint(body, self.source),
             "validation": "PAGE_FINGERPRINT_ONLY", "alertable": False,
         }]
 
@@ -458,6 +473,7 @@ class PollMonitor:
                 monitor = TwitterMonitor(source, self.session) if source.get("format") == "twitter" else SourceMonitor(source, self.session)
                 body = monitor.fetch()
                 digest = hashlib.sha256(body).hexdigest()
+                source_fingerprint = source_content_fingerprint(body, source)
                 previous_source_hash = self.state.setdefault("source_hashes", {}).get(source["id"])
                 p, d = monitor.parse(body)
                 p = apply_source_tier(p, source)
@@ -482,17 +498,20 @@ class PollMonitor:
                 # Source pages often contain changing navigation/timestamps.
                 # Archive bytes only when they carry a new/corrected poll or a
                 # new discovery; otherwise avoid one large raw file per poll cycle.
-                raw_archived = bool(changed_polls or changed_discoveries)
+                raw_archived = bool(
+                    changed_polls or changed_discoveries
+                    or (previous_source_hash is not None and previous_source_hash != source_fingerprint)
+                )
                 if raw_archived:
                     self._save_raw(source["id"], body)
-                    if previous_source_hash and previous_source_hash != digest:
+                    if previous_source_hash and previous_source_hash != source_fingerprint:
                         self.state.setdefault("source_changes", []).append({
                             "source_id": source["id"],
                             "previous_hash": previous_source_hash,
-                            "current_hash": digest,
+                            "current_hash": source_fingerprint,
                             "detected_at": datetime.now(timezone.utc).isoformat(),
                         })
-                self.state["source_hashes"][source["id"]] = digest
+                self.state["source_hashes"][source["id"]] = source_fingerprint
                 previous_streak = int(self.state.setdefault("failure_streaks", {}).get(source["id"], 0))
                 if previous_streak >= 3 and self.state.setdefault("failure_reported", {}).get(source["id"]):
                     self.state.setdefault("recovered_sources", []).append({
