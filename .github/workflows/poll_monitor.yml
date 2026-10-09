@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths-ignore:
       - "artifacts/**"
+      - "ci_evidence/**"
   schedule:
     - cron: "*/5 * * * *"
 
