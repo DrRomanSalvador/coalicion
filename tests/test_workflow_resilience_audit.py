@@ -57,8 +57,8 @@ def test_healer_sweep_bounds_candidates_and_continues_after_request_errors():
 
 
 def test_permissions_inventory_recognizes_inline_workflow_permissions():
-    assert permission_declarations("permissions: {contents: write}\\njobs:\\n  job:\\n    runs-on: ubuntu-latest\\n") == (True, False)
+    assert permission_declarations("permissions: {contents: write}\njobs:\n  job:\n    runs-on: ubuntu-latest\n") == (True, False)
 
 
 def test_permissions_inventory_recognizes_job_level_permissions():
-    assert permission_declarations("jobs:\\n  job:\\n    permissions:\\n      contents: read\\n") == (False, True)
+    assert permission_declarations("jobs:\n  job:\n    permissions:\n      contents: read\n") == (False, True)
