@@ -40,8 +40,8 @@ jobs:
       - name: Descargar fuente oficial Interior
         run: |
           set -euo pipefail
-          export CURL_CA_BUNDLE="$(python -c 'import certifi; print(certifi.where())')"
           CA_BUNDLE="$(python -c 'import certifi; print(certifi.where())')"
+          export CURL_CA_BUNDLE="$CA_BUNDLE"
           URL="https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
           OUT=".audit_2023/Elecciones-Congreso.xlsx"
           mkdir -p .audit_2023
