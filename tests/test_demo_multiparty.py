@@ -58,6 +58,8 @@ def test_config_hash_and_scenario_count_are_reported():
     assert len(result["scenarios"]) == 3
     assert len(result["provenance"]["scenario_config_sha256"]) == 64
     assert result["provenance"]["canonical_dataset_git_blob_sha1"] == EXPECTED_GIT_BLOB_SHA
+    assert result["official_certification"] == "NOT_INDEPENDENTLY_CERTIFIED"
+    assert all(v > 0 for scenario in result["scenarios"] for region in scenario["regions"].values() for v in region["votes_by_list"].values())
 
 
 def test_modified_dataset_fails_closed(tmp_path: Path):
