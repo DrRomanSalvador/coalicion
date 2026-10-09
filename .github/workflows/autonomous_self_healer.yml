@@ -126,5 +126,12 @@ jobs:
           esac
 
           echo "Validated completed workflow run: $run_id (status=$status, conclusion=$conclusion)"
-          gh run rerun "$run_id" --failed --repo "$REPOSITORY"
-          echo "Requested rerun of failed jobs for run $run_id."
+          if [[ "$conclusion" == "cancelled" ]]; then
+            # Cancelled runs may have no failed jobs, so --failed is not applicable.
+            echo "Run was cancelled; requesting a full rerun."
+            gh run rerun "$run_id" --repo "$REPOSITORY"
+            echo "Requested full rerun of cancelled workflow run $run_id."
+          else
+            gh run rerun "$run_id" --failed --repo "$REPOSITORY"
+            echo "Requested rerun of failed jobs for run $run_id."
+          fi
