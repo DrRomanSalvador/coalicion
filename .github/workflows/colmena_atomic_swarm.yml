@@ -123,6 +123,11 @@ jobs:
               exit "$checkpoint_rc"
             fi
             git add docs/COLMENA_STATE.json
+            if git diff --cached --quiet; then
+              echo "::warning::Checkpoint produced no changes (likely stale validation); retrying against fresh main."
+              sleep "$((attempt * 3))"
+              continue
+            fi
             git commit -m "chore(colmena): persist lightweight validation checkpoint"
 
             if git push origin HEAD:main; then
