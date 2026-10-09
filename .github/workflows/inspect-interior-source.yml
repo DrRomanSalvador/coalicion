@@ -17,6 +17,11 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install workbook inspection dependency
+        run: python -m pip install --disable-pip-version-check openpyxl
       - name: Test official XLSX transport
         run: |
           set -euxo pipefail
