@@ -436,11 +436,11 @@ class PollMonitor:
             return {"schema":"POLL_MONITOR_STATE_V3","poll_hashes":{},
                     "poll_identities":{},"discovery_hashes":{},"source_hashes":{},"failure_hashes":{},
                     "failure_streaks": {}, "failure_reported": {}, "recovered_sources": [], "poll_versions": {},
-                    "runs":0,"total_validated":0,"baseline_completed":False}
+                    "runs":0,"total_validated":0,"baseline_completed":False,"pending_notifications":[]}
         state = json.loads(self.state_path.read_text(encoding="utf-8"))
         # Migrate persisted state from V2 without discarding accumulated hashes.
         state["schema"] = "POLL_MONITOR_STATE_V3"
-        for key, default in {"poll_hashes": {}, "poll_identities": {}, "discovery_hashes": {}, "source_hashes": {}, "failure_hashes": {}, "runs": 0, "total_validated": 0, "baseline_completed": False, "poll_versions": {}}.items():
+        for key, default in {"poll_hashes": {}, "poll_identities": {}, "discovery_hashes": {}, "source_hashes": {}, "failure_hashes": {}, "runs": 0, "total_validated": 0, "baseline_completed": False, "poll_versions": {}, "pending_notifications": []}.items():
             state.setdefault(key, default)
         return state
 
