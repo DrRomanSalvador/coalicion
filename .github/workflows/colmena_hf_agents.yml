@@ -201,7 +201,27 @@ jobs:
             exit 1
           fi
           git commit -m "Persist Colmena HF evidence for $MISSION_ID"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          branch="$GITHUB_REF_NAME"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin "$branch"
+            if git merge-base --is-ancestor HEAD "origin/$branch"; then
+              echo "Evidence commit is already present on $branch."
+              exit 0
+            fi
+            if ! git rebase "origin/$branch"; then
+              git rebase --abort
+              echo "::error::Mission control or evidence changed concurrently; refusing to overwrite newer state."
+              exit 1
+            fi
+            if git push origin "HEAD:$branch"; then
+              echo "Colmena evidence persisted on $branch (attempt $attempt)."
+              exit 0
+            fi
+            echo "Concurrent branch update; retrying evidence persistence ($attempt/5)." >&2
+            sleep "$((attempt * 3))"
+          done
+          echo "::error::Unable to persist Colmena evidence after five attempts."
+          exit 1
       - name: Publicar copia recuperable del artefacto
         if: always()
         uses: actions/upload-artifact@v4
