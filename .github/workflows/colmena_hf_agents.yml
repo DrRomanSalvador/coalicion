@@ -17,6 +17,11 @@ on:
         required: false
         default: "auto"
         type: string
+      provider_fallbacks:
+        description: "Proveedores alternativos probados solo si provider=auto y el modelo no está soportado"
+        required: false
+        default: "deepinfra,featherless-ai"
+        type: string
       retry_blocked:
         description: "Reabrir explícitamente esta misión si está BLOCKED (conserva el historial)"
         required: false
@@ -52,6 +57,7 @@ jobs:
           MISSION_ID: ${{ inputs.mission_id }}
           HF_MODEL: ${{ inputs.model }}
           HF_PROVIDER: ${{ inputs.provider }}
+          HF_PROVIDER_FALLBACKS: ${{ inputs.provider_fallbacks }}
           RETRY_BLOCKED: ${{ inputs.retry_blocked }}
         shell: bash
         run: |
@@ -76,10 +82,6 @@ jobs:
               raise SystemExit("Fail-closed: la misión no tiene tarea concreta.")
           print(f"Misión validada: {mission_id} -> {mission['agent_id']}")
           PY
-          set +e
-          python scripts/colmena_agent_hf.py "$MISSION_ID" --model "$HF_MODEL" --provider "$HF_PROVIDER"
-          agent_rc=$?
-          set -e
           EVIDENCE="$(python - <<'PY'
           import json, os, re
           from pathlib import Path
@@ -90,12 +92,47 @@ jobs:
           print(f"artifacts/colmena/agents/{safe(mission['agent_id'])}_{safe(mission_id)}.json")
           PY
           )"
-          if [ ! -f "$EVIDENCE" ]; then
-            echo "No existe evidencia JSON; no se puede reconciliar ni declarar éxito." >&2
-            exit 2
-          fi
+          # Expone el destino para persistir el historial aunque el proveedor falle.
           echo "evidence_path=$EVIDENCE" >> "$GITHUB_OUTPUT"
+          if [ -f "$EVIDENCE" ]; then
+            HISTORY_DIR="artifacts/colmena/agents/history"
+            mkdir -p "$HISTORY_DIR"
+            HISTORY_FILE="$HISTORY_DIR/$(basename "${EVIDENCE%.json}")_run_${GITHUB_RUN_ID}_attempt_${GITHUB_RUN_ATTEMPT}.json"
+            cp "$EVIDENCE" "$HISTORY_FILE"
+            rm -f "$EVIDENCE"
+            echo "Evidencia anterior archivada: $HISTORY_FILE"
+          fi
+          set +e
+          python scripts/colmena_agent_hf.py "$MISSION_ID" --model "$HF_MODEL" --provider "$HF_PROVIDER"
+          agent_rc=$?
+          set -e
+          evidence_missing=0
+          if [ ! -f "$EVIDENCE" ]; then
+            echo "El agente no generó evidencia; se crea evidencia BLOCKED de fallo, nunca PASS." >&2
+            evidence_missing=1
+            python - "$EVIDENCE" "$agent_rc" <<'PY'
+          import json, os, sys
+          from datetime import datetime, timezone
+          from pathlib import Path
+          output = Path(sys.argv[1])
+          rc = int(sys.argv[2])
+          mission_id = os.environ["MISSION_ID"]
+          control = json.loads(Path("docs/COLMENA_MISSION_CONTROL.json").read_text(encoding="utf-8"))
+          mission = next(m for m in control["missions"] if m.get("id") == mission_id)
+          stamp = datetime.now(timezone.utc).isoformat()
+          output.parent.mkdir(parents=True, exist_ok=True)
+          output.write_text(json.dumps({
+              "schema": "COLMENA_AGENT_EVIDENCE_V1",
+              "agent_id": mission["agent_id"], "mission_id": mission_id,
+              "status": "BLOCKED", "provider": os.environ.get("HF_PROVIDER", "auto"),
+              "model": os.environ.get("HF_MODEL", ""), "task": mission.get("task", ""),
+              "executed_at": stamp, "completed_at": stamp,
+              "error": f"El proceso del agente terminó con código {rc} sin generar evidencia nueva; no se infiere éxito."
+          }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          PY
+          fi
           python scripts/colmena_queen_hf.py --record-result "$EVIDENCE"
+          if [ "$evidence_missing" = "1" ]; then exit 2; fi
           exit "$agent_rc"
       - name: Persistir evidencia y estado en la rama invocada
         if: always() && steps.execute.outputs.evidence_path != ''
@@ -105,12 +142,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -f "$EVIDENCE_PATH"
           test -f docs/COLMENA_MISSION_CONTROL.json
           test -f docs/COLMENA_STATE.json
           git config user.name "coalicion-colmena[bot]"
           git config user.email "coalicion-colmena[bot]@users.noreply.github.com"
-          git add docs/COLMENA_MISSION_CONTROL.json docs/COLMENA_STATE.json "$EVIDENCE_PATH"
+          git add docs/COLMENA_MISSION_CONTROL.json docs/COLMENA_STATE.json
+          if [ -d artifacts/colmena/agents ]; then git add -A artifacts/colmena/agents; fi
           if git diff --cached --quiet; then
             echo "No hay cambios de evidencia para persistir." >&2
             exit 1

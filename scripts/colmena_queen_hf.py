@@ -80,6 +80,12 @@ def validate_missions(missions: list[dict[str, Any]]) -> None:
     for mission in missions:
         if mission.get("status") not in STATUSES:
             raise ValueError(f"Estado no válido en {mission.get('id')}: {mission.get('status')}")
+        expected_assigned = mission.get("status") == "ASSIGNED"
+        if not isinstance(mission.get("assigned"), bool) or mission["assigned"] != expected_assigned:
+            raise ValueError(
+                f"Estado/assigned incoherentes en {mission.get('id')}: "
+                f"status={mission.get('status')!r}, assigned={mission.get('assigned')!r}."
+            )
 
 
 def status_report() -> dict[str, Any]:
@@ -157,6 +163,8 @@ def reassign_blocked(mission_id: str) -> dict[str, Any]:
     mission["assigned"] = True
     mission["assigned_at"] = timestamp
     mission["reassigned_at"] = timestamp
+    for stale_key in ("result_recorded_at", "evidence_path", "evidence_sha256", "result_summary"):
+        mission.pop(stale_key, None)
     mission["note"] = "Reasignada explícitamente por la Reina tras bloqueo; intento anterior conservado en attempt_history."
     data = load_json(MISSION_CONTROL, {})
     data["missions"] = missions
