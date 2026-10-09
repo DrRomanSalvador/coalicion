@@ -92,6 +92,7 @@ def status_report() -> dict[str, Any]:
     print(f"Slots lógicos: {report['total']}")
     for key in sorted(counts):
         print(f"{key:17}: {counts[key]}")
+    print(f"Tareas definidas: {sum(bool(str(m.get('task', '')).strip()) for m in missions)}")
     print(f"Sin tarea definida: {sum(not str(m.get('task', '')).strip() for m in missions)}")
     print("Nota: slot lógico ≠ agente ejecutado; PASS requiere verificación independiente.")
     return {**report, "missions": missions}
