@@ -99,7 +99,7 @@ def source_content_fingerprint(body: bytes, source: dict[str, Any]) -> str:
     soup = BeautifulSoup(body, "lxml")
     for tag in soup(["script", "style", "noscript", "svg"]):
         tag.decompose()
-    visible_text = re.sub(r"\\s+", " ", soup.get_text(" ", strip=True)).strip()
+    visible_text = re.sub(r"\s+", " ", soup.get_text(" ", strip=True)).strip()
     return hashlib.sha256(visible_text.encode("utf-8")).hexdigest()
 
 def poll_identity(poll: Poll) -> str:
