@@ -1,0 +1,35 @@
+name: Colmena HF — tests aislados
+
+on:
+  pull_request:
+    paths:
+      - "scripts/colmena_queen_hf.py"
+      - "scripts/colmena_agent_hf.py"
+      - "tests/test_colmena_hf_agents.py"
+      - "docs/COLMENA_MISSION_CONTROL.json"
+      - ".github/workflows/colmena_hf_tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/colmena_queen_hf.py"
+      - "scripts/colmena_agent_hf.py"
+      - "tests/test_colmena_hf_agents.py"
+      - "docs/COLMENA_MISSION_CONTROL.json"
+      - ".github/workflows/colmena_hf_tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  focused-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check "pytest>=8,<10"
+      - name: Test mission safety and bounded assignment
+        run: python -m pytest -q tests/test_colmena_hf_agents.py
