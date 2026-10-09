@@ -31,6 +31,8 @@ on:
       - "src/coalition.py"
       - "scripts/demo_e2e.py"
       - "scripts/demo_decision_analysis.py"
+      - "scripts/demo_decision_server.py"
+      - "tests/test_demo_decision_server.py"
       - "tests/test_demo_decision_analysis.py"
       - "DECISION_ANALYSIS_USAGE.md"
       - "web/demo/index.html"
