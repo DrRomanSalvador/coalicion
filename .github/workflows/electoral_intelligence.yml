@@ -61,6 +61,7 @@ jobs:
       - name: Build connected electoral radar
         run: python scripts/electoral_radar.py
       - name: Publish radar artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: electoral-radar
