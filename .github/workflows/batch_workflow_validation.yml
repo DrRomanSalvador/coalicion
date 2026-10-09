@@ -35,10 +35,10 @@ jobs:
         run: python -m pip install --disable-pip-version-check pyyaml
       - name: Run eligible workflows and verify results
         env:
-          GH_TOKEN: \${{ github.token }}
-          GH_REPO: \${{ github.repository }}
-          INCLUDE_EXTERNAL_SIDE_EFFECTS: \${{ inputs.include_external_side_effects || false }}
-          STEP_SUMMARY: \${{ github.step_summary }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          INCLUDE_EXTERNAL_SIDE_EFFECTS: ${{ inputs.include_external_side_effects || false }}
+          STEP_SUMMARY: ${{ github.step_summary }}
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -97,12 +97,14 @@ jobs:
               source = base64.b64decode(result["content"]).decode("utf-8")
               document = yaml.load(source, Loader=yaml.BaseLoader) or {}
               triggers = document.get("on", {})
-              dispatch = triggers.get("workflow_dispatch") if isinstance(triggers, dict) else None
-              if dispatch is None and isinstance(triggers, list) and "workflow_dispatch" in triggers:
+              if isinstance(triggers, dict) and "workflow_dispatch" in triggers:
+                  dispatch = triggers.get("workflow_dispatch") or {}
+              elif isinstance(triggers, list) and "workflow_dispatch" in triggers:
                   dispatch = {}
-              if dispatch is None:
+              elif triggers == "workflow_dispatch":
+                  dispatch = {}
+              else:
                   return None, {}, ["no workflow_dispatch trigger"]
-              dispatch = dispatch or {}
               specs = dispatch.get("inputs", {}) or {}
               inputs = {}
               missing = []
@@ -180,6 +182,8 @@ jobs:
                           "state": "waiting", "reason": "retrying current-SHA failure",
                       }
                       retry_run(entry, existing)
+                      if entry["state"] == "failed":
+                          failed.append((path, entry["reason"]))
                       entries.append(entry)
                       continue
 
