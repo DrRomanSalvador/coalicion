@@ -35,6 +35,7 @@ def test_mission_control_initializes_179_slots_without_claiming_execution(tmp_pa
 
 def test_assignment_refuses_undefined_tasks(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(queen, "MISSION_CONTROL", tmp_path / "missions.json")
+    monkeypatch.setattr(queen, "STATE_PATH", tmp_path / "state.json")
     assert queen.assign_next_batch(5) == []
     assert "No hay misiones ejecutables" in capsys.readouterr().out
 
@@ -42,6 +43,7 @@ def test_assignment_refuses_undefined_tasks(tmp_path, monkeypatch, capsys):
 def test_assignment_is_bounded_and_only_assigns_concrete_tasks(tmp_path, monkeypatch):
     path = tmp_path / "missions.json"
     monkeypatch.setattr(queen, "MISSION_CONTROL", path)
+    monkeypatch.setattr(queen, "STATE_PATH", tmp_path / "state.json")
     missions = queen.get_missions()
     for mission in missions[:8]:
         mission["task"] = "Audita el contrato de reproducibilidad indicado y cita evidencia."
@@ -118,6 +120,7 @@ def test_result_reconciliation_rejects_unassigned_or_wrong_agent(tmp_path, monke
 def test_reassign_blocked_mission_preserves_previous_evidence_and_reopens(tmp_path, monkeypatch):
     path = tmp_path / "missions.json"
     monkeypatch.setattr(queen, "MISSION_CONTROL", path)
+    monkeypatch.setattr(queen, "STATE_PATH", tmp_path / "state.json")
     missions = queen.get_missions()
     mission = missions[0]
     mission.update({
@@ -143,6 +146,7 @@ def test_reassign_blocked_mission_preserves_previous_evidence_and_reopens(tmp_pa
 def test_reassign_blocked_clears_current_evidence_fields_after_archiving_metadata(tmp_path, monkeypatch):
     path = tmp_path / "missions.json"
     monkeypatch.setattr(queen, "MISSION_CONTROL", path)
+    monkeypatch.setattr(queen, "STATE_PATH", tmp_path / "state.json")
     missions = queen.get_missions()
     missions[0].update({
         "task": "Tarea de reintento",
@@ -166,6 +170,7 @@ def test_reassign_blocked_clears_current_evidence_fields_after_archiving_metadat
 def test_reassign_blocked_refuses_non_blocked_or_taskless_mission(tmp_path, monkeypatch):
     path = tmp_path / "missions.json"
     monkeypatch.setattr(queen, "MISSION_CONTROL", path)
+    monkeypatch.setattr(queen, "STATE_PATH", tmp_path / "state.json")
     missions = queen.get_missions()
     missions[0].update({"task": "Tarea concreta", "status": "ASSIGNED", "assigned": True})
     queen.save_json(path, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
