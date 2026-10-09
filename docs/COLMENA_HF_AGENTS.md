@@ -4,7 +4,7 @@ Los 179 elementos son **slots lógicos**, no 179 procesos ni agentes ya ejecutad
 
 ## Requisitos
 - Python 3.12.
-- Para invocar HF: instalar `huggingface_hub` y configurar `HF_TOKEN` como variable local o secreto de Actions.
+- Para invocar HF: instalar `huggingface_hub` y configurar `Reina_token` como variable local o secreto de Actions.
 - Modelo configurable mediante `HF_MODEL` o `--model`; el proveedor puede no ofrecer el modelo en todos los planes/regiones.
 
 ## Local
@@ -19,7 +19,7 @@ python scripts/colmena_agent_hf.py '{"id":"M0001","agent_id":"agent-001","title"
 La asignación solo selecciona misiones con `task` no vacía. Las misiones iniciales se crean pendientes y sin tarea: no se inventa trabajo ni se marca como realizado. Lote máximo: 5. La reconciliación exige que la misión esté en `ASSIGNED`, que coincidan `mission_id` y `agent_id`, y solo acepta `REVIEW_REQUIRED` o `BLOCKED`; nunca acepta `PASS` del modelo.
 
 ## GitHub Actions
-Workflow manual **COALICIÓN — Agentes lógicos Hugging Face**. Introducir una misión JSON concreta y disponer del secreto `HF_TOKEN`. El workflow ejecuta un solo agente por invocación y publica la evidencia como artefacto temporal; no hace commit ni push automático.
+Workflow manual **COALICIÓN — Agentes lógicos Hugging Face**. Introducir una misión JSON concreta y disponer del secreto `Reina_token`. El workflow ejecuta un solo agente por invocación y publica la evidencia como artefacto temporal; no hace commit ni push automático.
 
 ## Estados y límites
 - `PENDING`: misión aún no asignada.
