@@ -1,36 +1,26 @@
-# COALICIÓN — análisis y demo interactiva de decisiones 2023
+# COALICIÓN — demo interactiva de decisiones electorales 2023
 
-## Ejecutar desde la raíz del repositorio
+## Ejecutar desde la raíz
 
 ```bash
-python scripts/demo_multiparty.py
-python scripts/demo_decision_analysis.py
-python -m pytest -q tests/test_demo_multiparty.py tests/test_demo_decision_analysis.py tests/test_demo_decision_ui.py
-python -m http.server 8000
+python -m pytest -q tests/test_demo_multiparty.py tests/test_demo_decision_analysis.py tests/test_demo_decision_server.py tests/test_demo_decision_ui.py
+python scripts/demo_decision_server.py --host 127.0.0.1 --port 8000
 ```
 
-Abrir `http://127.0.0.1:8000/web/demo/`.
-
-## Entregables
-
-- Interfaz interactiva: `web/demo/index.html`.
-- JSON auditable: `artifacts/demo_decision_analysis_2023.json`.
-- Informe ejecutivo: `reports/demo_decision_analysis_2023.md`.
-- Configuración: `config/demo_multiparty_2023.json`.
+Abre `http://127.0.0.1:8000/web/demo/`. El servidor materializa el JSON auditable y el informe ejecutivo al arrancar.
 
 ## Funciones
 
-- Comparar el reparto observado y cada escenario en Madrid o Barcelona.
-- Ver cambios de escaños por candidatura y cocientes marginales disponibles.
-- Comparar escaños de miembros por separado con los de la lista agrupada.
-- Calcular la frontera matemática de votos adicionales para el siguiente escaño con votos rivales fijos.
-- Exportar el registro JSON y revisar procedencia, hashes, supuestos y límites.
+- Comparar el reparto observado con los tres escenarios existentes en Madrid y Barcelona.
+- Ver escaños marginales, cocientes, coste mecánico de agrupar listas y frontera matemática del siguiente escaño.
+- Crear una coalición personalizada eligiendo candidaturas reales de Madrid o Barcelona; el servidor vuelve a calcular con `src.electoral.allocate`.
+- Exportar el registro JSON y revisar hashes, fuente, supuestos y límites.
+- API local: `GET /api/health`, `GET /api/candidates?region=Madrid`, `GET /api/analysis`, `POST /api/simulate`.
 
-## Método y límites
+## Integridad y límites
 
-- Reutiliza `src.electoral.allocate`; la interfaz no implementa un segundo motor D’Hondt.
-- Agrupa votos observados de 2023 sin inventar transferencias.
-- La frontera es un umbral aritmético, no una predicción ni probabilidad.
-- Las agrupaciones de candidaturas menores son supuestos, no clasificación oficial.
+- No duplica D’Hondt; toda asignación usa el motor canónico.
+- Las simulaciones agregan votos observados de 2023, conservan votos totales y mantienen fijos los votos de las demás listas.
+- No modelan transferencias, participación futura ni conducta electoral: no son predicciones ni probabilidades.
+- Se rechazan circunscripciones, candidaturas o selecciones inválidas.
 - No constituye certificación oficial independiente.
-- Si falta el JSON, la interfaz informa de la ausencia de datos y no inventa resultados.
