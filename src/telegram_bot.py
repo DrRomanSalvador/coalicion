@@ -569,9 +569,9 @@ def _escanos_text() -> str:
                         continue
             rows.sort(key=lambda x: (-x[1], x[0]))
             if rows:
-                return "🪑 ESCAÑOS · COMPOSICIÓN MATERIALIZADA Y VALIDADA\\n\\n" + "\\n".join(f"{p}: {s}" for p, s in rows)
+                return "🪑 ESCAÑOS · COMPOSICIÓN MATERIALIZADA Y VALIDADA\n\n" + "\n".join(f"{p}: {s}" for p, s in rows)
     return (
-        "🪑 ESCAÑOS · SITUACIÓN ACTUAL\\n\\n"
+        "🪑 ESCAÑOS · SITUACIÓN ACTUAL\n\n"
         "No hay una proyección de escaños apta para producción: se requieren evidencia territorial explícita "
         "y calibración validada. La demo se consulta por separado con /demo."
     )
