@@ -90,3 +90,11 @@ def test_stale_colmena_checkpoint_is_reported_as_skip_not_failure():
     assert 'fail(f"stale validation:' not in source
     workflow = (WORKFLOWS / "colmena_atomic_swarm.yml").read_text(encoding="utf-8")
     assert 'if [ "$checkpoint_rc" -eq 3 ]; then' in workflow
+
+
+def test_historical_self_healer_refuses_to_retry_a_stale_main_sha():
+    source = (WORKFLOWS / "historical-ci-self-healer.yml").read_text(encoding="utf-8")
+    assert 'current_sha="$(gh api "repos/$REPOSITORY/commits/main" --jq \' .sha\' )"' not in source
+    assert "HISTORICAL_STALE_RUN" in source
+    assert 'if [ "$run_sha" != "$current_sha" ]; then' in source
+    assert 'gh run rerun "$run_id" --repo "$REPOSITORY"' in source
