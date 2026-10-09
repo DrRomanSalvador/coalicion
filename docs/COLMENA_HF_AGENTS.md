@@ -11,10 +11,12 @@ Los 179 elementos son **slots lógicos**, no 179 procesos ni agentes ya ejecutad
 ```bash
 python scripts/colmena_queen_hf.py --status
 python scripts/colmena_queen_hf.py --assign 5
+# Tras ejecutar un agente para una misión ya asignada y guardar su evidencia JSON:
+python scripts/colmena_queen_hf.py --record-result artifacts/colmena/agents/agent-001_M0001.json
 python scripts/colmena_agent_hf.py '{"id":"M0001","agent_id":"agent-001","title":"Revisión de ejemplo","task":"Analiza este problema concreto: ..."}'
 ```
 
-La asignación solo selecciona misiones con `task` no vacía. Las misiones iniciales se crean pendientes y sin tarea: no se inventa trabajo ni se marca como realizado. Lote máximo: 5.
+La asignación solo selecciona misiones con `task` no vacía. Las misiones iniciales se crean pendientes y sin tarea: no se inventa trabajo ni se marca como realizado. Lote máximo: 5. La reconciliación exige que la misión esté en `ASSIGNED`, que coincidan `mission_id` y `agent_id`, y solo acepta `REVIEW_REQUIRED` o `BLOCKED`; nunca acepta `PASS` del modelo.
 
 ## GitHub Actions
 Workflow manual **COALICIÓN — Agentes lógicos Hugging Face**. Introducir una misión JSON concreta y disponer del secreto `HF_TOKEN`. El workflow ejecuta un solo agente por invocación y publica la evidencia como artefacto temporal; no hace commit ni push automático.
