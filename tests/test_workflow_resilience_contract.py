@@ -82,3 +82,11 @@ def test_scheduled_electoral_radar_serializes_runs_per_ref():
     source = (WORKFLOWS / "electoral_intelligence.yml").read_text(encoding="utf-8")
     assert "group: electoral-intelligence-${{ github.ref }}" in source
     assert "cancel-in-progress: false" in source
+
+
+def test_stale_colmena_checkpoint_is_reported_as_skip_not_failure():
+    source = (ROOT / "scripts" / "colmena_checkpoint.py").read_text(encoding="utf-8")
+    assert "CHECKPOINT_SKIPPED_STALE_VALIDATION" in source
+    assert 'fail(f"stale validation:' not in source
+    workflow = (WORKFLOWS / "colmena_atomic_swarm.yml").read_text(encoding="utf-8")
+    assert 'if [ "$checkpoint_rc" -eq 3 ]; then' in workflow
