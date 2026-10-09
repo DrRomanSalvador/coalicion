@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: product-smoke
+  group: product-smoke-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
