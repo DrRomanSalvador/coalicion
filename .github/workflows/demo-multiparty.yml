@@ -12,6 +12,9 @@ on:
       - "src/coalition.py"
       - "scripts/demo_e2e.py"
       - "tests/test_demo_multiparty.py"
+      - "scripts/demo_decision_analysis.py"
+      - "tests/test_demo_decision_analysis.py"
+      - "DECISION_ANALYSIS_USAGE.md"
       - "tests/test_demo_e2e.py"
       - ".github/workflows/demo-multiparty.yml"
   pull_request:
@@ -23,6 +26,9 @@ on:
       - "src/electoral.py"
       - "src/coalition.py"
       - "scripts/demo_e2e.py"
+      - "scripts/demo_decision_analysis.py"
+      - "tests/test_demo_decision_analysis.py"
+      - "DECISION_ANALYSIS_USAGE.md"
       - "tests/test_demo_multiparty.py"
       - "tests/test_demo_e2e.py"
       - ".github/workflows/demo-multiparty.yml"
@@ -54,13 +60,23 @@ jobs:
           python -m pytest -q tests/test_demo_e2e.py tests/test_coalition.py tests/test_neutral_audit.py
       - name: Generate multiparty result artifact
         run: python scripts/demo_multiparty.py --output artifacts/demo_multiparty_2023.json
-      - name: Validate generated JSON
-        run: python -m json.tool artifacts/demo_multiparty_2023.json > /dev/null
-      - name: Require committed artifact to be reproducible
+      - name: Run decision-analysis tests
+        run: python -m pytest -q tests/test_demo_decision_analysis.py
+      - name: Generate decision analysis and executive report
+        run: python scripts/demo_decision_analysis.py
+      - name: Validate generated JSON and report
+        run: |
+          python -m json.tool artifacts/demo_multiparty_2023.json > /dev/null
+          python -m json.tool artifacts/demo_decision_analysis_2023.json > /dev/null
+          test -s reports/demo_decision_analysis_2023.md
+      - name: Require existing demo artifact to be reproducible
         run: git diff --exit-code -- artifacts/demo_multiparty_2023.json
       - name: Upload reproducible demo result
         uses: actions/upload-artifact@v4
         with:
           name: coalicion-demo-multiparty-2023
-          path: artifacts/demo_multiparty_2023.json
+          path: |
+            artifacts/demo_multiparty_2023.json
+            artifacts/demo_decision_analysis_2023.json
+            reports/demo_decision_analysis_2023.md
           if-no-files-found: error
