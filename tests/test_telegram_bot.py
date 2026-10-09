@@ -431,3 +431,20 @@ def test_demo_does_not_present_blocked_seat_values(tmp_path, monkeypatch):
     assert "No se muestran escaños" in result
     assert "PARTY_A: 180" not in result
     assert "BLOCKED_NO_TERRITORIAL_INPUT" not in result
+
+
+def test_demo_blocks_false_pass_without_territorial_calibration_or_seat_invariant(tmp_path, monkeypatch):
+    demo = tmp_path / "demo.json"
+    demo.write_text(json.dumps({
+        "status": "PASS",
+        "territorial_input": "NONE",
+        "observed_territorial_polls": 0,
+        "calibration_status": "NOT_2026_CALIBRATED",
+        "seat_total": 180,
+        "national_seats": {"PARTY_A": 180},
+        "blockers": []
+    }), encoding="utf-8")
+    monkeypatch.setattr(telegram_bot, "DEMO_PREDICTION", demo)
+    result = telegram_bot._demo_prediction_text()
+    assert "BLOQUEADA" in result
+    assert "PARTY_A: 180" not in result
