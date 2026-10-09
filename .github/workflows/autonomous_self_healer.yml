@@ -37,6 +37,7 @@ jobs:
           set -euo pipefail
           main_sha="$(gh api "repos/$REPOSITORY/commits/main" --jq '.sha')"
           self_id="$(gh api "repos/$REPOSITORY/actions/workflows/autonomous_self_healer.yml" --jq '.id')"
+          max_attempts=3
           # Query runs for the current main SHA directly, then paginate all result pages.
           # Fetching only the newest 100 repository-wide runs can miss eligible failures
           # when other workflows generate a burst of runs.
@@ -47,7 +48,7 @@ jobs:
                 .[] | .workflow_runs[]
                 | select(.workflow_id != $self_id)
                 | select(.head_branch == "main" and .head_sha == $sha)
-                | select(.status == "completed" and .run_attempt == 1)
+                | select(.status == "completed" and .run_attempt < 3)
                 | select(.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out" or .conclusion == "startup_failure")
               ]
               | sort_by(.created_at)
@@ -55,7 +56,24 @@ jobs:
             ' <<<"$runs_json"
           )
           if [[ "${#candidates[@]}" -eq 0 ]]; then
+            exhausted="$(jq -r --arg sha "$main_sha" --argjson self_id "$self_id" '
+              [ .[] | .workflow_runs[]
+                | select(.workflow_id != $self_id)
+                | select(.head_branch == "main" and .head_sha == $sha)
+                | select(.status == "completed" and .run_attempt >= 3)
+                | select(.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out" or .conclusion == "startup_failure")
+              ] | sort_by(.created_at) | .[] | "(.id) attempt=(.run_attempt) conclusion=(.conclusion) workflow=(.name)"
+            ' <<<"$runs_json")"
+            if [[ -n "$exhausted" ]]; then
+              echo "### Automatic recovery blocked — retry budget exhausted" >> "$GITHUB_STEP_SUMMARY"
+              echo 'The following current-main runs failed after 3 attempts; no infinite retry was started:' >> "$GITHUB_STEP_SUMMARY"
+              printf '%s\n' "$exhausted" | tee -a "$GITHUB_STEP_SUMMARY"
+              echo "::error::Unresolved current-main failures exhausted the 3-attempt retry budget."
+              exit 1
+            fi
             echo "No eligible failed workflow runs for current main ($main_sha)."
+            echo "## Recovery sweep" >> "$GITHUB_STEP_SUMMARY"
+            echo "No eligible failed runs found for current main ($main_sha)." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           # Process oldest candidates first, bound API work and successful reruns, and
@@ -75,7 +93,7 @@ jobs:
             conclusion="$(jq -r '.conclusion // empty' <<<"$run_json")"
             run_sha="$(jq -r '.head_sha // empty' <<<"$run_json")"
             run_attempt="$(jq -r '.run_attempt // empty' <<<"$run_json")"
-            [[ "$status" == "completed" && "$run_sha" == "$main_sha" && "$run_attempt" == "1" ]] || continue
+            [[ "$status" == "completed" && "$run_sha" == "$main_sha" && "$run_attempt" -lt "$max_attempts" ]] || continue
             case "$conclusion" in
               cancelled)
                 if gh run rerun "$run_id" --repo "$REPOSITORY"; then
@@ -98,6 +116,14 @@ jobs:
               *) continue ;;
             esac
           done
+          {
+            echo "## Autonomous recovery sweep"
+            echo "- Main SHA: `$main_sha`"
+            echo "- Retry budget: $max_attempts attempts per workflow run"
+            echo "- Rerun requests accepted: $count"
+            echo "- Candidates examined: $attempted"
+            echo "- API/read/rerun failures: $failures"
+          } >> "$GITHUB_STEP_SUMMARY"
           echo "Scheduled recovery sweep finished; rerun requests=$count; candidates attempted=$attempted; request/read failures=$failures."
           if [[ "$failures" -gt 0 ]]; then
             echo "::error::One or more candidate recovery requests failed; the sweep continued to process other candidates."
