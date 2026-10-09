@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "5c1f3f2fc8572c53ec6843e73de42bcbef4eead2",
-  "updated_at": "2026-10-09T11:48:00+02:00",
+  "commit": "cb3f1a21d872b6c6809ca8590597fdbf3627a23b",
+  "updated_at": "2026-10-09T12:07:21.503+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -21,7 +21,9 @@
     "backtest/OOS y suite reproducible verificados por GitHub Actions",
     "baseline 2023 separado de magnitudes 2026 y regla explícita de Ceuta/Melilla",
     "normalización de poll_id/id corregida en la vigilancia de encuestas",
-    "estado de certificación sincronizado con evidencia; READY_FOR_EXTERNAL_AUDIT no equivale a certificación independiente"
+    "estado de certificación sincronizado con evidencia; READY_FOR_EXTERNAL_AUDIT no equivale a certificación independiente",
+    "reconciliación exacta votos-escaños 2023: 52/52 circunscripciones, 0 discrepancias, motor único src.electoral.allocate y reglas especiales Ceuta/Melilla",
+    "auditoría canónica valida hashes del workbook, CSV histórico, matriz 2023 y sidecar; rechaza fuentes secundarias"
   ],
   "real_monitor_snapshot": {
     "configured_sources": 16,
@@ -35,17 +37,19 @@
   },
   "resume_from": "Mantener P3 bloqueado sin matriz territorial general 2026; cerrar auditoría externa independiente y cerrar las 179 misiones con evidencia persistente antes de v1.0.0.",
   "last_execution": {
-    "run": 37913045371,
-    "tests": "367 passed; full reproducible suite PASS",
-    "seec": "PASS; 10000 posterior draws; 4 chains; eta included; all diagnostics finite; 0 divergences; max R-hat 1.00; min ESS bulk 1900; min ESS tail 3000",
+    "run": 37915365410,
+    "commit": "cb3f1a21d872b6c6809ca8590597fdbf3627a23b",
+    "tests": "367 passed; exhaustive pytest PASS",
+    "neutral_audit": "PASS; source workbook pinned; derived hashes verified; 52/52 seat allocations recomputed; 0 discrepancies",
+    "seec": "PASS; 10000 draws; 4 chains; eta included; all diagnostics finite; 0 divergences; max R-hat 1.00; min ESS bulk 1900; min ESS tail 3000",
     "oos": "PASS; walk-forward calibration evidence persisted",
-    "official_data": "PASS; 16 elections, 52 constituencies, 322556 normalized records; workbook SHA-256 dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
-    "completion_gate": "READY_FOR_EXTERNAL_AUDIT; independent external audit remains pending",
-    "next": "Complete remaining CI on latest main; keep territorial prediction and v1.0.0 blocked until actual territorial evidence and independent audit."
+    "master_certification": "READY_FOR_EXTERNAL_AUDIT; independent external audit remains pending",
+    "territorial_status": "BLOCKED_NO_VALIDATED_52_CONSTITUENCY_GENERAL_ELECTION_MATRIX",
+    "next": "Persist updated master certification gate, finish the current full suite on latest main, preserve external-audit and territorial blockers."
   },
   "phase2_priority1": {
     "status": "PARTIAL_CURRENT_2026",
-    "national_survey_count": 3,
+    "national_survey_count": 10,
     "territorial_observation_count": 3,
     "territorial_coverage": [
       "Catalunya (captura territorial; no validada como matriz general 2026)",
@@ -236,6 +240,21 @@
       "valid_votes_total": 24688087,
       "seats": 350
     },
-    "fail_closed": true
+    "fail_closed": true,
+    "vote_seat_reconciliation": {
+      "status": "PASS",
+      "constituencies": 52,
+      "discrepancies": 0,
+      "method": "src.electoral.allocate",
+      "special_rules": [
+        "Ceuta",
+        "Melilla"
+      ]
+    },
+    "derived_hashes": {
+      "normalized_csv_sha256": "ece9dbb32e00af1456d7d422b35414e39f8b63ba01745c0b6a2d4b6e07da2bf3",
+      "canonical_2023_sha256": "dd42f9fe6ba3720488a352d2e2ce6459b16d8d5deb1e50882a6e3e99a1c2cfa1",
+      "canonical_sidecar": "artifacts/data/election_2023_canonical.json.sha256"
+    }
   }
 }
