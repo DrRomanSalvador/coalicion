@@ -47,3 +47,11 @@ jobs:
           git diff --cached --quiet || (git commit -m "ci: materialize product release gate" && git push origin HEAD:main)
       - name: Docker build
         run: docker build -t coalicion-product .
+
+      - name: Publish product release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-release-evidence
+          path: ci_evidence/product_release_gate.json
+          if-no-files-found: ignore
