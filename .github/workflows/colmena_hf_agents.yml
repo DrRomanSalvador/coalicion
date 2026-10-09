@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       backend:
-        description: "Backend de inferencia: ollama-free (local en runner) o huggingface (créditos HF)"
+        description: "Backend: ollama (modelo abierto local, sin créditos HF) o hf (Inference Providers)"
         required: true
         default: "ollama"
         type: choice
@@ -50,7 +50,7 @@ jobs:
   run-one-agent:
     name: Ejecutar, reconciliar y persistir una misión asignada
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
