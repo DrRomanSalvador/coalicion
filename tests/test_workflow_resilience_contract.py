@@ -249,3 +249,14 @@ def test_auto_merge_gate_filters_runs_to_exact_sha_and_excludes_only_current_run
         {"id": 1, "name": "Required", "status": "completed", "conclusion": "success"}
     ]
 
+def test_batch_workflow_uses_gh_cli_token_handling_and_reports_auth_failures_explicitly():
+    source = (WORKFLOWS / "batch_workflow_validation.yml").read_text(encoding="utf-8")
+    assert "actions: write" in source
+    assert "contents: read" in source
+    assert "GH_TOKEN: ${{ github.token }}" in source
+    assert 'command = ["gh", "api", path, "--method", method]' in source
+    assert "urllib.request.urlopen" not in source
+    assert "GitHub API authentication failed (401 Bad credentials)" in source
+    assert "GitHub API authorization failed (403)" in source
+    assert "if not token:" in source
+
