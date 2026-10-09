@@ -111,6 +111,7 @@ def test_cli_persists_valid_json_atomically(tmp_path: Path):
 
 
 def test_counterfactual_scenario_results_are_pinned():
+    # Exact results are regression-locked against the canonical 2023 matrix.
     result = run_demo()
     scenarios = {item["id"]: item for item in result["scenarios"]}
     left = scenarios["izquierda_sin_psoe"]["regions"]
