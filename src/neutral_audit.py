@@ -52,13 +52,23 @@ def audit_canonical(path: str | Path) -> dict[str, Any]:
         data=json.loads(p.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as e:
         return {"status":"BLOCKED","reason":"INVALID_CANONICAL_JSON","detail":str(e),"path":str(p)}
-    constituencies=data.get("data",{}).get("constituencies",{})
+    if not isinstance(data,dict) or not isinstance(data.get("data"),dict) or not isinstance(data["data"].get("constituencies"),dict):
+        return {"status":"BLOCKED","reason":"INVALID_CONSTITUENCY_MAP","path":str(p)}
+    constituencies=data["data"]["constituencies"]
+    if any(not isinstance(item,dict) for item in constituencies.values()):
+        return {"status":"BLOCKED","reason":"INVALID_CONSTITUENCY_RECORD","path":str(p)}
     provinces=list(constituencies.values())
     names=list(constituencies.keys())
-    seats=sum(int(x.get("seats",0)) for x in provinces)
+    seat_values=[x.get("seats") for x in provinces]
+    seats_valid=all(isinstance(v,int) and not isinstance(v,bool) and v>=1 for v in seat_values)
+    seats=sum(v for v in seat_values if isinstance(v,int) and not isinstance(v,bool))
     unique=len(names)==len(set(names)) and len(names)==52 and all(isinstance(x,str) and x for x in names)
     valid={k:v.get("valid_votes") for k,v in constituencies.items()}
-    blank={k:v.get("blank_votes",0) for k,v in constituencies.items()}
+    blank={k:v.get("blank_votes") for k,v in constituencies.items()}
+    parties_valid=all(isinstance(item.get("parties"),dict) and bool(item.get("parties")) and all(isinstance(p,str) and p and isinstance(v,int) and not isinstance(v,bool) and v>=0 for p,v in item["parties"].items()) for item in provinces)
+    candidate_total=sum(sum(item["parties"].values()) for item in provinces) if parties_valid else -1
+    blank_total=sum(v for v in blank.values() if isinstance(v,int) and not isinstance(v,bool) and v>=0)
+    valid_total=sum(v for v in valid.values() if isinstance(v,int) and not isinstance(v,bool) and v>=0)
     digest=sha256_file(p)
     recorded_hash=None
     sidecar=p.with_name(p.name + ".sha256")
@@ -108,15 +118,16 @@ def audit_canonical(path: str | Path) -> dict[str, Any]:
         and source_meta.get("sha256")==source_hash
         and manifest_ok
         and len(provinces)==EXPECTED_PROVINCES
+        and seats_valid
         and seats==EXPECTED_SEATS
         and unique
         and all(isinstance(v,int) and not isinstance(v,bool) and v>=0 for v in valid.values())
         and all(isinstance(v,int) and not isinstance(v,bool) and v>=0 for v in blank.values())
-        and all(v == sum(constituencies[k].get("parties",{}).values()) + blank[k] for k,v in valid.items())
-        and all(isinstance(v,int) and not isinstance(v,bool) and v>=0 for item in provinces for v in item.get("parties",{}).values())
-        and sum(sum(c.get("parties",{}).values()) for c in provinces)==EXPECTED_CANDIDATE_VOTES
-        and sum(blank.values())==200_673
-        and sum(valid.values())==24_688_087
+        and parties_valid
+        and all(v == sum(constituencies[k]["parties"].values()) + blank[k] for k,v in valid.items())
+        and candidate_total==EXPECTED_CANDIDATE_VOTES
+        and blank_total==200_673
+        and valid_total==24_688_087
         and digest==EXPECTED_CANONICAL_SHA256
         and recorded_hash==digest
         and validation.get("status")=="PASS"
@@ -138,7 +149,7 @@ def audit_canonical(path: str | Path) -> dict[str, Any]:
         "election":data.get("election"),
         "province_count":len(provinces),
         "seat_total":seats,
-        "candidate_votes_total":sum(sum(c.get("parties",{}).values()) for c in provinces),
+        "candidate_votes_total":candidate_total,
         "valid_vote_keys":len(valid),
         "source_sha256":source_hash,
         "manifest_status":manifest.get("status") if isinstance(manifest,dict) else None,
