@@ -477,6 +477,9 @@ def test_poll_monitor_blocks_when_required_telegram_alert_cannot_be_delivered(tm
     assert result["notification_status"] == "BLOCKED"
     assert monitor.state["last_status"] == "BLOCKED"
     assert state_path.is_file()
+    persisted = json.loads(state_path.read_text(encoding="utf-8"))
+    assert persisted["pending_notifications"]
+    assert persisted["pending_notifications"][0]["text"]
     assert any(json.loads(line)["status"] == "BLOCKED" for line in (tmp_path / "survey_history.jsonl").read_text(encoding="utf-8").splitlines())
 
 
