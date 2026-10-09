@@ -48,8 +48,15 @@ jobs:
               exit 0
             fi
 
-            if [ "$conclusion" = "failure" ] || [ "$conclusion" = "cancelled" ] || [ "$conclusion" = "timed_out" ]; then
-              echo "Historical CI is not green; re-running failed jobs."
+            if [ "$conclusion" = "cancelled" ] || [ "$conclusion" = "startup_failure" ]; then
+              echo "Historical CI ended without a reliable failed-job set; requesting a full rerun."
+              gh run rerun "$run_id" --repo "${{ github.repository }}"
+              sleep 20
+              continue
+            fi
+
+            if [ "$conclusion" = "failure" ] || [ "$conclusion" = "timed_out" ]; then
+              echo "Historical CI failed; re-running failed jobs only."
               gh run rerun "$run_id" --repo "${{ github.repository }}" --failed
               sleep 20
               continue
