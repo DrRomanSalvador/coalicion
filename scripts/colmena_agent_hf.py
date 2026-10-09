@@ -73,28 +73,73 @@ def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str =
         if not token:
             raise RuntimeError("Falta Reina_token; no se invocará el proveedor.")
         from huggingface_hub import InferenceClient
-        client = InferenceClient(model=model, provider=provider, token=token, timeout=90)
         context = load_context(mission)
-        response = client.chat_completion(messages=[
-            {"role": "system", "content": (
-                "Eres un agente analítico de COALICIÓN. No afirmes haber cambiado archivos, ejecutado comandos, "
-                "consultado fuentes o pasado pruebas si no ocurrió. Distingue hechos, hipótesis y recomendaciones. "
-                "Usa únicamente el contexto adjunto como evidencia del repositorio. Responde en español, breve, "
-                "con hallazgos concretos, rutas/funciones, riesgos y siguiente acción. Tu salida requiere revisión "
-                "humana; no puedes certificar PASS."
-            )},
-            {"role": "user", "content": f"Agente lógico: {agent_id}\nMisión: {mission_id}\nTítulo: {mission.get('title', mission_id)}\nTarea:\n{task}\n\nContexto real del repositorio:\n{context or '(No se adjuntaron archivos de contexto.)'}\n\nEntrega un informe auditable y no afirmes haber ejecutado pruebas."}
-        ], max_tokens=700, temperature=0.2)
+        # "auto" no garantiza que el proveedor automático coincida con los habilitados
+        # en la cuenta. Probamos únicamente proveedores conocidos por configuración.
+        fallbacks = [
+            item.strip() for item in os.getenv(
+                "HF_PROVIDER_FALLBACKS", "deepinfra,featherless-ai"
+            ).split(",") if item.strip()
+        ]
+        candidates = fallbacks if provider.strip().lower() == "auto" else [provider.strip()]
+        if not candidates:
+            raise RuntimeError("No hay proveedores configurados; define HF_PROVIDER o HF_PROVIDER_FALLBACKS.")
+        last_provider_error: Exception | None = None
+        response = None
+        selected_provider = ""
+        for candidate_provider in dict.fromkeys(candidates):
+            result["provider"] = candidate_provider
+            try:
+                client = InferenceClient(
+                    model=model, provider=candidate_provider, token=token, timeout=90
+                )
+                response = client.chat_completion(messages=[
+                    {"role": "system", "content": (
+                        "Eres un agente analítico de COALICIÓN. No afirmes haber cambiado archivos, ejecutado comandos, "
+                        "consultado fuentes o pasado pruebas si no ocurrió. Distingue hechos, hipótesis y recomendaciones. "
+                        "Usa únicamente el contexto adjunto como evidencia del repositorio. Responde en español, breve, "
+                        "con hallazgos concretos, rutas/funciones, riesgos y siguiente acción. Tu salida requiere revisión "
+                        "humana; no puedes certificar PASS."
+                    )},
+                    {"role": "user", "content": f"Agente lógico: {agent_id}\nMisión: {mission_id}\nTítulo: {mission.get('title', mission_id)}\nTarea:\n{task}\n\nContexto real del repositorio:\n{context or '(No se adjuntaron archivos de contexto.)'}\n\nEntrega un informe auditable y no afirmes haber ejecutado pruebas."}
+                ], max_tokens=700, temperature=0.2)
+                selected_provider = candidate_provider
+                break
+            except Exception as exc:
+                last_provider_error = exc
+                error_text = str(exc).lower()
+                unsupported = (
+                    "model_not_supported" in error_text
+                    or "not supported by any provider" in error_text
+                    or "provider_not_supported" in error_text
+                )
+                if not unsupported:
+                    raise
+        if response is None:
+            raise RuntimeError(
+                f"El modelo {model!r} no pudo usarse con los proveedores probados "
+                f"({', '.join(dict.fromkeys(candidates))}). Ninguno acepta este modelo "
+                "con la credencial Reina_token. Revisa proveedores habilitados y configura "
+                "HF_PROVIDER o HF_PROVIDER_FALLBACKS. No se marcará la misión como completada."
+            ) from last_provider_error
         content = response.choices[0].message.content
         if not isinstance(content, str) or not content.strip():
-            raise RuntimeError("HF devolvió una respuesta vacía.")
-        result.update(status="REVIEW_REQUIRED", response=content.strip())
+            raise RuntimeError(f"HF devolvió una respuesta vacía desde {selected_provider}.")
+        result.update(status="REVIEW_REQUIRED", provider=selected_provider, response=content.strip())
     except Exception as exc:
         message = str(exc)
-        if "model_not_supported" in message or "not supported by any provider" in message:
-            message = (f"El modelo {model!r} no está disponible en los proveedores habilitados para este token. "
-                       "Selecciona en Hugging Face un proveedor compatible y habilítalo en la cuenta; "
-                       "después vuelve a ejecutar con --provider auto o con el proveedor elegido.")
+        lowered = message.lower()
+        if "402" in lowered or "payment required" in lowered or "no remaining credits" in lowered or "purchase pre-paid credits" in lowered:
+            message = (
+                "Hugging Face rechazó la inferencia por falta de créditos (HTTP 402). "
+                "No se probarán otros proveedores para evitar llamadas innecesarias. "
+                "Añade crédito/plan a la cuenta asociada a Reina_token o configura un proveedor "
+                "que tenga crédito disponible; después reintenta la misión bloqueada."
+            )
+        elif "model_not_supported" in lowered or "not supported by any provider" in lowered:
+            message = (f"El modelo {model!r} no está disponible para la credencial Reina_token "
+                       f"con el proveedor {provider!r}. Usa un proveedor que figure como activo para "
+                       "ese modelo en Hugging Face y esté habilitado para la cuenta.")
         result.update(status="BLOCKED", error=f"{type(exc).__name__}: {message}")
     result["completed_at"] = now()
     evidence_path = AGENTS_DIR / f"{safe_name(agent_id)}_{safe_name(mission_id)}.json"
