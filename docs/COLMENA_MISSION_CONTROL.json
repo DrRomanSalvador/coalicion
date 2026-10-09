@@ -60,13 +60,12 @@
       "id": "M0005",
       "agent_id": "agent-005",
       "title": "Auditoría de estado e invocación",
-      "task": "Compara el estado persistente, el control de misiones y la guía de invocación: modo formal, credencial Reina_token, recuentos y bloqueo por aprobación. Enumera cualquier contradicción verificable.",
+      "task": "Compara el estado persistente y la guía de invocación con Mission Control (snapshot verificado: 179 misiones, 5 tareas definidas, 179 PENDING, 0 asignadas, 0 ejecutadas): modo formal, credencial Reina_token y bloqueo por aprobación. Enumera contradicciones verificables.",
       "status": "PENDING",
       "assigned": false,
       "note": "Definir una tarea concreta y verificable antes de ejecutar.",
       "context_paths": [
         "docs/COLMENA_STATE.json",
-        "docs/COLMENA_MISSION_CONTROL.json",
         "docs/INVOCACION_COLMENA.md"
       ]
     },
