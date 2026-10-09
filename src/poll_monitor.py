@@ -788,6 +788,9 @@ class PollMonitor:
 
 
     def run(self) -> dict[str, Any]:
+        # Compare durable state, not per-run heartbeat metadata. Otherwise a no-op
+        # five-minute poll creates a commit and retriggers the entire repository CI.
+        state_before = json.loads(json.dumps(self.state, sort_keys=True))
         checked = datetime.now(timezone.utc).isoformat()
         baseline = not self.state.get("baseline_completed", False)
         polls, discoveries, failures = self.fetch_all()
@@ -834,17 +837,31 @@ class PollMonitor:
         self.state["last_failures"] = failures
         self.state["last_coverage"] = coverage
         self.state["total_validated"] = len(self.state["poll_hashes"])
-        self.state_path.parent.mkdir(parents=True, exist_ok=True)
-        self.state_path.write_text(json.dumps(self.state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"Encontradas {len(polls)} encuestas validadas")
         print(f"{len(new)+len(changed)} encuestas nuevas/cambiadas")
         print(f"Guardado en {path}" if path else "Sin cambios persistibles.")
         self.alert(payload)
-        # alert() may update failure deduplication state.
-        self.state_path.write_text(
-            json.dumps(self.state, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
+        # alert() may update failure deduplication state. Persist only when the
+        # durable snapshot changes; checked_at/run counters alone are telemetry and
+        # must not generate a main-branch commit every five minutes.
+        def durable_snapshot(value: dict[str, Any]) -> dict[str, Any]:
+            snapshot = json.loads(json.dumps(value, sort_keys=True))
+            for key in ("runs", "last_run", "last_status", "last_new", "last_changed",
+                        "last_discoveries", "last_failures"):
+                snapshot.pop(key, None)
+            for source_state in snapshot.get("source_status", {}).values():
+                if isinstance(source_state, dict):
+                    source_state.pop("checked_at", None)
+            return snapshot
+
+        if durable_snapshot(self.state) != durable_snapshot(state_before):
+            self.state_path.parent.mkdir(parents=True, exist_ok=True)
+            self.state_path.write_text(
+                json.dumps(self.state, ensure_ascii=False, indent=2) + "\\n",
+                encoding="utf-8",
+            )
+        else:
+            print("Sin cambios de estado persistibles; se omite la escritura del estado.")
         return payload
 
 if __name__ == "__main__":
