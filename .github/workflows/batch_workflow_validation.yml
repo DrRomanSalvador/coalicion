@@ -1,0 +1,322 @@
+name: Batch validation of dispatchable workflows
+
+on:
+  workflow_dispatch:
+    inputs:
+      include_external_side_effects:
+        description: "Include release, messaging, persistent-service and paid external-agent workflows"
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/batch_workflow_validation.yml"
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+
+concurrency:
+  group: batch-workflow-validation-main
+  cancel-in-progress: false
+
+jobs:
+  dispatch-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install YAML parser
+        run: python -m pip install --disable-pip-version-check pyyaml
+      - name: Run eligible workflows and verify results
+        env:
+          GH_TOKEN: \${{ github.token }}
+          GH_REPO: \${{ github.repository }}
+          INCLUDE_EXTERNAL_SIDE_EFFECTS: \${{ inputs.include_external_side_effects || false }}
+          STEP_SUMMARY: \${{ github.step_summary }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python - <<'PY'
+          import base64
+          import json
+          import os
+          import sys
+          import time
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+          from datetime import datetime, timezone
+          import yaml
+
+          repo = os.environ["GH_REPO"]
+          token = os.environ["GH_TOKEN"]
+          include_external = os.environ.get("INCLUDE_EXTERNAL_SIDE_EFFECTS", "false").lower() == "true"
+          api_base = f"https://api.github.com/repos/{repo}/"
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "X-GitHub-Api-Version": "2022-11-28",
+              "Content-Type": "application/json",
+          }
+          side_effects = {
+              "product_release.yml", "newsletter.yml", "telegram_bot_service.yml",
+              "telegram_miniapp.yml", "colmena_hf_agents.yml", "colmena_hf_assign.yml",
+              "colmena_hf_tests.yml", "force_workflow.yml", "batch_workflow_validation.yml",
+              "global_repository_orchestrator.yml", "autonomous_self_healer.yml",
+              "historical-ci-orchestrator.yml", "historical-ci-self-healer.yml",
+              "continuous-workflow-supervisor.yml", "colmena_atomic_swarm.yml",
+              "daily_survey_watch.yml", "weekly_survey_vigilance.yml", "poll_monitor.yml",
+          }
+          active_statuses = {"queued", "in_progress", "waiting", "requested", "pending"}
+          acceptable = {"success", "skipped"}
+          batch_start = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+          def api(path, method="GET", payload=None):
+              data = None if payload is None else json.dumps(payload).encode("utf-8")
+              request = urllib.request.Request(api_base + path, data=data, method=method, headers=headers)
+              try:
+                  with urllib.request.urlopen(request, timeout=45) as response:
+                      raw = response.read()
+                      return json.loads(raw) if raw else None
+              except urllib.error.HTTPError as exc:
+                  body = exc.read().decode("utf-8", "replace")
+                  raise RuntimeError(f"GitHub API {method} {path} returned {exc.code}: {body[:500]}") from exc
+
+          def now_iso():
+              return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+          def parse_workflow(path):
+              encoded_path = urllib.parse.quote(path, safe="/")
+              result = api(f"contents/{encoded_path}?ref=main")
+              source = base64.b64decode(result["content"]).decode("utf-8")
+              document = yaml.load(source, Loader=yaml.BaseLoader) or {}
+              triggers = document.get("on", {})
+              dispatch = triggers.get("workflow_dispatch") if isinstance(triggers, dict) else None
+              if dispatch is None and isinstance(triggers, list) and "workflow_dispatch" in triggers:
+                  dispatch = {}
+              if dispatch is None:
+                  return None, {}, ["no workflow_dispatch trigger"]
+              dispatch = dispatch or {}
+              specs = dispatch.get("inputs", {}) or {}
+              inputs = {}
+              missing = []
+              for name, spec in specs.items():
+                  spec = spec or {}
+                  if "default" in spec:
+                      inputs[name] = str(spec["default"])
+                  elif str(spec.get("required", "false")).lower() == "true":
+                      missing.append(name)
+              return dispatch, inputs, missing
+
+          def get_run(run_id):
+              return api(f"actions/runs/{run_id}")
+
+          def retry_run(entry, run):
+              attempt = int(run.get("run_attempt", 1))
+              if entry.get("retry_requested") and attempt == 1:
+                  entry["state"] = "waiting"
+                  return
+              if attempt >= 2:
+                  entry["state"] = "failed"
+                  entry["reason"] = f"failed after retry budget (attempt={attempt}, conclusion={run.get('conclusion')})"
+                  return
+              endpoint = "rerun-failed-jobs" if run.get("conclusion") == "failure" else "rerun"
+              try:
+                  api(f"actions/runs/{run['id']}/{endpoint}", method="POST", payload={})
+              except Exception as exc:
+                  entry["state"] = "failed"
+                  entry["reason"] = f"retry request failed: {exc}"
+                  return
+              entry["retry_requested"] = True
+              entry["state"] = "waiting"
+              entry["reason"] = f"one retry requested after {run.get('conclusion')}"
+              print(f"RETRY:{entry['path']}:run={run['id']}:attempt={attempt + 1}", flush=True)
+
+          main_sha = api("commits/main")["sha"]
+          workflow_data = api("actions/workflows?per_page=100")
+          workflows = workflow_data.get("workflows", [])
+          current_data = api(f"actions/runs?branch=main&head_sha={main_sha}&per_page=100")
+          current_runs = current_data.get("workflow_runs", [])
+          latest_by_workflow = {}
+          for run in sorted(current_runs, key=lambda item: item.get("created_at", "")):
+              latest_by_workflow[run["workflow_id"]] = run
+
+          entries = []
+          skipped = []
+          passed = []
+          failed = []
+          for workflow in workflows:
+              path = workflow.get("path", "")
+              name = workflow.get("name", path)
+              wid = workflow.get("id")
+              if workflow.get("state") != "active":
+                  skipped.append((path, "workflow disabled"))
+                  continue
+              if path.endswith("/batch_workflow_validation.yml") or path == ".github/workflows/batch_workflow_validation.yml":
+                  continue
+              existing = latest_by_workflow.get(wid)
+              if existing:
+                  if existing.get("status") in active_statuses:
+                      entries.append({
+                          "id": wid, "name": name, "path": path, "run_id": existing["id"],
+                          "source": "existing", "dispatch_at": None, "retry_requested": False,
+                          "state": "waiting", "reason": "already running on current main SHA",
+                      })
+                      continue
+                  conclusion = existing.get("conclusion")
+                  if conclusion in acceptable:
+                      passed.append((path, f"existing run {existing['id']} conclusion={conclusion}"))
+                      continue
+                  if conclusion in {"failure", "cancelled", "timed_out", "startup_failure"}:
+                      entry = {
+                          "id": wid, "name": name, "path": path, "run_id": existing["id"],
+                          "source": "existing", "dispatch_at": None, "retry_requested": False,
+                          "state": "waiting", "reason": "retrying current-SHA failure",
+                      }
+                      retry_run(entry, existing)
+                      entries.append(entry)
+                      continue
+
+              if path.rsplit("/", 1)[-1] in side_effects and not include_external:
+                  skipped.append((path, "external side effect / paid job / orchestrator excluded by default"))
+                  continue
+              try:
+                  dispatch, inputs, missing = parse_workflow(path)
+              except Exception as exc:
+                  skipped.append((path, f"could not inspect dispatch inputs: {exc}"))
+                  continue
+              if dispatch is None:
+                  skipped.append((path, "no workflow_dispatch trigger and no run on current main SHA"))
+                  continue
+              if missing:
+                  skipped.append((path, "required inputs lack safe defaults: " + ", ".join(missing)))
+                  continue
+              started = now_iso()
+              try:
+                  api(f"actions/workflows/{wid}/dispatches", method="POST", payload={"ref": "main", "inputs": inputs})
+                  entry = {
+                      "id": wid, "name": name, "path": path, "run_id": None,
+                      "source": "dispatched", "dispatch_at": started, "retry_requested": False,
+                      "state": "waiting", "reason": "workflow_dispatch accepted",
+                  }
+                  entries.append(entry)
+                  print(f"DISPATCHED:{path}@main", flush=True)
+              except Exception as exc:
+                  failed.append((path, f"dispatch failed: {exc}"))
+
+          print(
+              f"START main_sha={main_sha} workflows={len(workflows)} "
+              f"already_green={len(passed)} tracked={len(entries)} skipped={len(skipped)} dispatch_failures={len(failed)}",
+              flush=True,
+          )
+          deadline = time.monotonic() + 300 * 60
+          missing_deadline = {}
+          while entries and time.monotonic() < deadline:
+              query = urllib.parse.urlencode({
+                  "branch": "main", "event": "workflow_dispatch",
+                  "created": f">={batch_start}", "per_page": "100",
+              })
+              try:
+                  recent = api(f"actions/runs?{query}").get("workflow_runs", [])
+              except Exception as exc:
+                  print(f"RUN_LIST_RETRY:{exc}", flush=True)
+                  time.sleep(30)
+                  continue
+              recent_by_id = {run["id"]: run for run in recent}
+              for entry in entries:
+                  if entry["state"] in {"passed", "failed"}:
+                      continue
+                  run = recent_by_id.get(entry["run_id"]) if entry["run_id"] else None
+                  if run is None and entry["source"] == "dispatched":
+                      candidates = [
+                          item for item in recent
+                          if item.get("workflow_id") == entry["id"]
+                          and item.get("event") == "workflow_dispatch"
+                          and item.get("created_at", "") >= entry["dispatch_at"]
+                      ]
+                      if candidates:
+                          run = min(candidates, key=lambda item: item.get("created_at", ""))
+                          entry["run_id"] = run["id"]
+                      else:
+                          missing_deadline.setdefault(entry["path"], time.monotonic() + 900)
+                          if time.monotonic() > missing_deadline[entry["path"]]:
+                              entry["state"] = "failed"
+                              entry["reason"] = "dispatch accepted but no run appeared within 15 minutes"
+                              failed.append((entry["path"], entry["reason"]))
+                          continue
+                  elif run is None and entry["source"] == "existing" and entry["run_id"]:
+                      try:
+                          run = get_run(entry["run_id"])
+                      except Exception as exc:
+                          print(f"RUN_LOOKUP_RETRY:{entry['path']}:{exc}", flush=True)
+                          continue
+                  if run is None:
+                      continue
+                  status = run.get("status")
+                  conclusion = run.get("conclusion")
+                  if status != "completed":
+                      continue
+                  if conclusion in acceptable:
+                      entry["state"] = "passed"
+                      entry["reason"] = f"run {run['id']} conclusion={conclusion}"
+                      passed.append((entry["path"], entry["reason"]))
+                      print(f"PASS:{entry['path']}:{entry['reason']}", flush=True)
+                  elif conclusion in {"failure", "cancelled", "timed_out", "startup_failure"}:
+                      before = entry["state"]
+                      retry_run(entry, run)
+                      if entry["state"] == "failed":
+                          failed.append((entry["path"], entry["reason"]))
+                      elif before != "waiting" or not entry["retry_requested"]:
+                          entry["retry_requested"] = True
+              if all(entry["state"] in {"passed", "failed"} for entry in entries):
+                  break
+              time.sleep(30)
+
+          for entry in entries:
+              if entry["state"] not in {"passed", "failed"}:
+                  entry["state"] = "failed"
+                  entry["reason"] = "batch timeout before workflow completed"
+                  failed.append((entry["path"], entry["reason"]))
+
+          summary = [
+              "# Batch workflow validation",
+              f"- Main SHA at start: {main_sha}",
+              f"- Workflows discovered: {len(workflows)}",
+              f"- Existing green runs reused: {len([x for x in passed if x[1].startswith('existing run')])}",
+              f"- New/active workflows tracked: {len(entries)}",
+              f"- Passed: {len(passed)}",
+              f"- Skipped with reason: {len(skipped)}",
+              f"- Failed or unresolved: {len(failed)}",
+              "",
+              "## Passed",
+          ]
+          summary += [f"- {path}: {reason}" for path, reason in passed]
+          summary += ["", "## Skipped"]
+          summary += [f"- {path}: {reason}" for path, reason in skipped]
+          summary += ["", "## Failed"]
+          summary += [f"- {path}: {reason}" for path, reason in failed]
+          text = "\n".join(summary) + "\n"
+          print(text, flush=True)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as handle:
+              handle.write(text)
+
+          if failed:
+              title = f"Batch workflow validation unresolved failures ({len(failed)})"
+              body = text + f"\nMain SHA at start: {main_sha}\n"
+              try:
+                  open_issues = api("issues?state=open&per_page=100") or []
+                  existing_issue = next((item for item in open_issues if item.get("title") == title), None)
+                  if existing_issue:
+                      print(f"ISSUE_ALREADY_OPEN:{existing_issue.get('html_url', existing_issue.get('number'))}", flush=True)
+                  else:
+                      api("issues", method="POST", payload={"title": title, "body": body})
+              except Exception as exc:
+                  print(f"ISSUE_CREATE_FAILED:{exc}", flush=True)
+              raise SystemExit(1)
+          PY
