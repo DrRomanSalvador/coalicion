@@ -63,13 +63,44 @@ jobs:
               for key in ("mae","rmse","median_abs_error","max_abs_error","bias"):
                   assert math.isfinite(float(metrics[key])), (model, key)
           PY
-      - name: Commit genuine OOS evidence
+      - name: Commit genuine OOS evidence with stale-input and race protection
         if: github.ref == 'refs/heads/main'
+        shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ci_evidence/oos_calibration.json
-          git diff --cached --quiet || (git commit -m "ci: materialize expanding-window OOS calibration evidence" && git push origin HEAD:main)
+          tested_sha="$(git rev-parse HEAD)"
+          cp ci_evidence/oos_calibration.json /tmp/oos_calibration.json
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            current_sha="$(git rev-parse origin/main)"
+            if [ "$tested_sha" != "$current_sha" ]; then
+              changed_paths="$(git diff --name-only "$tested_sha" "$current_sha")"
+              unexpected_paths="$(printf '%s\n' "$changed_paths" | awk '$0 !~ /^(ci_evidence\/|reports\/)/')"
+              if [ -n "$unexpected_paths" ]; then
+                echo "::notice::OOS evidence was tested against $tested_sha but main changed in code/data; stale evidence will not be published."
+                printf 'tested=%s current=%s\nchanged paths:\n%s\n' "$tested_sha" "$current_sha" "$unexpected_paths" >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+              fi
+            fi
+            git reset --hard origin/main
+            mkdir -p ci_evidence
+            cp /tmp/oos_calibration.json ci_evidence/oos_calibration.json
+            git add ci_evidence/oos_calibration.json
+            if git diff --cached --quiet; then
+              echo "OOS evidence is already current."
+              exit 0
+            fi
+            git commit -m "ci: materialize expanding-window OOS calibration evidence"
+            if git push origin HEAD:main; then
+              echo "OOS evidence persisted after freshness validation (attempt $attempt)."
+              exit 0
+            fi
+            echo "Concurrent main update; retrying OOS evidence persistence ($attempt/5)." >&2
+            sleep "$((attempt * 3))"
+          done
+          echo "::error::Unable to persist fresh OOS evidence after five attempts."
+          exit 1
 
 # canonical OOS gate: strict election-code scope validation

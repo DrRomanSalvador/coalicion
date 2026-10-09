@@ -7,6 +7,10 @@ on:
     - cron: "0 6 * * *"
 permissions:
   contents: read
+concurrency:
+  group: methodology-extensions-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   extensions:
     runs-on: ubuntu-latest

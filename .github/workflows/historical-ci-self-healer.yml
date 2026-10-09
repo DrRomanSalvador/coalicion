@@ -21,13 +21,14 @@ jobs:
       - name: Converge historical CI to green
         env:
           GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
           workflow="Historical data — canonical integration"
 
           for cycle in 1 2 3; do
-            run_json="$(gh run list --repo "${{ github.repository }}" --workflow "${workflow}" --limit 1 --json databaseId,status,conclusion,headBranch,headSha)"
+            run_json="$(gh run list --repo "$REPOSITORY" --workflow "${workflow}" --limit 1 --json databaseId,status,conclusion,headBranch,headSha)"
             run_id="$(python -c 'import json,sys; x=json.loads(sys.argv[1]); print(x[0]["databaseId"] if x else "")' "${run_json}")"
             if [ -z "$run_id" ]; then
               echo "No historical run exists yet."
@@ -36,7 +37,17 @@ jobs:
 
             status="$(python -c 'import json,sys; print(json.loads(sys.argv[1])[0]["status"])' "${run_json}")"
             conclusion="$(python -c 'import json,sys; print(json.loads(sys.argv[1])[0].get("conclusion") or "")' "${run_json}")"
-            echo "cycle=$cycle run=$run_id status=$status conclusion=$conclusion"
+            run_sha="$(python -c 'import json,sys; print(json.loads(sys.argv[1])[0].get("headSha") or "")' "${run_json}")"
+            current_sha="$(gh api "repos/$REPOSITORY/commits/main" --jq '.sha')"
+            if [ -z "$run_sha" ] || [ -z "$current_sha" ]; then
+              echo "::error::Could not validate the historical run SHA; refusing automatic retry."
+              exit 1
+            fi
+            echo "cycle=$cycle run=$run_id status=$status conclusion=$conclusion run_sha=$run_sha current_main=$current_sha"
+            if [ "$run_sha" != "$current_sha" ]; then
+              echo "HISTORICAL_STALE_RUN:$run_id:$run_sha:current_main=$current_sha; orchestrator owns fresh dispatch."
+              exit 0
+            fi
 
             if [ "$status" = "in_progress" ] || [ "$status" = "queued" ] || [ "$status" = "waiting" ] || [ "$status" = "requested" ] || [ "$status" = "pending" ]; then
               echo "Historical CI is still running; do not interfere."
@@ -50,7 +61,7 @@ jobs:
 
             if [ "$conclusion" = "cancelled" ] || [ "$conclusion" = "startup_failure" ]; then
               echo "Historical CI ended without a reliable failed-job set; requesting a full rerun."
-              gh run rerun "$run_id" --repo "${{ github.repository }}"
+              gh run rerun "$run_id" --repo "$REPOSITORY"
               sleep 20
               continue
             fi
