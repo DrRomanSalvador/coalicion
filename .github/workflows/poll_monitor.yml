@@ -54,6 +54,7 @@ jobs:
           cp -a artifacts/surveys/. /tmp/poll-monitor-snapshot/surveys/
 
       - name: Persistir estado con autocuración de carreras
+        if: github.ref == 'refs/heads/main'
         id: persist
         run: |
           set -euo pipefail
