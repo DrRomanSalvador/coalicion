@@ -16,8 +16,9 @@ permissions:
   contents: read
 
 concurrency:
-  # A unique group per failed run prevents queued recovery events from cancelling one another.
-  group: autonomous-workflow-self-healer-${{ github.event.workflow_run.id || inputs.failed_run_id || github.run_id }}
+  # Serialize scheduled sweeps so two runs cannot race to rerun the same failed workflow.
+  # Manual repairs remain isolated by their explicit target ID.
+  group: autonomous-workflow-self-healer-${{ inputs.failed_run_id || 'scheduled-sweep' }}
   cancel-in-progress: false
 
 jobs:
