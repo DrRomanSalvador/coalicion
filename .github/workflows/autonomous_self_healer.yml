@@ -36,10 +36,14 @@ jobs:
           set -euo pipefail
           main_sha="$(gh api "repos/$REPOSITORY/commits/main" --jq '.sha')"
           self_id="$(gh api "repos/$REPOSITORY/actions/workflows/autonomous_self_healer.yml" --jq '.id')"
-          runs_json="$(gh api "repos/$REPOSITORY/actions/runs?per_page=100")"
+          # Query runs for the current main SHA directly, then paginate all result pages.
+          # Fetching only the newest 100 repository-wide runs can miss eligible failures
+          # when other workflows generate a burst of runs.
+          runs_json="$(gh api --paginate --slurp "repos/$REPOSITORY/actions/runs?head_sha=$main_sha&per_page=100")"
           mapfile -t candidates < <(
             jq -r --arg sha "$main_sha" --argjson self_id "$self_id" '
-              .workflow_runs[]
+              .[]
+              | .workflow_runs[]
               | select(.workflow_id != $self_id)
               | select(.head_branch == "main" and .head_sha == $sha)
               | select(.status == "completed" and .run_attempt == 1)
@@ -51,7 +55,7 @@ jobs:
             echo "No eligible failed workflow runs for current main ($main_sha)."
             exit 0
           fi
-          # Bound each sweep; later sweeps process the remainder and avoid retry storms.
+          # Bound each sweep; the five-minute schedule drains remaining candidates without retry storms.
           count=0
           for run_id in "${candidates[@]}"; do
             [[ "$count" -lt 5 ]] || break
