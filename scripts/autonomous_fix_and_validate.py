@@ -45,7 +45,7 @@ def run(name: str, command: list[str], timeout: int = 900, blocked_ok: bool = Fa
         output = exc.stdout or ""
         if isinstance(output, bytes):
             output = output.decode("utf-8", errors="replace")
-        detail = (output + f"\\nFAIL: command timed out after {timeout}s").strip()[-12000:]
+        detail = (output + f"\nFAIL: command timed out after {timeout}s").strip()[-12000:]
         return Result(name=name, status="FAIL", command=command, returncode=124, detail=detail)
     except OSError as exc:
         return Result(
