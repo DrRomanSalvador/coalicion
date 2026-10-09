@@ -48,7 +48,36 @@ jobs:
           report="$RUNNER_TEMP/workflow-health.md"
           printf '# Continuous workflow health report\n\n- Repository: %s\n- Window: %s hours\n- Since (UTC): %s\n\n' "$GH_REPO" "$LOOKBACK_HOURS" "$since" > "$report"
 
-          runs="$(gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100" | jq -r --arg since "$since" ".workflow_runs[] | select(.created_at >= \$since) | [.id,.name,.path,.status,(.conclusion // \"\"),.run_attempt,.html_url] | @tsv" | sort -k1,1n | awk "!seen[\$1]++")"
+          gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100" > "$RUNNER_TEMP/workflow-runs.json"
+          runs="$(python - "$since" "$RUNNER_TEMP/workflow-runs.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          since = sys.argv[1]
+          raw = Path(sys.argv[2]).read_text(encoding="utf-8")
+          decoder = json.JSONDecoder()
+          pages = []
+          offset = 0
+          while offset < len(raw):
+              while offset < len(raw) and raw[offset].isspace():
+                  offset += 1
+              if offset >= len(raw):
+                  break
+              page, offset = decoder.raw_decode(raw, offset)
+              pages.append(page)
+          seen = set()
+          for page in pages:
+              for run in page.get("workflow_runs", []):
+                  if run.get("created_at", "") < since:
+                      continue
+                  run_id = str(run.get("id", ""))
+                  if not run_id or run_id in seen:
+                      continue
+                  seen.add(run_id)
+                  fields = [run_id, run.get("name", "").replace("\t", " "), run.get("path", ""), run.get("status", ""), run.get("conclusion") or "", str(run.get("run_attempt", "")), run.get("html_url", "")]
+                  print("\t".join(fields))
+          PY
+          )"
           total=0
           failures=0
           retried=0
