@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -78,3 +80,30 @@ def test_modified_scenario_config_fails_on_contract(tmp_path: Path):
     path.write_text(json.dumps(config), encoding="utf-8")
     with pytest.raises(DemoError, match="tres escenarios"):
         run_demo(DEFAULT_DATA, path)
+
+
+
+def test_each_scenario_conserves_votes_and_seats():
+    result = run_demo()
+    dataset, constituencies, _ = load_dataset(DEFAULT_DATA)
+    assert len(result["scenarios"]) == 3
+    for scenario in result["scenarios"]:
+        for region, outcome in scenario["regions"].items():
+            assert sum(outcome["votes_by_list"].values()) == sum(constituencies[region]["parties"].values())
+            assert outcome["seat_total"] == constituencies[region]["seats"]
+
+
+def test_cli_persists_valid_json_atomically(tmp_path: Path):
+    output = tmp_path / "nested" / "demo.json"
+    proc = subprocess.run(
+        [sys.executable, str(Path(__file__).parents[1] / "scripts/demo_multiparty.py"),
+         "--output", str(output)],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    written = json.loads(output.read_text(encoding="utf-8"))
+    printed = json.loads(proc.stdout)
+    assert written == printed
+    assert written["official_certification"] == "NOT_INDEPENDENTLY_CERTIFIED"
