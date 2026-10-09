@@ -19,6 +19,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: political-intelligence-system-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   system-gate:
     runs-on: ubuntu-latest
