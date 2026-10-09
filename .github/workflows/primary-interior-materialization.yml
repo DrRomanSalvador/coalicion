@@ -11,6 +11,7 @@ on:
       - "src/data.py"
       - "src/electoral.py"
       - "data/official_materialization_parts/**"
+      - ".github/workflows/primary-interior-materialization.yml"
   workflow_dispatch:
 permissions:
   contents: write
