@@ -74,7 +74,8 @@ jobs:
             status="$(jq -r '.status // empty' <<<"$run_json")"
             conclusion="$(jq -r '.conclusion // empty' <<<"$run_json")"
             run_sha="$(jq -r '.head_sha // empty' <<<"$run_json")"
-            [[ "$status" == "completed" && "$run_sha" == "$main_sha" ]] || continue
+            run_attempt="$(jq -r '.run_attempt // empty' <<<"$run_json")"
+            [[ "$status" == "completed" && "$run_sha" == "$main_sha" && "$run_attempt" == "1" ]] || continue
             case "$conclusion" in
               cancelled)
                 if gh run rerun "$run_id" --repo "$REPOSITORY"; then
