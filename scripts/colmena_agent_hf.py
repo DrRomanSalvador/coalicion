@@ -9,7 +9,8 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 AGENTS_DIR = ROOT / "artifacts" / "colmena" / "agents"
 MISSION_CONTROL = ROOT / "docs" / "COLMENA_MISSION_CONTROL.json"
-DEFAULT_MODEL = os.getenv("HF_MODEL", "Qwen/Qwen2.5-7B-Instruct")
+DEFAULT_MODEL = os.getenv("HF_MODEL", "Qwen/Qwen2.5-72B-Instruct")
+DEFAULT_PROVIDER = os.getenv("HF_PROVIDER", "auto")
 
 def now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -42,7 +43,7 @@ def load_context(mission: dict[str, Any]) -> str:
     return "\n\n".join(chunks)
 
 
-def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str = DEFAULT_MODEL) -> dict[str, Any]:
+def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str = DEFAULT_MODEL, provider: str = DEFAULT_PROVIDER) -> dict[str, Any]:
     agent_id, mission_id = str(mission.get("agent_id", "")).strip(), str(mission.get("id", "")).strip()
     task = str(mission.get("task", "")).strip()
     if not agent_id or not mission_id or not task:
@@ -62,15 +63,17 @@ def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str =
     token = hf_token or os.getenv("Reina_token")
     if not model.strip():
         raise ValueError("El modelo HF_MODEL no puede estar vacío.")
+    if not provider.strip():
+        raise ValueError("HF_PROVIDER no puede estar vacío; usa auto o un proveedor habilitado en Hugging Face.")
     result: dict[str, Any] = {
         "schema": "COLMENA_AGENT_EVIDENCE_V1", "agent_id": agent_id, "mission_id": mission_id,
-        "status": "BLOCKED", "provider": "huggingface", "model": model, "task": task, "executed_at": now()
+        "status": "BLOCKED", "provider": provider, "model": model, "task": task, "executed_at": now()
     }
     try:
         if not token:
             raise RuntimeError("Falta Reina_token; no se invocará el proveedor.")
         from huggingface_hub import InferenceClient
-        client = InferenceClient(model=model, token=token, timeout=90)
+        client = InferenceClient(model=model, provider=provider, token=token, timeout=90)
         context = load_context(mission)
         response = client.chat_completion(messages=[
             {"role": "system", "content": (
@@ -87,7 +90,12 @@ def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str =
             raise RuntimeError("HF devolvió una respuesta vacía.")
         result.update(status="REVIEW_REQUIRED", response=content.strip())
     except Exception as exc:
-        result.update(status="BLOCKED", error=f"{type(exc).__name__}: {exc}")
+        message = str(exc)
+        if "model_not_supported" in message or "not supported by any provider" in message:
+            message = (f"El modelo {model!r} no está disponible en los proveedores habilitados para este token. "
+                       "Selecciona en Hugging Face un proveedor compatible y habilítalo en la cuenta; "
+                       "después vuelve a ejecutar con --provider auto o con el proveedor elegido.")
+        result.update(status="BLOCKED", error=f"{type(exc).__name__}: {message}")
     result["completed_at"] = now()
     evidence_path = AGENTS_DIR / f"{safe_name(agent_id)}_{safe_name(mission_id)}.json"
     try:
@@ -101,6 +109,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Ejecuta una misión analítica con Hugging Face")
     parser.add_argument("mission_json", help="JSON de misión o ruta a un archivo JSON")
     parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--provider", default=DEFAULT_PROVIDER, help="Proveedor HF habilitado (auto por defecto)")
     args = parser.parse_args()
     try:
         candidate = Path(args.mission_json)
@@ -114,7 +123,7 @@ def main() -> int:
             raw = json.dumps(matches[0], ensure_ascii=False)
         else:
             raw = args.mission_json
-        result = run_agent(json.loads(raw), model=args.model)
+        result = run_agent(json.loads(raw), model=args.model, provider=args.provider)
     except (ValueError, OSError, json.JSONDecodeError, RuntimeError) as exc:
         print(json.dumps({"status": "BLOCKED", "error": str(exc)}, ensure_ascii=False), file=sys.stderr)
         return 2
