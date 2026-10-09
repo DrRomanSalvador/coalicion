@@ -598,7 +598,7 @@ def _escanos_text() -> str:
                 return "🪑 ESCAÑOS · COMPOSICIÓN MATERIALIZADA Y VALIDADA\n\n" + "\n".join(f"{p}: {s}" for p, s in rows)
     return (
         "🪑 ESCAÑOS · SITUACIÓN ACTUAL\n\n"
-        "La cifra actual de escaños requiere evidencia provincial explícita y una distribución territorial explícita, "
+        "No hay una proyección validada: la cifra actual de escaños requiere evidencia provincial explícita y una distribución territorial explícita, "
         "además de calibración validada. La demo se consulta por separado con /demo."
     )
 
