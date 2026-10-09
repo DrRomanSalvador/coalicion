@@ -132,12 +132,9 @@ def test_read_only_missions_resolve_to_real_validators():
         "invariantes coalición": "tests/test_coalition.py",
         "propagación incertidumbre": "tests/test_uncertainty.py",
         "prohibir inferencia nacional-territorial": "tests/test_territorial_prediction_2026.py",
-        "actualizar estado/certificación": None,
+        "actualizar estado/certificación": "tests/test_master_certification.py",
     }
     for mission, expected in cases.items():
         command, adapter = command_for(mission)
-        if expected is None:
-            assert adapter == "WRITE_OR_CHANGE_REQUIRES_EXPLICIT_SCOPE"
-        else:
-            assert adapter == "MISSION_VALIDATOR"
-            assert expected in command
+        assert adapter == "MISSION_VALIDATOR"
+        assert expected in command
