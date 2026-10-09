@@ -40,11 +40,41 @@ jobs:
         run: python scripts/product_release_gate.py
       - name: Persist product gate evidence
         if: github.ref == 'refs/heads/main'
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Never publish evidence generated from an older commit onto a newer main.
+          git fetch origin main
+          remote_sha="$(git rev-parse origin/main)"
+          if [[ "$remote_sha" != "$GITHUB_SHA" ]]; then
+            echo "::warning::Product gate evidence is stale (tested=$GITHUB_SHA, origin/main=$remote_sha); newer main run owns publication."
+            exit 0
+          fi
+
           git add ci_evidence/product_release_gate.json
-          git diff --cached --quiet || (git commit -m "ci: materialize product release gate" && git push origin HEAD:main)
+          if git diff --cached --quiet; then
+            echo "Product release evidence is already current."
+            exit 0
+          fi
+          git commit -m "ci: materialize product release gate"
+
+          if git push origin HEAD:main; then
+            echo "Product release evidence persisted."
+            exit 0
+          fi
+
+          git fetch origin main
+          remote_sha="$(git rev-parse origin/main)"
+          if [[ "$remote_sha" != "$GITHUB_SHA" ]]; then
+            echo "::warning::Main advanced during evidence push; refusing to publish stale product gate output."
+            exit 0
+          fi
+          echo "::error::Product release evidence push failed while main still matches the tested commit."
+          exit 1
+
       - name: Docker build
         run: docker build -t coalicion-product .
 
