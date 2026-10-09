@@ -52,8 +52,6 @@ def audit_canonical(path: str | Path) -> dict[str, Any]:
         data=json.loads(p.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as e:
         return {"status":"BLOCKED","reason":"INVALID_CANONICAL_JSON","detail":str(e),"path":str(p)}
-    if not isinstance(data,dict) or not isinstance(data.get("data"),dict) or not isinstance(data["data"].get("constituencies"),dict):
-        return {"status":"BLOCKED","reason":"INVALID_CONSTITUENCY_MAP","path":str(p)}
     if not isinstance(data,dict):
         return {"status":"BLOCKED","reason":"INVALID_CANONICAL_ROOT","path":str(p)}
     if not isinstance(data.get("data"),dict) or not isinstance(data["data"].get("constituencies"),dict):
