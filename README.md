@@ -352,3 +352,6 @@ Telegram queda deliberadamente fuera de esta iteración para evitar conflictos c
 ## Análisis de decisiones de la demo 2023
 
 Ejecuta `python scripts/demo_decision_analysis.py` para generar el registro auditable `artifacts/demo_decision_analysis_2023.json` y el informe ejecutivo `reports/demo_decision_analysis_2023.md`. Reutiliza `src.electoral.allocate`, explica cambios de escaños y cocientes marginales y calcula fronteras matemáticas con votos rivales fijos. No modela transferencias ni es una predicción. Consulta `DECISION_ANALYSIS_USAGE.md`.
+
+
+Interfaz interactiva: genera el registro y ejecuta `python -m http.server 8000`; abre `http://127.0.0.1:8000/web/demo/`. Permite comparar escenarios, consultar cambios de escaños/cocientes y frontera matemática, y exportar el JSON. Ver `DECISION_ANALYSIS_USAGE.md`.
