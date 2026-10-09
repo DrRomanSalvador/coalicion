@@ -34,3 +34,17 @@ def test_workflow_files_have_unique_names_and_expected_yaml_extension():
     assert paths, "No GitHub Actions workflow files found"
     assert len({path.name for path in paths}) == len(paths)
     assert all(path.is_file() and path.stat().st_size > 0 for path in paths)
+
+
+
+def test_exhaustive_validation_runs_and_publishes_the_workflow_audit():
+    source = (WORKFLOWS / "exhaustive_validation.yml").read_text(encoding="utf-8")
+    assert "python scripts/audit_workflow_resilience.py" in source
+    assert "artifacts/verification/workflow_resilience_audit.json" in source
+
+
+def test_static_audit_labels_heuristics_for_human_review_not_as_certified_defects():
+    source = (ROOT / "scripts" / "audit_workflow_resilience.py").read_text(encoding="utf-8")
+    assert '"classification": "REVIEW_REQUIRED"' in source
+    assert "Static inspection does not execute workflows" in source
+    assert "actionlint/CI" in source
