@@ -16,7 +16,7 @@ def test_demo_e2e_uses_materialized_2023_data_and_recomputes_coalition():
     assert result["demo_status"] == "PASS"
     assert result["election"] == 2023
     assert result["constituency"] == "Madrid"
-    assert result["data_status"] == "SECONDARY_REPLICA_VERIFIED"
-    assert result["official_certification"] == "NOT_CLAIMED"
+    assert result["data_status"] == "OFFICIAL_PRIMARY_RECONCILED"
+    assert result["official_certification"] == "NOT_EXTERNALLY_CERTIFIED"
     assert result["seats_separate"] + result["delta_seats"] == result["seats_coalition"]
     assert result["canonical_engine"] == "src.coalition"
