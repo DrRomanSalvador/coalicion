@@ -126,15 +126,15 @@ jobs:
             echo "- API/read/rerun failures: $failures"
           } >> "$GITHUB_STEP_SUMMARY"
           echo "Scheduled recovery sweep finished; rerun requests=$count; candidates attempted=$attempted; request/read failures=$failures."
-          if [[ "$failures" -gt 0 ]]; then
-            echo "::error::One or more candidate recovery requests failed; the sweep continued to process other candidates."
-            exit 1
-          fi
           if [[ -n "$exhausted" ]]; then
             echo "EXHAUSTED_RETRY_BUDGET" >> "$GITHUB_STEP_SUMMARY"
             echo "### Unresolved current-main failures — retry budget exhausted" >> "$GITHUB_STEP_SUMMARY"
             printf '%s\\n' "$exhausted" | tee -a "$GITHUB_STEP_SUMMARY"
             echo "::error::Some current-main workflows remain failed after 3 attempts, although other candidates were processed."
+            exit 1
+          fi
+          if [[ "$failures" -gt 0 ]]; then
+            echo "::error::One or more candidate recovery requests failed; the sweep continued to process other candidates."
             exit 1
           fi
       - name: Validate target and rerun failed jobs only
