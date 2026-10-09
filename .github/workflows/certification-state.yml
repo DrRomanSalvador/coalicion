@@ -34,14 +34,26 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Generate certification state
+      - name: Generate certification state without stale-file fallback
+        shell: bash
         run: |
           set -euo pipefail
-          python scripts/master_certification.py || rc=$?
-          if [ "${rc:-0}" -ne 0 ] && [ ! -f ci_evidence/master_certification.json ]; then
-            exit "${rc}"
+          mkdir -p ci_evidence
+          rm -f ci_evidence/master_certification.json
+          set +e
+          python scripts/master_certification.py
+          rc=$?
+          set -e
+          if [ ! -s ci_evidence/master_certification.json ]; then
+            echo "::error::Certification generator did not create fresh evidence."
+            exit 1
+          fi
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::Master certification gates failed; fresh diagnostic evidence is retained, but the workflow must fail."
+            exit "$rc"
           fi
       - name: Upload certification state
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: master-certification-state
