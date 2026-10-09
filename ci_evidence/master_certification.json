@@ -2,6 +2,21 @@
   "schema": "MASTER_CERTIFICATION_V2",
   "status": "READY_FOR_EXTERNAL_AUDIT",
   "certification": "READY_FOR_EXTERNAL_AUDIT",
+  "tested_commit": "681533d867ea6698a0c6c9e2ad6920905746dcce",
+  "tested_ref": "refs/heads/main",
+  "evidence_sha256": {
+    "ci_evidence/historico_manifest.json": "02dc5d8ed791cccd3aeae574b254ec31b0c560cb2dcf185f6de91355199a06fd",
+    "ci_evidence/reconciliation.json": "e8fab0447eff63c5965d29d1a35583e7d9cc0a4a074289a29e182141ce7cc943",
+    "ci_evidence/seec_production.json": "f1700bdcae0bf904a0576974a4c118dc4c97383ffa2a7bceb9ff40d162b11ea9",
+    "ci_evidence/mc_10000.json": "cae8f906c52681020e2f198902a0db7c3c1a2dffac9df790e33b0c47e26e990e",
+    "ci_evidence/backtest_2023_baseline.json": "a9cab7c2f879c3aa42123d068d7575974ae6e3ef85b1bd85519ccca056cebed0",
+    "ci_evidence/oos_calibration.json": "ad55a7182f9e766f36c52191020dcdbb4e9baa0ca3a634df71d603ff1aaf6dd5",
+    "ci_evidence/poll_source_coverage.json": "bb0076eed44c257feb8e7d4acf10f2fb4f984a84b0be6e3c5ff14dff82df7722",
+    "data/manifests/official_interior_congreso.json": "c3849a1985b424d74489de9f17357ccc7155472d9b00526ece5ffd0583f05565",
+    "data/official_interior_congreso_1977_2023.csv": "ece9dbb32e00af1456d7d422b35414e39f8b63ba01745c0b6a2d4b6e07da2bf3",
+    "artifacts/data/election_2023_canonical.json": "dd42f9fe6ba3720488a352d2e2ce6459b16d8d5deb1e50882a6e3e99a1c2cfa1",
+    "ci_evidence/external_audit.json": "545d44ae01f2562eb5a5331dd90a59eb4b4fc7d2d95840bed4350a0f4e810179"
+  },
   "fail_closed": true,
   "gates": [
     {
