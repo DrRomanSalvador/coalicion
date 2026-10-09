@@ -31,16 +31,32 @@ class Result:
 
 
 def run(name: str, command: list[str], timeout: int = 900, blocked_ok: bool = False) -> Result:
-    p = subprocess.run(
-        command,
-        cwd=ROOT,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        timeout=timeout,
-    )
-    detail = p.stdout[-12000:]
-    blocked = blocked_ok and p.returncode != 0 and '"status": "BLOCKED"' in p.stdout
+    try:
+        p = subprocess.run(
+            command,
+            cwd=ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=timeout,
+            check=False,
+        )
+    except subprocess.TimeoutExpired as exc:
+        output = exc.stdout or ""
+        if isinstance(output, bytes):
+            output = output.decode("utf-8", errors="replace")
+        detail = (output + f"\\nFAIL: command timed out after {timeout}s").strip()[-12000:]
+        return Result(name=name, status="FAIL", command=command, returncode=124, detail=detail)
+    except OSError as exc:
+        return Result(
+            name=name,
+            status="FAIL",
+            command=command,
+            returncode=127,
+            detail=f"Could not execute command: {exc}",
+        )
+    detail = (p.stdout or "")[-12000:]
+    blocked = blocked_ok and p.returncode != 0 and '"status": "BLOCKED"' in (p.stdout or "")
     return Result(
         name=name,
         status="PENDING" if blocked else ("PASS" if p.returncode == 0 else "FAIL"),
