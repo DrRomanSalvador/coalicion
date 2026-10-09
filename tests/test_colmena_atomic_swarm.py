@@ -143,7 +143,7 @@ def test_update_missions_are_write_gated_in_queen_and_worker():
     from scripts.colmena_queen import classify
     from scripts.colmena_worker import command_for, run
 
-    title = "actualizar estado/certificación"
+    title = "actualizar un artefacto no verificado"
     assert classify(title) == "WRITE"
     command, adapter = command_for(title)
     assert command is None
