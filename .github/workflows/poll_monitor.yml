@@ -105,5 +105,5 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             "/repos/${GITHUB_REPOSITORY}/dispatches" \
             -f event_type="poll_monitor_completed" \
-            -f client_payload[commit]="${GITHUB_SHA}" \
-            -f client_payload[source]="poll_monitor"
+            -f "client_payload[commit]=${GITHUB_SHA}" \
+            -f "client_payload[source]=poll_monitor"
