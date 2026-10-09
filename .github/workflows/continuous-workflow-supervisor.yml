@@ -13,6 +13,10 @@ on:
         required: false
         default: true
         type: boolean
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/continuous-workflow-supervisor.yml"
   schedule:
     - cron: "*/15 * * * *"
 
