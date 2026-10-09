@@ -120,15 +120,57 @@ def assign_next_batch(batch_size: int = 5) -> list[dict[str, Any]]:
     return batch
 
 
+
+def record_result(result_path: Path) -> dict[str, Any]:
+    """Registra una evidencia HF sin permitir que el modelo certifique PASS."""
+    result = load_json(result_path)
+    if not isinstance(result, dict):
+        raise ValueError("La evidencia debe ser un objeto JSON.")
+    mission_id = str(result.get("mission_id", "")).strip()
+    agent_id = str(result.get("agent_id", "")).strip()
+    status = result.get("status")
+    if not mission_id or not agent_id:
+        raise ValueError("La evidencia debe incluir mission_id y agent_id.")
+    if status not in {"REVIEW_REQUIRED", "BLOCKED"}:
+        raise ValueError("Solo se aceptan resultados REVIEW_REQUIRED o BLOCKED; PASS requiere verificación independiente.")
+    missions = get_missions()
+    matches = [m for m in missions if m["id"] == mission_id]
+    if len(matches) != 1:
+        raise ValueError(f"Misión desconocida o ambigua: {mission_id}.")
+    mission = matches[0]
+    if mission["agent_id"] != agent_id:
+        raise ValueError("agent_id de la evidencia no coincide con la misión.")
+    if mission["status"] != "ASSIGNED" or not mission.get("assigned"):
+        raise ValueError(f"La misión {mission_id} no está asignada; se rechaza evidencia obsoleta o no solicitada.")
+    timestamp = now()
+    mission["status"] = status
+    mission["result_recorded_at"] = timestamp
+    mission["evidence_path"] = str(result_path)
+    mission["result_summary"] = (
+        str(result.get("error", ""))[:500] if status == "BLOCKED"
+        else "Informe recibido; requiere revisión independiente."
+    )
+    data = load_json(MISSION_CONTROL, {})
+    data["missions"] = missions
+    data["updated_at"] = timestamp
+    save_json(MISSION_CONTROL, data)
+    print(f"Resultado registrado: {mission_id} -> {status} (sin certificación automática).")
+    return {"mission_id": mission_id, "agent_id": agent_id, "status": status, "recorded_at": timestamp}
+
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Controlador de 179 slots lógicos COALICIÓN")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--status", action="store_true")
     group.add_argument("--assign", type=int, metavar="N")
+    group.add_argument("--record-result", type=Path, metavar="EVIDENCE_JSON", help="Registrar evidencia JSON de una misión asignada")
     args = parser.parse_args()
     try:
         if args.assign is not None:
             assign_next_batch(args.assign)
+        elif args.record_result is not None:
+            record_result(args.record_result)
         else:
             status_report()
     except (ValueError, json.JSONDecodeError) as exc:
