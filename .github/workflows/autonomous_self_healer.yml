@@ -82,6 +82,11 @@ jobs:
           count=0
           attempted=0
           failures=0
+          if [[ "${#candidates[@]}" -gt 25 ]]; then
+            deferred=$(( ${#candidates[@]} - 25 ))
+            echo "::warning::Retry queue contains ${#candidates[@]} eligible runs; this sweep examines at most 25 and requests at most 5 reruns. $deferred remain for later sweeps."
+            echo "- Eligible runs deferred to later sweeps: $deferred." >> "$GITHUB_STEP_SUMMARY"
+          fi
           for run_id in "${candidates[@]}"; do
             [[ "$count" -lt 5 && "$attempted" -lt 25 ]] || break
             attempted=$((attempted + 1))
@@ -129,7 +134,7 @@ jobs:
           if [[ -n "$exhausted" ]]; then
             echo "EXHAUSTED_RETRY_BUDGET" >> "$GITHUB_STEP_SUMMARY"
             echo "### Unresolved current-main failures — retry budget exhausted" >> "$GITHUB_STEP_SUMMARY"
-            printf '%s\\n' "$exhausted" | tee -a "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$exhausted" | tee -a "$GITHUB_STEP_SUMMARY"
             echo "::error::Some current-main workflows remain failed after 3 attempts, although other candidates were processed."
             exit 1
           fi
