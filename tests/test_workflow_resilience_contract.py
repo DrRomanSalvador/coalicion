@@ -76,3 +76,9 @@ def test_methodology_ci_cancels_superseded_runs_per_ref():
         assert "concurrency:" in source
         assert "github.event.pull_request.number || github.ref" in source
         assert "cancel-in-progress: true" in source
+
+
+def test_scheduled_electoral_radar_serializes_runs_per_ref():
+    source = (WORKFLOWS / "electoral_intelligence.yml").read_text(encoding="utf-8")
+    assert "group: electoral-intelligence-${{ github.ref }}" in source
+    assert "cancel-in-progress: false" in source
