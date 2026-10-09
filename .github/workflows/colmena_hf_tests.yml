@@ -7,6 +7,7 @@ on:
       - "scripts/colmena_agent_hf.py"
       - "tests/test_colmena_hf_agents.py"
       - "docs/COLMENA_MISSION_CONTROL.json"
+      - ".github/workflows/colmena_hf_agents.yml"
       - ".github/workflows/colmena_hf_tests.yml"
   push:
     branches: [main]
@@ -15,6 +16,7 @@ on:
       - "scripts/colmena_agent_hf.py"
       - "tests/test_colmena_hf_agents.py"
       - "docs/COLMENA_MISSION_CONTROL.json"
+      - ".github/workflows/colmena_hf_agents.yml"
       - ".github/workflows/colmena_hf_tests.yml"
 
 permissions:

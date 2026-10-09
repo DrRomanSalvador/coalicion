@@ -10,15 +10,38 @@ on:
       - "src/**"
       - "tests/**"
       - "scripts/**"
+      - "config/**"
+      - "data/**"
+      - "artifacts/data/**"
+      - "docs/**"
+      - "schemas/**"
+      - "web/**"
+      - "*.py"
       - "requirements.txt"
+      - "requirements.lock"
+      - "pyproject.toml"
+      - "Dockerfile"
       - ".github/workflows/**"
   pull_request:
     paths:
       - "src/**"
       - "tests/**"
       - "scripts/**"
+      - "config/**"
+      - "data/**"
+      - "artifacts/data/**"
+      - "docs/**"
+      - "schemas/**"
+      - "web/**"
+      - "*.py"
       - "requirements.txt"
+      - "requirements.lock"
+      - "pyproject.toml"
+      - "Dockerfile"
       - ".github/workflows/**"
+
+permissions:
+  contents: read
 
 concurrency:
   # Keep main validation independent from PR validation; only supersede runs for the same ref.

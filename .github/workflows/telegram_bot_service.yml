@@ -21,7 +21,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: telegram-bot-service
+  group: telegram-bot-service-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

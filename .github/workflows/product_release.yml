@@ -19,7 +19,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: product-release-main
+  group: product-release-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   release:

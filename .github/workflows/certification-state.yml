@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: certification-state-main
+  group: certification-state-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
