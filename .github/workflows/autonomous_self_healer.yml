@@ -62,7 +62,7 @@ jobs:
                 | select(.head_branch == "main" and .head_sha == $sha)
                 | select(.status == "completed" and .run_attempt >= 3)
                 | select(.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out" or .conclusion == "startup_failure")
-              ] | sort_by(.created_at) | .[] | "(.id) attempt=(.run_attempt) conclusion=(.conclusion) workflow=(.name)"
+              ] | sort_by(.created_at) | .[] | [.id, ("attempt=" + (.run_attempt|tostring)), ("conclusion=" + .conclusion), ("workflow=" + .name)] | join(" ")
             ' <<<"$runs_json")"
             if [[ -n "$exhausted" ]]; then
               echo "### Automatic recovery blocked — retry budget exhausted" >> "$GITHUB_STEP_SUMMARY"
@@ -118,7 +118,7 @@ jobs:
           done
           {
             echo "## Autonomous recovery sweep"
-            echo "- Main SHA: `$main_sha`"
+            echo "- Main SHA: $main_sha"
             echo "- Retry budget: $max_attempts attempts per workflow run"
             echo "- Rerun requests accepted: $count"
             echo "- Candidates examined: $attempted"
