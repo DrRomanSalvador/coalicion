@@ -8,7 +8,13 @@ matrix from that source without inventing territorial values.
 from __future__ import annotations
 import argparse, csv, hashlib, json
 from pathlib import Path
+import sys
 import openpyxl
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from src.data import load_official_constituency_matrix
 
 OFFICIAL_URL="https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
