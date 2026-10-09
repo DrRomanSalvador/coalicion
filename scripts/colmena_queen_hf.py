@@ -126,6 +126,46 @@ def assign_next_batch(batch_size: int = 5) -> list[dict[str, Any]]:
 
 
 
+def reassign_blocked(mission_id: str) -> dict[str, Any]:
+    """La Reina reabre explícitamente una misión BLOCKED para un nuevo intento."""
+    if not isinstance(mission_id, str) or not mission_id.strip():
+        raise ValueError("Se requiere un mission_id explícito.")
+    mission_id = mission_id.strip()
+    missions = get_missions()
+    matches = [m for m in missions if m.get("id") == mission_id]
+    if len(matches) != 1:
+        raise ValueError(f"Misión desconocida o ambigua: {mission_id}.")
+    mission = matches[0]
+    if mission.get("status") != "BLOCKED":
+        raise ValueError(
+            f"Solo se puede reabrir una misión BLOCKED; {mission_id} está en {mission.get('status')}."
+        )
+    if not isinstance(mission.get("task"), str) or not mission["task"].strip():
+        raise ValueError("Fail-closed: no se puede reabrir una misión sin tarea concreta.")
+    timestamp = now()
+    history = mission.setdefault("attempt_history", [])
+    history.append({
+        "status": mission.get("status"),
+        "assigned": mission.get("assigned"),
+        "assigned_at": mission.get("assigned_at"),
+        "result_recorded_at": mission.get("result_recorded_at"),
+        "evidence_path": mission.get("evidence_path"),
+        "evidence_sha256": mission.get("evidence_sha256"),
+        "result_summary": mission.get("result_summary"),
+    })
+    mission["status"] = "ASSIGNED"
+    mission["assigned"] = True
+    mission["assigned_at"] = timestamp
+    mission["reassigned_at"] = timestamp
+    mission["note"] = "Reasignada explícitamente por la Reina tras bloqueo; intento anterior conservado en attempt_history."
+    data = load_json(MISSION_CONTROL, {})
+    data["missions"] = missions
+    data["updated_at"] = timestamp
+    save_json(MISSION_CONTROL, data)
+    print(f"Reasignación explícita: {mission_id} -> {mission['agent_id']}; historial conservado.")
+    return {"mission_id": mission_id, "agent_id": mission["agent_id"], "status": mission["status"]}
+
+
 def record_result(result_path: Path) -> dict[str, Any]:
     """Registra una evidencia HF sin permitir que el modelo certifique PASS."""
     result = load_json(result_path)
@@ -155,6 +195,7 @@ def record_result(result_path: Path) -> dict[str, Any]:
         evidence_path = str(result_path)
     evidence_sha256 = hashlib.sha256(evidence_file.read_bytes()).hexdigest()
     mission["status"] = status
+    mission["assigned"] = False
     mission["result_recorded_at"] = timestamp
     mission["evidence_path"] = evidence_path
     mission["evidence_sha256"] = evidence_sha256
@@ -197,11 +238,14 @@ def main() -> int:
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--status", action="store_true")
     group.add_argument("--assign", type=int, metavar="N")
+    group.add_argument("--reassign-blocked", metavar="MISSION_ID", help="Reabrir explícitamente una misión BLOCKED conservando el historial")
     group.add_argument("--record-result", type=Path, metavar="EVIDENCE_JSON", help="Registrar evidencia JSON de una misión asignada")
     args = parser.parse_args()
     try:
         if args.assign is not None:
             assign_next_batch(args.assign)
+        elif args.reassign_blocked is not None:
+            reassign_blocked(args.reassign_blocked)
         elif args.record_result is not None:
             record_result(args.record_result)
         else:
