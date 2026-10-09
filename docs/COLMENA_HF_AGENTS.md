@@ -1,6 +1,6 @@
 # Colmena Hugging Face — uso controlado
 
-Los 179 elementos son **slots lógicos**, no 179 procesos ni agentes ya ejecutados. La Reina no lanza trabajos de forma implícita.
+Los 179 elementos son **slots lógicos**, no 179 procesos ni agentes ya ejecutados. La Reina no lanza trabajos de forma implícita. El modo formal es `QUEEN_COORDINATION_MODE + 179_AGENTS_HF`; queda en `READY_FOR_USER_APPROVAL` hasta que el usuario apruebe un lote. La credencial se llama exactamente `Reina_token`.
 
 ## Requisitos
 - Python 3.12.
