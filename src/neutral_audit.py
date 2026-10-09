@@ -10,8 +10,10 @@ from typing import Any
 EXPECTED_PROVINCES = 52
 EXPECTED_SEATS = 350
 EXPECTED_SCHEMA = "ELECTION_2023_CONSTITUENCY_MATRIX_V2"
-EXPECTED_SOURCE_TIERS = {"OFFICIAL_PRIMARY", "SECONDARY_REPLICA_VERIFIED"}
+EXPECTED_SOURCE_TIERS = {"OFFICIAL_PRIMARY"}
 EXPECTED_CANDIDATE_VOTES = 24_487_414
+EXPECTED_WORKBOOK_SHA256 = "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2"
+OFFICIAL_WORKBOOK_URL = "https://descargas.interior.gob.es/datasets/resultados_electorales/Elecciones-Congreso.xlsx"
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT / "data/manifests/official_interior_congreso.json"
 WORKBOOK_PATH = ROOT / "data/raw/Elecciones-Congreso.xlsx"
@@ -75,8 +77,9 @@ def audit_canonical(path: str | Path) -> dict[str, Any]:
         manifest_ok=(
             manifest.get("schema")=="OFFICIAL_INTERIOR_CONGRESS_DATASET_V1"
             and manifest.get("status")=="READY"
+            and manifest.get("source_url")==OFFICIAL_WORKBOOK_URL
             and manifest.get("hash_scope")=="workbook_bytes"
-            and manifest.get("sha256")==source_hash
+            and manifest.get("sha256")==EXPECTED_WORKBOOK_SHA256==source_hash
             and manifest.get("bytes")==WORKBOOK_PATH.stat().st_size
             and manifest.get("canonical_2023_sha256")==digest
             and manifest.get("canonical_2023_bytes")==p.stat().st_size
