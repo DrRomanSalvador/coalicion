@@ -38,6 +38,11 @@ jobs:
       - name: Materialize workbook-derived historical dataset
         run: |
           set -euo pipefail
+          # Fresh runners do not retain ignored/uncommitted XLSX files from previous runs.
+          # Acquire the pinned official workbook before deriving the 16-election dataset.
+          if [ ! -s data/raw/Elecciones-Congreso.xlsx ]; then
+            python scripts/materialize_primary_interior.py
+          fi
           test -s data/raw/Elecciones-Congreso.xlsx
           python scripts/materialize_official_interior_dataset.py
           python - <<'PY'
