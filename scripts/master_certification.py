@@ -277,8 +277,11 @@ def certify(root: str = "."):
         "ci_evidence/oos_calibration.json",
         "ci_evidence/poll_source_coverage.json",
         "data/manifests/official_interior_congreso.json",
+        "data/manifests/INTERIOR_ACQUISITION.json",
+        "data/raw/Elecciones-Congreso.xlsx",
         "data/official_interior_congreso_1977_2023.csv",
         "artifacts/data/election_2023_canonical.json",
+        "artifacts/data/election_2023_canonical.json.sha256",
         "ci_evidence/external_audit.json",
     ]
     return {
