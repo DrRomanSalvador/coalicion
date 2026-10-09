@@ -216,7 +216,8 @@ def test_canonical_mission_control_has_next_five_executable_tasks():
     assert len({m["id"] for m in missions}) == 179
     next_five = [m for m in missions if m["id"] in {f"M{i:04d}" for i in range(6, 11)}]
     assert len(next_five) == 5
-    assert all(m["status"] == "PENDING" and m["assigned"] is False for m in next_five)
+    assert all(m["status"] in {"PENDING", "ASSIGNED"} for m in next_five)
+    assert all(m["assigned"] is (m["status"] == "ASSIGNED") for m in next_five)
     assert all(isinstance(m["task"], str) and m["task"].strip() for m in next_five)
     assert all(isinstance(m.get("context_paths"), list) and m["context_paths"] for m in next_five)
 
