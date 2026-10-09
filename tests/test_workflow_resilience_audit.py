@@ -65,5 +65,5 @@ def test_permissions_inventory_recognizes_job_level_permissions():
 
 
 def test_workflow_audit_blocks_unserialized_remote_writers():
-    assert writer_without_concurrency("jobs:\\n  job:\\n    steps:\\n      - run: git push origin HEAD:main\\n")
-    assert not writer_without_concurrency("concurrency:\\n  group: writer-main\\n  cancel-in-progress: false\\njobs:\\n  job:\\n    steps:\\n      - run: git push origin HEAD:main\\n")
+    assert writer_without_concurrency("jobs:\n  job:\n    steps:\n      - run: git push origin HEAD:main\n")
+    assert not writer_without_concurrency("concurrency:\n  group: writer-main\n  cancel-in-progress: false\njobs:\n  job:\n    steps:\n      - run: git push origin HEAD:main\n")
