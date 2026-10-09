@@ -6,6 +6,7 @@ from __future__ import annotations
 import hashlib, json
 from pathlib import Path
 from typing import Any
+from .electoral import allocate
 
 EXPECTED_PROVINCES = 52
 EXPECTED_SEATS = 350
@@ -71,7 +72,19 @@ def audit_canonical(path: str | Path) -> dict[str, Any]:
     normalized_hash=sha256_file(NORMALIZED_CSV_PATH) if NORMALIZED_CSV_PATH.is_file() else None
     source_meta=data.get("source",{}) if isinstance(data.get("source"),dict) else {}
     validation=data.get("validation",{}) if isinstance(data.get("validation"),dict) else {}
-    seat_recon=validation.get("vote_seat_reconciliation",{}) if isinstance(validation.get("vote_seat_reconciliation"),dict) else {}
+    manifest_recon=validation.get("vote_seat_reconciliation",{}) if isinstance(validation.get("vote_seat_reconciliation"),dict) else {}
+    recon_differences=[]
+    for name,item in constituencies.items():
+        try:
+            special=name if name in {"Ceuta","Melilla"} else ""
+            allocation=allocate(item.get("parties",{}),item.get("seats",0),item.get("valid_votes",0),special,item.get("blank_votes",0))
+            expected={party:n for party,n in allocation.seats.items() if n>0} if allocation.status=="OK" else {}
+            observed=item.get("observed_seats",{})
+            if allocation.status!="OK" or expected!=observed:
+                recon_differences.append({"constituency":name,"status":allocation.status,"observed":observed,"calculated":expected})
+        except (AttributeError,TypeError,ValueError) as exc:
+            recon_differences.append({"constituency":name,"status":"INVALID_INPUT","detail":str(exc)})
+    seat_recon={"status":"PASS" if len(constituencies)==52 and not recon_differences else "BLOCKED","constituencies":len(constituencies),"discrepancies":len(recon_differences),"method":"src.electoral.allocate","special_rules":["Ceuta","Melilla"],"details":recon_differences}
     manifest_ok=False
     if isinstance(manifest,dict) and WORKBOOK_PATH.is_file() and NORMALIZED_CSV_PATH.is_file():
         manifest_ok=(
@@ -100,10 +113,16 @@ def audit_canonical(path: str | Path) -> dict[str, Any]:
         and all(isinstance(v,int) and not isinstance(v,bool) and v>=0 for v in valid.values())
         and all(isinstance(v,int) and not isinstance(v,bool) and v>=0 for v in blank.values())
         and all(v == sum(constituencies[k].get("parties",{}).values()) + blank[k] for k,v in valid.items())
+        and all(isinstance(v,int) and not isinstance(v,bool) and v>=0 for item in provinces for v in item.get("parties",{}).values())
         and sum(sum(c.get("parties",{}).values()) for c in provinces)==EXPECTED_CANDIDATE_VOTES
+        and sum(blank.values())==200_673
+        and sum(valid.values())==24_688_087
         and digest==EXPECTED_CANONICAL_SHA256
         and recorded_hash==digest
         and validation.get("status")=="PASS"
+        and manifest_recon.get("status")=="PASS"
+        and manifest_recon.get("constituencies")==52
+        and manifest_recon.get("discrepancies")==0
         and seat_recon.get("status")=="PASS"
         and seat_recon.get("constituencies")==52
         and seat_recon.get("discrepancies")==0
