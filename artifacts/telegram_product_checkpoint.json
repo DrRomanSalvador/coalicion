@@ -1,8 +1,8 @@
 {
   "schema": "TELEGRAM_PRODUCT_CHECKPOINT_V1",
   "branch": "main",
-  "commit": "7a437e2d3bde9746704c14431d7d5b1332a992c7",
-  "updated_at": "2026-10-08T16:20:00+02:00",
+  "commit": "5c1f3f2fc8572c53ec6843e73de42bcbef4eead2",
+  "updated_at": "2026-10-09T11:48:00+02:00",
   "completed": [
     "source_status real del monitor",
     "Madrid timezone",
@@ -14,36 +14,49 @@
     "nightly 22:00 digest",
     "scheduled digest idempotence",
     "source recovery alerts require explicit previous failure",
-    "public internal-status sanitization"
+    "public internal-status sanitization",
+    "workbook oficial Interior materializado y hash-verificado; 16 elecciones (1977–2023), 52 circunscripciones y 322556 registros normalizados",
+    "matriz oficial 2023 regenerada desde workbook primario; votos, blancos, válidos y 350 escaños reconciliados",
+    "SEEC producción ejecutado con 10000 draws; diagnósticos incluyen eta latente; 0 divergencias; R-hat 1.00; ESS bulk/tail 1900/3000",
+    "backtest/OOS y suite reproducible verificados por GitHub Actions",
+    "baseline 2023 separado de magnitudes 2026 y regla explícita de Ceuta/Melilla",
+    "normalización de poll_id/id corregida en la vigilancia de encuestas",
+    "estado de certificación sincronizado con evidencia; READY_FOR_EXTERNAL_AUDIT no equivale a certificación independiente"
   ],
   "real_monitor_snapshot": {
-    "sources": 17,
-    "ok": 13,
-    "failed": 3,
-    "skipped_optional": 1,
+    "configured_sources": 16,
+    "primary_sources": 7,
+    "healthy_primary_sources": 7,
+    "unhealthy_primary_sources": 0,
+    "discovery_sources": 9,
     "national_observations": 3,
-    "territorial_observations": 0
+    "territorial_observations": 0,
+    "note": "La cobertura de transporte es PASS; actualmente no hay observaciones territoriales de encuestas generales 2026 validadas para alimentar una matriz de 52 circunscripciones."
   },
-  "resume_from": "Run official Interior workbook validation in CI; then update current-2026 blockers only if genuinely resolved.",
+  "resume_from": "Mantener P3 bloqueado sin matriz territorial general 2026; cerrar auditoría externa independiente y cerrar las 179 misiones con evidencia persistente antes de v1.0.0.",
   "last_execution": {
-    "run": 37779334950,
-    "validation_tests": "37 passed",
-    "integration_failure": "fixed verifier import path; fixed optional-state persistence path handling",
-    "next": "await latest service run; require integration PASS, then bot runtime and persistence checks"
+    "run": 37913045371,
+    "tests": "367 passed; full reproducible suite PASS",
+    "seec": "PASS; 10000 posterior draws; 4 chains; eta included; all diagnostics finite; 0 divergences; max R-hat 1.00; min ESS bulk 1900; min ESS tail 3000",
+    "oos": "PASS; walk-forward calibration evidence persisted",
+    "official_data": "PASS; 16 elections, 52 constituencies, 322556 normalized records; workbook SHA-256 dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
+    "completion_gate": "READY_FOR_EXTERNAL_AUDIT; independent external audit remains pending",
+    "next": "Complete remaining CI on latest main; keep territorial prediction and v1.0.0 blocked until actual territorial evidence and independent audit."
   },
   "phase2_priority1": {
     "status": "PARTIAL_CURRENT_2026",
-    "national_survey_count": 10,
+    "national_survey_count": 3,
     "territorial_observation_count": 3,
     "territorial_coverage": [
-      "Catalunya",
-      "Comunitat Valenciana",
-      "Principado de Asturias"
+      "Catalunya (captura territorial; no validada como matriz general 2026)",
+      "Comunitat Valenciana (captura territorial; no validada como matriz general 2026)",
+      "Principado de Asturias (captura territorial; no validada como matriz general 2026)"
     ],
     "traceability_hash_scope": "captured_excerpt",
     "blockers": [
-      "full source-content hashes for current territorial captures",
-      "52-circumscription current general-election coverage"
+      "hash completo de contenido de algunas capturas territoriales actuales",
+      "no existe matriz validada de elecciones generales 2026 para las 52 circunscripciones",
+      "0 sondeos territoriales actuales promovidos a observación válida del pipeline de estimación"
     ],
     "policy": {
       "no_synthetic_values": true,
@@ -69,7 +82,8 @@
         "valid_votes_total": 24688087,
         "seats": 350
       }
-    }
+    },
+    "validated_territorial_poll_count": 0
   },
   "phase2_priority2": {
     "status": "BLOCKED_CURRENT_2026_INPUT",
@@ -89,7 +103,7 @@
     "historical_official_baseline": "AVAILABLE_PRIMARY"
   },
   "phase2_priority4": {
-    "status": "PARTIAL",
+    "status": "RUNTIME_CI_VERIFIED_PARTIAL",
     "implemented": [
       "src/alerts/realtime_notifier.py",
       "src/recovery/retry_fallback.py",
@@ -97,8 +111,8 @@
       "tests/test_recovery.py"
     ],
     "blocked": [
-      "runtime 17-source execution pending CI",
-      "Telegram credentials deployment prerequisite"
+      "credenciales y allowlist Telegram son prerrequisito de despliegue",
+      "fuentes de descubrimiento no equivalen a encuestas primarias validadas"
     ],
     "policy": {
       "no_invented_events": true,
@@ -107,7 +121,7 @@
     }
   },
   "phase2_priority5": {
-    "status": "IMPLEMENTED_PENDING_CI",
+    "status": "CI_TESTS_PASS_EVIDENCE_HASHING_IMPLEMENTED",
     "files": [
       "src/reproducibility/hasher.py",
       "src/reproducibility/verifier.py",
@@ -121,7 +135,7 @@
     }
   },
   "phase2_priority6": {
-    "status": "IMPLEMENTED_PENDING_CI",
+    "status": "CI_TESTS_PASS_DEPLOYMENT_RUNTIME_STILL_REQUIRED",
     "files": [
       "src/security/validation.py",
       "src/monitoring/healthcheck.py",
@@ -160,23 +174,24 @@
   },
   "phase2_ci_workflow": "TEST_TRIGGER_PATHS_HARDENED",
   "phase2_ci_execution": {
-    "status": "QUEUED_AFTER_REAL_FAILURE_FIX",
-    "previous_failure": "territory renderer wording contract",
-    "fix": "restored required fail-closed wording",
-    "tests_added": [
-      "test_territorial_data_collection",
-      "test_telegram_evidence"
-    ]
+    "status": "PASS",
+    "latest_completion_gate_run": 37913045581,
+    "full_reproducible_suite_run": 37913045371,
+    "exhaustive_pytest_run": 37912765691,
+    "tests": "367 passed",
+    "previous_failure": "territory renderer wording contract / materializer import path",
+    "fix": "wording contract restored; repository root added before src.data import",
+    "evidence": "GitHub Actions"
   },
   "phase2_summary": {
-    "priority1": "BLOCKED",
+    "priority1": "PARTIAL_CURRENT_2026; territorial general-election input not production-validated",
     "priority2": "BLOCKED_WITH_FAIL_CLOSED_PIPELINE",
-    "priority3": "BLOCKED_NO_TERRITORIAL_OBSERVATIONS",
-    "priority4": "PARTIAL_IMPLEMENTED",
-    "priority5": "IMPLEMENTED_PENDING_CI",
-    "priority6": "IMPLEMENTED_PENDING_CI",
-    "priority7": "BLOCKED_RELEASE",
-    "priority8": "BLOCKED_DEMO",
+    "priority3": "BLOCKED_NO_VALIDATED_52_CONSTITUENCY_GENERAL_ELECTION_MATRIX",
+    "priority4": "RUNTIME_CI_VERIFIED_PARTIAL; Telegram deployment prerequisites remain",
+    "priority5": "CI_TESTS_PASS_EVIDENCE_HASHING_IMPLEMENTED",
+    "priority6": "CI_TESTS_PASS_DEPLOYMENT_RUNTIME_STILL_REQUIRED",
+    "priority7": "BLOCKED_RELEASE_EXTERNAL_AUDIT_AND_TERRITORIAL_EVIDENCE",
+    "priority8": "BLOCKED_FAIL_CLOSED_DEMO_WITHOUT_52_CONSTITUENCY_MATRIX",
     "fail_closed": true,
     "no_national_to_territorial_inference": true
   },
@@ -205,12 +220,22 @@
   },
   "official_data_integration": {
     "status": "PASS",
-    "parser": "src/data.py::load_official_constituency_matrix",
+    "parser": "src.data::load_official_constituency_matrix",
     "script": "scripts/materialize_official_interior_dataset.py",
     "manifest": "data/manifests/official_interior_congreso.json",
-    "source_anchor": "data/source_anchors/INTERIOR_INFOELECTORAL_CONGRESO_UNIFIED.json",
+    "workbook": "data/raw/Elecciones-Congreso.xlsx",
+    "workbook_sha256": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
+    "normalized_csv": "data/official_interior_congreso_1977_2023.csv",
+    "normalized_records": 322556,
+    "elections": 16,
+    "constituencies": 52,
     "canonical_2023": "artifacts/data/election_2023_canonical.json",
-    "acquisition_fix": "scripts/acquire_2023_matrix.py now uses src.data",
+    "validation_2023": {
+      "candidate_votes_total": 24487414,
+      "blank_votes_total": 200673,
+      "valid_votes_total": 24688087,
+      "seats": 350
+    },
     "fail_closed": true
   }
 }
