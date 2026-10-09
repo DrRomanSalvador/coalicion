@@ -43,7 +43,7 @@ def load_context(mission: dict[str, Any]) -> str:
     return "\n\n".join(chunks)
 
 
-def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str = DEFAULT_MODEL, provider: str = DEFAULT_PROVIDER) -> dict[str, Any]:
+def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str = DEFAULT_MODEL, provider: str = DEFAULT_PROVIDER, backend: str = "hf", local_model: str = "qwen2.5:3b", ollama_url: str | None = None) -> dict[str, Any]:
     agent_id, mission_id = str(mission.get("agent_id", "")).strip(), str(mission.get("id", "")).strip()
     task = str(mission.get("task", "")).strip()
     if not agent_id or not mission_id or not task:
@@ -67,69 +67,99 @@ def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str =
         raise ValueError("HF_PROVIDER no puede estar vacío; usa auto o un proveedor habilitado en Hugging Face.")
     result: dict[str, Any] = {
         "schema": "COLMENA_AGENT_EVIDENCE_V1", "agent_id": agent_id, "mission_id": mission_id,
-        "status": "BLOCKED", "provider": provider, "model": model, "task": task, "executed_at": now()
+        "status": "BLOCKED", "provider": provider, "model": model, "backend": backend, "task": task, "executed_at": now()
     }
     try:
-        if not token:
-            raise RuntimeError("Falta Reina_token; no se invocará el proveedor.")
-        from huggingface_hub import InferenceClient
-        context = load_context(mission)
-        # "auto" no garantiza que el proveedor automático coincida con los habilitados
-        # en la cuenta. Probamos únicamente proveedores conocidos por configuración.
-        fallbacks = [
-            item.strip() for item in os.getenv(
-                "HF_PROVIDER_FALLBACKS", "deepinfra,featherless-ai"
-            ).split(",") if item.strip()
-        ]
-        candidates = fallbacks if provider.strip().lower() == "auto" else [provider.strip()]
-        if not candidates:
-            raise RuntimeError("No hay proveedores configurados; define HF_PROVIDER o HF_PROVIDER_FALLBACKS.")
-        last_provider_error: Exception | None = None
-        response = None
-        selected_provider = ""
-        for candidate_provider in dict.fromkeys(candidates):
-            result["provider"] = candidate_provider
+        if backend not in {"hf", "ollama"}:
+            raise ValueError("backend debe ser 'hf' u 'ollama'.")
+        if backend == "ollama":
+            from urllib.request import Request, urlopen
+            from urllib.error import URLError, HTTPError
+            import socket
+            base_url = (ollama_url or os.getenv("OLLAMA_HOST") or "http://127.0.0.1:11434").rstrip("/")
+            selected_model = local_model.strip()
+            if not selected_model:
+                raise ValueError("local_model no puede estar vacío.")
+            context = load_context(mission)
+            payload = {"model": selected_model, "stream": False, "messages": [
+                {"role": "system", "content": (
+                    "Eres un agente analítico de COALICIÓN. No afirmes haber cambiado archivos, ejecutado comandos, "
+                    "consultado fuentes o pasado pruebas si no ocurrió. Distingue hechos, hipótesis y recomendaciones. "
+                    "Usa únicamente el contexto adjunto como evidencia del repositorio. Responde en español, breve, "
+                    "con hallazgos concretos, rutas/funciones, riesgos y siguiente acción. Tu salida requiere revisión "
+                    "humana; no puedes certificar PASS."
+                )},
+                {"role": "user", "content": f"Agente lógico: {agent_id}\\nMisión: {mission_id}\\nTítulo: {mission.get('title', mission_id)}\\nTarea:\\n{task}\\n\\nContexto real del repositorio:\\n{context or '(No se adjuntaron archivos de contexto.)'}\\n\\nEntrega un informe auditable y no afirmes haber ejecutado pruebas."}
+            ], "options": {"temperature": 0.2, "num_predict": 700}}
+            request = Request(f"{base_url}/api/chat", data=json.dumps(payload).encode("utf-8"),
+                              headers={"Content-Type": "application/json"}, method="POST")
             try:
-                client = InferenceClient(
-                    model=model, provider=candidate_provider, token=token, timeout=90
-                )
-                response = client.chat_completion(messages=[
-                    {"role": "system", "content": (
-                        "Eres un agente analítico de COALICIÓN. No afirmes haber cambiado archivos, ejecutado comandos, "
-                        "consultado fuentes o pasado pruebas si no ocurrió. Distingue hechos, hipótesis y recomendaciones. "
-                        "Usa únicamente el contexto adjunto como evidencia del repositorio. Responde en español, breve, "
-                        "con hallazgos concretos, rutas/funciones, riesgos y siguiente acción. Tu salida requiere revisión "
-                        "humana; no puedes certificar PASS."
-                    )},
-                    {"role": "user", "content": f"Agente lógico: {agent_id}\nMisión: {mission_id}\nTítulo: {mission.get('title', mission_id)}\nTarea:\n{task}\n\nContexto real del repositorio:\n{context or '(No se adjuntaron archivos de contexto.)'}\n\nEntrega un informe auditable y no afirmes haber ejecutado pruebas."}
-                ], max_tokens=700, temperature=0.2)
-                selected_provider = candidate_provider
-                break
-            except Exception as exc:
-                last_provider_error = exc
-                error_text = str(exc).lower()
-                unsupported = (
-                    "model_not_supported" in error_text
-                    or "not supported by any provider" in error_text
-                    or "provider_not_supported" in error_text
-                )
-                if not unsupported:
-                    raise
-        if response is None:
-            raise RuntimeError(
-                f"El modelo {model!r} no pudo usarse con los proveedores probados "
-                f"({', '.join(dict.fromkeys(candidates))}). Ninguno acepta este modelo "
-                "con la credencial Reina_token. Revisa proveedores habilitados y configura "
-                "HF_PROVIDER o HF_PROVIDER_FALLBACKS. No se marcará la misión como completada."
-            ) from last_provider_error
-        content = response.choices[0].message.content
+                with urlopen(request, timeout=180) as response:
+                    decoded = json.loads(response.read().decode("utf-8"))
+            except (HTTPError, URLError, socket.timeout, TimeoutError) as exc:
+                raise RuntimeError(
+                    f"Ollama local no disponible o falló ({base_url}). Comprueba que Ollama está iniciado "
+                    "y que el modelo está descargado. No se ha llamado a Hugging Face ni consumido créditos de inferencia."
+                ) from exc
+            message = decoded.get("message", {})
+            content = message.get("content") if isinstance(message, dict) else None
+            result.update(provider="local-ollama", model=selected_model, backend="ollama")
+        else:
+            if not token:
+                raise RuntimeError("Falta Reina_token; no se invocará Hugging Face.")
+            from huggingface_hub import InferenceClient
+            context = load_context(mission)
+            fallbacks = [
+                item.strip() for item in os.getenv(
+                    "HF_PROVIDER_FALLBACKS", "deepinfra,featherless-ai"
+                ).split(",") if item.strip()
+            ]
+            candidates = fallbacks if provider.strip().lower() == "auto" else [provider.strip()]
+            if not candidates:
+                raise RuntimeError("No hay proveedores configurados; define HF_PROVIDER o HF_PROVIDER_FALLBACKS.")
+            last_provider_error: Exception | None = None
+            response = None
+            selected_provider = ""
+            for candidate_provider in dict.fromkeys(candidates):
+                result["provider"] = candidate_provider
+                try:
+                    client = InferenceClient(model=model, provider=candidate_provider, token=token, timeout=90)
+                    response = client.chat_completion(messages=[
+                        {"role": "system", "content": (
+                            "Eres un agente analítico de COALICIÓN. No afirmes haber cambiado archivos, ejecutado comandos, "
+                            "consultado fuentes o pasado pruebas si no ocurrió. Distingue hechos, hipótesis y recomendaciones. "
+                            "Usa únicamente el contexto adjunto como evidencia del repositorio. Responde en español, breve, "
+                            "con hallazgos concretos, rutas/funciones, riesgos y siguiente acción. Tu salida requiere revisión "
+                            "humana; no puedes certificar PASS."
+                        )},
+                        {"role": "user", "content": f"Agente lógico: {agent_id}\\nMisión: {mission_id}\\nTítulo: {mission.get('title', mission_id)}\\nTarea:\\n{task}\\n\\nContexto real del repositorio:\\n{context or '(No se adjuntaron archivos de contexto.)'}\\n\\nEntrega un informe auditable y no afirmes haber ejecutado pruebas."}
+                    ], max_tokens=700, temperature=0.2)
+                    selected_provider = candidate_provider
+                    break
+                except Exception as exc:
+                    last_provider_error = exc
+                    error_text = str(exc).lower()
+                    unsupported = ("model_not_supported" in error_text
+                                   or "not supported by any provider" in error_text
+                                   or "provider_not_supported" in error_text)
+                    if not unsupported:
+                        raise
+            if response is None:
+                raise RuntimeError(
+                    f"El modelo {model!r} no pudo usarse con los proveedores probados "
+                    f"({', '.join(dict.fromkeys(candidates))}). Ninguno acepta este modelo "
+                    "con la credencial Reina_token. Revisa proveedores habilitados y configura "
+                    "HF_PROVIDER o HF_PROVIDER_FALLBACKS. No se marcará la misión como completada."
+                ) from last_provider_error
+            content = response.choices[0].message.content
+            result.update(provider=selected_provider, backend="hf")
         if not isinstance(content, str) or not content.strip():
             raise RuntimeError(f"HF devolvió una respuesta vacía desde {selected_provider}.")
-        result.update(status="REVIEW_REQUIRED", provider=selected_provider, response=content.strip())
+        result.update(status="REVIEW_REQUIRED", response=content.strip())
     except Exception as exc:
         message = str(exc)
         lowered = message.lower()
-        if "402" in lowered or "payment required" in lowered or "no remaining credits" in lowered or "purchase pre-paid credits" in lowered:
+        if backend == "hf" and ("402" in lowered or "payment required" in lowered or "no remaining credits" in lowered or "purchase pre-paid credits" in lowered):
             message = (
                 "Hugging Face rechazó la inferencia por falta de créditos (HTTP 402). "
                 "No se probarán otros proveedores para evitar llamadas innecesarias. "
@@ -155,6 +185,9 @@ def main() -> int:
     parser.add_argument("mission_json", help="JSON de misión o ruta a un archivo JSON")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--provider", default=DEFAULT_PROVIDER, help="Proveedor HF habilitado (auto por defecto)")
+    parser.add_argument("--backend", choices=("hf", "ollama"), default=os.getenv("COLMENA_BACKEND", "hf"))
+    parser.add_argument("--local-model", default=os.getenv("COLMENA_LOCAL_MODEL", "qwen2.5:3b"))
+    parser.add_argument("--ollama-url", default=os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434"))
     args = parser.parse_args()
     try:
         candidate = Path(args.mission_json)
@@ -168,7 +201,7 @@ def main() -> int:
             raw = json.dumps(matches[0], ensure_ascii=False)
         else:
             raw = args.mission_json
-        result = run_agent(json.loads(raw), model=args.model, provider=args.provider)
+        result = run_agent(json.loads(raw), model=args.model, provider=args.provider, backend=args.backend, local_model=args.local_model, ollama_url=args.ollama_url)
     except (ValueError, OSError, json.JSONDecodeError, RuntimeError) as exc:
         print(json.dumps({"status": "BLOCKED", "error": str(exc)}, ensure_ascii=False), file=sys.stderr)
         return 2
