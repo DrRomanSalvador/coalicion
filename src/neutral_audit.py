@@ -12,6 +12,7 @@ EXPECTED_SEATS = 350
 EXPECTED_SCHEMA = "ELECTION_2023_CONSTITUENCY_MATRIX_V2"
 EXPECTED_SOURCE_TIERS = {"OFFICIAL_PRIMARY", "SECONDARY_REPLICA_VERIFIED"}
 EXPECTED_CANDIDATE_VOTES = 24_487_414
+ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT / "data/manifests/official_interior_congreso.json"
 WORKBOOK_PATH = ROOT / "data/raw/Elecciones-Congreso.xlsx"
 NORMALIZED_CSV_PATH = ROOT / "data/official_interior_congreso_1977_2023.csv"
@@ -26,7 +27,6 @@ def _manifest_value(key: str) -> str:
 
 EXPECTED_CANONICAL_SHA256 = _manifest_value("canonical_2023_sha256")
 EXPECTED_CANONICAL_PATH = "artifacts/data/election_2023_canonical.json"
-ROOT = Path(__file__).resolve().parents[1]
 
 def sha256_file(path: Path) -> str:
     h = hashlib.sha256()
