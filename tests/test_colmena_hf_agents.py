@@ -55,6 +55,7 @@ def test_assignment_is_bounded_and_only_assigns_concrete_tasks(tmp_path, monkeyp
     assert summary["assigned"] == 8
     assert summary["pending"] == 171
     assert summary["tasks_defined"] == 8
+    assert summary["status"] == "MISSIONS_ASSIGNED"
     assert summary["source_of_truth"] == "docs/COLMENA_MISSION_CONTROL.json"
 
 
@@ -94,6 +95,7 @@ def test_result_reconciliation_records_review_without_allowing_model_pass(tmp_pa
     assert persisted_state["queen_coordination"]["review_required"] == 1
     assert persisted_state["queen_coordination"]["pending"] == 178
     assert persisted_state["queen_coordination"]["assigned"] == 0
+    assert persisted_state["queen_coordination"]["status"] == "REVIEW_REQUIRED"
 
     evidence.write_text(json.dumps({
         "mission_id": mission["id"], "agent_id": mission["agent_id"], "status": "PASS"
