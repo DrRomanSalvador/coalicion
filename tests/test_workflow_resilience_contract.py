@@ -107,3 +107,4 @@ def test_self_healer_reports_exhausted_failures_even_when_retryable_candidates_e
     assert 'select(.status == "completed" and .run_attempt >= 3)' in source
     assert 'select(.status == "completed" and .run_attempt < 3)' in source
     assert '[[ "${#candidates[@]}" -eq 0 ]]' in source
+    assert source.index("EXHAUSTED_RETRY_BUDGET") < source.index('if [[ "$failures" -gt 0 ]]; then')
