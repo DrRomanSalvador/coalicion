@@ -3,7 +3,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from audit_workflow_resilience import audit_self_healer_contract, audit_telegram_pages_contract, permission_declarations, writer_without_concurrency
+from audit_workflow_resilience import audit_self_healer_contract, audit_telegram_pages_contract, permission_declarations, writer_without_concurrency, audit_product_release_persistence
 
 
 def test_main_self_healer_has_all_blocking_recovery_contracts():
@@ -69,3 +69,15 @@ def test_workflow_audit_blocks_unserialized_remote_writers():
     safe = "concurrency:\n  group: writer-main\n  cancel-in-progress: false\njobs:\n  job:\n    steps:\n      - run: |\n          git push origin HEAD:main\n"
     assert writer_without_concurrency(unsafe)
     assert not writer_without_concurrency(safe)
+
+
+def test_product_release_writer_revalidates_main_before_publishing():
+    workflow = (ROOT / ".github" / "workflows" / "product_release.yml").read_text(encoding="utf-8")
+    assert audit_product_release_persistence(workflow) == []
+
+
+def test_product_release_audit_rejects_stale_evidence_push():
+    workflow = (ROOT / ".github" / "workflows" / "product_release.yml").read_text(encoding="utf-8")
+    workflow = workflow.replace('[[ "$remote_sha" != "$GITHUB_SHA" ]]', 'false')
+    missing = audit_product_release_persistence(workflow)
+    assert "release writer compares main to the tested SHA" in missing

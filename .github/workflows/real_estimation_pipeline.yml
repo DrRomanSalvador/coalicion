@@ -29,6 +29,8 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install numpy requests beautifulsoup4 lxml feedparser pytest
+      - name: Capture source commit
+        run: echo "ESTIMATION_TESTED_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - name: Validate and materialize observations
         run: |
           python -m py_compile src/real_estimation_pipeline.py scripts/materialize_estimation_inputs.py scripts/run_real_estimation.py
@@ -37,21 +39,48 @@ jobs:
       - name: Execute real estimation
         run: python scripts/run_real_estimation.py
       - name: Persist estimation state
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name "coalicion-real-estimation[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "coalicion-real-estimation[bot]@users.noreply.github.com"
           rm -rf /tmp/estimation-state
           mkdir -p /tmp/estimation-state
           cp -a artifacts/estimation/. /tmp/estimation-state/
-          git fetch origin main
-          git reset --hard origin/main
-          mkdir -p artifacts/estimation
-          if [ -s artifacts/estimation/observations.json ] && ! cmp -s /tmp/estimation-state/observations.json artifacts/estimation/observations.json; then
-            echo "::error::FAIL_CLOSED: canonical observations changed after estimation; refusing to overwrite newer poll data with a stale snapshot."
-            exit 1
-          fi
-          cp -a /tmp/estimation-state/. artifacts/estimation/
-          git add artifacts/estimation
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m "chore: materialize real estimation state"
-          git push origin HEAD:main
+          tested_sha="$ESTIMATION_TESTED_SHA"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            current_sha="$(git rev-parse origin/main)"
+            if [[ "$tested_sha" != "$current_sha" ]]; then
+              changed_paths="$(git diff --name-only "$tested_sha" "$current_sha")"
+              unexpected_paths="$(printf '%s\\n' "$changed_paths" | awk '$0 !~ /^(ci_evidence\\/|reports\\/|artifacts\\/poll_monitor_state\\.json$|artifacts\\/survey_history\\.jsonl$)/')"
+              if [[ -n "$unexpected_paths" ]]; then
+                echo "::notice::Estimation snapshot is stale; relevant main inputs changed after $tested_sha. Nothing was published."
+                printf 'tested=%s current=%s\\nchanged relevant paths:\\n%s\\n' "$tested_sha" "$current_sha" "$unexpected_paths" >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+              fi
+            fi
+
+            git reset --hard origin/main
+            mkdir -p artifacts/estimation
+            if [[ -s artifacts/estimation/observations.json ]] && ! cmp -s /tmp/estimation-state/observations.json artifacts/estimation/observations.json; then
+              echo "::error::FAIL_CLOSED: canonical observations changed after estimation; refusing to overwrite newer poll data with a stale snapshot."
+              exit 1
+            fi
+            cp -a /tmp/estimation-state/. artifacts/estimation/
+            git add artifacts/estimation
+            if git diff --cached --quiet; then
+              echo "Estimation state already matches main."
+              exit 0
+            fi
+            git commit -m "chore: materialize real estimation state"
+            if git push origin HEAD:main; then
+              echo "Estimation state persisted after freshness validation (attempt $attempt)."
+              exit 0
+            fi
+            echo "Concurrent main update; rechecking freshness before retry ($attempt/5)." >&2
+            sleep "$((attempt * 3))"
+          done
+          echo "::error::Unable to persist estimation state after five freshness-checked retries."
+          exit 1
