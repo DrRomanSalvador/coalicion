@@ -170,3 +170,36 @@ def test_canonical_mission_control_has_next_five_executable_tasks():
     assert all(m["status"] == "PENDING" and m["assigned"] is False for m in next_five)
     assert all(isinstance(m["task"], str) and m["task"].strip() for m in next_five)
     assert all(isinstance(m.get("context_paths"), list) and m["context_paths"] for m in next_five)
+
+
+def test_agent_routes_provider_and_explains_model_not_supported(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    import pytest
+
+    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    control_path = tmp_path / "missions.json"
+    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", control_path)
+    mission = {
+        "id": "M0001", "agent_id": "agent-001", "task": "Prueba de proveedor.",
+        "status": "ASSIGNED", "assigned": True, "context_paths": []
+    }
+    control_path.write_text(json.dumps({
+        "schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": [mission]
+    }), encoding="utf-8")
+    captured = {}
+
+    class FakeClient:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+        def chat_completion(self, **kwargs):
+            raise RuntimeError("model_not_supported: not supported by any provider")
+
+    monkeypatch.setitem(sys.modules, "huggingface_hub", SimpleNamespace(InferenceClient=FakeClient))
+    result = colmena_agent_hf.run_agent(
+        mission, hf_token="test-token", model="example/model", provider="deepinfra"
+    )
+    assert captured["provider"] == "deepinfra"
+    assert result["status"] == "BLOCKED"
+    assert "proveedores habilitados" in result["error"]
+    assert "Selecciona en Hugging Face" in result["error"]

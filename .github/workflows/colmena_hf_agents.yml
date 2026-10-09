@@ -10,7 +10,12 @@ on:
       model:
         description: "Modelo HF Inference compatible"
         required: false
-        default: "Qwen/Qwen2.5-7B-Instruct"
+        default: "Qwen/Qwen2.5-72B-Instruct"
+        type: string
+      provider:
+        description: "Proveedor habilitado en Hugging Face (auto o deepinfra, etc.)"
+        required: false
+        default: "auto"
         type: string
 
 permissions:
@@ -41,6 +46,7 @@ jobs:
           Reina_token: ${{ secrets.Reina_token }}
           MISSION_ID: ${{ inputs.mission_id }}
           HF_MODEL: ${{ inputs.model }}
+          HF_PROVIDER: ${{ inputs.provider }}
         shell: bash
         run: |
           set -euo pipefail
@@ -62,7 +68,7 @@ jobs:
           print(f"Misión validada: {mission_id} -> {mission['agent_id']}")
           PY
           set +e
-          python scripts/colmena_agent_hf.py "$MISSION_ID" --model "$HF_MODEL"
+          python scripts/colmena_agent_hf.py "$MISSION_ID" --model "$HF_MODEL" --provider "$HF_PROVIDER"
           agent_rc=$?
           set -e
           EVIDENCE="$(python - <<'PY'
