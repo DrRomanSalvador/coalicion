@@ -64,6 +64,19 @@ def audit_self_healer_contract(source: str) -> list[str]:
 
 
 
+
+def audit_product_release_persistence(source: str) -> list[str]:
+    """Require a fresh-main check before persisting release evidence."""
+    checks = {
+        "release writer uses strict shell mode": "set -euo pipefail",
+        "release writer fetches main before publishing": "git fetch origin main",
+        "release writer compares main to the tested SHA": '[[ "$remote_sha" != "$GITHUB_SHA" ]]',
+        "stale evidence is skipped instead of pushed": "refusing to publish stale product gate output",
+        "push failures are rechecked against current main": "Product release evidence push failed while main still matches the tested commit.",
+    }
+    return [label for label, literal in checks.items() if literal not in source]
+
+
 def writer_without_concurrency(source: str) -> bool:
     """Detect workflows that push commits but do not serialize writers."""
     pushes = bool(re.search(r"(?m)^ *if +git push|^ *git push", source))
@@ -100,6 +113,7 @@ def main() -> int:
     critical_findings = []
     healer_seen = False
     pages_seen = False
+    product_release_seen = False
     for path in paths:
         try:
             source = path.read_text(encoding="utf-8")
@@ -159,6 +173,14 @@ def main() -> int:
                     {"path": relative_path, "missing_contract": item}
                     for item in missing_contracts
                 )
+        if relative_path == ".github/workflows/product_release.yml":
+            product_release_seen = True
+            missing_contracts = audit_product_release_persistence(source)
+            if missing_contracts:
+                critical_findings.extend(
+                    {"path": relative_path, "missing_contract": item}
+                    for item in missing_contracts
+                )
         if writer_without_concurrency(source):
             critical_findings.append({
                 "path": relative_path,
@@ -185,6 +207,8 @@ def main() -> int:
         critical_findings.append({"path": ".github/workflows/autonomous_self_healer.yml", "missing_contract": "self-healer workflow is missing"})
     if not pages_seen:
         critical_findings.append({"path": ".github/workflows/telegram_miniapp.yml", "missing_contract": "Telegram Pages deployment workflow is missing"})
+    if not product_release_seen:
+        critical_findings.append({"path": ".github/workflows/product_release.yml", "missing_contract": "product release gate workflow is missing"})
 
     payload = {
         "schema": "WORKFLOW_RESILIENCE_AUDIT_V1",
