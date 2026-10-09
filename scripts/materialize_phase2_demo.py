@@ -18,10 +18,18 @@ def main() -> int:
         seats_path=ROOT / "data/2026_circunscripciones_oficiales.csv",
         output=ROOT / "artifacts/territorial_prediction_20261008.json",
     )
-    # Materialization succeeds even when the evidence gate is BLOCKED.
-    # The artifact, not an assertion, is the fail-closed product surface.
-    assert result["status"] == "BLOCKED"
-    assert result["observed_territorial_polls"] == 0
+    # Real observations may arrive at any time. Accept only internally consistent
+    # states: no observations => BLOCKED; observations => a usable forecast status.
+    status = result.get("status")
+    observed = result.get("observed_territorial_polls")
+    if not isinstance(observed, int) or observed < 0:
+        raise RuntimeError("Invalid observed_territorial_polls in materialized forecast.")
+    if status == "BLOCKED" and observed != 0:
+        raise RuntimeError("Forecast is BLOCKED despite having territorial poll observations.")
+    if status != "BLOCKED" and observed == 0:
+        raise RuntimeError("Forecast claims usability without territorial poll observations.")
+    if status not in {"BLOCKED", "PASS", "READY", "REVIEW_REQUIRED"}:
+        raise RuntimeError(f"Unexpected forecast status: {status!r}")
     return 0
 
 if __name__ == "__main__":
