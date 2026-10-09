@@ -47,22 +47,16 @@ jobs:
           import os
           import sys
           import time
-          import urllib.error
+          import subprocess
           import urllib.parse
-          import urllib.request
           from datetime import datetime, timezone
           import yaml
 
           repo = os.environ["GH_REPO"]
-          token = os.environ["GH_TOKEN"]
+          token = os.environ.get("GH_TOKEN", "").strip()
+          if not token:
+              raise SystemExit("::error::GH_TOKEN is empty; refusing to run batch validation without authenticated API access.")
           include_external = os.environ.get("INCLUDE_EXTERNAL_SIDE_EFFECTS", "false").lower() == "true"
-          api_base = f"https://api.github.com/repos/{repo}/"
-          headers = {
-              "Accept": "application/vnd.github+json",
-              "Authorization": f"Bearer {token}",
-              "X-GitHub-Api-Version": "2022-11-28",
-              "Content-Type": "application/json",
-          }
           side_effects = {
               "product_release.yml", "newsletter.yml", "telegram_bot_service.yml",
               "telegram_miniapp.yml", "colmena_hf_agents.yml", "colmena_hf_assign.yml",
@@ -77,15 +71,50 @@ jobs:
           batch_start = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
           def api(path, method="GET", payload=None):
-              data = None if payload is None else json.dumps(payload).encode("utf-8")
-              request = urllib.request.Request(api_base + path, data=data, method=method, headers=headers)
+              command = ["gh", "api", path, "--method", method]
+              body = None
+              if payload is not None:
+                  command.extend(["--input", "-"])
+                  body = json.dumps(payload)
+              result = subprocess.run(
+                  command,
+                  input=body,
+                  text=True,
+                  capture_output=True,
+                  timeout=45,
+                  check=False,
+              )
+              if result.returncode:
+                  detail = "\\n".join(
+                      part.strip()
+                      for part in (result.stderr or "", result.stdout or "")
+                      if part and part.strip()
+                  ) or f"gh api exited with status {result.returncode}"
+                  lowered = detail.lower()
+                  if "http 401" in lowered or "bad credentials" in lowered:
+                      raise RuntimeError(
+                          f"GitHub API authentication failed (401 Bad credentials) for {method} {path}; "
+                          "verify the Actions token context and repository policy. "
+                          f"CLI detail: {detail[:500]}"
+                      )
+                  if "http 403" in lowered or "resource not accessible by integration" in lowered:
+                      raise RuntimeError(
+                          f"GitHub API authorization failed (403) for {method} {path}; "
+                          "verify workflow permissions and repository policy. "
+                          f"CLI detail: {detail[:500]}"
+                      )
+                  raise RuntimeError(
+                      f"GitHub API {method} {path} failed with exit {result.returncode}: {detail[:500]}"
+                  )
+              raw = result.stdout.strip()
+              if not raw:
+                  return None
               try:
-                  with urllib.request.urlopen(request, timeout=45) as response:
-                      raw = response.read()
-                      return json.loads(raw) if raw else None
-              except urllib.error.HTTPError as exc:
-                  body = exc.read().decode("utf-8", "replace")
-                  raise RuntimeError(f"GitHub API {method} {path} returned {exc.code}: {body[:500]}") from exc
+                  return json.loads(raw)
+              except json.JSONDecodeError as exc:
+                  raise RuntimeError(
+                      f"GitHub API {method} {path} returned invalid JSON: {exc}"
+                  ) from exc
 
           def now_iso():
               return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
