@@ -80,6 +80,12 @@ def validate_missions(missions: list[dict[str, Any]]) -> None:
     for mission in missions:
         if mission.get("status") not in STATUSES:
             raise ValueError(f"Estado no válido en {mission.get('id')}: {mission.get('status')}")
+        expected_assigned = mission.get("status") == "ASSIGNED"
+        if not isinstance(mission.get("assigned"), bool) or mission["assigned"] != expected_assigned:
+            raise ValueError(
+                f"Estado/assigned incoherentes en {mission.get('id')}: "
+                f"status={mission.get('status')!r}, assigned={mission.get('assigned')!r}."
+            )
 
 
 def status_report() -> dict[str, Any]:
