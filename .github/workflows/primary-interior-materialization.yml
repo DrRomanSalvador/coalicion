@@ -8,6 +8,8 @@ on:
       - "scripts/materialize_primary_interior.py"
       - "scripts/materialize_official_history_from_parts.py"
       - "scripts/materialize_official_interior_dataset.py"
+      - "src/data.py"
+      - "src/electoral.py"
       - "data/official_materialization_parts/**"
       - ".github/workflows/primary-interior-materialization.yml"
   workflow_dispatch:
