@@ -3,62 +3,61 @@
   "status": "READY_FOR_EXTERNAL_AUDIT",
   "certification": "READY_FOR_EXTERNAL_AUDIT",
   "fail_closed": true,
-  "workflow_run_id": 37767118068,
-  "workflow_head_sha": "2f0040324aa621a40cb10fcb143d7d147c9c6e07",
-  "artifact": {
-    "id": 11544299967,
-    "digest": "sha256:cfdb40bea4cc7f9bb7decf42d3ed751092a77296a8b7fa4ee3d812c45b031317"
-  },
   "gates": [
     {
       "name": "source_manifest",
-      "status": "PASS"
+      "status": "PASS",
+      "detail": "manifest primario materializado y estructuralmente validado"
     },
     {
       "name": "primary_interior",
-      "status": "PASS"
+      "status": "PASS",
+      "detail": "la fuente histórica debe estar declarada como primaria"
     },
     {
       "name": "reconciliation",
-      "status": "PASS"
+      "status": "PASS",
+      "detail": "reconciliación exacta y fail-closed"
     },
     {
       "name": "seec_posterior",
-      "status": "PASS"
+      "status": "PASS",
+      "detail": "posterior jerárquico PyMC de producción >=10.000 draws con convergencia materializada"
     },
     {
       "name": "mc_10000",
-      "status": "PASS"
+      "status": "PASS",
+      "detail": "MC-10000 independiente, con invariantes electorales verificadas"
     },
     {
       "name": "baseline_2023",
-      "status": "PASS"
+      "status": "PASS",
+      "detail": "baseline territorial 2023 presente y estructuralmente verificable"
     },
     {
       "name": "oos_calibration",
-      "status": "PASS"
+      "status": "PASS",
+      "detail": "calibración OOS expanding-window con gate de cobertura materializado"
     },
     {
       "name": "oos_walk_forward",
-      "status": "PASS"
+      "status": "PASS",
+      "detail": "al menos un holdout estrictamente futuro"
     },
     {
       "name": "poll_source_coverage",
-      "status": "PASS"
+      "status": "PASS",
+      "detail": "cobertura de transporte/roles materializada; no se interpreta como validación de todos los sondeos"
+    },
+    {
+      "name": "official_workbook_dataset",
+      "status": "PASS",
+      "detail": "workbook primario, hashes de artefactos derivados y reconciliación votos-escaños 2023 exacta"
     },
     {
       "name": "external_audit",
-      "status": "FAIL"
+      "status": "FAIL",
+      "detail": "auditoría independiente materializada y declarada"
     }
-  ],
-  "note": "READY_FOR_EXTERNAL_AUDIT means all internal gates pass; independent external audit remains intentionally open and cannot be self-certified.",
-  "verification": {
-    "tests_run_id": 37768196127,
-    "tests_result": "PASS",
-    "tests_count": 288,
-    "seec_run_id": 37768196127,
-    "seec_result": "PASS",
-    "completion_gate_run_id": 37768641494,
-    "completion_gate_result": "PASS"
-  }
+  ]
 }
