@@ -125,7 +125,7 @@ def test_global_orchestrator_automatically_checks_for_stuck_canonical_runs():
 def test_auto_merge_gate_paginates_and_excludes_only_its_own_run():
     workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
     source = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
-    assert '"gh", "api", "--paginate", "--slurp"' in source
+    assert '"gh",\n            "api",\n            "--paginate",\n            "--slurp"' in source
     assert 'CURRENT_RUN_ID: ${{ github.run_id }}' in workflow
     assert 'str(run.get("id", "")) == current_run_id' in source
     assert 'run.get("head_sha") != sha' in source
