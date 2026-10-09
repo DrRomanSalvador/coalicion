@@ -39,8 +39,6 @@ def command_for(title: str):
         return [sys.executable, "scripts/verify_canonical_2023.py"], "CANONICAL_2023"
     if "validación histórica" in t or ("histórica" in t and "validar" in t):
         return [sys.executable, "scripts/validate_historical_data.py"], "HISTORICAL_DATA"
-    if "telegram" in t:
-        return [sys.executable, "scripts/verify_telegram_integration.py"], "TELEGRAM"
     if "estado certificación" in t or ("estado" in t and "colmena" in t):
         return [sys.executable, "scripts/validate_colmena_state.py"], "STATE"
     if "audit" in t or "auditoría" in t:
@@ -65,6 +63,8 @@ def command_for(title: str):
     for phrase, test_paths in targeted_tests:
         if phrase in t:
             return [sys.executable, "-m", "pytest", "-q", *test_paths], "TARGETED_PYTEST"
+    if "telegram" in t:
+        return [sys.executable, "scripts/verify_telegram_integration.py"], "TELEGRAM"
     if "batería completa de tests" in t:
         return [sys.executable, "-m", "pytest", "-q"], "FULL_PYTEST"
     return None, "AI_ANALYSIS"
