@@ -524,7 +524,16 @@ def _evidence_text() -> str:
 def _demo_prediction_text() -> str:
     data = _safe_json(DEMO_PREDICTION)
     if not data:
-        return "🧪 DEMO 2026\\n\\nNo hay predicción demo materializada."
+        return "🧪 DEMO 2026\n\nNo hay predicción demo materializada."
+    status = str(data.get("status", "")).upper()
+    if status not in {"PASS", "CERTIFIED"}:
+        blockers = data.get("blockers") if isinstance(data.get("blockers"), list) else []
+        return (
+            "🧪 DEMO 2026 · BLOQUEADA\n\n"
+            "No se muestran escaños: faltan entradas territoriales observadas y calibración electoral 2026.\n"
+            "No se infieren resultados provinciales a partir de sondeos nacionales.\n\n"
+            f"Limitaciones registradas: {len(blockers)}."
+        )
     seats = data.get("national_seats") if isinstance(data.get("national_seats"), dict) else {}
     rows = []
     for party, value in seats.items():
@@ -538,7 +547,7 @@ def _demo_prediction_text() -> str:
              f"Encuestas actuales de entrada: {data.get('current_survey_count', 'n/d')}", "",
              "ESCAÑOS MODELADOS"]
     lines.extend(f"• {p}: {s}" for p, s in rows[:20])
-    lines.extend(["", "Entrada territorial observada: 0", "Calibración 2026: NO CERTIFICADA",
+    lines.extend(["", "Entrada territorial observada: validada", "Calibración 2026: validada",
                   "Salida reproducible para demostración."])
     return "\n".join(lines)
 
