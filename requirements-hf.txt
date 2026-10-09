@@ -1,0 +1,2 @@
+# Optional dependency for the explicitly invoked Colmena HF agent; not installed in core CI.
+huggingface_hub>=0.30,<2
