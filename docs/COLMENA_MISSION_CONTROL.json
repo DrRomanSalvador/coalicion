@@ -2,7 +2,7 @@
   "schema": "COLMENA_MISSION_CONTROL_V1",
   "total": 179,
   "mode": "LOGICAL_SLOTS",
-  "note": "179 slots lógicos; M0001–M0005 están asignadas y M0006–M0010 ya tienen tareas concretas pendientes. M0011–M0179 requieren definición. La asignación no ejecuta agentes.",
+  "note": "179 slots lógicos; M0001 bloqueada, M0002–M0010 asignadas, M0011–M0179 pendientes. La asignación no ejecuta agentes.",
   "missions": [
     {
       "id": "M0001",
@@ -10,8 +10,8 @@
       "title": "Auditoría de la Reina y sus invariantes",
       "task": "Verifica en los archivos de contexto que el controlador mantiene exactamente 179 IDs únicos, estados válidos, lotes limitados a 1–5 y que nunca asigna misiones sin tarea. Señala defectos concretos con rutas y funciones. No afirmes haber ejecutado pruebas.",
       "status": "BLOCKED",
-      "assigned": true,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "assigned": false,
+      "note": "Bloqueada por indisponibilidad del proveedor HF; requiere reintento explícito tras verificar proveedor.",
       "context_paths": [
         "scripts/colmena_queen_hf.py",
         "tests/test_colmena_hf_agents.py"
