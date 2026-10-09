@@ -1,0 +1,48 @@
+name: Workflow resilience contract tests
+
+on:
+  push:
+    paths:
+      - ".github/workflows/**"
+      - "scripts/audit_workflow_resilience.py"
+      - "tests/test_workflow_resilience_audit.py"
+      - "tests/test_workflow_resilience_contract.py"
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - "scripts/audit_workflow_resilience.py"
+      - "tests/test_workflow_resilience_audit.py"
+      - "tests/test_workflow_resilience_contract.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: workflow-resilience-contracts-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: Compile audit tooling
+        run: python -m py_compile scripts/audit_workflow_resilience.py
+      - name: Test workflow contracts
+        run: python -m pytest -q tests/test_workflow_resilience_audit.py tests/test_workflow_resilience_contract.py
+      - name: Audit all workflow files
+        run: python scripts/audit_workflow_resilience.py
+      - name: Publish audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-resilience-audit
+          path: artifacts/verification/workflow_resilience_audit.json
+          if-no-files-found: warn
