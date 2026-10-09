@@ -37,17 +37,18 @@ REVIEW_PATTERNS = {
 def audit_self_healer_contract(source: str) -> list[str]:
     """Return missing fail-safe recovery contracts; pagination regressions are blocking."""
     checks = {
-        "query is paginated and scoped to current main SHA": r'gh api --paginate --slurp ["\\']repos/\\$REPOSITORY/actions/runs\\?head_sha=\\$main_sha&per_page=100["\\']',
-        "self-healer excludes its own workflow": r"select\\s*\\(\\.workflow_id != \\$self_id\\)",
-        "only completed first attempts on current main are eligible": r"select\\s*\\(\\.status == \\"completed\\" and \\.run_attempt == 1\\)",
-        "only current main branch/SHA is eligible": r"select\\s*\\(\\.head_branch == \\"main\\" and \\.head_sha == \\$sha\\)",
-        "each sweep caps rerun requests": r'\\[\\[ "\\$count" -lt 5 \\]\\]',
-        "cancelled runs use a full rerun": r'cancelled\\)\\s*gh run rerun "\\$run_id" --repo "\\$REPOSITORY"',
-        "failed runs retry failed jobs only": r'gh run rerun "\\$run_id" --failed --repo "\\$REPOSITORY"',
-        "manual path rejects active runs": r"queued\\|in_progress\\|waiting\\|requested\\|pending",
-        "manual path rejects unknown run states": r"unknown status",
+        "query is paginated and scoped to current main SHA": 'gh api --paginate --slurp "repos/$REPOSITORY/actions/runs?head_sha=$main_sha&per_page=100"',
+        "self-healer excludes its own workflow": "select(.workflow_id != $self_id)",
+        "only completed first attempts on current main are eligible": 'select(.status == "completed" and .run_attempt == 1)',
+        "only current main branch/SHA is eligible": 'select(.head_branch == "main" and .head_sha == $sha)',
+        "each sweep caps rerun requests": '[[ "$count" -lt 5 ]]',
+        "cancelled runs use a full rerun": 'gh run rerun "$run_id" --repo "$REPOSITORY"',
+        "failed runs retry failed jobs only": 'gh run rerun "$run_id" --failed --repo "$REPOSITORY"',
+        "manual path rejects active runs": "queued|in_progress|waiting|requested|pending",
+        "manual path rejects unknown run states": "unknown status",
     }
-    return [label for label, pattern in checks.items() if not re.search(pattern, source)]
+    return [label for label, literal in checks.items() if literal not in source]
+
 
 def main() -> int:
     if not WORKFLOWS.is_dir():
