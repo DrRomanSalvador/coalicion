@@ -83,7 +83,7 @@ def test_unmapped_mission_analysis_cannot_be_reported_as_pass():
 
     mission = {
         "id": "M0004-52-circunscripciones",
-        "title": "52 circunscripciones",
+        "title": "unmapped conceptual mission with no validator",
         "kind": "READ",
         "write_authorized": False,
         "scope": [],

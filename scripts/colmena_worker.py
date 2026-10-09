@@ -93,9 +93,14 @@ def command_for(title: str):
         (("estado/certificación", "bloqueos heredados", "pending heredados", "not_strictly_certified", "certificación honesta", "p1", "p2", "p3", "p5/p6", "p7", "p8"),
          ("tests/test_master_certification.py", "tests/test_master_certification_strict.py", "tests/test_colmena_state.py")),
     )
+    matched_paths = []
     for phrases, test_paths in mission_validators:
         if any(phrase in t for phrase in phrases):
-            return [sys.executable, "-m", "pytest", "-q", *test_paths], "MISSION_VALIDATOR"
+            matched_paths.extend(test_paths)
+    if matched_paths:
+        # A mission may cross several contracts; validate every matching domain.
+        deduplicated_paths = list(dict.fromkeys(matched_paths))
+        return [sys.executable, "-m", "pytest", "-q", *deduplicated_paths], "MISSION_VALIDATOR"
     return None, "AI_ANALYSIS"
 
 def load_approval(path, mission_id, ref):
