@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "ci_evidence/**"
+      - "!ci_evidence/poll_source_coverage.json"
       - "scripts/external_audit.py"
       - "src/**"
       - "tests/**"
