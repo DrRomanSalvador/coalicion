@@ -21,6 +21,27 @@ def save_evidence(path: Path, result: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
+def load_context(mission: dict[str, Any]) -> str:
+    paths = mission.get("context_paths", [])
+    if not isinstance(paths, list) or len(paths) > 4:
+        raise ValueError("context_paths debe ser una lista de hasta 4 rutas.")
+    chunks: list[str] = []
+    total_chars = 0
+    root = ROOT.resolve()
+    for raw_path in paths:
+        if not isinstance(raw_path, str) or not raw_path.strip():
+            raise ValueError("Cada context_path debe ser una ruta relativa no vacía.")
+        candidate = (root / raw_path).resolve()
+        if not candidate.is_relative_to(root) or not candidate.is_file():
+            raise ValueError(f"Ruta de contexto no permitida o inexistente: {raw_path}")
+        text = candidate.read_text(encoding="utf-8")
+        total_chars += len(text)
+        if len(text) > 12000 or total_chars > 24000:
+            raise ValueError("El contexto supera el límite de 24000 caracteres.")
+        chunks.append(f"### Archivo: {candidate.relative_to(root)}\n{text}")
+    return "\n\n".join(chunks)
+
+
 def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str = DEFAULT_MODEL) -> dict[str, Any]:
     agent_id, mission_id = str(mission.get("agent_id", "")).strip(), str(mission.get("id", "")).strip()
     task = str(mission.get("task", "")).strip()
@@ -50,15 +71,17 @@ def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str =
             raise RuntimeError("Falta Reina_token; no se invocará el proveedor.")
         from huggingface_hub import InferenceClient
         client = InferenceClient(model=model, token=token, timeout=90)
+        context = load_context(mission)
         response = client.chat_completion(messages=[
             {"role": "system", "content": (
                 "Eres un agente analítico de COALICIÓN. No afirmes haber cambiado archivos, ejecutado comandos, "
                 "consultado fuentes o pasado pruebas si no ocurrió. Distingue hechos, hipótesis y recomendaciones. "
-                "Responde en español, breve, con hallazgos, evidencia necesaria, riesgos y siguiente acción. "
-                "Tu salida requiere revisión humana; no puedes certificar PASS."
+                "Usa únicamente el contexto adjunto como evidencia del repositorio. Responde en español, breve, "
+                "con hallazgos concretos, rutas/funciones, riesgos y siguiente acción. Tu salida requiere revisión "
+                "humana; no puedes certificar PASS."
             )},
-            {"role": "user", "content": f"Agente lógico: {agent_id}\nMisión: {mission_id}\nTítulo: {mission.get('title', mission_id)}\nTarea:\n{task}\n\nEntrega un informe auditable y no inventes acceso al repositorio."}
-        ], max_tokens=500, temperature=0.2)
+            {"role": "user", "content": f"Agente lógico: {agent_id}\nMisión: {mission_id}\nTítulo: {mission.get('title', mission_id)}\nTarea:\n{task}\n\nContexto real del repositorio:\n{context or '(No se adjuntaron archivos de contexto.)'}\n\nEntrega un informe auditable y no afirmes haber ejecutado pruebas."}
+        ], max_tokens=700, temperature=0.2)
         content = response.choices[0].message.content
         if not isinstance(content, str) or not content.strip():
             raise RuntimeError("HF devolvió una respuesta vacía.")
