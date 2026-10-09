@@ -38,7 +38,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           INCLUDE_EXTERNAL_SIDE_EFFECTS: ${{ inputs.include_external_side_effects || false }}
-          STEP_SUMMARY: ${{ github.step_summary }}
         shell: bash
         run: |
           set -Eeuo pipefail
