@@ -1,6 +1,6 @@
 {
   "schema": "SEEC_TERRITORIAL_POSTERIOR_PREDICTIVE_V1",
-  "status": "PENDING",
+  "status": "PASS",
   "model": "independent_dirichlet_posterior_predictive_by_constituency",
   "prior": "Dirichlet(1,...,1)",
   "likelihood_evidence": "Ministerio del Interior official 2023J constituency vote counts",
@@ -13,16 +13,492 @@
   "rng_algorithm": "numpy.PCG64",
   "uncertainty_scope": "territorial vote composition; not a seat forecast",
   "external_audit": false,
-  "execution": {
-    "workflow": "Unlock verification",
-    "workflow_run_id": 37757439392,
-    "verification_commit": "e040b26ba577e47be45da25d0e217b6ce8bdcee4",
-    "artifact_id": 11540976595,
-    "artifact_sha256": "b7beaa6cd5ae0a0c723074126f9d4cf50053d0d85ed5e9e443019eab7351b98d",
-    "evidence_sha256": "bc89d7558ac3ceb81f36137d7e56c6d22a5f8a7a0d75a305f8de7202d5ae08e1",
-    "evidence_bytes": 17335
-  },
-  "fail_closed": true,
-  "reason": "Auxiliary territorial posterior-predictive evidence only. It does not satisfy the hierarchical PyMC SEEC production gate.",
-  "production_gate": false
+  "parties": {
+    "ADELANTE ANDALUCÍA - ADELANTE ANDALUCÍA": {
+      "observed_share": 0.014589004674640275,
+      "p10": 0.0003724656611646938,
+      "p50": 0.00037741159680552077,
+      "p90": 0.0003823564837524421
+    },
+    "AHORA CANARIAS-PARTIDO COMUNISTA DEL PUEBLO CANARIO - AHORA CANARIAS-PCPC": {
+      "observed_share": 0.003294474727659139,
+      "p10": 6.82588304163906e-05,
+      "p50": 7.04607062327686e-05,
+      "p90": 7.268701975273419e-05
+    },
+    "ALMERIENSES - REGIONALISTAS PRO ALMERÍA - ALM": {
+      "observed_share": 0.002741719943032455,
+      "p10": 3.6211998498055515e-05,
+      "p50": 3.7801645716359274e-05,
+      "p90": 3.9415528591989645e-05
+    },
+    "ARAGÓN EXISTE - COALICIÓN EXISTE - EXISTE": {
+      "observed_share": 0.026190957353503942,
+      "p10": 0.0003683553418127164,
+      "p50": 0.00037330524226907236,
+      "p90": 0.00037827992303699577
+    },
+    "ASTURIAS EXISTE-ESPAÑA VACIADA - ASTURIAS EXISTE EV": {
+      "observed_share": 0.003915709032698032,
+      "p10": 9.404831066721844e-05,
+      "p50": 9.660773004550063e-05,
+      "p90": 9.922365648497334e-05
+    },
+    "BIDEZKO MUNDURANTZ - PUM+J": {
+      "observed_share": 0.0010272503741597429,
+      "p10": 1.1620288843581739e-05,
+      "p50": 1.2511075974227024e-05,
+      "p90": 1.3447416224344255e-05
+    },
+    "BLOQUE EXTREMEÑO - BQEX": {
+      "observed_share": 0.018215914582092457,
+      "p10": 0.00023521104347483857,
+      "p50": 0.00023918606679547823,
+      "p90": 0.000243179482159621
+    },
+    "BLOQUE NACIONALISTA GALEGO - B.N.G.": {
+      "observed_share": 0.3650337351470126,
+      "p10": 0.006269722183371394,
+      "p50": 0.006289763703494759,
+      "p90": 0.006309183668309493
+    },
+    "CAMINANDO JUNTOS - CJ": {
+      "observed_share": 0.008577264266612813,
+      "p10": 0.0002277912095993483,
+      "p50": 0.00023163918238203117,
+      "p90": 0.00023555018749128043
+    },
+    "CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA - CUP-PR": {
+      "observed_share": 0.1360879531092471,
+      "p10": 0.004054719174307833,
+      "p50": 0.004070835664921129,
+      "p90": 0.004087476857585844
+    },
+    "COALICIÓN CANARIA - CCa": {
+      "observed_share": 0.23300188520979365,
+      "p10": 0.004736287609442024,
+      "p50": 0.004753052662356382,
+      "p90": 0.004770010898844152
+    },
+    "COALICIÓN DE CENTRO DEMOCRÁTICO - CCD": {
+      "observed_share": 0.0008263034531923397,
+      "p10": 7.625772678976091e-06,
+      "p50": 8.359191638681214e-06,
+      "p90": 9.107231898602493e-06
+    },
+    "COALICIÓN POR MELILLA - CpM": {
+      "observed_share": 0.047903749630941836,
+      "p10": 5.311881375516624e-05,
+      "p50": 5.4980696733209706e-05,
+      "p90": 5.690912062404783e-05
+    },
+    "COMPROMÍS - SUMAR: SUMEM PER GUANYAR - SUMAR - COMPROMÍS": {
+      "observed_share": 0.44471315320437155,
+      "p10": 0.01642014409161401,
+      "p50": 0.016450681180821713,
+      "p90": 0.016481903526165603
+    },
+    "ENTRE VEÏNS CATALUNYA - EVC": {
+      "observed_share": 0.0007263139430350604,
+      "p10": 1.2022926028717694e-05,
+      "p50": 1.2907462556125378e-05,
+      "p90": 1.38711914953739e-05
+    },
+    "ESCAÑOS EN BLANCO PARA DEJAR ESCAÑOS VACÍOS - ESCAÑOS EN BLANCO": {
+      "observed_share": 0.026965901498530464,
+      "p10": 0.000323504363639587,
+      "p50": 0.00032816245061816367,
+      "p90": 0.00033287318816784683
+    },
+    "ESCONS EN BLANC - ESCONS EN BLANC": {
+      "observed_share": 0.0025317843051293294,
+      "p10": 1.979752678107742e-05,
+      "p50": 2.095482333908085e-05,
+      "p90": 2.2179661575682213e-05
+    },
+    "ESPAÑA VACIADA - ESPAÑA VACIADA": {
+      "observed_share": 0.015054643187971305,
+      "p10": 0.0001280600958908827,
+      "p50": 0.0001310214599434165,
+      "p90": 0.00013395168281338132
+    },
+    "ESPAÑA VACIADA-PARTIDO CASTELLANO-TIERRA COMUNERA - EV-PCAS-TC": {
+      "observed_share": 0.005898823224623601,
+      "p10": 4.866629709839806e-05,
+      "p50": 5.047053855357203e-05,
+      "p90": 5.229880311006088e-05
+    },
+    "ESQUERRA REPUBLICANA DE CATALUNYA - ERC": {
+      "observed_share": 0.6128791712521253,
+      "p10": 0.018998189066040908,
+      "p50": 0.019031172471026793,
+      "p90": 0.01906438114264356
+    },
+    "ESTAT VALENCIÀ DEL BENESTAR - EVB": {
+      "observed_share": 0.001010971352773616,
+      "p10": 5.897523425003106e-05,
+      "p50": 6.0996372015312636e-05,
+      "p90": 6.301473624342962e-05
+    },
+    "EUSKAL HERRIA BILDU - EH Bildu": {
+      "observed_share": 0.8906060102622805,
+      "p10": 0.013658840739726353,
+      "p50": 0.013684663715464345,
+      "p90": 0.013710190404339647
+    },
+    "EUZKO ALDERDI JELTZALEA-PARTIDO NACIONALISTA VASCO - EAJ-PNV": {
+      "observed_share": 0.6645017584412449,
+      "p10": 0.011299918382361088,
+      "p50": 0.01132362352033012,
+      "p90": 0.011347097947316191
+    },
+    "FALANGE ESPAÑOLA DE LAS J.O.N.S. - FE de las JONS": {
+      "observed_share": 0.006841113562732741,
+      "p10": 0.00018973415667644734,
+      "p50": 0.00019339812131312036,
+      "p90": 0.0001970070679583903
+    },
+    "FEDERACIÓN DE LOS INDEPENDIENTES DE ARAGÓN - F.I.A.": {
+      "observed_share": 0.001845162831030774,
+      "p10": 2.155080149809165e-05,
+      "p50": 2.2761843073464374e-05,
+      "p90": 2.40346263381718e-05
+    },
+    "FRENTE OBRERO - FO": {
+      "observed_share": 0.08801576133834488,
+      "p10": 0.0018803072167969776,
+      "p50": 0.0018916116546114786,
+      "p90": 0.0019029204239496742
+    },
+    "FUERZA CÍVICA - FUERZA CÍVICA": {
+      "observed_share": 0.0003663703845296123,
+      "p10": 6.145116232970801e-06,
+      "p50": 6.804032443696429e-06,
+      "p90": 7.492840107864563e-06
+    },
+    "GEROA BAI - GBAI": {
+      "observed_share": 0.029319612690807604,
+      "p10": 0.0004026787667679044,
+      "p50": 0.00040791977320671694,
+      "p90": 0.00041301279516374006
+    },
+    "GRUPO INDEPENDIENTE PALENCIA TIERRA VIVA - GITV": {
+      "observed_share": 0.0038073838279811503,
+      "p10": 1.599374491268414e-05,
+      "p50": 1.703712663606154e-05,
+      "p90": 1.8138911117507475e-05
+    },
+    "JAÉN MERECE MÁS - JM+": {
+      "observed_share": 0.02264399263858626,
+      "p10": 0.00033604085528899963,
+      "p50": 0.00034067119996664705,
+      "p90": 0.00034545602356297824
+    },
+    "JUNTOS POR GRANADA - JxG": {
+      "observed_share": 0.0024419192121703007,
+      "p10": 5.001194826014661e-05,
+      "p50": 5.183352540006546e-05,
+      "p90": 5.372308799091935e-05
+    },
+    "JUNTS PER CATALUNYA - JUNTS - JxCAT - JUNTS": {
+      "observed_share": 0.589096823586961,
+      "p10": 0.016117253500537363,
+      "p50": 0.016148437304279818,
+      "p90": 0.016178880263223897
+    },
+    "LIBRES - LB": {
+      "observed_share": 0.0022651670192331435,
+      "p10": 1.1931724451522329e-05,
+      "p50": 1.2819704215631542e-05,
+      "p90": 1.3766901856840482e-05
+    },
+    "NUEVA CANARIAS - BLOQUE CANARISTA - NC-bc": {
+      "observed_share": 0.08709187088367416,
+      "p10": 0.001853043648623084,
+      "p50": 0.0018638222333054355,
+      "p90": 0.0018744767103203994
+    },
+    "PARTIDO ANIMALISTA CON EL MEDIO AMBIENTE - PACMA": {
+      "observed_share": 0.2529159909610478,
+      "p10": 0.005386937080199308,
+      "p50": 0.005406326940864391,
+      "p90": 0.005425145014415837
+    },
+    "PARTIDO ARAGONÉS - PAR": {
+      "observed_share": 0.020798744441365903,
+      "p10": 0.00016911006439222396,
+      "p50": 0.00017244811931790805,
+      "p90": 0.00017588484874842558
+    },
+    "PARTIDO AUTÓNOMOS - PARTIDO AUTÓNOMOS": {
+      "observed_share": 0.0016199557032859557,
+      "p10": 5.917305201277371e-05,
+      "p50": 6.116473648031987e-05,
+      "p90": 6.32215881780801e-05
+    },
+    "PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA - PCTE": {
+      "observed_share": 0.03107252253026477,
+      "p10": 0.0005424677911832493,
+      "p50": 0.0005484536791264872,
+      "p90": 0.0005546567113673147
+    },
+    "PARTIDO COMUNISTA DE LOS TRABAJADORES DE EUSKADI/EUSKADIKO LANGILEEN ALDERDI KOMUNISTA - PCTE/ELAK": {
+      "observed_share": 0.0006913746342921818,
+      "p10": 1.1806945151715534e-05,
+      "p50": 1.2690477358644873e-05,
+      "p90": 1.3634416115528475e-05
+    },
+    "PARTIDO COMUNISTA DOS TRABALLADORES DE GALIZA - PCTG": {
+      "observed_share": 0.0019853455220426555,
+      "p10": 2.9363823686332486e-05,
+      "p50": 3.078331061713261e-05,
+      "p90": 3.221098592257318e-05
+    },
+    "PARTIDO DOS SOCIALISTAS DE GALICIA-PSOE - PSdeG-PSOE": {
+      "observed_share": 1.2071334139137877,
+      "p10": 0.019848023517712518,
+      "p50": 0.019879457596029798,
+      "p90": 0.019910318220476623
+    },
+    "PARTIDO HUMANISTA - PH": {
+      "observed_share": 0.0008106795153689695,
+      "p10": 0.00011776425714267909,
+      "p50": 0.00012063218692463558,
+      "p90": 0.00012342400767266813
+    },
+    "PARTIDO POPULAR - PP": {
+      "observed_share": 18.009187701692657,
+      "p10": 0.31375518760259075,
+      "p50": 0.31386902429759017,
+      "p90": 0.3139799583628733
+    },
+    "PARTIDO POPULAR / PARTIT POPULAR - PP": {
+      "observed_share": 0.26874584528789547,
+      "p10": 0.015947461926687546,
+      "p50": 0.01597763924708335,
+      "p90": 0.016009421280508505
+    },
+    "PARTIDO REGIONALISTA DEL PAÍS LEONÉS - PREPAL": {
+      "observed_share": 0.005225266172851957,
+      "p10": 3.984595054461117e-05,
+      "p50": 4.147665949887574e-05,
+      "p90": 4.3123997152948517e-05
+    },
+    "PARTIDO SOCIALISTA DE EUSKADI-EUSKADIKO EZKERRA (PSOE) - PSE-EE (PSOE)": {
+      "observed_share": 0.771602209443015,
+      "p10": 0.011897290461673454,
+      "p50": 0.011921023758135897,
+      "p90": 0.011944804198774915
+    },
+    "PARTIDO SOCIALISTA DE ISLAS BALEARES-PSOE - PSIB-PSOE": {
+      "observed_share": 0.3044390423927345,
+      "p10": 0.006182539206324196,
+      "p50": 0.006199876914661415,
+      "p90": 0.006216590624670907
+    },
+    "PARTIDO SOCIALISTA DE NAVARRA-PSOE - PSN-PSOE": {
+      "observed_share": 0.276005003628811,
+      "p10": 0.0038083110744920943,
+      "p50": 0.003821571351207999,
+      "p90": 0.0038353323269513
+    },
+    "PARTIDO SOCIALISTA OBRERO ESPAÑOL - PSOE": {
+      "observed_share": 12.870772098028398,
+      "p10": 0.2275766298499947,
+      "p50": 0.22767955991066555,
+      "p90": 0.22778179446718558
+    },
+    "PARTIDO UNIONISTA ESTADO DE ESPAÑA - PUEDE": {
+      "observed_share": 0.0004551969445962708,
+      "p10": 1.2176090769718807e-05,
+      "p50": 1.3092940341273444e-05,
+      "p90": 1.4031840507739827e-05
+    },
+    "PARTIT ANIMALISTA AMB EL MEDI AMBIENT - PACMA": {
+      "observed_share": 0.03950629704946554,
+      "p10": 0.0014979070663261327,
+      "p50": 0.0015079453687890743,
+      "p90": 0.001517977474227044
+    },
+    "PARTIT COMUNISTA DELS TREBALLADORS DE CATALUNYA - PCTC": {
+      "observed_share": 0.004554618284852808,
+      "p10": 0.0001570466030578911,
+      "p50": 0.00016036744375179114,
+      "p90": 0.0001636621447070473
+    },
+    "PARTIT DELS SOCIALISTES DE CATALUNYA (PSC-PSOE) - PSC": {
+      "observed_share": 1.2820557397550003,
+      "p10": 0.049827325399784246,
+      "p50": 0.049873596011108384,
+      "p90": 0.04992049257386115
+    },
+    "PARTIT DEMÒCRATA EUROPEU CATALÀ-ESPAI CIU - PDeCAT-E-CiU": {
+      "observed_share": 0.03638122781272915,
+      "p10": 0.0013000675217520643,
+      "p50": 0.0013095022281291412,
+      "p90": 0.0013188685030429462
+    },
+    "PARTIT POPULAR / PARTIDO POPULAR - PP": {
+      "observed_share": 0.2378868457855544,
+      "p10": 0.00335203200272349,
+      "p50": 0.003366406738874033,
+      "p90": 0.003380167535291362
+    },
+    "POR HUELVA - XH": {
+      "observed_share": 0.007590587828329285,
+      "p10": 7.86629824819928e-05,
+      "p50": 8.093414724595021e-05,
+      "p90": 8.328565859192569e-05
+    },
+    "POR MI REGIÓN - POR MI REGIÓN": {
+      "observed_share": 0.0022860589447778095,
+      "p10": 6.926713179663213e-05,
+      "p50": 7.145692276175103e-05,
+      "p90": 7.361106588971985e-05
+    },
+    "POR UN MUNDO MAIS XUSTO - PUM+J": {
+      "observed_share": 0.0015328350916543848,
+      "p10": 1.3126600737460552e-05,
+      "p50": 1.4067300139829053e-05,
+      "p90": 1.5047686099205966e-05
+    },
+    "POR UN MUNDO MÁS JUSTO - PUM+J": {
+      "observed_share": 0.04540184442264784,
+      "p10": 0.0009229239455385174,
+      "p50": 0.000930705514190273,
+      "p90": 0.0009384524772374243
+    },
+    "POR ÁVILA - XAV": {
+      "observed_share": 0.07564423985861658,
+      "p10": 0.0002980494204962533,
+      "p50": 0.00030249737682454714,
+      "p90": 0.0003069536958794023
+    },
+    "RECORTES CERO - RECORTES CERO": {
+      "observed_share": 0.04239830744538538,
+      "p10": 0.0009503863745120618,
+      "p50": 0.0009584354762446328,
+      "p90": 0.0009664695033742887
+    },
+    "REFERÉNDUM SISTEMA DINERO - +RDS+": {
+      "observed_share": 0.00022214353703671293,
+      "p10": 8.105638705308072e-06,
+      "p50": 8.845926872497662e-06,
+      "p90": 9.64310755102095e-06
+    },
+    "SOMOS CÁCERES - Somos Cc": {
+      "observed_share": 0.004113099560073464,
+      "p10": 3.9773999522406065e-05,
+      "p50": 4.144081040201567e-05,
+      "p90": 4.312791419557733e-05
+    },
+    "SORIA ¡YA! - SY": {
+      "observed_share": 0.19208065921876238,
+      "p10": 0.0003927945046358465,
+      "p50": 0.00039750283541364927,
+      "p90": 0.0004022353425570626
+    },
+    "SUMAR - EN COMÚ PODEM - SUMAR - ECP": {
+      "observed_share": 0.45799858585414244,
+      "p10": 0.020287776570901875,
+      "p50": 0.020321613202624017,
+      "p90": 0.020355811180439495
+    },
+    "SUMAR - SUMAR": {
+      "observed_share": 2.3455655730918252,
+      "p10": 0.049920221798643805,
+      "p50": 0.04997459599538483,
+      "p90": 0.050029672491933824
+    },
+    "SUMAR ANDALUCÍA - SUMAR": {
+      "observed_share": 0.7876474486789303,
+      "p10": 0.019029051111514723,
+      "p50": 0.019062645346065225,
+      "p90": 0.019096598873030807
+    },
+    "SUMAR ARAGÓN - SUMAR ARAGÓN": {
+      "observed_share": 0.2520996291938511,
+      "p10": 0.0034051687308693894,
+      "p50": 0.0034192340151199246,
+      "p90": 0.0034334848744939205
+    },
+    "SUMAR CANARIAS - SUMAR": {
+      "observed_share": 0.2129221131900667,
+      "p10": 0.004395775450818742,
+      "p50": 0.004411815580917541,
+      "p90": 0.00442808605366844
+    },
+    "SUMAR GALICIA - SUMAR": {
+      "observed_share": 0.3627468941553672,
+      "p10": 0.007277365398247151,
+      "p50": 0.007298140153223281,
+      "p90": 0.0073192643435384935
+    },
+    "SUMAR MÉS - MÉS PER MALLORCA-MÉS PER MENORCA-SUMAR": {
+      "observed_share": 0.16745090016366612,
+      "p10": 0.003397095880886262,
+      "p50": 0.0034110025927639406,
+      "p90": 0.0034244450600419258
+    },
+    "TERCERA EDAD EN ACCIÓN - 3e": {
+      "observed_share": 0.003909372648127427,
+      "p10": 2.0680715880590452e-05,
+      "p50": 2.1850178380107515e-05,
+      "p90": 2.306644364834521e-05
+    },
+    "TERUEL EXISTE - COALICIÓN EXISTE - EXISTE": {
+      "observed_share": 0.15029866362925975,
+      "p10": 0.00045990119635090296,
+      "p50": 0.0004650257712490543,
+      "p90": 0.00047019642972730803
+    },
+    "UNIDAD CASTELLANA - Ud.Ca": {
+      "observed_share": 0.001475039026410526,
+      "p10": 1.9838470058029107e-05,
+      "p50": 2.101890499889659e-05,
+      "p90": 2.2213474217401725e-05
+    },
+    "UNIDOS POR LA SOLIDARIDAD INTERNACIONAL - UNIDOS SI": {
+      "observed_share": 0.0006934242550485671,
+      "p10": 1.1533068868359652e-05,
+      "p50": 1.2424891072195084e-05,
+      "p90": 1.338084607939466e-05
+    },
+    "UNION DEL PUEBLO NAVARRO - U.P.N.": {
+      "observed_share": 0.15396779504003494,
+      "p10": 0.0021218682407017613,
+      "p50": 0.0021329288939224253,
+      "p90": 0.002143820088173649
+    },
+    "UNIÓN DEL PUEBLO LEONÉS - U.P.L.": {
+      "observed_share": 0.08798969115830704,
+      "p10": 0.0009415059197212218,
+      "p50": 0.0009493252303989423,
+      "p90": 0.0009569813166649579
+    },
+    "VAMOS PALENCIA - VP": {
+      "observed_share": 0.01994195300065537,
+      "p10": 7.805006237523584e-05,
+      "p50": 8.029465712286731e-05,
+      "p90": 8.258469509266811e-05
+    },
+    "VOX - VOX": {
+      "observed_share": 6.613327527661694,
+      "p10": 0.12473640357346404,
+      "p50": 0.12481975837028583,
+      "p90": 0.12490354821213612
+    },
+    "VÍA BURGALESA - VB": {
+      "observed_share": 0.00883827060851543,
+      "p10": 7.232785229587246e-05,
+      "p50": 7.448203202806857e-05,
+      "p90": 7.677704386660917e-05
+    },
+    "ZAMORA SÍ - Zsi": {
+      "observed_share": 0.01798259308406838,
+      "p10": 7.5086256417991e-05,
+      "p50": 7.729289596977121e-05,
+      "p90": 7.959837391245576e-05
+    }
+  }
 }
