@@ -108,3 +108,12 @@ def test_self_healer_reports_exhausted_failures_even_when_retryable_candidates_e
     assert 'select(.status == "completed" and .run_attempt < 3)' in source
     assert '[[ "${#candidates[@]}" -eq 0 ]]' in source
     assert source.index("EXHAUSTED_RETRY_BUDGET") < source.index('if [[ "$failures" -gt 0 ]]; then')
+
+
+def test_global_orchestrator_automatically_checks_for_stuck_canonical_runs():
+    source = (WORKFLOWS / "global_repository_orchestrator.yml").read_text(encoding="utf-8")
+    assert "workflow_dispatch:" in source
+    assert 'cron: "*/15 * * * *"' in source
+    assert "Release only genuinely stuck canonical runs" in source
+    assert "10800" in source
+    assert "actions/runs?per_page=100&branch=main" in source
