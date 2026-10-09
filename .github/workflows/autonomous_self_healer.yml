@@ -26,7 +26,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: autonomous-workflow-self-healer
+  # A unique group per failed run prevents queued recovery events from cancelling one another.
+  group: autonomous-workflow-self-healer-${{ github.event.workflow_run.id || inputs.failed_run_id || github.run_id }}
   cancel-in-progress: false
 
 jobs:
