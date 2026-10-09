@@ -85,7 +85,7 @@ jobs:
                   check=False,
               )
               if result.returncode:
-                  detail = "\\n".join(
+                  detail = "\n".join(
                       part.strip()
                       for part in (result.stderr or "", result.stdout or "")
                       if part and part.strip()
