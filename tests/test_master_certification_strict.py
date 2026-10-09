@@ -34,3 +34,7 @@ def test_present_but_invalid_evidence_cannot_certify(tmp_path):
         g["name"] == "external_audit" and g["status"] == "FAIL"
         for g in out["gates"]
     )
+    assert any(
+        g["name"] == "official_workbook_dataset" and g["status"] == "FAIL"
+        for g in out["gates"]
+    )
