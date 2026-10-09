@@ -83,22 +83,39 @@ jobs:
 
           [[ "$target_id" =~ ^[0-9]+$ ]] || { echo "::error::Invalid target ID."; exit 1; }
 
-          if run_json="$(gh run view "$target_id" --repo "$REPOSITORY" --json databaseId,conclusion 2>/dev/null)"; then
-            run_id="$(jq -r '.databaseId // empty' <<<"$run_json")"
-            conclusion="$(jq -r '.conclusion // empty' <<<"$run_json")"
+          # Resolve runs/jobs through the REST API. Active runs have no conclusion yet.
+          run_id=""
+          run_json=""
+          if run_json="$(gh api "repos/$REPOSITORY/actions/runs/$target_id" 2>/dev/null)"; then
+            run_id="$(jq -r '.id // empty' <<<"$run_json")"
           else
             job_json="$(gh api "repos/$REPOSITORY/actions/jobs/$target_id" 2>/dev/null)" || {
               echo "::error::ID $target_id is neither a readable workflow run nor a job in $REPOSITORY."
               exit 1
             }
             run_id="$(jq -r '.run_id // empty' <<<"$job_json")"
-            [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "::error::Could not resolve job to workflow run."; exit 1; }
-            run_json="$(gh run view "$run_id" --repo "$REPOSITORY" --json databaseId,conclusion)" || {
+            [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "::error::Could not resolve job $target_id to a workflow run."; exit 1; }
+            run_json="$(gh api "repos/$REPOSITORY/actions/runs/$run_id")" || {
               echo "::error::Resolved workflow run $run_id cannot be read."
               exit 1
             }
-            conclusion="$(jq -r '.conclusion // empty' <<<"$run_json")"
           fi
+
+          [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "::error::Could not resolve a valid workflow run ID."; exit 1; }
+          status="$(jq -r '.status // empty' <<<"$run_json")"
+          conclusion="$(jq -r '.conclusion // empty' <<<"$run_json")"
+
+          case "$status" in
+            queued|in_progress|waiting|requested|pending)
+              echo "::error::Workflow run $run_id is still $status (conclusion=${conclusion:-not-set}); wait for it to finish before requesting a rerun."
+              exit 1
+              ;;
+            completed) ;;
+            *)
+              echo "::error::Workflow run $run_id has unknown status '${status:-not-set}'; refusing to rerun."
+              exit 1
+              ;;
+          esac
 
           case "$conclusion" in
             failure|cancelled|timed_out|startup_failure) ;;
@@ -108,6 +125,13 @@ jobs:
               ;;
           esac
 
-          echo "Validated failed workflow run: $run_id (conclusion=$conclusion)"
-          gh run rerun "$run_id" --failed --repo "$REPOSITORY"
-          echo "Requested rerun of failed jobs for run $run_id."
+          echo "Validated completed workflow run: $run_id (status=$status, conclusion=$conclusion)"
+          if [[ "$conclusion" == "cancelled" ]]; then
+            # Cancelled runs may have no failed jobs, so --failed is not applicable.
+            echo "Run was cancelled; requesting a full rerun."
+            gh run rerun "$run_id" --repo "$REPOSITORY"
+            echo "Requested full rerun of cancelled workflow run $run_id."
+          else
+            gh run rerun "$run_id" --failed --repo "$REPOSITORY"
+            echo "Requested rerun of failed jobs for run $run_id."
+          fi
