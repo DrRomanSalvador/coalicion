@@ -1,7 +1,7 @@
 {
   "schema": "COALICION_SITUATION_STATE_V1",
   "version": "1.0",
-  "as_of": "2026-10-09T15:42:23.257765+02:00",
+  "as_of": "2026-10-09T15:57:41.442301+02:00",
   "mission": {
     "schema": "COALICION_SITUATION_MISSION_V1",
     "fail_closed": true,
@@ -93,15 +93,15 @@
   },
   "source_health": {
     "configured": 16,
-    "primary": 7,
-    "healthy_primary": 7,
+    "primary": 6,
+    "healthy_primary": 6,
     "unhealthy_primary": [],
     "status": "PASS"
   },
   "evidence": {
     "observations_path": "artifacts/estimation/observations.json",
     "source_coverage_path": "ci_evidence/poll_source_coverage.json",
-    "input_hash": "6865fd5b28da4abe52d8b01636b70f9da8b5f01a83c3adfecb27c5d3fb7acfe3"
+    "input_hash": "45d6d0865a03aba1b9b2b13ac7de915b4c0dbba7d14928910d2325adff8a3b82"
   },
   "policy": {
     "fail_closed": true,
@@ -112,5 +112,5 @@
     "no_national_to_territorial_inference": true,
     "no_outcome_probability_claim": true
   },
-  "state_hash": "a6afbd612c6da0a7f60f5b5bafb66a407a6cefbe3dcf89afb6a3bd473b546d7d"
+  "state_hash": "892a181e1b2ab14594ed721d736e51d8a55aeb015880bbe46a80c7da329f08a7"
 }
