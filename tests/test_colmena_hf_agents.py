@@ -212,6 +212,56 @@ def test_agent_uses_exact_reina_token_name(tmp_path, monkeypatch):
     assert (tmp_path / "evidence" / "agent-001_M0001.json").is_file()
 
 
+
+def test_auto_provider_falls_back_only_for_unsupported_provider(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    control_path = tmp_path / "missions.json"
+    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", control_path)
+    mission = {"id": "M0001", "agent_id": "agent-001", "task": "Fallback",
+               "status": "ASSIGNED", "assigned": True, "context_paths": []}
+    control_path.write_text(json.dumps({"schema": "COLMENA_MISSION_CONTROL_V1",
+                                        "total": 179, "missions": [mission]}), encoding="utf-8")
+    attempted = []
+    class FakeClient:
+        def __init__(self, **kwargs):
+            self.provider = kwargs["provider"]
+            attempted.append(self.provider)
+        def chat_completion(self, **kwargs):
+            if self.provider == "deepinfra":
+                raise RuntimeError("model_not_supported")
+            return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content="Informe."))])
+    monkeypatch.setitem(sys.modules, "huggingface_hub", SimpleNamespace(InferenceClient=FakeClient))
+    monkeypatch.setenv("HF_PROVIDER_FALLBACKS", "deepinfra,featherless-ai")
+    result = colmena_agent_hf.run_agent(mission, hf_token="test-token", model="example/model", provider="auto")
+    assert attempted == ["deepinfra", "featherless-ai"]
+    assert result["status"] == "REVIEW_REQUIRED"
+    assert result["provider"] == "featherless-ai"
+
+
+def test_auto_provider_fallback_does_not_retry_auth_or_rate_limit_errors(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    control_path = tmp_path / "missions.json"
+    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", control_path)
+    mission = {"id": "M0001", "agent_id": "agent-001", "task": "No unsafe retries",
+               "status": "ASSIGNED", "assigned": True, "context_paths": []}
+    control_path.write_text(json.dumps({"schema": "COLMENA_MISSION_CONTROL_V1",
+                                        "total": 179, "missions": [mission]}), encoding="utf-8")
+    attempted = []
+    class FakeClient:
+        def __init__(self, **kwargs):
+            attempted.append(kwargs["provider"])
+        def chat_completion(self, **kwargs):
+            raise RuntimeError("401 Unauthorized")
+    monkeypatch.setitem(sys.modules, "huggingface_hub", SimpleNamespace(InferenceClient=FakeClient))
+    monkeypatch.setenv("HF_PROVIDER_FALLBACKS", "deepinfra,featherless-ai")
+    result = colmena_agent_hf.run_agent(mission, hf_token="test-token", model="example/model", provider="auto")
+    assert attempted == ["deepinfra"]
+    assert result["status"] == "BLOCKED"
+    assert "401 Unauthorized" in result["error"]
+
+
 def test_agent_refuses_unassigned_mission_before_provider_call(tmp_path, monkeypatch):
     monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
     monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", tmp_path / "missions.json")
