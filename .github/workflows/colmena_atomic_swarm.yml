@@ -235,7 +235,7 @@ jobs:
             "timestamp_europe_madrid": datetime.now(ZoneInfo("Europe/Madrid")).isoformat(),
             "secret_value_persisted": False,
           }
-          (root / "operational_state.json").write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+          (root / "operational_state.json").write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
           print(json.dumps({k: state[k] for k in ("status", "workflow_run_id", "workers_expected", "workers_completed", "inferences_validated", "evidences_validated", "queen_gate", "timestamp_europe_madrid")}, ensure_ascii=False))
           PY
       - uses: actions/upload-artifact@v4
