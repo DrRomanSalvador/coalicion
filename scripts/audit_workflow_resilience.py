@@ -121,7 +121,7 @@ def main() -> int:
             jobs.append({
                 "id": match.group(1),
                 "has_timeout": bool(re.search(r"(?m)^\s+timeout-minutes:\s*\d+\s*$", block)),
-                "has_job_permissions": bool(re.search(r"(?m)^\\s{4}permissions:\\s*(?:\\{[^}]*\\})?\\s*(?:#.*)?$", block)),
+                "has_job_permissions": bool(re.search(r"(?m)^ {4}permissions:", block)),
             })
 
         findings = []
