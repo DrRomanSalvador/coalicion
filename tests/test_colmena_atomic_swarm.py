@@ -32,3 +32,34 @@ def test_workflow_binds_reina_secret_without_printing_it():
     assert "print(\"${HF_TOKEN}" not in workflow
     assert "Persist operational state (fail-closed)" in workflow
     assert "timestamp_europe_madrid" in workflow
+
+
+def test_regression_missions_use_bounded_targeted_pytest_commands():
+    from scripts.colmena_worker import command_for
+
+    cases = {
+        "regresión motor electoral": "tests/test_electoral.py",
+        "regresión coaliciones": "tests/test_coalition.py",
+        "regresión incertidumbre": "tests/test_uncertainty.py",
+        "regresión bot": "tests/test_telegram_bot.py",
+        "regresión monitor": "tests/test_poll_monitor.py",
+        "regresión Telegram": "tests/test_telegram_integration.py",
+    }
+    for mission, expected_path in cases.items():
+        command, adapter = command_for(mission)
+        assert adapter == "TARGETED_PYTEST"
+        assert expected_path in command
+        assert command != [sys.executable, "-m", "pytest", "-q"]
+
+
+def test_exhaustive_test_mission_keeps_full_pytest_suite():
+    from scripts.colmena_worker import command_for
+
+    command, adapter = command_for("batería completa de tests")
+    assert adapter == "FULL_PYTEST"
+    assert command == [sys.executable, "-m", "pytest", "-q"]
+
+
+def test_queen_swarm_timeout_allows_bounded_execution_window():
+    workflow = (ROOT / ".github/workflows/colmena_atomic_swarm.yml").read_text(encoding="utf-8")
+    assert 'timeout-minutes: 350' in workflow
