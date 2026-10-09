@@ -10,7 +10,7 @@ on:
       model:
         description: "Modelo HF Inference compatible"
         required: false
-        default: "HuggingFaceH4/zephyr-7b-beta"
+        default: "Qwen/Qwen2.5-7B-Instruct"
         type: string
 
 permissions:
@@ -86,6 +86,7 @@ jobs:
         if: always() && steps.execute.outputs.evidence_path != ''
         env:
           EVIDENCE_PATH: ${{ steps.execute.outputs.evidence_path }}
+          MISSION_ID: ${{ inputs.mission_id }}
         shell: bash
         run: |
           set -euo pipefail
