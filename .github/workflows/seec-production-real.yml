@@ -10,6 +10,16 @@ on:
       - "artifacts/data/cis_recent_2024_2026.csv"
       - "requirements.txt"
       - ".github/workflows/seec-production-real.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/run_seec_production.py"
+      - "src/seec_bayesian.py"
+      - "src/reproducibility_contract.py"
+      - "artifacts/data/cis_historical_2004_2023.csv"
+      - "artifacts/data/cis_recent_2024_2026.csv"
+      - "requirements.txt"
+      - ".github/workflows/seec-production-real.yml"
   workflow_dispatch:
 permissions:
   contents: write
@@ -28,7 +38,7 @@ jobs:
           set -o pipefail
           python -m pip install --disable-pip-version-check --no-input "pymc==6.3.2" "arviz>=1.1.0,<2.0" 2>&1 | tee /tmp/seec_pip_install.log
       - name: Materialize installation failure evidence
-        if: failure()
+        if: failure() && github.event_name == 'push'
         continue-on-error: true
         run: |
           set -euo pipefail
@@ -62,7 +72,7 @@ jobs:
           set -o pipefail
           python scripts/run_seec_production.py --input artifacts/data/cis_historical_2004_2023.csv --draws 2500 --tune 3000 --chains 4 --seed "$COALICION_SEED" 2>&1 | tee /tmp/seec_run.log
       - name: Materialize SEEC execution failure evidence
-        if: failure()
+        if: failure() && github.event_name == 'push'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -107,7 +117,7 @@ jobs:
             /tmp/seec_run.log
           if-no-files-found: ignore
       - name: Materialize genuine SEEC evidence in main
-        if: success()
+        if: success() && github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
