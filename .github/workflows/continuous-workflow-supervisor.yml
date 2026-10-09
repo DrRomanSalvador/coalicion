@@ -41,7 +41,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           CURRENT_WORKFLOW: ${{ github.workflow }}
           LOOKBACK_HOURS: ${{ inputs.lookback_hours || 24 }}
-          RETRY_FAILED: ${{ inputs.retry_failed != false }}
+          RETRY_FAILED: ${{ github.event_name != 'workflow_dispatch' || inputs.retry_failed }}
         shell: bash
         run: |
           set -Eeuo pipefail
