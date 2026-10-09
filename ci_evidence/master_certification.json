@@ -2,12 +2,12 @@
   "schema": "MASTER_CERTIFICATION_V2",
   "status": "READY_FOR_EXTERNAL_AUDIT",
   "certification": "READY_FOR_EXTERNAL_AUDIT",
-  "tested_commit": "6b758c4b20159a5e78ccd511579baf6a6e999d5d",
+  "tested_commit": "7b21e7697f8aa5557c8b1e8775f2775abaa5244f",
   "tested_ref": "refs/heads/main",
   "evidence_sha256": {
     "ci_evidence/historico_manifest.json": "02dc5d8ed791cccd3aeae574b254ec31b0c560cb2dcf185f6de91355199a06fd",
     "ci_evidence/reconciliation.json": "e8fab0447eff63c5965d29d1a35583e7d9cc0a4a074289a29e182141ce7cc943",
-    "ci_evidence/seec_production.json": "be8f18dbe10e258034c9970c4857d569a5121a5e31f5dcca93d1b0b8cde4d8fa",
+    "ci_evidence/seec_production.json": "c33a467792c28383e739cd155aab7e3b6c29fa4c77bce5957942bc83d24bb743",
     "ci_evidence/mc_10000.json": "1f113cc126b83a4025eb03d4e144cb3e48d2637fc4d29e98d80529519f07a2e7",
     "ci_evidence/backtest_2023_baseline.json": "a9cab7c2f879c3aa42123d068d7575974ae6e3ef85b1bd85519ccca056cebed0",
     "ci_evidence/oos_calibration.json": "ad55a7182f9e766f36c52191020dcdbb4e9baa0ca3a634df71d603ff1aaf6dd5",
@@ -17,7 +17,7 @@
     "data/raw/Elecciones-Congreso.xlsx": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
     "data/official_interior_congreso_1977_2023.csv": "ece9dbb32e00af1456d7d422b35414e39f8b63ba01745c0b6a2d4b6e07da2bf3",
     "artifacts/data/election_2023_canonical.json": "dd42f9fe6ba3720488a352d2e2ce6459b16d8d5deb1e50882a6e3e99a1c2cfa1",
-    "artifacts/data/election_2023_canonical.json.sha256": "3e0c1666d6aa209df24c441116b5cef371ff7fef0ab811d4e2927901858f9bd8",
+    "artifacts/data/election_2023_canonical.json.sha256": "4bf5f28d5fed732e8ab4f6fdaf257d861c6b8008609e0bfde63e29560d4f9e67",
     "ci_evidence/external_audit.json": "545d44ae01f2562eb5a5331dd90a59eb4b4fc7d2d95840bed4350a0f4e810179"
   },
   "fail_closed": true,
