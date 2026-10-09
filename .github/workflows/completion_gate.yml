@@ -14,6 +14,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: completion-gate-main
+  cancel-in-progress: false
+
 jobs:
   completion-gate:
     runs-on: ubuntu-latest
