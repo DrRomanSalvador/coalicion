@@ -100,7 +100,7 @@ def run_agent(mission: dict[str, Any], hf_token: str | None = None, model: str =
                         "con hallazgos concretos, rutas/funciones, riesgos y siguiente acción. Tu salida requiere revisión "
                         "humana; no puedes certificar PASS."
                     )},
-                    {"role": "user", "content": f"Agente lógico: {agent_id}\\nMisión: {mission_id}\\nTítulo: {mission.get('title', mission_id)}\\nTarea:\\n{task}\\n\\nContexto real del repositorio:\\n{context or '(No se adjuntaron archivos de contexto.)'}\\n\\nEntrega un informe auditable y no afirmes haber ejecutado pruebas."}
+                    {"role": "user", "content": f"Agente lógico: {agent_id}\nMisión: {mission_id}\nTítulo: {mission.get('title', mission_id)}\nTarea:\n{task}\n\nContexto real del repositorio:\n{context or '(No se adjuntaron archivos de contexto.)'}\n\nEntrega un informe auditable y no afirmes haber ejecutado pruebas."}
                 ], max_tokens=700, temperature=0.2)
                 selected_provider = candidate_provider
                 break
