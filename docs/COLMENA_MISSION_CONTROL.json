@@ -9,65 +9,70 @@
       "agent_id": "agent-001",
       "title": "Auditoría de la Reina y sus invariantes",
       "task": "Verifica en los archivos de contexto que el controlador mantiene exactamente 179 IDs únicos, estados válidos, lotes limitados a 1–5 y que nunca asigna misiones sin tarea. Señala defectos concretos con rutas y funciones. No afirmes haber ejecutado pruebas.",
-      "status": "PENDING",
-      "assigned": false,
+      "status": "ASSIGNED",
+      "assigned": true,
       "note": "Definir una tarea concreta y verificable antes de ejecutar.",
       "context_paths": [
         "scripts/colmena_queen_hf.py",
         "tests/test_colmena_hf_agents.py"
-      ]
+      ],
+      "assigned_at": "2026-10-09T12:42:28.943444+00:00"
     },
     {
       "id": "M0002",
       "agent_id": "agent-002",
       "title": "Auditoría de ejecución HF y secreto",
       "task": "Audita el ejecutor para comprobar uso exacto de Reina_token, validación de misión asignada, coincidencia de agent_id/task, tratamiento de errores y ausencia de filtración del secreto. Identifica fallos concretos con evidencia del código.",
-      "status": "PENDING",
-      "assigned": false,
+      "status": "ASSIGNED",
+      "assigned": true,
       "note": "Definir una tarea concreta y verificable antes de ejecutar.",
       "context_paths": [
         "scripts/colmena_agent_hf.py",
         ".github/workflows/colmena_hf_agents.yml"
-      ]
+      ],
+      "assigned_at": "2026-10-09T12:42:28.943444+00:00"
     },
     {
       "id": "M0003",
       "agent_id": "agent-003",
       "title": "Auditoría de seguridad del workflow",
       "task": "Revisa el workflow manual: permisos mínimos, una sola misión por ejecución, validación de entrada, uso del secreto Reina_token y conservación de evidencias. Distingue controles existentes y carencias.",
-      "status": "PENDING",
-      "assigned": false,
+      "status": "ASSIGNED",
+      "assigned": true,
       "note": "Definir una tarea concreta y verificable antes de ejecutar.",
       "context_paths": [
         ".github/workflows/colmena_hf_agents.yml",
         "docs/COLMENA_HF_AGENTS.md"
-      ]
+      ],
+      "assigned_at": "2026-10-09T12:42:28.943444+00:00"
     },
     {
       "id": "M0004",
       "agent_id": "agent-004",
       "title": "Auditoría de reconciliación de resultados",
       "task": "Comprueba que la Reina solo registra REVIEW_REQUIRED/BLOCKED, rechaza PASS de un modelo, evidencia no asignada y agente incorrecto. Busca incoherencias entre implementación y pruebas.",
-      "status": "PENDING",
-      "assigned": false,
+      "status": "ASSIGNED",
+      "assigned": true,
       "note": "Definir una tarea concreta y verificable antes de ejecutar.",
       "context_paths": [
         "scripts/colmena_queen_hf.py",
         "tests/test_colmena_hf_agents.py"
-      ]
+      ],
+      "assigned_at": "2026-10-09T12:42:28.943444+00:00"
     },
     {
       "id": "M0005",
       "agent_id": "agent-005",
       "title": "Auditoría de estado e invocación",
       "task": "Compara el estado persistente y la guía de invocación con Mission Control (snapshot verificado: 179 misiones, 5 tareas definidas, 179 PENDING, 0 asignadas, 0 ejecutadas): modo formal, credencial Reina_token y bloqueo por aprobación. Enumera contradicciones verificables.",
-      "status": "PENDING",
-      "assigned": false,
+      "status": "ASSIGNED",
+      "assigned": true,
       "note": "Definir una tarea concreta y verificable antes de ejecutar.",
       "context_paths": [
         "docs/COLMENA_STATE.json",
         "docs/INVOCACION_COLMENA.md"
-      ]
+      ],
+      "assigned_at": "2026-10-09T12:42:28.943444+00:00"
     },
     {
       "id": "M0006",
@@ -1636,5 +1641,5 @@
       "note": "Definir una tarea concreta y verificable antes de ejecutar."
     }
   ],
-  "updated_at": "2026-10-09T12:20:00Z"
+  "updated_at": "2026-10-09T12:42:28.943444+00:00"
 }
