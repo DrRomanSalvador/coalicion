@@ -6,7 +6,7 @@ from pathlib import Path
 
 def main():
     ap=argparse.ArgumentParser(description="Backtest exhaustivo fail-closed")
-    ap.add_argument("--oos-input",default="data/encuestas_historicas_2004_2023.csv")
+    ap.add_argument("--oos-input",default="artifacts/data/cis_historical_2004_2023.csv")
     ap.add_argument("--output",default="artifacts/verification/full_backtest.json")
     a=ap.parse_args()
     commands=[

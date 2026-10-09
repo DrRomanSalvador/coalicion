@@ -147,34 +147,65 @@ def main() -> int:
                                       "--dates", "2004-03-14", "2023-07-23"])
     results.append(temporal)
 
-    oos_input = ROOT / "data" / "encuestas_historicas_2004_2023.csv"
-    if oos_input.exists() and oos_input.read_text(encoding="utf-8").strip().splitlines()[1:]:
-        results.append(run("full_oos_pipeline", [sys.executable, "scripts/run_full_oos.py",
-                                                  "--input", str(oos_input)]))
-        results.append(run("prediction_oos_integration",
-                           [sys.executable, "scripts/integrate_oos_in_prediction.py",
-                            "--input", str(oos_input)]))
+    # Use the canonical materialized CIS history; the old legacy CSV is empty
+    # and is not the source of truth for the reproducible OOS pipeline.
+    oos_input = ROOT / "artifacts" / "data" / "cis_historical_2004_2023.csv"
+    has_oos_rows = oos_input.is_file() and len(
+        oos_input.read_text(encoding="utf-8").splitlines()
+    ) > 1
+    calibration_evidence = ROOT / "ci_evidence" / "oos_calibration.json"
+    if has_oos_rows:
+        results.append(run(
+            "full_oos_pipeline",
+            [sys.executable, "scripts/complete_historical_calibration.py",
+             "--input", str(oos_input), "--output", str(calibration_evidence)],
+            timeout=1800,
+        ))
+        results.append(run(
+            "prediction_oos_integration",
+            [sys.executable, "scripts/integrate_oos_in_prediction.py",
+             "--input", str(oos_input),
+             "--output", "artifacts/verification/prediction_oos_integration.json"],
+            timeout=1800,
+        ))
+        try:
+            evidence = json.loads(calibration_evidence.read_text(encoding="utf-8"))
+            checks = evidence.get("leakage_checks", {})
+            calibration_ok = (
+                evidence.get("status") == "PASS"
+                and bool(evidence.get("coverage_gate", {}).get("passed"))
+                and bool(checks.get("field_end_before_election"))
+                and bool(checks.get("all_test_elections_use_only_prior_elections"))
+                and bool(checks.get("evaluated_election_excluded_from_training"))
+                and int(evidence.get("n_rows", 0)) > 0
+                and int(evidence.get("n_elections", 0)) >= 3
+            )
+            calibration_detail = (
+                "Validación probabilística basada en evidencia walk-forward canónica"
+                if calibration_ok else "La evidencia OOS canónica no supera los contratos de calibración"
+            )
+        except (OSError, json.JSONDecodeError, TypeError, ValueError):
+            calibration_ok = False
+            calibration_detail = "Falta evidencia OOS canónica válida"
+        results.append(Result(
+            "probabilistic_calibration",
+            "PASS" if calibration_ok else "FAIL",
+            detail=calibration_detail,
+        ))
+        results.append(run(
+            "full_backtest",
+            [sys.executable, "scripts/run_full_backtest.py",
+             "--oos-input", str(oos_input)],
+            timeout=1800,
+        ))
     else:
-        results.append(Result("full_oos_pipeline", "PENDING",
-                              detail="data/encuestas_historicas_2004_2023.csv existe pero no contiene observaciones"))
-        results.append(Result("prediction_oos_integration", "PENDING",
-                              detail="requiere observaciones históricas de encuestas"))
-
-    calibration_input = ROOT / "artifacts" / "verification" / "oos_calibration_input.csv"
-    if calibration_input.exists():
-        results.append(run("probabilistic_calibration",
-                           [sys.executable, "scripts/run_probabilistic_calibration.py",
-                            "--input", str(calibration_input)]))
-    else:
-        results.append(Result("probabilistic_calibration", "PENDING",
-                              detail="falta artifacts/verification/oos_calibration_input.csv"))
-
-    if oos_input.exists() and oos_input.read_text(encoding="utf-8").strip().splitlines()[1:]:
-        results.append(run("full_backtest", [sys.executable, "scripts/run_full_backtest.py",
-                                             "--oos-input", str(oos_input)], timeout=1800))
-    else:
-        results.append(Result("full_backtest", "PENDING",
-                              detail="requiere observaciones OOS en data/encuestas_historicas_2004_2023.csv"))
+        for name, detail in (
+            ("full_oos_pipeline", "Falta artifacts/data/cis_historical_2004_2023.csv con observaciones"),
+            ("prediction_oos_integration", "Requiere observaciones CIS históricas materializadas"),
+            ("probabilistic_calibration", "Requiere evidencia walk-forward canónica validada"),
+            ("full_backtest", "Requiere observaciones CIS históricas materializadas"),
+        ):
+            results.append(Result(name, "PENDING", detail=detail))
 
     # Phase 5: existing deterministic verification scripts.
     for rel in ("scripts/verify_seec_v4.py", "scripts/master_certification.py"):
