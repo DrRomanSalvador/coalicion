@@ -107,3 +107,19 @@ def test_cli_persists_valid_json_atomically(tmp_path: Path):
     printed = json.loads(proc.stdout)
     assert written == printed
     assert written["official_certification"] == "NOT_INDEPENDENTLY_CERTIFIED"
+
+
+
+def test_counterfactual_scenario_results_are_pinned():
+    result = run_demo()
+    scenarios = {item["id"]: item for item in result["scenarios"]}
+    left = scenarios["izquierda_sin_psoe"]["regions"]
+    broad = scenarios["bloque_amplio_con_psoe_psc"]["regions"]
+    assert left["Madrid"]["simulated_seats"]["Bloque izquierda sin PSOE"] == 6
+    assert left["Barcelona"]["simulated_seats"]["Bloque izquierda sin PSC"] == 11
+    assert left["Madrid"]["coalition_comparisons"][0]["delta"] == 0
+    assert left["Barcelona"]["coalition_comparisons"][0]["delta"] == 2
+    assert broad["Madrid"]["simulated_seats"]["Bloque amplio PSOE-SUMAR"] == 17
+    assert broad["Barcelona"]["simulated_seats"]["Bloque amplio PSC-ECP-ERC-CUP"] == 23
+    assert broad["Madrid"]["coalition_comparisons"][0]["delta"] == 1
+    assert broad["Barcelona"]["coalition_comparisons"][0]["delta"] == 1
