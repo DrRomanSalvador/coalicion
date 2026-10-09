@@ -121,7 +121,7 @@ def main() -> int:
             jobs.append({
                 "id": match.group(1),
                 "has_timeout": bool(re.search(r"(?m)^\s+timeout-minutes:\s*\d+\s*$", block)),
-                "has_job_permissions": bool(re.search(r"(?m)^\s{4}permissions:\s*$", block)),
+                "has_job_permissions": bool(re.search(r"(?m)^\\s{4}permissions:\\s*(?:\\{[^}]*\\})?\\s*(?:#.*)?$", block)),
             })
 
         findings = []
@@ -159,7 +159,9 @@ def main() -> int:
             "name": next((line.split(":", 1)[1].strip() for line in lines
                           if line.startswith("name:")), path.stem),
             "triggers": sorted(set(trigger_names)),
-            "workflow_permissions_declared": bool(re.search(r"(?m)^permissions:\s*$", source)),
+            "workflow_permissions_declared": workflow_permissions,
+            "job_permissions_declared": job_permissions,
+            "permissions_declared": workflow_permissions or job_permissions,
             "concurrency_declared": bool(re.search(r"(?m)^concurrency:\s*$", source)),
             "jobs": jobs,
             "jobs_without_timeout": [job["id"] for job in jobs if not job["has_timeout"]],
