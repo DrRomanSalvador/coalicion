@@ -109,7 +109,18 @@ jobs:
             python scripts/demo_e2e.py
 
             export COMMIT_SHA="$(git rev-parse HEAD)"
+            set +e
             python scripts/colmena_checkpoint.py
+            checkpoint_rc=$?
+            set -e
+            if [ "$checkpoint_rc" -eq 3 ]; then
+              echo "::notice::main changed during checkpoint validation; retrying against latest main."
+              sleep "$((attempt * 3))"
+              continue
+            fi
+            if [ "$checkpoint_rc" -ne 0 ]; then
+              exit "$checkpoint_rc"
+            fi
             git add docs/COLMENA_STATE.json
             git commit -m "chore(colmena): persist lightweight validation checkpoint"
 
