@@ -3,11 +3,11 @@
   "agent_id": "agent-001",
   "mission_id": "M0001",
   "status": "BLOCKED",
-  "provider": "huggingface",
-  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "provider": "auto",
+  "model": "Qwen/Qwen2.5-72B-Instruct",
   "task": "Verifica en los archivos de contexto que el controlador mantiene exactamente 179 IDs únicos, estados válidos, lotes limitados a 1–5 y que nunca asigna misiones sin tarea. Señala defectos concretos con rutas y funciones. No afirmes haber ejecutado pruebas.",
-  "executed_at": "2026-10-09T12:54:18.321674+00:00",
-  "error": "BadRequestError: (Request ID: Root=1-6ac8e3fa-037b545d14f340f14073ff71;26a80abf-33f5-4288-8a42-eb2fe12ebc2c)\n\nBad request:\n{'message': \"The requested model 'Qwen/Qwen2.5-7B-Instruct' is not supported by any provider you have enabled.\", 'type': 'invalid_request_error', 'param': 'model', 'code': 'model_not_supported'}",
-  "completed_at": "2026-10-09T12:54:18.844252+00:00",
+  "executed_at": "2026-10-09T13:13:35.040898+00:00",
+  "error": "HfHubHTTPError: Client error '402 Payment Required' for url 'https://router.huggingface.co/v1/chat/completions' (Request ID: Root=1-6ac8e87f-3040af590a9e2336583f7a10;595fdf3e-2533-41f1-a901-c84e4ea97cc8)\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/402\n\nYou have no remaining credits. Purchase pre-paid credits to continue using Inference Providers. Alternatively, subscribe to PRO to get monthly included credits.",
+  "completed_at": "2026-10-09T13:13:35.905499+00:00",
   "evidence_path": "artifacts/colmena/agents/agent-001_M0001.json"
 }

@@ -10,17 +10,29 @@
       "title": "Auditoría de la Reina y sus invariantes",
       "task": "Verifica en los archivos de contexto que el controlador mantiene exactamente 179 IDs únicos, estados válidos, lotes limitados a 1–5 y que nunca asigna misiones sin tarea. Señala defectos concretos con rutas y funciones. No afirmes haber ejecutado pruebas.",
       "status": "BLOCKED",
-      "assigned": true,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "assigned": false,
+      "note": "Reasignada explícitamente por la Reina tras bloqueo; intento anterior conservado en attempt_history.",
       "context_paths": [
         "scripts/colmena_queen_hf.py",
         "tests/test_colmena_hf_agents.py"
       ],
-      "assigned_at": "2026-10-09T12:42:28.943444+00:00",
-      "result_recorded_at": "2026-10-09T12:54:18.929758+00:00",
+      "assigned_at": "2026-10-09T13:13:34.994445+00:00",
+      "result_recorded_at": "2026-10-09T13:13:36.049658+00:00",
       "evidence_path": "artifacts/colmena/agents/agent-001_M0001.json",
-      "evidence_sha256": "a30a4a6e87f8c101e5f80175da3bacba9a322d314ba19855ea768ee79b30fb01",
-      "result_summary": "BadRequestError: (Request ID: Root=1-6ac8e3fa-037b545d14f340f14073ff71;26a80abf-33f5-4288-8a42-eb2fe12ebc2c)\n\nBad request:\n{'message': \"The requested model 'Qwen/Qwen2.5-7B-Instruct' is not supported by any provider you have enabled.\", 'type': 'invalid_request_error', 'param': 'model', 'code': 'model_not_supported'}"
+      "evidence_sha256": "5239eb79a63640b5fa5d7ac9cf04d1d8f1b3dba3d4cad6da835ddfa739321020",
+      "result_summary": "HfHubHTTPError: Client error '402 Payment Required' for url 'https://router.huggingface.co/v1/chat/completions' (Request ID: Root=1-6ac8e87f-3040af590a9e2336583f7a10;595fdf3e-2533-41f1-a901-c84e4ea97cc8)\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/402\n\nYou have no remaining credits. Purchase pre-paid credits to continue using Inference Providers. Alternatively, subscribe to PRO to get monthly included credits.",
+      "attempt_history": [
+        {
+          "status": "BLOCKED",
+          "assigned": true,
+          "assigned_at": "2026-10-09T12:42:28.943444+00:00",
+          "result_recorded_at": "2026-10-09T12:54:18.929758+00:00",
+          "evidence_path": "artifacts/colmena/agents/agent-001_M0001.json",
+          "evidence_sha256": "a30a4a6e87f8c101e5f80175da3bacba9a322d314ba19855ea768ee79b30fb01",
+          "result_summary": "BadRequestError: (Request ID: Root=1-6ac8e3fa-037b545d14f340f14073ff71;26a80abf-33f5-4288-8a42-eb2fe12ebc2c)\n\nBad request:\n{'message': \"The requested model 'Qwen/Qwen2.5-7B-Instruct' is not supported by any provider you have enabled.\", 'type': 'invalid_request_error', 'param': 'model', 'code': 'model_not_supported'}"
+        }
+      ],
+      "reassigned_at": "2026-10-09T13:13:34.994445+00:00"
     },
     {
       "id": "M0002",
@@ -1673,5 +1685,5 @@
       "note": "Definir una tarea concreta y verificable antes de ejecutar."
     }
   ],
-  "updated_at": "2026-10-09T12:54:39.767186+00:00"
+  "updated_at": "2026-10-09T13:13:36.049658+00:00"
 }
