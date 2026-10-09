@@ -128,5 +128,5 @@ jobs:
               print("Blocking merge: checks did not reach a stable all-green state within 110 minutes.", flush=True)
               sys.exit(1)
           PY
-          gh pr merge "$PR_NUMBER" --repo "$GH_REPO" --match-head-commit "$sha" --squash
+          gh pr merge "$PR_NUMBER" --repo "$GH_REPO" --match-head-commit "$HEAD_SHA" --squash
           echo "Merged only after all observed checks and the required validation workflows passed."
