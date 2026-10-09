@@ -138,7 +138,7 @@ jobs:
             -f "client_payload[commit]=${GITHUB_SHA}" \
             -f "client_payload[source]=poll_monitor"
       - name: Fail closed after persisting monitor state
-        if: always()
+        if: always() && steps.monitor.outcome != 'skipped'
         env:
           MONITOR_EXIT_CODE: ${{ steps.monitor.outputs.monitor_exit_code }}
           MONITOR_OUTCOME: ${{ steps.monitor.outcome }}
