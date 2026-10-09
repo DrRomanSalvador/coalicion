@@ -39,3 +39,36 @@ def test_custom_simulation_requires_two_members_and_valid_region():
         simulate_custom_coalition({"region":"Madrid","members":["A"]})
     with pytest.raises(ValueError, match="Circunscripción"):
         simulate_custom_coalition({"region":"Sevilla","members":["A","B"]})
+
+def test_http_health_and_custom_simulation_routes():
+    import json
+    from http.server import ThreadingHTTPServer
+    from threading import Thread
+    from urllib.request import Request, urlopen
+    from scripts.demo_decision_server import Handler
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    base = f"http://127.0.0.1:{server.server_port}"
+    try:
+        with urlopen(base + "/api/health", timeout=5) as response:
+            health = json.loads(response.read())
+        assert health["status"] == "OK"
+        with urlopen(base + "/api/candidates?region=Madrid", timeout=5) as response:
+            catalogue = json.loads(response.read())
+        assert catalogue["region"] == "Madrid"
+        payload = json.dumps({
+            "region": "Madrid",
+            "label": "Coalición HTTP",
+            "members": ["PARTIDO SOCIALISTA OBRERO ESPAÑOL - PSOE", "SUMAR - SUMAR"],
+        }).encode()
+        request = Request(base + "/api/simulate", data=payload, headers={"Content-Type":"application/json"}, method="POST")
+        with urlopen(request, timeout=5) as response:
+            result = json.loads(response.read())
+        assert result["status"] == "OK"
+        assert result["seat_delta"] == 1
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)

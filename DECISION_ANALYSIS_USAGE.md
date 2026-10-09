@@ -24,3 +24,6 @@ Abre `http://127.0.0.1:8000/web/demo/`. El servidor materializa el JSON auditabl
 - No modelan transferencias, participación futura ni conducta electoral: no son predicciones ni probabilidades.
 - Se rechazan circunscripciones, candidaturas o selecciones inválidas.
 - No constituye certificación oficial independiente.
+## Despliegue
+
+`render.yaml` declara el servicio `coalicion-decision-demo`, con health check `/api/health`. Al sincronizar este blueprint en Render, la plataforma asigna la URL pública. El código de configuración no demuestra por sí solo que el servicio ya esté desplegado; verifica el health check de la URL que Render muestre.
