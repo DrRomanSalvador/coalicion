@@ -53,3 +53,11 @@ jobs:
           done
           echo "Unable to persist SEEC evidence after 5 attempts."
           exit 1
+
+      - name: Publish SEEC evidence artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seec-manual-evidence
+          path: ci_evidence/seec_production.json
+          if-no-files-found: ignore
