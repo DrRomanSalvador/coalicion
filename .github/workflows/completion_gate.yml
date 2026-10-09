@@ -56,9 +56,43 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           cp ci_evidence/master_certification.json /tmp/master_certification.json
+          tested_sha="$(python -c 'import json; print(json.load(open("/tmp/master_certification.json", encoding="utf-8")).get("tested_commit") or "")')"
+          test -n "$tested_sha" || { echo "::error::Certification evidence has no tested_commit."; exit 1; }
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
+            current_sha="$(git rev-parse HEAD)"
+            if [ "$tested_sha" != "$current_sha" ]; then
+              changed_paths="$(git diff --name-only "$tested_sha" "$current_sha")"
+              unexpected_paths="$(printf '%s\n' "$changed_paths" | awk '$0 !~ /^(artifacts\/|ci_evidence\/|reports\/|docs\/COLMENA_STATE\.json$)/')"
+              if [ -n "$unexpected_paths" ]; then
+                echo "::notice::main code/data changed after certification tests; stale certification will not be persisted."
+                printf 'tested=%s current=%s\nchanged paths:\n%s\n' "$tested_sha" "$current_sha" "$unexpected_paths" >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+              fi
+            fi
+            set +e
+            python - /tmp/master_certification.json <<'PY'
+          import hashlib, json, sys
+          from pathlib import Path
+          payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          for path, expected in payload.get("evidence_sha256", {}).items():
+              p = Path(path)
+              actual = hashlib.sha256(p.read_bytes()).hexdigest() if p.is_file() else None
+              if actual != expected:
+                  print(f"STALE_CERTIFICATION_EVIDENCE:{path}:expected={expected}:actual={actual}")
+                  raise SystemExit(3)
+          PY
+            freshness_rc=$?
+            set -e
+            if [ "$freshness_rc" -eq 3 ]; then
+              echo "::notice::certification evidence inputs changed; stale certification will not be persisted."
+              echo "Tests passed for $tested_sha, but the referenced evidence changed on main; no certification snapshot was published." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            if [ "$freshness_rc" -ne 0 ]; then
+              exit "$freshness_rc"
+            fi
             mkdir -p ci_evidence
             cp /tmp/master_certification.json ci_evidence/master_certification.json
             git add ci_evidence/master_certification.json

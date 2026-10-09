@@ -53,7 +53,9 @@ jobs:
             exit 1
           fi
           echo "Asignación validada: $delta misión(es). No se ha invocado Hugging Face."
-      - name: Persistir asignación en la rama invocada
+      - name: Persistir asignación con reintentos seguros
+        env:
+          BATCH_SIZE: ${{ inputs.batch_size }}
         shell: bash
         run: |
           set -euo pipefail
@@ -61,6 +63,30 @@ jobs:
           git config user.name "coalicion-colmena[bot]"
           git config user.email "coalicion-colmena[bot]@users.noreply.github.com"
           git add docs/COLMENA_MISSION_CONTROL.json
-          git diff --cached --quiet && { echo "No hay asignaciones nuevas para persistir."; exit 0; }
+          if git diff --cached --quiet; then
+            echo "No hay asignaciones nuevas para persistir."
+            exit 0
+          fi
           git commit -m "Persist Queen-approved Colmena HF mission assignment"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          branch="${GITHUB_REF_NAME}"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin "$branch"
+            if git merge-base --is-ancestor HEAD "origin/$branch"; then
+              echo "Queen assignment commit is already present on $branch."
+              exit 0
+            fi
+            if git rebase "origin/$branch"; then
+              if git push origin "HEAD:$branch"; then
+                echo "Queen assignment persisted (attempt $attempt)."
+                exit 0
+              fi
+            else
+              git rebase --abort
+              echo "::error::Mission control changed concurrently; assignment was not overwritten. Re-run assignment from fresh mission control."
+              exit 1
+            fi
+            echo "Concurrent branch update; retrying assignment persistence ($attempt/5)." >&2
+            sleep "$((attempt * 3))"
+          done
+          echo "::error::Unable to persist Queen assignment after 5 retries."
+          exit 1

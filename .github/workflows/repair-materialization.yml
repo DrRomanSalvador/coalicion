@@ -51,8 +51,9 @@ jobs:
           print(f"PASS: canonical official CSV verified against manifest ({actual_sha})")
           PY
 
-      - name: Commit repaired materialization
+      - name: Commit repaired materialization with concurrency recovery
         if: github.ref == 'refs/heads/main'
+        shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -63,4 +64,23 @@ jobs:
             exit 0
           fi
           git commit -m "fix(data): restore exact canonical historical materialization"
-          git push origin HEAD:main
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            if git merge-base --is-ancestor HEAD origin/main; then
+              echo "Canonical materialization commit is already present on main."
+              exit 0
+            fi
+            if ! git rebase origin/main; then
+              git rebase --abort
+              echo "::error::Canonical CSV or manifest changed concurrently; refusing to overwrite newer official data."
+              exit 1
+            fi
+            if git push origin HEAD:main; then
+              echo "Canonical materialization persisted (attempt $attempt)."
+              exit 0
+            fi
+            echo "Concurrent main update; retrying canonical materialization ($attempt/5)." >&2
+            sleep "$((attempt * 3))"
+          done
+          echo "::error::Unable to persist canonical materialization after 5 retries."
+          exit 1
