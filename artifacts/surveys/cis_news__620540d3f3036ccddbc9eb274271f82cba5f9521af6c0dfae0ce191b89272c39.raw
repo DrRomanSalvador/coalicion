@@ -532,7 +532,7 @@ openSelectionModal: buildESMStub('frontend-js-components-web', 'openSelectionMod
 openSimpleInputModal: buildESMStub('frontend-js-components-web', 'openSimpleInputModal'),
 openToast: buildESMStub('frontend-js-components-web', 'openToast'),
 },
-authToken: '9dN0KYAd',
+authToken: 'bK3ZUhQF',
 currentURL: '\x2fes\x2fsala-prensa\x2fnoticias',
 currentURLEncoded: '\x252Fes\x252Fsala-prensa\x252Fnoticias',
 
@@ -2072,7 +2072,7 @@ Liferay.on(
 
 	
 
-	<div class="lfr-layout-structure-item-082c48ed-cf9c-a6ca-a657-53458ce184e4 lfr-layout-structure-item-container main-layout" data-layout-structure-item-id="082c48ed-cf9c-a6ca-a657-53458ce184e4"><div class="lfr-layout-structure-item-header lfr-layout-structure-item-850949ac-66eb-b8c5-b30b-4a5ef99f4dcf " data-layout-structure-item-id="850949ac-66eb-b8c5-b30b-4a5ef99f4dcf"><div id="fragment-60135c11-56fe-c347-09e7-f63cd6e5ebce" ><div class="cis">
+	<div class="lfr-layout-structure-item-082c48ed-cf9c-a6ca-a657-53458ce184e4 lfr-layout-structure-item-container main-layout" data-layout-structure-item-id="082c48ed-cf9c-a6ca-a657-53458ce184e4"><div class="lfr-layout-structure-item-header lfr-layout-structure-item-850949ac-66eb-b8c5-b30b-4a5ef99f4dcf " data-layout-structure-item-id="850949ac-66eb-b8c5-b30b-4a5ef99f4dcf"><div id="fragment-13f98ee5-3e93-dcee-1de3-304a21910897" ><div class="cis">
   <section class="jdt-header ">
     <div class="header-desktop">
       <div class="container container-fluid container-fluid-max-xl">
@@ -2375,7 +2375,7 @@ Liferay.on(
 
 
 	
-<div class="jdt-form" id="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02_nfpn">
+<div class="jdt-form" id="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02_psep">
     <div class="input-group">
         <div class="form-group">
             <div class="input-wrapper">
@@ -2422,7 +2422,7 @@ Liferay.on(
 		<script type="module">
 import {SearchBar as ComponentModule} from '/o/portal-search-web/__liferay__/search-bar.js';
 {
-Liferay.component('__UNNAMED_COMPONENT__f650ce40-96cf-2276-b71a-3705fd1930f6', new ComponentModule({"formId":"dkrk___fm","namespace":"_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg","initialKeywords":"","retainFacetSelections":false}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02'});
+Liferay.component('__UNNAMED_COMPONENT__cf76f053-e802-45fe-6bb8-ce8cddad36ab', new ComponentModule({"formId":"dkrk___fm","namespace":"_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg","initialKeywords":"","retainFacetSelections":false}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02'});
 }
 
 </script>
@@ -3747,7 +3747,7 @@ Liferay.component('__UNNAMED_COMPONENT__f650ce40-96cf-2276-b71a-3705fd1930f6', n
 
 
 	
-<div class="input-group" id="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02Mob_aajm">
+<div class="input-group" id="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02Mob_rtcp">
     <div class="jdt-form">
         <div class="form-group">
             <label class="sr-only" for="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02Mob__text">Buscar</label>
@@ -3795,7 +3795,7 @@ Liferay.component('__UNNAMED_COMPONENT__f650ce40-96cf-2276-b71a-3705fd1930f6', n
 		<script type="module">
 import {SearchBar as ComponentModule} from '/o/portal-search-web/__liferay__/search-bar.js';
 {
-Liferay.component('__UNNAMED_COMPONENT__41356e65-9638-4017-740d-3499011517e7', new ComponentModule({"formId":"wfkm___fm","namespace":"_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02Mob_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg","initialKeywords":"","retainFacetSelections":false}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02Mob'});
+Liferay.component('__UNNAMED_COMPONENT__4452b12e-af09-ac95-6057-92e2400467fa', new ComponentModule({"formId":"wfkm___fm","namespace":"_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02Mob_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg","initialKeywords":"","retainFacetSelections":false}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_header02Mob'});
 }
 
 </script>
@@ -5924,7 +5924,7 @@ body.modal-open .jdt-header .header-desktop {
   .cis .jdt-header .header-desktop .brand-logo {
     width: 208px;
   }
-}</style><script type="module" >const configuration = {"siteNavigationMenuId":"108099","displayStyle":"ddmTemplate_108092","siteNavigationMenuIdMobile":"108099","displayStyleMobile":"ddmTemplate_111337","variant":""}; const fragmentElement = document.querySelector('#fragment-60135c11-56fe-c347-09e7-f63cd6e5ebce'); const fragmentElementId = 'fragment-60135c11-56fe-c347-09e7-f63cd6e5ebce'; const fragmentEntryLinkNamespace = 'hcuv'; const fragmentNamespace = 'hcuv'; const layoutMode = 'view';function deactivateAllNavItems(){document.querySelectorAll(".navbar-nav .nav-item").forEach(function(e){e.classList.remove("active"),e.setAttribute("aria-expanded","false")})}function handleNavItemClick(e){e.classList.contains("active")?(e.classList.remove("active"),e.setAttribute("aria-expanded","false")):(deactivateAllNavItems(),e.classList.add("active"),e.setAttribute("aria-expanded","true"))}var dismissMenus=document.querySelectorAll(".jdt-header .dismiss-menu");dismissMenus.forEach(function(e){e.addEventListener("click",function(e){e.target.closest(".dropdown-holder")&&(deactivateAllNavItems(),document.querySelector(".m-listLogos").focus())}),e.addEventListener("keydown",function(t){"Space"!==t.code&&" "!==t.key||(t.preventDefault(),e.click())})});var searchForms=document.querySelectorAll(".search-form");function adjustHeightHeader(){var e=document.querySelector(".jdt-header"),t=document.querySelector(".header-desktop");e&&t&&(e.style.height="".concat(t.offsetHeight,"px"))}function adjustScrollbarWidth(){var e=globalThis.innerWidth-document.documentElement.clientWidth;document.documentElement.style.setProperty("--scrollbar-width","".concat(e,"px"))}searchForms.forEach(function(e){e.classList.add("active","show")}),document.getElementById("header_search_button")&&document.getElementById("header_search_button").addEventListener("click",function(){var e=this.parentNode.querySelector(".d-none");e&&e.classList.remove("d-none"),document.querySelector(".header-actions .search-form .form-control").focus(),this.classList.add("d-none")}),document.querySelector("#menu-mobile .btn-menu-mobile-close")&&document.querySelector("#menu-mobile .btn-menu-mobile-close").addEventListener("click",function(){document.getElementById("menu-mobile").classList.remove("show"),document.querySelectorAll(".m-menuButton").forEach(function(e){e.setAttribute("aria-expanded","false")})}),document.querySelector(".navbar-nav .nav-item")&&document.querySelectorAll(".navbar-nav .nav-item").forEach(function(e){e.onclick=function(e){var t=this.querySelector(".dropdown-holder");null!=t&&t.contains(e.target)||handleNavItemClick(this)}}),globalThis.isCloseMenuListenerAdded||(document.addEventListener("click",function(e){var t=document.querySelector(".navbar-nav"),n=document.querySelector(".dropdown-holder");t&&!t.contains(e.target)&&n&&!n.contains(e.target)&&deactivateAllNavItems()}),globalThis.isCloseMenuListenerAdded=!0),adjustHeightHeader(),globalThis.addEventListener("resize",adjustHeightHeader),adjustScrollbarWidth();;</script></div><div class="lfr-layout-structure-item-4e0310cf-707b-fbaf-d452-e2a1a2e26b52 lfr-layout-structure-item-container " data-layout-structure-item-id="4e0310cf-707b-fbaf-d452-e2a1a2e26b52"><div class="layout-content portlet-layout"id="main-content" role="main"><div class="lfr-layout-structure-item-banner lfr-layout-structure-item-ae50b44e-a1cb-8b25-300c-f9763c18d56a " data-layout-structure-item-id="ae50b44e-a1cb-8b25-300c-f9763c18d56a"><div id="fragment-7c3c1389-ea9e-1656-5aab-a6155f9be554" ><div class="jdt-banner hero normal" style="background-image: url(#);">
+}</style><script type="module" >const configuration = {"siteNavigationMenuId":"108099","displayStyle":"ddmTemplate_108092","siteNavigationMenuIdMobile":"108099","displayStyleMobile":"ddmTemplate_111337","variant":""}; const fragmentElement = document.querySelector('#fragment-13f98ee5-3e93-dcee-1de3-304a21910897'); const fragmentElementId = 'fragment-13f98ee5-3e93-dcee-1de3-304a21910897'; const fragmentEntryLinkNamespace = 'hcuv'; const fragmentNamespace = 'hcuv'; const layoutMode = 'view';function deactivateAllNavItems(){document.querySelectorAll(".navbar-nav .nav-item").forEach(function(e){e.classList.remove("active"),e.setAttribute("aria-expanded","false")})}function handleNavItemClick(e){e.classList.contains("active")?(e.classList.remove("active"),e.setAttribute("aria-expanded","false")):(deactivateAllNavItems(),e.classList.add("active"),e.setAttribute("aria-expanded","true"))}var dismissMenus=document.querySelectorAll(".jdt-header .dismiss-menu");dismissMenus.forEach(function(e){e.addEventListener("click",function(e){e.target.closest(".dropdown-holder")&&(deactivateAllNavItems(),document.querySelector(".m-listLogos").focus())}),e.addEventListener("keydown",function(t){"Space"!==t.code&&" "!==t.key||(t.preventDefault(),e.click())})});var searchForms=document.querySelectorAll(".search-form");function adjustHeightHeader(){var e=document.querySelector(".jdt-header"),t=document.querySelector(".header-desktop");e&&t&&(e.style.height="".concat(t.offsetHeight,"px"))}function adjustScrollbarWidth(){var e=globalThis.innerWidth-document.documentElement.clientWidth;document.documentElement.style.setProperty("--scrollbar-width","".concat(e,"px"))}searchForms.forEach(function(e){e.classList.add("active","show")}),document.getElementById("header_search_button")&&document.getElementById("header_search_button").addEventListener("click",function(){var e=this.parentNode.querySelector(".d-none");e&&e.classList.remove("d-none"),document.querySelector(".header-actions .search-form .form-control").focus(),this.classList.add("d-none")}),document.querySelector("#menu-mobile .btn-menu-mobile-close")&&document.querySelector("#menu-mobile .btn-menu-mobile-close").addEventListener("click",function(){document.getElementById("menu-mobile").classList.remove("show"),document.querySelectorAll(".m-menuButton").forEach(function(e){e.setAttribute("aria-expanded","false")})}),document.querySelector(".navbar-nav .nav-item")&&document.querySelectorAll(".navbar-nav .nav-item").forEach(function(e){e.onclick=function(e){var t=this.querySelector(".dropdown-holder");null!=t&&t.contains(e.target)||handleNavItemClick(this)}}),globalThis.isCloseMenuListenerAdded||(document.addEventListener("click",function(e){var t=document.querySelector(".navbar-nav"),n=document.querySelector(".dropdown-holder");t&&!t.contains(e.target)&&n&&!n.contains(e.target)&&deactivateAllNavItems()}),globalThis.isCloseMenuListenerAdded=!0),adjustHeightHeader(),globalThis.addEventListener("resize",adjustHeightHeader),adjustScrollbarWidth();;</script></div><div class="lfr-layout-structure-item-4e0310cf-707b-fbaf-d452-e2a1a2e26b52 lfr-layout-structure-item-container " data-layout-structure-item-id="4e0310cf-707b-fbaf-d452-e2a1a2e26b52"><div class="layout-content portlet-layout"id="main-content" role="main"><div class="lfr-layout-structure-item-banner lfr-layout-structure-item-ae50b44e-a1cb-8b25-300c-f9763c18d56a " data-layout-structure-item-id="ae50b44e-a1cb-8b25-300c-f9763c18d56a"><div id="fragment-e497a642-6fdc-deab-d798-5023ad5f2dd3" ><div class="jdt-banner hero normal" style="background-image: url(#);">
   <div class="container container-fluid container-fluid-max-xl">
     <div class="banner-content">
 
@@ -7897,7 +7897,7 @@ body.modal-open .cis .jdt-banner.hero.video::after {
 /* La intranet usa el mismo banner, pero sin camino de migas. */
 body[data-theme=cis-intranet] .jdt-banner .banner-content [id*=SiteNavigationBreadcrumbPortlet] {
   display: none !important;
-}</style><script type="module" >const configuration = {"hasVideo":false,"videoTriggerText":"Ver vídeo","videoUrl":"","showParagraph":true,"variant":"normal","videoModalTitle":"Vídeo","headingLevel":"h1"}; const fragmentElement = document.querySelector('#fragment-7c3c1389-ea9e-1656-5aab-a6155f9be554'); const fragmentElementId = 'fragment-7c3c1389-ea9e-1656-5aab-a6155f9be554'; const fragmentEntryLinkNamespace = 'szva'; const fragmentNamespace = 'szva'; const layoutMode = 'view';var pendingCallbacks=[],apiLoading=!1;function onYouTubeReady(e){var n;if(null!==(n=globalThis.YT)&&void 0!==n&&n.Player)e();else if(pendingCallbacks.push(e),!apiLoading){apiLoading=!0;var a=globalThis.onYouTubeIframeAPIReady;globalThis.onYouTubeIframeAPIReady=function(){a&&a(),pendingCallbacks.forEach(function(e){return e()}),pendingCallbacks.length=0};var o=document.createElement("script");o.src="https://www.youtube.com/iframe_api",o.crossOrigin="anonymous";var i=document.getElementsByTagName("script")[0];null!=i&&i.parentNode?i.parentNode.insertBefore(o,i):document.head.appendChild(o)}}function ensureEnableJsApi(e){var n=e.getAttribute("src")||"";if(!n.includes("enablejsapi=1")){var a=n.includes("?")?"&":"?";e.src="".concat(n).concat(a,"enablejsapi=1")}}function setupBannerVideo(e,n){if(e&&n){var a=globalThis.jQuery||globalThis.$;ensureEnableJsApi(n);var o=null,i=!1,l=!1;onYouTubeReady(function(){o=new globalThis.YT.Player(n,{events:{onReady:function(){var e;(i=!0,l)&&(null===(e=o)||void 0===e||e.playVideo(),l=!1)}}})});var r=function(){var e;i?null===(e=o)||void 0===e||e.playVideo():l=!0},d=function(){var e;(l=!1,i)&&(null===(e=o)||void 0===e||e.pauseVideo())};a?a(e).on("shown.bs.modal",r).on("hidden.bs.modal",d):(e.addEventListener("shown.bs.modal",r),e.addEventListener("hidden.bs.modal",d))}}document.querySelectorAll('.jdt-banner.video .modal[id^="bannerVideo_"]').forEach(function(e){var n=e.querySelector('iframe[src*="youtube.com"]');n&&setupBannerVideo(e,n)});;</script></div><div class="lfr-layout-structure-item-9f92a178-7a28-fac3-2ee3-45fa4e94fafa lfr-layout-structure-item-container  container-fluid container-fluid-max-xl" data-layout-structure-item-id="9f92a178-7a28-fac3-2ee3-45fa4e94fafa"><div class="lfr-layout-structure-item-utility-nav lfr-layout-structure-item-7f86bc85-921b-d8c3-cb1f-ee9d3890d9d8 " data-layout-structure-item-id="7f86bc85-921b-d8c3-cb1f-ee9d3890d9d8"><div id="fragment-c0a12b68-8434-dd89-e8f0-4a2ee685b118" > <div class="jdt-utility-nav d-print-none">
+}</style><script type="module" >const configuration = {"hasVideo":false,"videoTriggerText":"Ver vídeo","videoUrl":"","showParagraph":true,"variant":"normal","videoModalTitle":"Vídeo","headingLevel":"h1"}; const fragmentElement = document.querySelector('#fragment-e497a642-6fdc-deab-d798-5023ad5f2dd3'); const fragmentElementId = 'fragment-e497a642-6fdc-deab-d798-5023ad5f2dd3'; const fragmentEntryLinkNamespace = 'szva'; const fragmentNamespace = 'szva'; const layoutMode = 'view';var pendingCallbacks=[],apiLoading=!1;function onYouTubeReady(e){var n;if(null!==(n=globalThis.YT)&&void 0!==n&&n.Player)e();else if(pendingCallbacks.push(e),!apiLoading){apiLoading=!0;var a=globalThis.onYouTubeIframeAPIReady;globalThis.onYouTubeIframeAPIReady=function(){a&&a(),pendingCallbacks.forEach(function(e){return e()}),pendingCallbacks.length=0};var o=document.createElement("script");o.src="https://www.youtube.com/iframe_api",o.crossOrigin="anonymous";var i=document.getElementsByTagName("script")[0];null!=i&&i.parentNode?i.parentNode.insertBefore(o,i):document.head.appendChild(o)}}function ensureEnableJsApi(e){var n=e.getAttribute("src")||"";if(!n.includes("enablejsapi=1")){var a=n.includes("?")?"&":"?";e.src="".concat(n).concat(a,"enablejsapi=1")}}function setupBannerVideo(e,n){if(e&&n){var a=globalThis.jQuery||globalThis.$;ensureEnableJsApi(n);var o=null,i=!1,l=!1;onYouTubeReady(function(){o=new globalThis.YT.Player(n,{events:{onReady:function(){var e;(i=!0,l)&&(null===(e=o)||void 0===e||e.playVideo(),l=!1)}}})});var r=function(){var e;i?null===(e=o)||void 0===e||e.playVideo():l=!0},d=function(){var e;(l=!1,i)&&(null===(e=o)||void 0===e||e.pauseVideo())};a?a(e).on("shown.bs.modal",r).on("hidden.bs.modal",d):(e.addEventListener("shown.bs.modal",r),e.addEventListener("hidden.bs.modal",d))}}document.querySelectorAll('.jdt-banner.video .modal[id^="bannerVideo_"]').forEach(function(e){var n=e.querySelector('iframe[src*="youtube.com"]');n&&setupBannerVideo(e,n)});;</script></div><div class="lfr-layout-structure-item-9f92a178-7a28-fac3-2ee3-45fa4e94fafa lfr-layout-structure-item-container  container-fluid container-fluid-max-xl" data-layout-structure-item-id="9f92a178-7a28-fac3-2ee3-45fa4e94fafa"><div class="lfr-layout-structure-item-utility-nav lfr-layout-structure-item-7f86bc85-921b-d8c3-cb1f-ee9d3890d9d8 " data-layout-structure-item-id="7f86bc85-921b-d8c3-cb1f-ee9d3890d9d8"><div id="fragment-bdb176cf-9a82-c56d-5647-533996bce7f7" > <div class="jdt-utility-nav d-print-none">
 
   
 
@@ -8329,7 +8329,7 @@ body[data-theme=cis-intranet] .jdt-banner .banner-content [id*=SiteNavigationBre
 
 .docs-story .jdt-spacer-1, .docs-story .jdt-spacer-2, .docs-story .jdt-spacer-3, .docs-story .jdt-spacer-4, .docs-story .jdt-spacer-5, .docs-story .jdt-spacer-6, .docs-story .jdt-spacer-7, .docs-story .jdt-spacer-8, .docs-story .jdt-spacer-9, .docs-story .jdt-spacer-10, .docs-story .jdt-spacer-11 {
   background-color: #333333;
-}</style></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-search-bar-portlet-searchbarportlet lfr-layout-structure-item-40ff0060-6cea-110f-fc3a-c83e8151daeb " data-layout-structure-item-id="40ff0060-6cea-110f-fc3a-c83e8151daeb"><div id="fragment-d4e910a8-9e40-d709-723d-5e4ff169815f" >
+}</style></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-search-bar-portlet-searchbarportlet lfr-layout-structure-item-40ff0060-6cea-110f-fc3a-c83e8151daeb " data-layout-structure-item-id="40ff0060-6cea-110f-fc3a-c83e8151daeb"><div id="fragment-d7d882e3-e490-3f80-acfa-4c7506948549" >
 
 
 
@@ -8608,7 +8608,7 @@ body[data-theme=cis-intranet] .jdt-banner .banner-content [id*=SiteNavigationBre
 
 	
 <div class="row">
-    <div class="col-12 jdt-form jdt-search" id="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_dgbt_uayt">
+    <div class="col-12 jdt-form jdt-search" id="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_dgbt_mrox">
         <div class="search-item text-search">
             <div class="form-group">
                 <label for="_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_dgbt__text">
@@ -8674,14 +8674,14 @@ Texto a buscar                    <i class="icon-info-circle icon-size-2" aria-h
 <script>
     //document.getElementById("_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_dgbt__text").focus();
 
-    document.getElementById('_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_dgbt_uayt').closest('form').addEventListener("submit", function (event) {
+    document.getElementById('_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_dgbt_mrox').closest('form').addEventListener("submit", function (event) {
         event.preventDefault();
         const btn = event.submitter || this.querySelector('.jdt-button');
         send(btn);
     });
 
     function send(buttonEl) {
-        const form = document.getElementById('_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_dgbt_uayt').closest('form');
+        const form = document.getElementById('_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_dgbt_mrox').closest('form');
         //encodeURIComponent()
         form.querySelector('input[name="start"]').value = "1";
         form.querySelector('input[name="from"]').value = "[" + convertirFechaFormatoCompleto(form.querySelector('input[name="fromDate"]').value) + " now]";
@@ -8723,7 +8723,7 @@ Texto a buscar                    <i class="icon-info-circle icon-size-2" aria-h
     }
 
     function clearForm() {
-        const form = document.getElementById('_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_dgbt_uayt').closest('form');
+        const form = document.getElementById('_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_dgbt_mrox').closest('form');
 
         form.querySelectorAll('input, select, textarea').forEach(element => {
             switch (element.type) {
@@ -8846,7 +8846,7 @@ Texto a buscar                    <i class="icon-info-circle icon-size-2" aria-h
 
 
 
-</div></div><div class="lfr-layout-structure-item-spacer lfr-layout-structure-item-28682539-e0d1-610c-c4fe-933edcbabf88 " data-layout-structure-item-id="28682539-e0d1-610c-c4fe-933edcbabf88"><div id="fragment-b0c5df67-331d-bb08-bf64-29f22b08f0f7" > <div class="spacing-6"></div></div></div><div class="lfr-layout-structure-item-content-list lfr-layout-structure-item-f61a488c-dd9d-7df4-50f9-12ac2e235a44 " data-layout-structure-item-id="f61a488c-dd9d-7df4-50f9-12ac2e235a44"><div id="fragment-bce37ded-b098-9a77-e2b7-951b1f97f5ce" > <div class="jdt-contentlist">
+</div></div><div class="lfr-layout-structure-item-spacer lfr-layout-structure-item-28682539-e0d1-610c-c4fe-933edcbabf88 " data-layout-structure-item-id="28682539-e0d1-610c-c4fe-933edcbabf88"><div id="fragment-b0c5df67-331d-bb08-bf64-29f22b08f0f7" > <div class="spacing-6"></div></div></div><div class="lfr-layout-structure-item-content-list lfr-layout-structure-item-f61a488c-dd9d-7df4-50f9-12ac2e235a44 " data-layout-structure-item-id="f61a488c-dd9d-7df4-50f9-12ac2e235a44"><div id="fragment-db006b2d-faf1-6797-f1d9-e04bb9a9fe65" > <div class="jdt-contentlist">
   <div class="jdt-contentlist__header d-flex justify-content-between">
           <div class="jdt-spacer-9 d-block d-md-none"></div>
         <button type="button" class="jdt-button btn btn-secondary btn-md" id="filtrar-btn" onclick="window.updateChevronVisibility?.();window.equalizeTitleHeightByRow?.();">
@@ -8854,7 +8854,7 @@ Filtrar          <i class="icon-sliders-h"></i>
         </button>
       <div class="jdt-spacer-9 d-block d-md-none"></div>
       <div class="float-right">
-        <div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-sort-portlet-sortportlet lfr-layout-structure-item-2c2bba1c-5103-dade-dabb-e0dd5715ef9b " data-layout-structure-item-id="2c2bba1c-5103-dade-dabb-e0dd5715ef9b"><div id="fragment-77c54e8a-14f9-adc9-fa44-9972873792ac">
+        <div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-sort-portlet-sortportlet lfr-layout-structure-item-2c2bba1c-5103-dade-dabb-e0dd5715ef9b " data-layout-structure-item-id="2c2bba1c-5103-dade-dabb-e0dd5715ef9b"><div id="fragment-cc81c021-ad7b-b8f1-2e93-10e1da3507e1">
 
 
 
@@ -9224,7 +9224,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 			
 			
 				
-					<input class="field form-control" id="_com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_lqzm_formDate" name="_com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_lqzm_formDate" type="hidden" value="1791553914123">
+					<input class="field form-control" id="_com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_lqzm_formDate" name="_com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_lqzm_formDate" type="hidden" value="1791553871400">
 				
 			
 		
@@ -9722,7 +9722,7 @@ Filtrar          <i class="icon-sliders-h"></i>
       </div>
 
         <aside class="jdt-contentlist__aside">
-          <div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-category-facet-portlet-categoryfacetportlet lfr-layout-structure-item-1be7ae37-c166-4d2f-f128-f1f1aaa4575e " data-layout-structure-item-id="1be7ae37-c166-4d2f-f128-f1f1aaa4575e"><div id="fragment-746b82f2-9a36-9a46-7033-d2fc378c8068"><link href="https://www.cis.es/o/portal-search-web/css/main.(ewQ02j$q6kw).css" rel="stylesheet" type="text/css">
+          <div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-category-facet-portlet-categoryfacetportlet lfr-layout-structure-item-1be7ae37-c166-4d2f-f128-f1f1aaa4575e " data-layout-structure-item-id="1be7ae37-c166-4d2f-f128-f1f1aaa4575e"><div id="fragment-04eaef9c-d31e-d380-5b9d-07d627a1227f"><link href="https://www.cis.es/o/portal-search-web/css/main.(ewQ02j$q6kw).css" rel="stylesheet" type="text/css">
 
 
 
@@ -10091,7 +10091,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 			
 			
 				
-					<input class="field form-control" id="_com_liferay_portal_search_web_category_facet_portlet_CategoryFacetPortlet_INSTANCE_tonr_formDate" name="_com_liferay_portal_search_web_category_facet_portlet_CategoryFacetPortlet_INSTANCE_tonr_formDate" type="hidden" value="1791553914124">
+					<input class="field form-control" id="_com_liferay_portal_search_web_category_facet_portlet_CategoryFacetPortlet_INSTANCE_tonr_formDate" name="_com_liferay_portal_search_web_category_facet_portlet_CategoryFacetPortlet_INSTANCE_tonr_formDate" type="hidden" value="1791553871402">
 				
 			
 		
@@ -10581,7 +10581,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-e43285d2-8f95-345f-cadb-7277bba8d3d4 " data-layout-structure-item-id="e43285d2-8f95-345f-cadb-7277bba8d3d4"><div id="fragment-d3f2ea54-a180-7503-5b8d-00c333fd25ba">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-custom-facet-portlet-customfacetportlet lfr-layout-structure-item-e43285d2-8f95-345f-cadb-7277bba8d3d4 " data-layout-structure-item-id="e43285d2-8f95-345f-cadb-7277bba8d3d4"><div id="fragment-a6ae6a81-7ff0-fabc-625f-931fd6d77dc7">
 
 
 
@@ -10949,7 +10949,7 @@ Filtrar          <i class="icon-sliders-h"></i>
 			
 			
 				
-					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_fxpy_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_fxpy_formDate" type="hidden" value="1791553914126">
+					<input class="field form-control" id="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_fxpy_formDate" name="_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_fxpy_formDate" type="hidden" value="1791553871403">
 				
 			
 		
@@ -11429,7 +11429,7 @@ Filtrar          <i class="icon-sliders-h"></i>
     </div>
 
     <div class="jdt-contentlist__list">
-      <div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-search-results-portlet-searchresultsportlet lfr-layout-structure-item-24b45a86-6344-1da8-973c-c90254d86f0c " data-layout-structure-item-id="24b45a86-6344-1da8-973c-c90254d86f0c"><div id="fragment-7192b23f-6666-f6fa-d68b-7448702a876f">
+      <div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-search-results-portlet-searchresultsportlet lfr-layout-structure-item-24b45a86-6344-1da8-973c-c90254d86f0c " data-layout-structure-item-id="24b45a86-6344-1da8-973c-c90254d86f0c"><div id="fragment-ca038d38-e8ad-bf99-e2d5-612a9bc4e085">
 
 
 
@@ -13610,7 +13610,7 @@ El 54,8% considera que el papa León XIV es “un referente ético y moral para 
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-search-options-portlet-searchoptionsportlet lfr-layout-structure-item-c67a2873-e052-9fce-2bcd-0465ef345c9e " data-layout-structure-item-id="c67a2873-e052-9fce-2bcd-0465ef345c9e"><div id="fragment-1f6684dd-a773-2f3d-f5a3-4ae62b067640">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-search-options-portlet-searchoptionsportlet lfr-layout-structure-item-c67a2873-e052-9fce-2bcd-0465ef345c9e " data-layout-structure-item-id="c67a2873-e052-9fce-2bcd-0465ef345c9e"><div id="fragment-f9fd886a-ab4e-5c90-f0f3-a894e8772bf3">
 
 
 
@@ -13644,7 +13644,7 @@ El 54,8% considera que el papa León XIV es “un referente ético y moral para 
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-370a26a4-ce2e-1099-3ab6-d259028c7a3b " data-layout-structure-item-id="370a26a4-ce2e-1099-3ab6-d259028c7a3b"><div id="fragment-8894bb68-c68e-c07f-51e9-8d3eacbcf29b">
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-370a26a4-ce2e-1099-3ab6-d259028c7a3b " data-layout-structure-item-id="370a26a4-ce2e-1099-3ab6-d259028c7a3b"><div id="fragment-a86a9773-b5cb-ec0d-ce51-5c32c024ee42">
 
 
 
@@ -14003,7 +14003,7 @@ El 54,8% considera que el papa León XIV es “un referente ético y moral para 
   .cis .jdt-contentlist .jdt-ordering {
     margin-top: 8px;
   }
-}</style><script type="module" >const configuration = {"showActions":true,"showFilter":true}; const fragmentElement = document.querySelector('#fragment-bce37ded-b098-9a77-e2b7-951b1f97f5ce'); const fragmentElementId = 'fragment-bce37ded-b098-9a77-e2b7-951b1f97f5ce'; const fragmentEntryLinkNamespace = 'rexc'; const fragmentNamespace = 'rexc'; const layoutMode = 'view';var btn=document.getElementById("filtrar-btn"),closeBtn=document.getElementById("close-btn"),wrapper=document.querySelector(".jdt-contentlist__listwrap"),isMobile=globalThis.matchMedia("(max-width: 992px)").matches;function equalizeTitleHeightByRow(){var t=document.querySelector(".jdt-contentlist__list");if(t){var e=Array.from(t.querySelectorAll(".jdt-card.vertical"));if(0!==e.length){var i=Array.from(t.querySelectorAll(".card-content__title"));if(0!==i.length){i.forEach(function(t){return t.style.height="auto"});for(var o=e[0].offsetWidth,l=t.offsetWidth,n=Math.floor(l/o),r=function(){var t=i.slice(a,a+n),e=0;t.forEach(function(t){e=Math.max(e,t.offsetHeight)}),t.forEach(function(t){t.style.height="".concat(e,"px")})},a=0;a<i.length;a+=n)r()}}}}wrapper&&(btn&&btn.addEventListener("click",function(){isMobile?(wrapper.classList.toggle("filter-modal-active"),setTimeout(function(){document.body.style.overflow="hidden"},0)):(wrapper.classList.toggle("filter-active"),setTimeout(function(){btn.classList.toggle("active"),equalizeTitleHeightByRow()},500))}),closeBtn&&closeBtn.addEventListener("click",function(){wrapper.classList.remove("filter-modal-active"),document.body.style.overflow=""})),equalizeTitleHeightByRow(),globalThis.addEventListener("resize",equalizeTitleHeightByRow);;</script></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-db651dcc-7fd6-2062-c3d2-299c0860daeb " data-layout-structure-item-id="db651dcc-7fd6-2062-c3d2-299c0860daeb"><div id="fragment-1ea91b44-b98f-16e4-6ac3-845f8ec6f248" >
+}</style><script type="module" >const configuration = {"showActions":true,"showFilter":true}; const fragmentElement = document.querySelector('#fragment-db006b2d-faf1-6797-f1d9-e04bb9a9fe65'); const fragmentElementId = 'fragment-db006b2d-faf1-6797-f1d9-e04bb9a9fe65'; const fragmentEntryLinkNamespace = 'rexc'; const fragmentNamespace = 'rexc'; const layoutMode = 'view';var btn=document.getElementById("filtrar-btn"),closeBtn=document.getElementById("close-btn"),wrapper=document.querySelector(".jdt-contentlist__listwrap"),isMobile=globalThis.matchMedia("(max-width: 992px)").matches;function equalizeTitleHeightByRow(){var t=document.querySelector(".jdt-contentlist__list");if(t){var e=Array.from(t.querySelectorAll(".jdt-card.vertical"));if(0!==e.length){var i=Array.from(t.querySelectorAll(".card-content__title"));if(0!==i.length){i.forEach(function(t){return t.style.height="auto"});for(var o=e[0].offsetWidth,l=t.offsetWidth,n=Math.floor(l/o),r=function(){var t=i.slice(a,a+n),e=0;t.forEach(function(t){e=Math.max(e,t.offsetHeight)}),t.forEach(function(t){t.style.height="".concat(e,"px")})},a=0;a<i.length;a+=n)r()}}}}wrapper&&(btn&&btn.addEventListener("click",function(){isMobile?(wrapper.classList.toggle("filter-modal-active"),setTimeout(function(){document.body.style.overflow="hidden"},0)):(wrapper.classList.toggle("filter-active"),setTimeout(function(){btn.classList.toggle("active"),equalizeTitleHeightByRow()},500))}),closeBtn&&closeBtn.addEventListener("click",function(){wrapper.classList.remove("filter-modal-active"),document.body.style.overflow=""})),equalizeTitleHeightByRow(),globalThis.addEventListener("resize",equalizeTitleHeightByRow);;</script></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-db651dcc-7fd6-2062-c3d2-299c0860daeb " data-layout-structure-item-id="db651dcc-7fd6-2062-c3d2-299c0860daeb"><div id="fragment-5fc91fce-4bae-f8c4-e2d2-9f2689b4681e" >
 
 
 
@@ -14037,7 +14037,7 @@ El 54,8% considera que el papa León XIV es “un referente ético y moral para 
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-325e75b1-c719-a0d4-cf82-d596acee1be5 " data-layout-structure-item-id="325e75b1-c719-a0d4-cf82-d596acee1be5"><div id="fragment-15b4430b-aaf7-64eb-3afd-f04834df58bf" >
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-325e75b1-c719-a0d4-cf82-d596acee1be5 " data-layout-structure-item-id="325e75b1-c719-a0d4-cf82-d596acee1be5"><div id="fragment-c7a1e898-5d92-deae-f428-90715287dd34" >
 
 
 
@@ -14071,7 +14071,7 @@ El 54,8% considera que el papa León XIV es “un referente ético y moral para 
 
 
 
-</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-fbc3f3ba-b7aa-d2f1-90de-828e0746b733 " data-layout-structure-item-id="fbc3f3ba-b7aa-d2f1-90de-828e0746b733"><div id="fragment-e4d214a1-99f8-fa9c-7b42-1136a13df44a" >
+</div></div><div class="lfr-layout-structure-item-com-liferay-portal-search-web-internal-custom-filter-portlet-customfilterportlet lfr-layout-structure-item-fbc3f3ba-b7aa-d2f1-90de-828e0746b733 " data-layout-structure-item-id="fbc3f3ba-b7aa-d2f1-90de-828e0746b733"><div id="fragment-4cf2bbe1-59b3-1545-b381-6b320fa99c7d" >
 
 
 
@@ -14105,7 +14105,7 @@ El 54,8% considera que el papa León XIV es “un referente ético y moral para 
 
 
 
-</div></div><div class="lfr-layout-structure-item-spacer lfr-layout-structure-item-18878030-4499-c1fb-b4c3-a8c47765e0f0 " data-layout-structure-item-id="18878030-4499-c1fb-b4c3-a8c47765e0f0"><div id="fragment-44501782-58fe-f2ef-7113-6d4cbe0ac0da" > <div class="jdt-spacer-11"></div></div></div></div></div><div class="lfr-layout-structure-item-spacer lfr-layout-structure-item-01d719b7-fd33-72f0-e3ee-bd904b3fa33a " data-layout-structure-item-id="01d719b7-fd33-72f0-e3ee-bd904b3fa33a"><div id="fragment-30412c73-09a6-c98d-2b43-b3401a3f4763" > <div class="jdt-spacer-11"></div></div></div></div><div class="lfr-layout-structure-item-footer lfr-layout-structure-item-9805cd8b-75ce-0045-455b-c41be12cd899 " data-layout-structure-item-id="9805cd8b-75ce-0045-455b-c41be12cd899"><div id="fragment-f4d85d56-809b-0147-e6d3-5c609780ee23" > <footer class="jdt-footer ">
+</div></div><div class="lfr-layout-structure-item-spacer lfr-layout-structure-item-18878030-4499-c1fb-b4c3-a8c47765e0f0 " data-layout-structure-item-id="18878030-4499-c1fb-b4c3-a8c47765e0f0"><div id="fragment-44501782-58fe-f2ef-7113-6d4cbe0ac0da" > <div class="jdt-spacer-11"></div></div></div></div></div><div class="lfr-layout-structure-item-spacer lfr-layout-structure-item-01d719b7-fd33-72f0-e3ee-bd904b3fa33a " data-layout-structure-item-id="01d719b7-fd33-72f0-e3ee-bd904b3fa33a"><div id="fragment-30412c73-09a6-c98d-2b43-b3401a3f4763" > <div class="jdt-spacer-11"></div></div></div></div><div class="lfr-layout-structure-item-footer lfr-layout-structure-item-9805cd8b-75ce-0045-455b-c41be12cd899 " data-layout-structure-item-id="9805cd8b-75ce-0045-455b-c41be12cd899"><div id="fragment-f29d6447-bfd8-f28f-5f19-1986c48e8192" > <footer class="jdt-footer ">
   <div class="container container-fluid container-fluid-max-xl">
     <div class="d-flex justify-content-start align-items-center footer-panel flex-column flex-lg-row">
       <img src="https://www.cis.es/documents/20117/1544631/logo-cis-blanco.svg/ef0aef9a-53bc-dc5e-ff55-306153f415fe?version=1.0&amp;t=1759827159554" width="222" height="69" alt="Logo CIS" class="footer-logo" data-lfr-editable-id="logo-cis" data-lfr-editable-type="image" data-fileentryid="13556713">
@@ -14511,7 +14511,7 @@ El 54,8% considera que el papa León XIV es “un referente ético y moral para 
 }
 .cis .jdt-footer .list-inline-item:not(:last-child) {
   border-right: 1px solid #ffffff; /* Color y estilo del separador */
-}</style></div></div><div class="lfr-layout-structure-item-cookie-consent lfr-layout-structure-item-94d28284-98d4-30e6-76f0-7b7aac17cc80 " data-layout-structure-item-id="94d28284-98d4-30e6-76f0-7b7aac17cc80"><div id="fragment-6918c46c-8073-7ed8-1736-f2a0eac9c488" > <div class="jdt-cookie-consent d-print-none" id="cookies">
+}</style></div></div><div class="lfr-layout-structure-item-cookie-consent lfr-layout-structure-item-94d28284-98d4-30e6-76f0-7b7aac17cc80 " data-layout-structure-item-id="94d28284-98d4-30e6-76f0-7b7aac17cc80"><div id="fragment-d32eb56e-c0b0-4dc4-27a1-18dd5c9b0ee1" > <div class="jdt-cookie-consent d-print-none" id="cookies">
   <div class="cookie-warning hide">
     <div class="holder">
       <p class="title4 font-weight-bold">
@@ -15047,7 +15047,7 @@ Aceptar todas                  </button>
   display: block !important;
   opacity: 1 !important;
   transform: translateX(-50%) translateY(0%) !important;
-}</style><script type="module" >const configuration = {}; const fragmentElement = document.querySelector('#fragment-6918c46c-8073-7ed8-1736-f2a0eac9c488'); const fragmentElementId = 'fragment-6918c46c-8073-7ed8-1736-f2a0eac9c488'; const fragmentEntryLinkNamespace = 'dpvo'; const fragmentNamespace = 'dpvo'; const layoutMode = 'view';function hideBannerWithDelay(e){e.classList.remove("show"),e.classList.add("hide"),setTimeout(function(){e.style.display="none"},1e3)}var COOKIE_NAME="COOKIE_CONSENT",cookieBanner=document.querySelector(".cookie-warning"),analyticsOption=document.getElementById("option1");function setCookieConsent(e){document.cookie=COOKIE_NAME+"="+e+"; expires="+new Date(Date.now()+31536e6).toUTCString()+"; path=/",initCookies()}function getCookie(e){var n=document.cookie.split("; ").find(function(n){return n.startsWith(e+"=")});return n?n.split("=")[1]:void 0}function initCookies(){var e,n=getCookie(COOKIE_NAME);if(void 0!==n){var o="1"===n.charAt(0),t="1"===n.charAt(1);analyticsOption&&(analyticsOption.checked=o);var i=t?"granted":"denied";null===(e=globalThis.gtag)||void 0===e||e.call(globalThis,"consent","update",{ad_storage:i,ad_user_data:i,ad_personalization:i,analytics_storage:o?"granted":"denied"})}else setTimeout(function(){cookieBanner.classList.remove("hide"),cookieBanner.classList.add("show")},500)}document.cookie&&!document.cookie.includes(COOKIE_NAME)&&setTimeout(function(){cookieBanner.classList.remove("hide"),cookieBanner.classList.add("show")},500),document.querySelectorAll("#accept_cookies, #allow_all_cookies").forEach(function(e){e.addEventListener("click",function(){setCookieConsent("11"),hideBannerWithDelay(cookieBanner)})}),document.querySelectorAll("#cookies_preferences").forEach(function(e){e.addEventListener("click",function(){setCookieConsent(null!=analyticsOption&&analyticsOption.checked?"10":"00"),hideBannerWithDelay(cookieBanner)})}),document.querySelectorAll("#reject_cookies").forEach(function(e){e.addEventListener("click",function(){setCookieConsent("00"),hideBannerWithDelay(cookieBanner)})}),document.querySelectorAll('a[data-toggle="self-navigation"]').forEach(function(e){e.addEventListener("click",function(){this.closest(".parent-navigation").classList.add("d-none"),document.getElementById(this.dataset.target).classList.remove("d-none")})}),initCookies();;</script></div>
+}</style><script type="module" >const configuration = {}; const fragmentElement = document.querySelector('#fragment-d32eb56e-c0b0-4dc4-27a1-18dd5c9b0ee1'); const fragmentElementId = 'fragment-d32eb56e-c0b0-4dc4-27a1-18dd5c9b0ee1'; const fragmentEntryLinkNamespace = 'dpvo'; const fragmentNamespace = 'dpvo'; const layoutMode = 'view';function hideBannerWithDelay(e){e.classList.remove("show"),e.classList.add("hide"),setTimeout(function(){e.style.display="none"},1e3)}var COOKIE_NAME="COOKIE_CONSENT",cookieBanner=document.querySelector(".cookie-warning"),analyticsOption=document.getElementById("option1");function setCookieConsent(e){document.cookie=COOKIE_NAME+"="+e+"; expires="+new Date(Date.now()+31536e6).toUTCString()+"; path=/",initCookies()}function getCookie(e){var n=document.cookie.split("; ").find(function(n){return n.startsWith(e+"=")});return n?n.split("=")[1]:void 0}function initCookies(){var e,n=getCookie(COOKIE_NAME);if(void 0!==n){var o="1"===n.charAt(0),t="1"===n.charAt(1);analyticsOption&&(analyticsOption.checked=o);var i=t?"granted":"denied";null===(e=globalThis.gtag)||void 0===e||e.call(globalThis,"consent","update",{ad_storage:i,ad_user_data:i,ad_personalization:i,analytics_storage:o?"granted":"denied"})}else setTimeout(function(){cookieBanner.classList.remove("hide"),cookieBanner.classList.add("show")},500)}document.cookie&&!document.cookie.includes(COOKIE_NAME)&&setTimeout(function(){cookieBanner.classList.remove("hide"),cookieBanner.classList.add("show")},500),document.querySelectorAll("#accept_cookies, #allow_all_cookies").forEach(function(e){e.addEventListener("click",function(){setCookieConsent("11"),hideBannerWithDelay(cookieBanner)})}),document.querySelectorAll("#cookies_preferences").forEach(function(e){e.addEventListener("click",function(){setCookieConsent(null!=analyticsOption&&analyticsOption.checked?"10":"00"),hideBannerWithDelay(cookieBanner)})}),document.querySelectorAll("#reject_cookies").forEach(function(e){e.addEventListener("click",function(){setCookieConsent("00"),hideBannerWithDelay(cookieBanner)})}),document.querySelectorAll('a[data-toggle="self-navigation"]').forEach(function(e){e.addEventListener("click",function(){this.closest(".parent-navigation").classList.add("d-none"),document.getElementById(this.dataset.target).classList.remove("d-none")})}),initCookies();;</script></div>
 
 
 
@@ -15910,7 +15910,7 @@ var $ = AUI.$;var _ = AUI._;
 	);
 })();
 {
-Liferay.component('__UNNAMED_COMPONENT__82fcada6-e7c4-9c89-ad53-522e9ddd311b', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_fxpy_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_fxpy'});
+Liferay.component('__UNNAMED_COMPONENT__7bd63cc2-7fd8-64b1-507f-da12b389b1b4', new ComponentModule({"namespace":"_com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_fxpy_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_custom_facet_portlet_CustomFacetPortlet_INSTANCE_fxpy'});
 }
 {
 const ComponentModule = ComponentModule0;
@@ -15929,11 +15929,11 @@ var $ = AUI.$;var _ = AUI._;
 })();
 {
 const ComponentModule = ComponentModule1;
-Liferay.component('__UNNAMED_COMPONENT__feb1a75e-9263-fc5b-d9d3-c16cf54b2235', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_vqhl_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_vqhl'});
+Liferay.component('__UNNAMED_COMPONENT__0cff4a03-8090-5ccb-3cda-c1fa0fa493fa', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_vqhl_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_vqhl'});
 }
 {
 const ComponentModule = ComponentModule1;
-Liferay.component('__UNNAMED_COMPONENT__80274679-4cdd-290a-cd53-53b71728f34e', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_rhpp_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_rhpp'});
+Liferay.component('__UNNAMED_COMPONENT__6ed42c40-9993-1fad-8d74-9005faf51df3', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_rhpp_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_rhpp'});
 }
 (function() {
 var $ = AUI.$;var _ = AUI._;
@@ -15974,19 +15974,19 @@ var $ = AUI.$;var _ = AUI._;
 })();
 {
 const ComponentModule = ComponentModule2;
-Liferay.component('__UNNAMED_COMPONENT__53608087-5008-cc4f-9683-28613ec3441e', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_lqzm_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_lqzm'});
+Liferay.component('__UNNAMED_COMPONENT__555691fa-058a-9cdd-b151-d5c3109db932', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_lqzm_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_sort_portlet_SortPortlet_INSTANCE_lqzm'});
 }
 {
 const ComponentModule = ComponentModule1;
-Liferay.component('__UNNAMED_COMPONENT__a14b877d-25ca-2e7b-be6c-13cab2f7595b', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_qzew_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_qzew'});
+Liferay.component('__UNNAMED_COMPONENT__6aee71c3-d657-de10-0c0f-729a7e16371b', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_qzew_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_qzew'});
 }
 {
 const ComponentModule = ComponentModule3;
-Liferay.component('__UNNAMED_COMPONENT__0d5b28c5-6326-bff0-4029-cefd6a228051', new ComponentModule({"formId":"xqvr___fm","namespace":"_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_dgbt_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg","initialKeywords":"","retainFacetSelections":false}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_dgbt'});
+Liferay.component('__UNNAMED_COMPONENT__75ab6a76-47a9-3d9b-4e7e-97c51f8fd5cd', new ComponentModule({"formId":"xqvr___fm","namespace":"_com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_dgbt_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg","initialKeywords":"","retainFacetSelections":false}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet_INSTANCE_dgbt'});
 }
 {
 const ComponentModule = ComponentModule1;
-Liferay.component('__UNNAMED_COMPONENT__7b5f913c-b377-eda2-e09c-487f910abdb9', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_habp_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_habp'});
+Liferay.component('__UNNAMED_COMPONENT__f55b64e3-f351-2700-7402-2d238f1253af', new ComponentModule({"namespace":"_com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_habp_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_internal_custom_filter_portlet_CustomFilterPortlet_INSTANCE_habp'});
 }
 (function() {
 var $ = AUI.$;var _ = AUI._;
@@ -16026,7 +16026,7 @@ var $ = AUI.$;var _ = AUI._;
 	);
 })();
 {
-Liferay.component('__UNNAMED_COMPONENT__9e623197-a946-2e9f-958d-d8509b2ff5de', new ComponentModule({"namespace":"_com_liferay_portal_search_web_category_facet_portlet_CategoryFacetPortlet_INSTANCE_tonr_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_category_facet_portlet_CategoryFacetPortlet_INSTANCE_tonr'});
+Liferay.component('__UNNAMED_COMPONENT__17433966-1fef-04e5-a28a-c37a1cf38c7d', new ComponentModule({"namespace":"_com_liferay_portal_search_web_category_facet_portlet_CategoryFacetPortlet_INSTANCE_tonr_","spritemap":"https:\/\/www.cis.es\/o\/cis-theme\/images\/clay\/icons.svg"}), { destroyOnNavigate: true, portletId: 'com_liferay_portal_search_web_category_facet_portlet_CategoryFacetPortlet_INSTANCE_tonr'});
 }
 });
 
