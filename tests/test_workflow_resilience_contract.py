@@ -135,7 +135,7 @@ def test_auto_merge_gate_blocks_failed_missing_and_stale_commit_checks():
     source = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
     assert 'run["conclusion"] not in {"success", "skipped"}' in source
     assert 'missing = sorted(required - completed_successfully)' in source
-    assert "Blocking merge: checks did not reach a stable all-green state within 20 minutes." in source
+    assert "Blocking merge: checks did not reach a stable all-green state within 110 minutes." in source
     assert '--match-head-commit "$sha"' in source
 
 
