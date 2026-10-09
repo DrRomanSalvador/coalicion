@@ -95,7 +95,20 @@ def test_result_reconciliation_rejects_unassigned_or_wrong_agent(tmp_path, monke
 
 
 def test_agent_uses_exact_reina_token_name(tmp_path, monkeypatch):
-    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path)
+    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", tmp_path / "missions.json")
+    mission = {
+        "id": "M0001", "agent_id": "agent-001",
+        "task": "Prueba controlada.", "status": "ASSIGNED", "assigned": True
+    }
+    (tmp_path / "missions.json").write_text(json.dumps({
+        "schema": "COLMENA_MISSION_CONTROL_V1", "total": 179,
+        "missions": [mission] + [
+            {"id": f"M{i:04d}", "agent_id": f"agent-{i:03d}",
+             "task": "", "status": "PENDING", "assigned": False}
+            for i in range(2, 180)
+        ]
+    }), encoding="utf-8")
     monkeypatch.delenv("Reina_token", raising=False)
     monkeypatch.setenv("HF_TOKEN", "must-not-be-used")
     try:
@@ -106,3 +119,26 @@ def test_agent_uses_exact_reina_token_name(tmp_path, monkeypatch):
         assert "Reina_token" in str(exc)
     else:
         raise AssertionError("El agente no debe aceptar HF_TOKEN como sustituto de Reina_token")
+
+
+def test_agent_refuses_unassigned_mission_before_provider_call(tmp_path, monkeypatch):
+    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", tmp_path / "missions.json")
+    missions = [
+        {"id": f"M{i:04d}", "agent_id": f"agent-{i:03d}", "task": "",
+         "status": "PENDING", "assigned": False}
+        for i in range(1, 180)
+    ]
+    missions[0]["task"] = "No ejecutar si no está asignada."
+    (tmp_path / "missions.json").write_text(json.dumps({
+        "schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions
+    }), encoding="utf-8")
+    monkeypatch.setenv("Reina_token", "test-token")
+    try:
+        colmena_agent_hf.run_agent({
+            "id": "M0001", "agent_id": "agent-001", "task": "No ejecutar si no está asignada."
+        })
+    except ValueError as exc:
+        assert "no ha asignado" in str(exc)
+    else:
+        raise AssertionError("El agente no debe ejecutar misiones pendientes")
