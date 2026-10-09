@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Demostración E2E reproducible con la matriz electoral 2023 versionada.
+"""Demostración E2E con la matriz materializada desde la fuente oficial.
 
-Usa una circunscripción real (Madrid, elección de 2023), no encuestas ni
-proyecciones. La réplica está etiquetada como secundaria y no certificada.
+Usa Madrid (elección de 2023), verifica hashes y reconciliación de procedencia,
+y no presenta la auditoría local como certificación externa.
 """
 from __future__ import annotations
 
@@ -24,10 +24,18 @@ def main() -> int:
     matrix = json.loads(matrix_bytes)
     audit = json.loads(AUDIT_PATH.read_text(encoding="utf-8"))
 
+    runtime_sha256 = hashlib.sha256(matrix_bytes).hexdigest()
+    source = matrix.get("source")
     if audit.get("status") != "PASS":
         raise SystemExit(f"BLOCKED: audit de matriz no pasa: {audit.get('status')}")
-    if audit.get("source_tier") != "SECONDARY_REPLICA_VERIFIED":
-        raise SystemExit("BLOCKED: la procedencia no está etiquetada como réplica secundaria")
+    if matrix.get("source_tier") != "OFFICIAL_PRIMARY" or audit.get("source_tier") != "OFFICIAL_PRIMARY":
+        raise SystemExit("BLOCKED: la matriz no declara procedencia primaria oficial")
+    if not isinstance(source, dict) or not source.get("provider") or not source.get("sha256"):
+        raise SystemExit("BLOCKED: faltan metadatos de procedencia oficial")
+    if audit.get("sha256") != runtime_sha256 or audit.get("recorded_sha256") != runtime_sha256:
+        raise SystemExit("BLOCKED: hash canónico no coincide con la auditoría")
+    if audit.get("source_sha256") != source["sha256"]:
+        raise SystemExit("BLOCKED: el hash de la fuente no coincide con la matriz")
     if audit.get("province_count") != 52 or audit.get("seat_total") != 350:
         raise SystemExit("BLOCKED: la matriz no satisface las invariantes 52/350")
 
@@ -83,10 +91,10 @@ def main() -> int:
         "election": 2023,
         "constituency": "Madrid",
         "constituency_seats": row["seats"],
-        "data_status": "SECONDARY_REPLICA_VERIFIED",
-        "official_certification": "NOT_CLAIMED",
+        "data_status": "OFFICIAL_PRIMARY_RECONCILED",
+        "official_certification": "NOT_EXTERNALLY_CERTIFIED",
         "source_provider": matrix.get("source", {}).get("provider"),
-        "matrix_sha256_runtime": hashlib.sha256(matrix_bytes).hexdigest(),
+        "matrix_sha256_runtime": runtime_sha256,
         "coalition": list(PARTIES),
         "seats_separate": separate,
         "seats_coalition": combined,
