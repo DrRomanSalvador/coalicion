@@ -21,6 +21,13 @@ def test_validate_poll_fail_closed():
 def test_poll_hash_is_deterministic():
     assert poll_hash(valid_poll()) == poll_hash(valid_poll())
 
+def test_source_tier_requires_explicit_registry_and_is_applied():
+    from src.poll_monitor import apply_source_tier
+    poll = valid_poll()
+    assert apply_source_tier([poll], {"id": "unknown"})[0].source_tier == "SECONDARY_REPLICA"
+    assert apply_source_tier([poll], {"id": "direct", "source_tier": "PRIMARY_POLLSTER"})[0].source_tier == "PRIMARY_POLLSTER"
+    assert apply_source_tier([poll], {"id": "mirror", "source_tier": "SECONDARY_REPLICA"})[0].source_tier == "SECONDARY_REPLICA"
+
 def test_rss_is_discovery_only():
     rss = """<rss><channel><item><title>Barómetro</title><link>https://example.test/p1</link><guid>p1</guid><pubDate>Wed, 07 Oct 2026 08:00:00 +0000</pubDate></item></channel></rss>""".encode("utf-8")
     rows=parse_rss_metadata(rss,{"id":"cis","url":"https://example.test"})
