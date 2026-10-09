@@ -1,25 +1,43 @@
 {
   "schema": "COALICION_MULTIPARTY_DEMO_V1",
   "election": 2023,
-  "regions": ["Madrid", "Barcelona"],
+  "regions": [
+    "Madrid",
+    "Barcelona"
+  ],
   "scenarios": [
     {
       "id": "fragmentado",
       "label": "Fragmentado: candidaturas observadas",
       "assumption": "Cada candidatura conserva su lista observada de 2023; se verifica el reparto oficial.",
-      "groups": {"Madrid": {}, "Barcelona": {}}
+      "groups": {
+        "Madrid": {},
+        "Barcelona": {}
+      }
     },
     {
       "id": "izquierda_sin_psoe",
       "label": "Izquierda sin PSOE/PSC",
-      "assumption": "Madrid: SUMAR sigue separado del PSOE. Barcelona: ECP, ERC y CUP se agrupan; PSC permanece separado. No se modelan transferencias.",
+      "assumption": "Madrid: se agrupan SUMAR y candidaturas menores seleccionadas sin PSOE. Barcelona: se agrupan ECP, ERC, CUP y candidaturas menores seleccionadas; PSC permanece separado. La selección es un supuesto de escenario, no una clasificación oficial ni una predicción. No se modelan transferencias.",
       "groups": {
-        "Madrid": {},
+        "Madrid": {
+          "Bloque izquierda sin PSOE": [
+            "SUMAR - SUMAR",
+            "PARTIDO COMUNISTA DE LOS TRABAJADORES DE ESPAÑA - PCTE",
+            "PARTIDO HUMANISTA - PH",
+            "FRENTE OBRERO - FO",
+            "RECORTES CERO - RECORTES CERO",
+            "POR UN MUNDO MÁS JUSTO - PUM+J"
+          ]
+        },
         "Barcelona": {
           "Bloque izquierda sin PSC": [
             "SUMAR - EN COMÚ PODEM - SUMAR - ECP",
             "ESQUERRA REPUBLICANA DE CATALUNYA - ERC",
-            "CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA - CUP-PR"
+            "CANDIDATURA D'UNITAT POPULAR-PER LA RUPTURA - CUP-PR",
+            "FRENTE OBRERO - FO",
+            "PARTIT COMUNISTA DELS TREBALLADORS DE CATALUNYA - PCTC",
+            "RECORTES CERO - RECORTES CERO"
           ]
         }
       }
