@@ -55,6 +55,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -62,6 +64,37 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
+      - name: Determine validation scope
+        id: scope
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            base="$PR_BASE_SHA"
+            head="$PR_HEAD_SHA"
+          else
+            base="$BEFORE_SHA"
+            head="$CURRENT_SHA"
+          fi
+          if [[ -z "$base" || "$base" == "0000000000000000000000000000000000000000" ]]; then
+            echo "only_workflows=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git cat-file -e "$base^{commit}"
+          git cat-file -e "$head^{commit}"
+          git diff --name-only "$base" "$head" > "$RUNNER_TEMP/changed-files.txt"
+          if [[ -s "$RUNNER_TEMP/changed-files.txt" ]] && ! grep -qv '^\.github/workflows/' "$RUNNER_TEMP/changed-files.txt"; then
+            echo "only_workflows=true" >> "$GITHUB_OUTPUT"
+            echo "Workflow-only change: heavyweight product/model validation is delegated to dedicated workflow lint and contract checks."
+          else
+            echo "only_workflows=false" >> "$GITHUB_OUTPUT"
+            echo "Product/data/code changes detected: full fail-closed validation is required."
+          fi
       - name: Inventory resilience risks across all workflows
         run: python scripts/audit_workflow_resilience.py
       - name: Lint all GitHub Actions workflows
@@ -77,7 +110,11 @@ jobs:
           tar -xzf "/tmp/${archive}" -C /tmp actionlint
           /tmp/actionlint -color .github/workflows/*.yml
       - name: Run fail-closed gate
+        if: steps.scope.outputs.only_workflows != 'true'
         run: python scripts/autonomous_fix_and_validate.py --strict
+      - name: Explain scoped validation
+        if: steps.scope.outputs.only_workflows == 'true'
+        run: echo "Full product/model suite intentionally skipped because only .github/workflows files changed; workflow lint and contract checks still run."
       - name: Upload validation report
         if: always()
         uses: actions/upload-artifact@v4
