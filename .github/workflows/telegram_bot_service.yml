@@ -26,6 +26,7 @@ concurrency:
 
 jobs:
   service:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 295
     env:
