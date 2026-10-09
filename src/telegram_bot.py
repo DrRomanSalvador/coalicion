@@ -546,22 +546,34 @@ def _escanos_text() -> str:
     snapshot = _safe_json(SNAPSHOT)
     projection = snapshot.get("projection")
     if isinstance(projection, dict):
-        seats = projection.get("national_seats") or projection.get("party") or {}
-        rows = []
-        for party, value in seats.items():
-            try:
-                rows.append((str(party), int(value)))
-            except (TypeError, ValueError):
-                continue
-        rows.sort(key=lambda x: (-x[1], x[0]))
-        if rows:
-            return "🪑 ESCAÑOS · COMPOSICIÓN MATERIALIZADA\n\n" + "\n".join(f"{p}: {s}" for p, s in rows)
-    demo = _safe_json(DEMO_PREDICTION)
-    if str(demo.get("status", "")).upper() == "PASS":
-        return _demo_prediction_text()
+        status = str(projection.get("status", "")).upper()
+        calibration = projection.get("calibration_status", "")
+        if isinstance(calibration, dict):
+            calibration = calibration.get("status", "")
+        calibration = str(calibration).upper()
+        try:
+            territorial_count = int(
+                projection.get("territorial_poll_count",
+                               projection.get("territorial_observation_count", 0))
+            )
+        except (TypeError, ValueError):
+            territorial_count = 0
+        if status in {"PASS", "CERTIFIED"} and calibration in {"PASS", "CERTIFIED"} and territorial_count > 0:
+            seats = projection.get("national_seats") or projection.get("party") or {}
+            rows = []
+            if isinstance(seats, dict):
+                for party, value in seats.items():
+                    try:
+                        rows.append((str(party), int(value)))
+                    except (TypeError, ValueError):
+                        continue
+            rows.sort(key=lambda x: (-x[1], x[0]))
+            if rows:
+                return "🪑 ESCAÑOS · COMPOSICIÓN MATERIALIZADA Y VALIDADA\\n\\n" + "\\n".join(f"{p}: {s}" for p, s in rows)
     return (
-        "🪑 ESCAÑOS · SITUACIÓN ACTUAL\n\n"
-        "La cifra actual de escaños requiere evidencia provincial explícita y una distribución territorial explícita."
+        "🪑 ESCAÑOS · SITUACIÓN ACTUAL\\n\\n"
+        "No hay una proyección de escaños apta para producción: se requieren evidencia territorial explícita "
+        "y calibración validada. La demo se consulta por separado con /demo."
     )
 
 
