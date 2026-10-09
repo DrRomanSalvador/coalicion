@@ -119,3 +119,13 @@ def test_global_orchestrator_automatically_checks_for_stuck_canonical_runs():
     assert "Release only genuinely stuck canonical runs" in source
     assert "10800" in source
     assert "actions/runs?per_page=100&branch=main" in source
+
+
+def test_poll_monitor_fails_closed_after_persisting_blocked_state():
+    workflow = (WORKFLOWS / "poll_monitor.yml").read_text(encoding="utf-8")
+    monitor = (ROOT / "src" / "poll_monitor.py").read_text(encoding="utf-8")
+    assert "Fail closed after persisting monitor state" in workflow
+    assert "MONITOR_EXIT_CODE" in workflow
+    assert "steps.monitor.outputs.monitor_exit_code" in workflow
+    assert 'raise SystemExit(1 if result.get("status") == "BLOCKED" else 0)' in monitor
+    assert 'payload["notification_status"]' in monitor
