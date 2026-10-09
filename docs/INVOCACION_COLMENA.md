@@ -19,7 +19,7 @@ La integración complementaria está documentada en `docs/COLMENA_HF_AGENTS.md`.
 - `python scripts/colmena_queen_hf.py --status`: inspeccionar 179 slots lógicos.
 - `python scripts/colmena_queen_hf.py --assign 5`: asignar hasta cinco misiones con tarea concreta.
 - GitHub Actions → **COALICIÓN — Agentes lógicos Hugging Face**: ejecución manual de una misión mediante HF.
-- Requiere secreto `HF_TOKEN`; no se invoca HF ni se consumen créditos en la validación base.
+- Requiere secreto `Reina_token`; no se invoca HF ni se consumen créditos en la validación base.
 - Los 179 slots no son 179 procesos concurrentes. Cada ejecución invoca un agente explícitamente.
 - La respuesta del modelo queda en `REVIEW_REQUIRED`; no puede certificar PASS ni afirmar que ejecutó pruebas/cambió código sin evidencia.
 
