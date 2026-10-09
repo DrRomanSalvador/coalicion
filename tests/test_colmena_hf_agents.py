@@ -50,6 +50,7 @@ def test_agent_rejects_mission_without_task(tmp_path, monkeypatch):
 def test_result_reconciliation_records_review_without_allowing_model_pass(tmp_path, monkeypatch):
     path = tmp_path / "missions.json"
     monkeypatch.setattr(queen, "MISSION_CONTROL", path)
+    monkeypatch.setattr(queen, "STATE_PATH", tmp_path / "state.json")
     missions = queen.get_missions()
     mission = missions[0]
     mission["task"] = "Revisar un contrato de prueba con evidencia."
@@ -64,6 +65,10 @@ def test_result_reconciliation_records_review_without_allowing_model_pass(tmp_pa
     recorded = queen.record_result(evidence)
     assert recorded["status"] == "REVIEW_REQUIRED"
     assert queen.get_missions()[0]["status"] == "REVIEW_REQUIRED"
+    assert recorded["evidence_sha256"]
+    persisted_state = json.loads((tmp_path / "state.json").read_text(encoding="utf-8"))
+    assert persisted_state["last_hf_agent_execution"]["mission_id"] == mission["id"]
+    assert persisted_state["last_hf_agent_execution"]["evidence_sha256"] == recorded["evidence_sha256"]
 
     evidence.write_text(json.dumps({
         "mission_id": mission["id"], "agent_id": mission["agent_id"], "status": "PASS"
