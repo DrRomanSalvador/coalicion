@@ -24,6 +24,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
+      - name: Checkout exact PR head for gate script
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
       - name: Wait for every PR check and merge only a fully green revision
         env:
           GH_TOKEN: ${{ github.token }}
@@ -32,101 +37,4 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           CURRENT_RUN_ID: ${{ github.run_id }}
         shell: bash
-        run: |
-          set -Eeuo pipefail
-          python - <<'PY'
-          import json
-          import os
-          import subprocess
-          import sys
-          import time
-
-          repo = os.environ["GH_REPO"]
-          sha = os.environ["HEAD_SHA"]
-          current_run_id = os.environ["CURRENT_RUN_ID"]
-          required = {
-              "Exhaustive fail-closed validation",
-              "Methodology validation",
-              "Methodology extensions validation",
-              "Methodology integration",
-              "Workflow resilience contract tests",
-          }
-          # Product pipeline can run for 90 minutes; leave queue and stability margin.
-          deadline = time.monotonic() + 110 * 60
-          stable_signature = None
-          stable_since = None
-          def get_runs():
-              raw = subprocess.check_output([
-                  "gh", "api", "--paginate", "--slurp",
-                  f"repos/{repo}/actions/runs?head_sha={sha}&per_page=100",
-              ], text=True)
-              pages = json.loads(raw)
-              if isinstance(pages, dict):
-                  pages = [pages]
-              return [
-                  {
-                      "id": run.get("id"),
-                      "name": run.get("name", ""),
-                      "status": run.get("status", ""),
-                      "conclusion": run.get("conclusion"),
-                  }
-                  for page in pages
-                  for run in page.get("workflow_runs", [])
-                  if run.get("head_sha") == sha
-                  and str(run.get("id", "")) != current_run_id
-              ]
-
-          while time.monotonic() < deadline:
-              try:
-                  runs = get_runs()
-              except Exception as exc:
-                  print(f"Waiting: GitHub Actions API temporarily unavailable: {exc}", flush=True)
-                  time.sleep(15)
-                  continue
-
-              failed = [
-                  run for run in runs
-                  if run["status"] == "completed"
-                  and run["conclusion"] not in {"success", "skipped"}
-              ]
-              if failed:
-                  print("Blocking merge: failed/cancelled check runs:", json.dumps(failed), flush=True)
-                  sys.exit(1)
-
-              pending = [run for run in runs if run["status"] != "completed"]
-              completed_successfully = {
-                  run["name"] for run in runs
-                  if run["status"] == "completed" and run["conclusion"] == "success"
-              }
-              missing = sorted(required - completed_successfully)
-
-              if not pending and not missing:
-                  signature = tuple(sorted(
-                      (str(run["id"]), run["name"], run["status"], str(run["conclusion"]))
-                      for run in runs
-                  ))
-                  now = time.monotonic()
-                  if signature != stable_signature:
-                      stable_signature = signature
-                      stable_since = now
-                  elif stable_since is not None and now - stable_since >= 30:
-                      print(
-                          "All observed checks succeeded and the result stayed stable for 30 seconds. "
-                          f"Checks={len(runs)}; revision={sha}",
-                          flush=True,
-                      )
-                      break
-              else:
-                  stable_signature = None
-                  stable_since = None
-                  print(
-                      f"Waiting for checks: pending={len(pending)} missing_success={missing}",
-                      flush=True,
-                  )
-              time.sleep(15)
-          else:
-              print("Blocking merge: checks did not reach a stable all-green state within 110 minutes.", flush=True)
-              sys.exit(1)
-          PY
-          gh pr merge "$PR_NUMBER" --repo "$GH_REPO" --match-head-commit "$HEAD_SHA" --squash
-          echo "Merged only after all observed checks and the required validation workflows passed."
+        run: python scripts/automatic_pr_integration.py
