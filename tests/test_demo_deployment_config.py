@@ -9,6 +9,6 @@ def test_render_blueprint_declares_decision_demo_service():
     assert len(service) == 2
     config = service[1]
     assert "runtime: python" in config
-    assert "buildCommand: python -m compileall -q scripts src" in config
+    assert "buildCommand: python -m py_compile scripts/demo_decision_server.py scripts/demo_decision_analysis.py src/electoral.py src/coalition.py" in config
     assert "startCommand: python scripts/demo_decision_server.py --host 0.0.0.0 --port $PORT" in config
     assert "healthCheckPath: /api/health" in config
