@@ -161,3 +161,9 @@ def test_continuous_supervisor_bounds_api_scan_to_configured_lookback_and_curren
     assert "gh api --paginate" in source
     assert 'if run.get("created_at", "") < since:' in source
 
+def test_2023_matrix_acquisition_installs_pytest_before_invariant_suite():
+    source = (WORKFLOWS / "acquire_matrix_2023.yml").read_text(encoding="utf-8")
+    install_step = source.split("      - name: Instalar dependencias de adquisición", 1)[1].split("      - name:", 1)[0]
+    assert "pytest" in install_step
+    assert "python -m pytest -q tests/test_neutral_coalition.py" in source
+
