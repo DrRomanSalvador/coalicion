@@ -23,7 +23,10 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      # Enable Pages on first deployment instead of failing with 404 when the site is not yet configured.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web/telegram
