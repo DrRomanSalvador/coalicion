@@ -6,6 +6,7 @@ on:
     branches: [main]
 
 permissions:
+  actions: read
   contents: write
   pull-requests: write
 
@@ -15,21 +16,112 @@ concurrency:
 
 jobs:
   enable-auto-merge:
-    name: Queue validated PR for automatic merge
+    name: Validate all checks before merge
     if: >-
       github.event.pull_request.draft == false &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.head.ref != 'main'
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 25
     steps:
-      - name: Enable GitHub auto-merge
+      - name: Wait for every PR check and merge only a fully green revision
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         shell: bash
         run: |
-          set -euo pipefail
-          gh pr merge "$PR_NUMBER" --repo "$GH_REPO" --auto --squash
-          echo "Auto-merge queued. GitHub will merge only after required checks and branch rules pass."
+          set -Eeuo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+          import time
+
+          repo = os.environ["GH_REPO"]
+          sha = os.environ["HEAD_SHA"]
+          required = {
+              "Exhaustive fail-closed validation",
+              "Methodology validation",
+              "Methodology extensions validation",
+              "Methodology integration",
+              "Workflow resilience contract tests",
+          }
+          deadline = time.monotonic() + 20 * 60
+          stable_signature = None
+          stable_since = None
+          self_name = "Automatic pull request integration"
+
+          def get_runs():
+              raw = subprocess.check_output([
+                  "gh", "api",
+                  f"repos/{repo}/actions/runs?head_sha={sha}&per_page=100",
+              ], text=True)
+              data = json.loads(raw)
+              return [
+                  {
+                      "id": run.get("id"),
+                      "name": run.get("name", ""),
+                      "status": run.get("status", ""),
+                      "conclusion": run.get("conclusion"),
+                  }
+                  for run in data.get("workflow_runs", [])
+                  if run.get("name") != self_name
+              ]
+
+          while time.monotonic() < deadline:
+              try:
+                  runs = get_runs()
+              except Exception as exc:
+                  print(f"Waiting: GitHub Actions API temporarily unavailable: {exc}", flush=True)
+                  time.sleep(15)
+                  continue
+
+              failed = [
+                  run for run in runs
+                  if run["status"] == "completed"
+                  and run["conclusion"] not in {"success", "skipped"}
+              ]
+              if failed:
+                  print("Blocking merge: failed/cancelled check runs:", json.dumps(failed), flush=True)
+                  sys.exit(1)
+
+              pending = [run for run in runs if run["status"] != "completed"]
+              completed_successfully = {
+                  run["name"] for run in runs
+                  if run["status"] == "completed" and run["conclusion"] == "success"
+              }
+              missing = sorted(required - completed_successfully)
+
+              if not pending and not missing:
+                  signature = tuple(sorted(
+                      (str(run["id"]), run["name"], run["status"], str(run["conclusion"]))
+                      for run in runs
+                  ))
+                  now = time.monotonic()
+                  if signature != stable_signature:
+                      stable_signature = signature
+                      stable_since = now
+                  elif stable_since is not None and now - stable_since >= 30:
+                      print(
+                          "All observed checks succeeded and the result stayed stable for 30 seconds. "
+                          f"Checks={len(runs)}; revision={sha}",
+                          flush=True,
+                      )
+                      break
+              else:
+                  stable_signature = None
+                  stable_since = None
+                  print(
+                      f"Waiting for checks: pending={len(pending)} missing_success={missing}",
+                      flush=True,
+                  )
+              time.sleep(15)
+          else:
+              print("Blocking merge: checks did not reach a stable all-green state within 20 minutes.", flush=True)
+              sys.exit(1)
+          PY
+          gh pr merge "$PR_NUMBER" --repo "$GH_REPO" --squash
+          echo "Merged only after all observed checks and the required validation workflows passed."
