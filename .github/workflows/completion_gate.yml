@@ -3,6 +3,10 @@ name: completion-gate
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "artifacts/**"
+      - "ci_evidence/**"
+      - "reports/**"
   schedule:
     - cron: "*/30 * * * *"
   workflow_dispatch:
