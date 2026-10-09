@@ -482,6 +482,30 @@ def test_poll_monitor_blocks_when_required_telegram_alert_cannot_be_delivered(tm
     assert persisted["pending_notifications"][0]["text"]
     assert any(json.loads(line)["status"] == "BLOCKED" for line in (tmp_path / "survey_history.jsonl").read_text(encoding="utf-8").splitlines())
 
+    # A later process retries the persisted outbox when Telegram becomes available.
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "test-token")
+    monkeypatch.setenv("TELEGRAM_ALLOWED_CHATS", "chat-a")
+    retry_monitor = module.PollMonitor(config_path=config_path, state_path=state_path)
+    monkeypatch.setattr(retry_monitor, "fetch_all", lambda: ([], [], []))
+    monkeypatch.setattr(retry_monitor, "detect_new", lambda polls, discoveries: ([], [], []))
+    monkeypatch.setattr(retry_monitor, "audit_coverage", lambda failures, discoveries: coverage)
+
+    class SuccessResponse:
+        def raise_for_status(self):
+            return None
+
+    class SuccessSession:
+        def post(self, url, *, json, timeout):
+            assert json["chat_id"] == "chat-a"
+            return SuccessResponse()
+
+    retry_monitor.session = SuccessSession()
+    retried = retry_monitor.run()
+
+    assert retried["notification_status"] == "SENT"
+    assert retry_monitor.state["pending_notifications"] == []
+    assert json.loads(state_path.read_text(encoding="utf-8"))["pending_notifications"] == []
+
 
 def test_poll_monitor_module_exits_nonzero_for_blocked_status():
     source = Path("src/poll_monitor.py").read_text(encoding="utf-8")
