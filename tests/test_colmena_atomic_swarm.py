@@ -63,3 +63,16 @@ def test_exhaustive_test_mission_keeps_full_pytest_suite():
 def test_queen_swarm_timeout_allows_bounded_execution_window():
     workflow = (ROOT / ".github/workflows/colmena_atomic_swarm.yml").read_text(encoding="utf-8")
     assert 'timeout-minutes: 350' in workflow
+
+
+def test_swarm_operational_state_json_uses_real_newline_not_literal_backslash_n():
+    workflow = (ROOT / ".github/workflows/colmena_atomic_swarm.yml").read_text(encoding="utf-8")
+    line = next(line for line in workflow.splitlines() if 'operational_state.json' in line)
+    assert r'"\\n"' not in line
+    assert r'"\n"' in line
+
+
+def test_seec_convergence_diagnostics_include_latent_eta_states():
+    script = (ROOT / "scripts/run_seec_production.py").read_text(encoding="utf-8")
+    assert 'diagnostic_variables=["temporal_sigma","log_concentration","eta0","eta"]' in script
+    assert '"latent_eta_included":True' in script
