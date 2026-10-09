@@ -9,7 +9,7 @@ def test_analysis_is_auditable_and_reproducible():
     assert result["official_certification"] == "NOT_INDEPENDENTLY_CERTIFIED"
     assert result["provenance"]["canonical_dataset_git_blob_sha1"]
     assert len(result["decision_log"]) == 4
-    assert "Qué no puede concluirse" not in report
+    assert "No se infieren transferencias" in report
     assert "no presupone transferencias" in report
 
 def test_decision_log_explains_deltas():
