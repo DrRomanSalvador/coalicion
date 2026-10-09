@@ -66,6 +66,8 @@ jobs:
           cache-dependency-path: requirements.lock
       - name: Install pinned Python runtime dependencies
         run: python -m pip install --disable-pip-version-check -r requirements.lock
+      - name: Test Queen, worker approval, and secret wiring
+        run: python -m pytest -q tests/test_colmena_atomic_swarm.py
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
