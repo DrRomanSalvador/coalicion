@@ -5,7 +5,7 @@ import argparse, json
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
-from scripts.demo_multiparty import DEFAULT_DATA, DemoError, load_dataset
+from scripts.demo_multiparty import DEFAULT_DATA, DemoError, load_dataset, git_blob_sha
 from scripts.demo_decision_analysis import DEFAULT_JSON, DEFAULT_REPORT, build_analysis, allocate_checked, quotient_boundary
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -37,7 +37,7 @@ def candidates_for(region: str) -> dict:
             for p, v in sorted(item["parties"].items(), key=lambda pair: (-pair[1], pair[0]))
         ],
         "source": dataset["source"],
-        "canonical_dataset_git_blob_sha1": __import__("scripts.demo_multiparty", fromlist=["git_blob_sha"]).git_blob_sha(raw),
+        "canonical_dataset_git_blob_sha1": git_blob_sha(raw),
     }
 
 def simulate_custom_coalition(payload: dict) -> dict:
@@ -72,7 +72,7 @@ def simulate_custom_coalition(payload: dict) -> dict:
         "seats_separate_total": before,
         "seats_coalition": after,
         "seat_delta": after - before,
-        "member_seat_deltas": {p: -base.get(p, 0) for p in members if base.get(p, 0)},
+        "member_seats_in_separate_lists_absorbed": {p: base.get(p, 0) for p in members},
         "simulated_seats": {p: n for p, n in joined.items() if n},
         "valid_votes_before": item["valid_votes"],
         "valid_votes_after": item["valid_votes"],
