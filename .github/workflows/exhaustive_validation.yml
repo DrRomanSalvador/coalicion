@@ -21,7 +21,7 @@ on:
       - ".github/workflows/**"
 
 concurrency:
-  group: validate-main
+  group: validate-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
