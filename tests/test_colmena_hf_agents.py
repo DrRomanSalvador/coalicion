@@ -381,3 +381,72 @@ def test_agent_routes_provider_and_explains_model_not_supported(tmp_path, monkey
     assert result["status"] == "BLOCKED"
     assert "Ninguno acepta este modelo" in result["error"]
     assert "HF_PROVIDER_FALLBACKS" in result["error"]
+
+
+
+def test_ollama_backend_runs_without_hugging_face_token(tmp_path, monkeypatch):
+    import urllib.request
+    from io import BytesIO
+
+    mission_path = tmp_path / "missions.json"
+    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", mission_path)
+    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    mission = {
+        "id": "M0001", "agent_id": "agent-001", "task": "Audita el código",
+        "status": "ASSIGNED", "assigned": True, "context_paths": []
+    }
+    mission_path.write_text(json.dumps({"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179,
+                                       "missions": [mission]}), encoding="utf-8")
+    class FakeResponse:
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+        def read(self):
+            return json.dumps({"message": {"content": "Hallazgo verificable."}}).encode("utf-8")
+    calls = []
+    def fake_urlopen(request, timeout):
+        calls.append((request.full_url, timeout, json.loads(request.data.decode("utf-8"))))
+        return FakeResponse()
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.delenv("Reina_token", raising=False)
+
+    result = colmena_agent_hf.run_agent(
+        mission, hf_token=None, backend="ollama", local_model="qwen2.5:3b",
+        ollama_url="http://127.0.0.1:11434"
+    )
+
+    assert result["status"] == "REVIEW_REQUIRED"
+    assert result["backend"] == "ollama"
+    assert result["provider"] == "local-ollama"
+    assert result["response"] == "Hallazgo verificable."
+    assert len(calls) == 1
+    assert calls[0][0] == "http://127.0.0.1:11434/api/chat"
+    assert calls[0][2]["model"] == "qwen2.5:3b"
+    assert (tmp_path / "evidence" / "agent-001_M0001.json").is_file()
+
+
+def test_ollama_backend_failure_never_falls_back_to_hugging_face(tmp_path, monkeypatch):
+    import urllib.request
+    from urllib.error import URLError
+
+    mission_path = tmp_path / "missions.json"
+    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", mission_path)
+    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    mission = {
+        "id": "M0001", "agent_id": "agent-001", "task": "Audita el código",
+        "status": "ASSIGNED", "assigned": True, "context_paths": []
+    }
+    mission_path.write_text(json.dumps({"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179,
+                                       "missions": [mission]}), encoding="utf-8")
+    def fail_urlopen(request, timeout):
+        raise URLError("Ollama no está iniciado")
+    monkeypatch.setattr(urllib.request, "urlopen", fail_urlopen)
+    monkeypatch.delenv("Reina_token", raising=False)
+
+    result = colmena_agent_hf.run_agent(mission, backend="ollama")
+
+    assert result["status"] == "BLOCKED"
+    assert result["backend"] == "ollama"
+    assert "No se ha llamado a Hugging Face" in result["error"]
+    assert "Reina_token" not in result["error"]
