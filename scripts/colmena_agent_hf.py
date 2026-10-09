@@ -106,7 +106,7 @@ def main() -> int:
         candidate = Path(args.mission_json)
         if candidate.is_file():
             raw = candidate.read_text(encoding="utf-8")
-        elif re.fullmatch(r"M\\d{4}", args.mission_json):
+        elif re.fullmatch(r"M\d{4}", args.mission_json):
             control = json.loads(MISSION_CONTROL.read_text(encoding="utf-8"))
             matches = [item for item in control.get("missions", []) if item.get("id") == args.mission_json]
             if len(matches) != 1:
