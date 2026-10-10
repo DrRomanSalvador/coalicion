@@ -124,6 +124,50 @@ def latest_runs_per_workflow(runs: list[dict[str, Any]]) -> list[dict[str, Any]]
     ]
 
 
+REQUIRED_PR_SECTIONS = (
+    "Causa raíz:",
+    "Solución mínima:",
+    "Principios afectados (01–25):",
+    "Pruebas ejecutadas y resultado:",
+    "CI del SHA exacto:",
+    "Riesgo y rollback:",
+    "Excepciones",
+)
+
+
+def validate_pr_body(body: str) -> list[str]:
+    """Fail closed when a PR omits the mandatory engineering evidence."""
+    missing = [section for section in REQUIRED_PR_SECTIONS if section.casefold() not in body.casefold()]
+    principles = re.search(
+        r"(?im)^-?\\s*Principios afectados \\(01–25\\):\\s*(.+?)\\s*$", body
+    )
+    if not principles or not principles.group(1).strip() or principles.group(1).strip().lower() in {
+        "n/a", "na", "ninguno", "por determinar", "-"
+    }:
+        missing.append("a populated list of applicable principles (01–25), or an explicit justified N/A")
+    return missing
+
+
+def fetch_pr_body(
+    repo: str,
+    pr_number: str,
+    runner: Callable[..., Any] = subprocess.run,
+) -> str:
+    result = runner(
+        ["gh", "api", f"repos/{repo}/pulls/{pr_number}", "--jq", ".body // empty"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode:
+        detail = (result.stderr or result.stdout or "unknown GitHub API error").strip()
+        raise GitHubAPITransientError(f"Could not inspect PR description: {detail}")
+    body = result.stdout.strip()
+    if not body:
+        raise GitHubAPITransientError("PR description is empty; mandatory engineering evidence is missing")
+    return body
+
+
 def fetch_changed_files(
     repo: str,
     pr_number: str,
@@ -229,6 +273,16 @@ def main() -> int:
         return 2
 
     try:
+        pr_body = fetch_pr_body(repo, pr_number)
+        missing_pr_evidence = validate_pr_body(pr_body)
+        if missing_pr_evidence:
+            print(
+                "::error::PR is missing mandatory engineering evidence: "
+                + json.dumps(missing_pr_evidence, ensure_ascii=False),
+                file=sys.stderr,
+                flush=True,
+            )
+            return 1
         changed_files = fetch_changed_files(repo, pr_number)
     except GitHubAPITransientError as exc:
         print(f"::error::{exc}", file=sys.stderr, flush=True)
