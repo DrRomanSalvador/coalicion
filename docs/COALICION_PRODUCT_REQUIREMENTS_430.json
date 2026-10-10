@@ -1,0 +1,31 @@
+{
+  "schema": "COALICION_PRODUCT_REQUIREMENTS_V1",
+  "source": "canonical_previous_specification",
+  "expected_count": 430,
+  "status": "BLOCKED_SOURCE_LIST_NOT_MATERIALIZED",
+  "requirements": [],
+  "required_domains": [
+    "product_ux",
+    "historical_electoral_data_2004_2023",
+    "poll_ingestion_and_source_health",
+    "territorialization_2026_52_constituencies",
+    "projection_oos_backtesting_calibration_uncertainty",
+    "dhondt_seat_marginality",
+    "coalition_transfer_leakage_abstention_strategic_vote",
+    "maps_and_before_after_comparison",
+    "multichannel_alerts_97_types",
+    "reports_explainability_export",
+    "continuous_operations_election_calendar_sudden_election_election_day_post_election",
+    "security_privacy_permissions_apis_multitenancy_collaboration",
+    "validation_reproducibility_independent_audit_certification_release",
+    "commercial_differentiation_and_decision_value"
+  ],
+  "validation_contract": {
+    "must_have_exactly_430_unique_ids": true,
+    "must_preserve_original_wording": true,
+    "each_requirement_must_have_acceptance_criteria": true,
+    "each_requirement_must_map_to_missions_and_evidence": true,
+    "no_inferred_or_fabricated_requirements": true
+  },
+  "blocking_reason": "The exact original 430-item list must be imported verbatim before product missions can be executed or coverage can be declared."
+}
