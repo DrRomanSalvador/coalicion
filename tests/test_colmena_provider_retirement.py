@@ -30,6 +30,8 @@ def test_ollama_docs_make_provider_and_evidence_limits_explicit():
     assert "no requiere tokens" in text
     assert "nunca empuja directamente a `main`" in text
     assert "no se intenta ningún proveedor remoto" in text
+    assert "los 25 principios" in text
+    assert "regla boy scout" in text
 
 
 def test_ollama_server_is_verified_in_the_same_step_as_agent_execution():
