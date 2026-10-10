@@ -61,13 +61,15 @@ def test_oos_evidence_persistence_rechecks_tested_sha_and_retries_races():
     assert "stale evidence will not be published" in source
 
 
-def test_colmena_agent_evidence_persistence_retries_concurrent_branch_updates():
-    source = (WORKFLOWS / "colmena_hf_agents.yml").read_text(encoding="utf-8")
-    assert 'for attempt in 1 2 3 4 5; do' in source
-    assert 'git fetch origin "$branch"' in source
-    assert 'git rebase "origin/$branch"' in source
-    assert 'git push origin "HEAD:$branch"' in source
-    assert "refusing to overwrite newer state" in source
+def test_colmena_agent_evidence_uses_pull_request_and_never_pushes_main():
+    source = (WORKFLOWS / "colmena_ollama_agents.yml").read_text(encoding="utf-8")
+    assert "peter-evans/create-pull-request@v7" in source
+    assert "pull-requests: write" in source
+    assert "base: ${{ inputs.base_branch }}" in source
+    assert "scripts/colmena_agent_ollama.py" in source
+    assert "scripts/colmena_queen.py --record-result" in source
+    assert "git push origin HEAD:main" not in source
+    assert "HF_TOKEN" not in source and "Reina_token" not in source
 
 
 def test_methodology_ci_preserves_active_runs_per_ref():
