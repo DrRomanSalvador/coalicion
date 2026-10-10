@@ -395,3 +395,24 @@ def test_product_governance_requires_all_missions_to_map_to_requirement_ids():
     assert "La Reina debe reconciliar el 100 %" in doc
     assert "Las 179 misiones son capacidad de coordinación" in doc
     assert "encuesta → voto → territorio → D’Hondt" in doc
+
+
+def test_agent_blocks_product_mission_without_430_requirements_before_ollama_call(tmp_path, monkeypatch):
+    ledger = tmp_path / "missions.json"
+    monkeypatch.setattr(agent, "MISSION_CONTROL", ledger)
+    monkeypatch.setattr(agent, "AGENTS_DIR", tmp_path / "evidence")
+    ledger.write_text(json.dumps({"missions": [{
+        "id": "M0001", "agent_id": "agent-001", "task": "Reconciliar requisito de producto.",
+        "status": "ASSIGNED", "assigned": True, "context_paths": []
+    }]}), encoding="utf-8")
+    calls = []
+    def unexpected_provider_call(request, timeout):
+        calls.append(request.full_url)
+        raise AssertionError("No debe invocar Ollama sin la lista original de 430 requisitos")
+    monkeypatch.setattr(agent, "urlopen", unexpected_provider_call)
+    result = agent.run_agent("M0001")
+    assert result["status"] == "BLOCKED"
+    assert "lista maestra exacta de 430 requisitos" in result["error"]
+    assert calls == []
+    evidence = json.loads((tmp_path / "evidence" / "agent-001_M0001.json").read_text(encoding="utf-8"))
+    assert evidence["status"] == "BLOCKED"
