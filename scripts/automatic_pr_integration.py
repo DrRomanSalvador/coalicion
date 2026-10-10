@@ -368,6 +368,69 @@ def required_checks_for_files(changed_files: list[str]) -> set[str]:
     }
     if any(path in dora_paths for path in paths):
         required.add("DORA engineering metrics")
+
+    colmena_hf_paths = {
+        "scripts/colmena_queen_hf.py", "scripts/colmena_agent_hf.py",
+        "tests/test_colmena_hf_agents.py", "docs/COLMENA_MISSION_CONTROL.json",
+        ".github/workflows/colmena_hf_agents.yml", ".github/workflows/colmena_hf_tests.yml",
+    }
+    if any(path in colmena_hf_paths for path in paths):
+        required.add("Colmena HF — tests aislados")
+
+    demo_multiparty_paths = {
+        "scripts/demo_multiparty.py", "config/demo_multiparty_2023.json",
+        "artifacts/demo_multiparty_2023.json", "artifacts/data/election_2023_canonical.json",
+        "src/electoral.py", "src/coalition.py", "scripts/demo_e2e.py",
+        "scripts/demo_decision_analysis.py", "scripts/demo_decision_server.py",
+        "tests/test_demo_decision_server.py", "tests/test_demo_deployment_config.py",
+        "render.yaml", "tests/test_demo_decision_analysis.py", "web/demo/index.html",
+        "tests/test_demo_decision_ui.py", "tests/test_demo_multiparty.py",
+        "tests/test_demo_e2e.py", ".github/workflows/demo-multiparty.yml",
+    }
+    if any(path in demo_multiparty_paths for path in paths):
+        required.add("Demo multiparty 2023")
+
+    if any(path in {
+        "scripts/ingest_official_electoral_history.R",
+        ".github/workflows/inspect-interior-source.yml",
+    } for path in paths):
+        required.add("Inspect official Interior download transport")
+
+    mvp_paths = {
+        "tests/test_mvp_e2e.py", "tests/test_data_collection.py",
+        "tests/test_full_pipeline.py", "src/data.py", "scripts/materialize_current_surveys.py",
+        "api.py", "requirements.txt", "requirements.lock", "render.yaml",
+        ".github/workflows/mvp-validation.yml",
+    }
+    if any(path in mvp_paths or path.startswith((
+        "src/web/", "src/email/", "src/pipeline/", "data/surveys/current_2026/",
+    )) for path in paths):
+        required.add("mvp-validation")
+
+    seec_production_paths = {
+        "scripts/run_seec_production.py", "src/seec_bayesian.py",
+        "src/reproducibility_contract.py", "artifacts/data/cis_historical_2004_2023.csv",
+        "artifacts/data/cis_recent_2024_2026.csv", "requirements.txt",
+        ".github/workflows/seec-production-real.yml",
+    }
+    if any(path in seec_production_paths for path in paths):
+        required.add("SEEC production real")
+
+    telegram_bot_paths = {
+        "src/telegram_bot.py", "tests/test_telegram_bot.py", "requirements.txt",
+    }
+    if any(path in telegram_bot_paths for path in paths):
+        required.add("Telegram bot validation")
+
+    unlock_paths = {
+        "scripts/complete_historical_calibration.py", "scripts/run_mc_10000.py",
+        "scripts/materialize_seec_posterior.py", "src/oos_pipeline.py",
+        "src/reproducibility_contract.py", "data/resultados_oficiales_2004_2023.csv",
+        "artifacts/data/election_2023_canonical.json", "requirements.txt",
+        ".github/workflows/unlock-verification.yml",
+    }
+    if any(path in unlock_paths for path in paths):
+        required.add("Unlock verification")
     return required
 
 
