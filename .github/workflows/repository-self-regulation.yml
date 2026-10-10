@@ -21,7 +21,7 @@ concurrency:
 jobs:
   validate:
     name: Detect, diagnose and validate the exact repository revision
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    if: github.event_name != 'pull_request_target' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
@@ -146,7 +146,7 @@ jobs:
           title="[self-regulation] unresolved validation failure ${EXPECTED_SHA:0:12}"
           existing="$(gh issue list --repo "$REPOSITORY" --state open --search "$title in:title" --json title --jq 'length')"
           if [[ "$existing" == "0" ]]; then
-            gh issue create --repo "$REPOSITORY" --title "$title" --body "$(printf '## Repository-wide validation blocked\\n\\n- Tested commit: %s\\n- Run: %s\\n- Trigger: %s\\n\\nThe exact-commit gate failed. Inspect the run logs and uploaded diagnostic artifact, identify the root cause, implement a reviewed correction on a branch/PR, add regression coverage, and rerun the complete gate. Do not mark the repository healthy or bypass a failed gate.\\n' "$EXPECTED_SHA" "$RUN_URL" "$GITHUB_EVENT_NAME")"
+            gh issue create --repo "$REPOSITORY" --title "$title" --body "$(printf '## Repository-wide validation blocked\n\n- Tested commit: %s\n- Run: %s\n- Trigger: %s\n\nThe exact-commit gate failed. Inspect the run logs and uploaded diagnostic artifact, identify the root cause, implement a reviewed correction on a branch/PR, add regression coverage, and rerun the complete gate. Do not mark the repository healthy or bypass a failed gate.\n' "$EXPECTED_SHA" "$RUN_URL" "$GITHUB_EVENT_NAME")"
           else
             echo "An open remediation issue already tracks this commit."
           fi
