@@ -569,3 +569,48 @@ def test_bounded_polling_keeps_listening_after_empty_poll(monkeypatch):
     assert polls[0][1]["params"]["timeout"] == telegram_bot.LONG_POLL_TIMEOUT
     assert polls[1][1]["params"]["timeout"] > 0
     assert calls[0][0] == "deleteWebhook"
+
+def test_dispatcher_task_creation_and_completion_callback(monkeypatch, tmp_path):
+    monkeypatch.setattr(telegram_bot, "TASKS", tmp_path / "telegram_tasks.json")
+    monkeypatch.setattr(telegram_bot, "USER_STATE", tmp_path / "user_state.json")
+    monkeypatch.setattr(telegram_bot, "AUDIT_LOG", tmp_path / "audit.jsonl")
+    monkeypatch.setattr(telegram_bot, "TELEGRAM_CONFIG", tmp_path / "config.json")
+    monkeypatch.setenv("TELEGRAM_ALLOWED_CHATS", "123")
+    calls = []
+    monkeypatch.setattr(telegram_bot, "_api", lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True})
+    update = {"update_id": 41, "message": {
+        "from": {"id": 123}, "chat": {"id": 123, "type": "private"},
+        "text": "/tarea preparar dossier de prensa"
+    }}
+    assert telegram_bot._handle_update(update, None) == 42
+    tasks = telegram_bot._tasks()
+    assert len(tasks) == 1
+    task_id, task = next(iter(tasks.items()))
+    assert task["title"] == "preparar dossier de prensa"
+    assert task["status"] == "open"
+    callback = {"update_id": 42, "callback_query": {
+        "id": "done-callback", "from": {"id": 123}, "data": f"task:done:{task_id}",
+        "message": {"chat": {"id": 123, "type": "private"}, "message_id": 77}
+    }}
+    assert telegram_bot._handle_update(callback, 42) == 43
+    assert telegram_bot._tasks()[task_id]["status"] == "done"
+    assert any(method == "editMessageText" for method, _ in calls)
+
+
+def test_dispatcher_search_is_limited_to_materialized_evidence(tmp_path, monkeypatch):
+    observations = tmp_path / "observations.json"
+    observations.write_text(json.dumps({"polls": [
+        {"publication_date": "2026-10-08", "pollster": "CIS", "parties": {"PSOE": 30.1}}
+    ]}), encoding="utf-8")
+    monkeypatch.setattr(telegram_bot, "OBSERVATIONS", observations)
+    monkeypatch.setattr(telegram_bot, "STATE", tmp_path / "state.json")
+    result = telegram_bot._search_text("CIS")
+    assert "CIS" in result
+    assert "Encuesta 1" in result
+    assert "no se ha consultado la web" not in result.lower()
+
+
+def test_public_command_list_is_dispatcher_not_catalog():
+    assert [name for name, _ in telegram_bot.COMMANDS] == [
+        "start", "hoy", "urgente", "resumen", "buscar", "tarea", "config", "ayuda"
+    ]
