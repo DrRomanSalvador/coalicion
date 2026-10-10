@@ -203,7 +203,7 @@ def test_privileged_merge_gate_executes_trusted_base_code_not_untrusted_pr_code(
 
 def test_pr_gate_enables_auto_squash_merge_without_manual_clicks():
     workflow = (ROOT / ".github/workflows/automatic-pr-integration.yml").read_text(encoding="utf-8")
-    assert "name: Automatic PR integration gate" in workflow
+    assert "name: Verify mandatory agent contract" in workflow
     assert "contents: write" in workflow
     assert "pull-requests: write" in workflow
     client = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
