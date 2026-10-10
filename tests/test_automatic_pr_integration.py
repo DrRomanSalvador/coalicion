@@ -193,6 +193,14 @@ def test_pr_body_fetch_fails_closed_on_github_api_error():
         raise AssertionError("API failure must not bypass mandatory PR evidence")
 
 
+def test_privileged_merge_gate_executes_trusted_base_code_not_untrusted_pr_code():
+    workflow = (ROOT / ".github/workflows/automatic-pr-integration.yml").read_text(encoding="utf-8")
+    assert "Checkout trusted base revision for gate script" in workflow
+    assert "ref: ${{ github.event.pull_request.base.sha }}" in workflow
+    assert "ref: ${{ github.event.pull_request.head.sha }}" not in workflow
+    assert "persist-credentials: false" in workflow
+
+
 def test_pr_gate_enables_auto_squash_merge_without_manual_clicks():
     workflow = (ROOT / ".github/workflows/automatic-pr-integration.yml").read_text(encoding="utf-8")
     assert "name: Automatic PR integration gate" in workflow
