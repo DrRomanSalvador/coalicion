@@ -137,16 +137,35 @@ REQUIRED_PR_SECTIONS = (
 
 def validate_pr_body(body: str) -> list[str]:
     """Fail closed when a PR omits the mandatory engineering evidence."""
-    missing = [section for section in REQUIRED_PR_SECTIONS if section.casefold() not in body.casefold()]
-    principles = re.search(
-        r"(?im)^[ \t]*(?:#{1,6}[ \t]*)?-?[ \t]*Principios afectados \(01–25\):[ \t]*([^\r\n]*\S[ \t]*)$", body
+    missing = [
+        section
+        for section in REQUIRED_PR_SECTIONS
+        if section.casefold() not in body.casefold()
+    ]
+    heading = re.search(
+        r"(?im)^[ \\t]*(?:#{1,6}[ \\t]*)?-?[ \\t]*"
+        r"Principios afectados \\(01–25\\):[ \\t]*(.*)$",
+        body,
     )
-    if not principles or not principles.group(1).strip() or principles.group(1).strip().lower() in {
+    principle_text = ""
+    if heading:
+        # Accept Markdown headings whose list starts on the following line,
+        # while keeping the section bounded by the next Markdown heading.
+        following = body[heading.end():]
+        next_heading = re.search(r"(?m)^[ \\t]*#{1,6}[ \\t]+\\S", following)
+        section_body = following[:next_heading.start()] if next_heading else following
+        principle_text = " ".join(
+            part.strip()
+            for part in (heading.group(1), section_body)
+            if part and part.strip()
+        ).strip()
+    if not principle_text or principle_text.lower() in {
         "n/a", "na", "ninguno", "por determinar", "-"
     }:
-        missing.append("a populated list of applicable principles (01–25), or an explicit justified N/A")
+        missing.append(
+            "a populated list of applicable principles (01–25), or an explicit justified N/A"
+        )
     return missing
-
 
 def fetch_pr_body(
     repo: str,
