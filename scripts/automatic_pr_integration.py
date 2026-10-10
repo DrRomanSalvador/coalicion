@@ -139,6 +139,10 @@ def canonical_principle_titles() -> dict[int, str]:
     for match in re.finditer(r"(?m)^(\d{1,2})\. \*\*(.+?)\.\*\*", content):
         number = int(match.group(1))
         if 1 <= number <= 25:
+            if number in titles:
+                raise GitHubAPITransientError(
+                    f"Canonical engineering charter defines principle {number:02d} more than once"
+                )
             titles[number] = match.group(2).strip()
     if set(titles) != set(range(1, 26)):
         missing = sorted(set(range(1, 26)) - set(titles))
