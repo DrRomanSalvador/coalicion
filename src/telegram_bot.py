@@ -1457,6 +1457,7 @@ def _task_markup(task_id: str) -> dict[str, Any]:
     return {"inline_keyboard": [
         [{"text": "✅ Completar", "callback_data": f"task:done:{task_id}"},
          {"text": "🔴 Prioritaria", "callback_data": f"task:priority:{task_id}"}],
+        [{"text": "📨 Delegar al equipo", "callback_data": f"task:delegate:{task_id}"}],
         [{"text": "📋 Ver tareas", "callback_data": "cmd:/tarea"},
          {"text": "🏠 Inicio", "callback_data": "home"}],
     ]}
@@ -1899,6 +1900,30 @@ def _alert_candidates() -> list[dict[str, Any]]:
         })
     return candidates
 
+def _alert_message_markup(items: list[dict[str, Any]]) -> dict[str, Any]:
+    rows: list[list[dict[str, str]]] = []
+    destinations = {
+        "nueva_encuesta": "/encuestas",
+        "modificacion_encuesta": "/cambios",
+        "cambio_territorial": "/territorio",
+        "nuevo_dato_oficial": "/evidencia",
+        "cambio_plazo_legal": "/calendario",
+        "cambio_escenario": "/escenarios",
+        "cambio_evidencia": "/evidencia",
+        "recuperacion_fuente": "/fuentes",
+    }
+    for item in items[:5]:
+        category = str(item.get("category", "cambio_evidencia"))
+        label = str(item.get("title", "Novedad"))[:28]
+        rows.append([
+            {"text": f"🔎 {label}", "callback_data": f"cmd:{destinations.get(category, '/urgencias')}"},
+            {"text": "🔕 Silenciar tipo", "callback_data": f"alert:toggle:{category}"},
+        ])
+    rows.append([{"text": "🚨 Ver urgente", "callback_data": "cmd:/urgencias"},
+                 {"text": "⚙️ Configurar alertas", "callback_data": "cmd:/alertas"}])
+    return {"inline_keyboard": rows}
+
+
 def _in_quiet(prefs: dict[str, Any]) -> bool:
     from datetime import datetime
     now = now_madrid().strftime("%H:%M")
@@ -1936,7 +1961,7 @@ def _send_alerts_to_chat(chat_id: int, *, frequency: str = "immediate") -> None:
     for item in pending:
         lines += [f"• {ALERT_CATEGORIES[item['category']]} · {item['title']}", f"  {item['detail']}"]
     lines.append("\n🔎 Datos fechados y trazables.")
-    _send(chat_id, "\n".join(lines), _menu_markup())
+    _send(chat_id, "\n".join(lines), _alert_message_markup(pending))
     state[str(chat_id)] = (sent + [x["key"] for x in pending])[-100:]
     _save_alert_state(state)
 
@@ -2126,11 +2151,24 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
                 idx = values.index(old) if old in values else 0
                 _set_preferences(update, threshold=values[(idx + 1) % len(values)])
                 text, markup = _alerts_text(update), _alerts_markup(update)
-            elif data.startswith("task:done:") or data.startswith("task:priority:"):
+            elif data.startswith(("task:done:", "task:priority:", "task:delegate:")):
                 action, task_id = data.split(":", 2)[1:]
                 tasks = _tasks()
                 item = tasks.get(task_id)
-                if isinstance(item, dict):
+                if not isinstance(item, dict):
+                    text, markup = "La tarea ya no existe o ya fue archivada.", _navigation_markup("/tarea")
+                elif action == "delegate":
+                    team_chat = os.environ.get("TELEGRAM_TEAM_CHAT_ID", "").strip()
+                    if not team_chat:
+                        text = "⚠️ Delegación no activada. Configure TELEGRAM_TEAM_CHAT_ID con el chat autorizado del equipo."
+                    else:
+                        try:
+                            _send(int(team_chat), f"📌 TAREA DE COALICIÓN · {task_id}\n\n{item.get('title', '')}\nEstado: pendiente")
+                            text = f"📨 Tarea {task_id} enviada al chat del equipo."
+                        except (ValueError, TelegramBotError):
+                            text = "⚠️ No se pudo enviar la tarea al equipo; la tarea sigue registrada."
+                    markup = _task_markup(task_id)
+                else:
                     if action == "done":
                         item["status"] = "done"
                     else:
@@ -2142,8 +2180,6 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
                               {"inline_keyboard": [[
                                   {"text": "📋 Ver tareas", "callback_data": "cmd:/tarea"},
                                   {"text": "🏠 Inicio", "callback_data": "home"}]]})
-                else:
-                    text, markup = "La tarea ya no existe o ya fue archivada.", _navigation_markup("/tarea")
             elif data.startswith("evidence:poll:"):
                 index = int(data.rsplit(":", 1)[-1])
                 text, markup = _poll_card(index), _poll_card_markup(index)
