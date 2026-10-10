@@ -18,7 +18,7 @@
     "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH"
   },
   "blocking_errors": [],
-  "last_action": "Retirar el runtime de inferencia Hugging Face sin créditos y consolidar la Colmena en Ollama",
+  "last_action": "Retirar el proveedor remoto sin créditos y consolidar la Colmena en Ollama",
   "last_action_result": "MIGRATION_PREPARED; Ollama-only workflow and tests are present on the feature branch; runtime CI and end-to-end mission execution remain unverified.",
   "next_single_action": "Completar la suite reproducible sobre main y cerrar únicamente los bloqueos verificables; mantener P3 y v1.0.0 bloqueados sin matriz territorial 2026 y auditoría externa independiente",
   "certification": "READY_FOR_EXTERNAL_AUDIT",
