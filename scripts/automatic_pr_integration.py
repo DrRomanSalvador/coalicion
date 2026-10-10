@@ -139,7 +139,7 @@ def validate_pr_body(body: str) -> list[str]:
     """Fail closed when a PR omits the mandatory engineering evidence."""
     missing = [section for section in REQUIRED_PR_SECTIONS if section.casefold() not in body.casefold()]
     principles = re.search(
-        r"(?im)^\s*(?:#{1,6}\s*)?-?\s*Principios afectados \(01–25\):\s*(.+?)\s*$", body
+        r"(?im)^[ \t]*(?:#{1,6}[ \t]*)?-?[ \t]*Principios afectados \(01–25\):[ \t]*([^\r\n]*\S[ \t]*)$", body
     )
     if not principles or not principles.group(1).strip() or principles.group(1).strip().lower() in {
         "n/a", "na", "ninguno", "por determinar", "-"
