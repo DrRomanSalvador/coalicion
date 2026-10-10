@@ -99,7 +99,7 @@ async function productReply(env: Env, msg: TelegramMessage, command: string, arg
   const health = sit.source_health && typeof sit.source_health === "object" ? sit.source_health : {};
   const asOf = sit.as_of || obs.generated_at;
   if (command === "/encuestas") {
-    const matched = (arg ? polls.filter((p: any) => JSON.stringify(p).toLowerCase().includes(arg.toLowerCase()) : polls).slice(0, 8);
+    const matched = (arg ? polls.filter((p: any) => JSON.stringify(p).toLowerCase().includes(arg.toLowerCase())) : polls).slice(0, 8);
     const lines = matched.map((p: any) => {
       const parties = p.parties && typeof p.parties === "object"
         ? Object.entries(p.parties).filter((e): e is [string, number] => typeof e[1] === "number" && Number.isFinite(e[1])).sort((a,b) => b[1]-a[1]).slice(0,5).map(([name, value]) => name + " " + value.toFixed(1) + "%").join(" · ")
