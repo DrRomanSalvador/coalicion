@@ -3,7 +3,7 @@ name: Repository-wide self-regulation
 on:
   push:
     branches: [main]
-  pull_request:
+  pull_request_target:
     branches: [main]
     types: [opened, reopened, synchronize, ready_for_review]
   schedule:
@@ -13,7 +13,6 @@ on:
 permissions:
   actions: read
   contents: read
-  issues: write
 
 concurrency:
   group: repository-self-regulation-${{ github.event.pull_request.number || github.ref }}
@@ -125,8 +124,20 @@ jobs:
             artifacts/verification/workflow_resilience_audit.json
             ci_evidence/master_certification.json
 
+  track_failure:
+    name: Track failed main-branch validation
+    if: failure() && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    env:
+      REPOSITORY: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
       - name: Open one tracked remediation issue for this failed commit
-        if: failure() && github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -135,7 +146,7 @@ jobs:
           title="[self-regulation] unresolved validation failure ${EXPECTED_SHA:0:12}"
           existing="$(gh issue list --repo "$REPOSITORY" --state open --search "$title in:title" --json title --jq 'length')"
           if [[ "$existing" == "0" ]]; then
-            gh issue create --repo "$REPOSITORY" --title "$title" --body "$(printf '## Repository-wide validation blocked\n\n- Tested commit: %s\n- Run: %s\n- Trigger: %s\n\nThe exact-commit gate failed. Inspect the run logs and uploaded diagnostic artifact, identify the root cause, implement a reviewed correction on a branch/PR, add regression coverage, and rerun the complete gate. Do not mark the repository healthy or bypass a failed gate.\n' "$EXPECTED_SHA" "$RUN_URL" "$GITHUB_EVENT_NAME")"
+            gh issue create --repo "$REPOSITORY" --title "$title" --body "$(printf '## Repository-wide validation blocked\\n\\n- Tested commit: %s\\n- Run: %s\\n- Trigger: %s\\n\\nThe exact-commit gate failed. Inspect the run logs and uploaded diagnostic artifact, identify the root cause, implement a reviewed correction on a branch/PR, add regression coverage, and rerun the complete gate. Do not mark the repository healthy or bypass a failed gate.\\n' "$EXPECTED_SHA" "$RUN_URL" "$GITHUB_EVENT_NAME")"
           else
             echo "An open remediation issue already tracks this commit."
           fi
