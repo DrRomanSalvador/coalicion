@@ -2,6 +2,12 @@
 
 La Colmena usa Ollama como único backend de inferencia. No requiere tokens, cuenta de inferencia, créditos ni proveedor externo. Los 179 registros son slots lógicos; no son 179 procesos ejecutándose a la vez.
 
+## Decisión de proveedor (revisada el 2026-10-11)
+
+Hugging Face Inference Providers no es una ruta operativa gratuita fiable para esta Colmena: su documentación oficial indica que las cuentas Free reciben **0,10 USD mensuales** en créditos de inferencia, sujetos a cambio; el uso adicional requiere comprar créditos. Ese límite no sostiene una ejecución continua y no se debe depender de él para misiones críticas. Fuente: [Hugging Face — Pricing and Billing](https://huggingface.co/docs/inference-providers/pricing).
+
+Por tanto, no se mantiene una ruta HF ni un fallback remoto oculto. La ruta elegida es Ollama con modelo descargado en el runner de GitHub Actions para repositorio público, o en una máquina local del operador. GitHub documenta que los runners estándar alojados para repositorios públicos no consumen minutos facturables de Actions: [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions). Esto elimina créditos de inferencia, pero no elimina límites de CPU, RAM, descarga, caché o tiempo. Si Ollama no arranca, no encuentra el modelo o agota el tiempo, la misión debe quedar `BLOCKED`; nunca cambiar a un proveedor de pago.
+
 ## Flujo canónico
 1. Leer `AGENTS.md`, `CONTRATO_MAESTRO_IA.md` y `docs/COLMENA_STATE.json`.
 2. La Reina asigna únicamente misiones con tarea concreta, en lotes de hasta cinco.
