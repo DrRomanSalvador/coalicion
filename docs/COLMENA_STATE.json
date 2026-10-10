@@ -18,8 +18,8 @@
     "replacement_policy": "FAIL_CLOSED_ON_HASH_MISMATCH"
   },
   "blocking_errors": [],
-  "last_action": "Reparar materialización del workbook oficial, baseline histórico 2023, vigilancia de encuestas y diagnósticos latentes SEEC",
-  "last_action_result": "OFFICIAL_16_ELECTION_DATASET_PASS; PYTEST_367_PASS; SEEC_10000_PASS; MASTER_CERTIFICATION_READY_FOR_EXTERNAL_AUDIT",
+  "last_action": "Retirar el runtime de inferencia Hugging Face sin créditos y consolidar la Colmena en Ollama",
+  "last_action_result": "MIGRATION_IN_PROGRESS; workflow Ollama añadido en rama; ejecución real y pruebas de CI pendientes.",
   "next_single_action": "Completar la suite reproducible sobre main y cerrar únicamente los bloqueos verificables; mantener P3 y v1.0.0 bloqueados sin matriz territorial 2026 y auditoría externa independiente",
   "certification": "READY_FOR_EXTERNAL_AUDIT",
   "data_source": "PRIMARY_INTERIOR_WORKBOOK_MATERIALIZED_AND_HASH_VERIFIED",
@@ -96,7 +96,7 @@
     "source_of_truth": "GitHub",
     "recover_from": "docs/COLMENA_STATE.json + last_colmena_checkpoint",
     "chat_is_not_state": true,
-    "coordination_rule": "Validación ligera, checkpoint persistente y fail-closed; sin runtime de IA local."
+    "coordination_rule": "Validación ligera, checkpoint persistente y fail-closed; análisis de agentes mediante Ollama local sin proveedor remoto."
   },
   "coordination_rule": "Una ejecución ligera valida estado, continuidad, contrato reproducible, motor de coaliciones y demo E2E; cualquier fallo bloquea el checkpoint.",
   "last_colmena_checkpoint": {
@@ -116,10 +116,9 @@
     "timestamp_utc": "2026-10-10T20:07:20.423971+00:00"
   },
   "queen_coordination": {
-    "mode": "QUEEN_COORDINATION_MODE + 179_AGENTS_HF",
-    "status": "BLOCKED_EXTERNAL_PROVIDER_CREDITS",
-    "provider": "Hugging Face",
-    "credential_name": "Reina_token",
+    "mode": "QUEEN_COORDINATION_MODE + 179_LOGICAL_MISSIONS_OLLAMA",
+    "status": "BLOCKED_REQUIRES_OLLAMA_EXECUTION",
+    "provider": "local-ollama",
     "logical_agents": 179,
     "completed_pass": 0,
     "pending": 169,
@@ -128,11 +127,11 @@
     "review_required": 0,
     "tasks_defined": 10,
     "approval_required_before_assignment_or_execution": true,
-    "note": "Conteos derivados de COLMENA_MISSION_CONTROL.json. La última ejecución de agente quedó BLOCKED por falta de créditos del proveedor; no equivale a ejecución autónoma disponible.",
+    "note": "Backend activo de agentes: Ollama local, sin créditos externos. La ejecución del workflow debe validarse en GitHub Actions.",
     "source_of_truth": "docs/COLMENA_MISSION_CONTROL.json",
     "snapshot_updated_at": "2026-10-09T13:28:11.346Z"
   },
-  "last_hf_agent_execution": {
+  "historical_provider_execution": {
     "schema": "COLMENA_HF_EXECUTION_EVIDENCE_V1",
     "mission_id": "M0001",
     "agent_id": "agent-001",
