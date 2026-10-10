@@ -119,3 +119,53 @@ def test_pr_body_fetch_fails_closed_on_github_api_error():
         assert "Could not inspect PR description" in str(exc)
     else:
         raise AssertionError("API failure must not bypass mandatory PR evidence")
+
+
+def test_pr_body_gate_accepts_markdown_heading_with_principles_on_next_line():
+    valid = """## Causa raíz:
+Reproducible.
+## Solución mínima:
+Parser corregido.
+## Principios afectados (01–25):
+01, 02, 03, 05, 06, 09, 11, 15, 19, 20, 21, 22, 24.
+## Pruebas ejecutadas y resultado:
+pytest PASS.
+## CI del SHA exacto:
+Pendiente de CI.
+## Riesgo y rollback:
+Revertir el commit.
+## Excepciones
+Ninguna.
+"""
+    assert validate_pr_body(valid) == []
+
+
+def test_pr_body_gate_rejects_markdown_principles_heading_with_empty_section():
+    body = """## Causa raíz:
+Causa.
+## Solución mínima:
+Solución.
+## Principios afectados (01–25):
+## Pruebas ejecutadas y resultado:
+Pendiente.
+## CI del SHA exacto:
+Pendiente.
+## Riesgo y rollback:
+Rollback.
+## Excepciones
+Ninguna.
+"""
+    missing = validate_pr_body(body)
+    assert any("populated list of applicable principles" in item for item in missing)
+
+
+def test_pr_body_gate_accepts_explicit_justified_na():
+    body = """Causa raíz: causa.
+Solución mínima: solución.
+Principios afectados (01–25): N/A — justificación: ningún principio resulta directamente afectado por este cambio.
+Pruebas ejecutadas y resultado: pytest PASS.
+CI del SHA exacto: pendiente.
+Riesgo y rollback: revertir.
+Excepciones: ninguna.
+"""
+    assert validate_pr_body(body) == []
