@@ -138,3 +138,72 @@ def test_assignment_workflow_treats_no_executable_tasks_as_safe_noop():
     source = (ROOT / ".github/workflows/colmena_ollama_assign.yml").read_text(encoding="utf-8")
     assert "python scripts/colmena_queen.py --assign" in source
     assert "peter-evans/create-pull-request@v7" in source
+
+
+
+def test_ollama_context_paths_are_repo_relative_and_bounded(tmp_path, monkeypatch):
+    monkeypatch.setattr(agent, "ROOT", tmp_path)
+    allowed = tmp_path / "safe.py"
+    allowed.write_text("def safe(): return True\n", encoding="utf-8")
+    assert "def safe" in agent.load_context({"context_paths": ["safe.py"]})
+    try:
+        agent.load_context({"context_paths": ["../outside.py"]})
+    except ValueError as exc:
+        assert "no permitida" in str(exc)
+    else:
+        raise AssertionError("Debe bloquear rutas fuera del repositorio")
+    try:
+        agent.load_context({"context_paths": ["safe.py"] * 5})
+    except ValueError as exc:
+        assert "hasta 4" in str(exc)
+    else:
+        raise AssertionError("Debe limitar los archivos de contexto")
+    oversized = tmp_path / "oversized.txt"
+    oversized.write_text("x" * 12001, encoding="utf-8")
+    try:
+        agent.load_context({"context_paths": ["oversized.txt"]})
+    except ValueError as exc:
+        assert "12000" in str(exc)
+    else:
+        raise AssertionError("Debe rechazar archivos de contexto excesivos")
+
+
+def test_reassign_blocked_archives_evidence_and_clears_stale_fields(tmp_path, monkeypatch):
+    ledger, state = tmp_path / "missions.json", tmp_path / "state.json"
+    monkeypatch.setattr(queen, "MISSION_CONTROL", ledger)
+    monkeypatch.setattr(queen, "STATE_PATH", state)
+    missions = queen.get_missions()
+    missions[0].update({
+        "task": "Reintento controlado.", "status": "BLOCKED", "assigned": False,
+        "evidence_path": "artifacts/old.json", "evidence_sha256": "abc123",
+        "result_recorded_at": "old-time", "result_summary": "Ollama no disponible",
+    })
+    queen.save_json(ledger, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
+    queen.reassign_blocked("M0001")
+    reopened = queen.get_missions()[0]
+    assert reopened["status"] == "ASSIGNED" and reopened["assigned"] is True
+    assert reopened["attempt_history"][-1]["status"] == "BLOCKED"
+    assert reopened["attempt_history"][-1]["evidence_sha256"] == "abc123"
+    for key in ("evidence_path", "evidence_sha256", "result_recorded_at", "result_summary"):
+        assert key not in reopened
+
+
+def test_canonical_next_five_missions_have_concrete_tasks_and_context():
+    control = json.loads((ROOT / "docs/COLMENA_MISSION_CONTROL.json").read_text(encoding="utf-8"))
+    missions = control["missions"]
+    assert len(missions) == 179
+    assert len({m["id"] for m in missions}) == 179
+    selected = [m for m in missions if m["id"] in {f"M{i:04d}" for i in range(6, 11)}]
+    assert len(selected) == 5
+    assert all(m["status"] in {"PENDING", "ASSIGNED"} for m in selected)
+    assert all(m["assigned"] is (m["status"] == "ASSIGNED") for m in selected)
+    assert all(isinstance(m.get("task"), str) and m["task"].strip() for m in selected)
+    assert all(isinstance(m.get("context_paths"), list) and m["context_paths"] for m in selected)
+
+
+def test_ollama_agent_has_no_remote_inference_client():
+    source = (ROOT / "scripts/colmena_agent_ollama.py").read_text(encoding="utf-8").lower()
+    assert "huggingface_hub" not in source
+    assert "inferenceclient" not in source
+    assert "hf_token" not in source
+    assert '"/api/chat"' in source
