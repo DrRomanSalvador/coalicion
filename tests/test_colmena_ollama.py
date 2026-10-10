@@ -44,7 +44,6 @@ def test_agent_fails_closed_without_assignment(tmp_path, monkeypatch):
     ledger.write_text(json.dumps({"missions": [{
         "id": "M0001", "agent_id": "agent-001", "task": "Auditar", "status": "PENDING", "assigned": False
     }]}), encoding="utf-8")
-    result = agent.run_agent("M0001")
     calls = []
     def unexpected_provider_call(request, timeout):
         calls.append(request.full_url)
