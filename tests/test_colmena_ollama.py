@@ -66,7 +66,8 @@ def test_agent_uses_ollama_without_external_token(tmp_path, monkeypatch):
     monkeypatch.setattr(agent, "load_mandatory_contract", lambda **kwargs: "CONTRATO DE PRUEBA; principios 01–25.")
     ledger.write_text(json.dumps({"missions": [{
         "id": "M0001", "agent_id": "agent-001", "task": "Audita el código",
-        "status": "ASSIGNED", "assigned": True, "context_paths": []
+        "status": "ASSIGNED", "assigned": True, "context_paths": [],
+        "mission_type": "PLATFORM", "requirement_ids": []
     }]}), encoding="utf-8")
     class Response:
         def __enter__(self): return self
@@ -406,7 +407,8 @@ def test_agent_blocks_product_mission_without_430_requirements_before_ollama_cal
     monkeypatch.setattr(agent, "AGENTS_DIR", tmp_path / "evidence")
     ledger.write_text(json.dumps({"missions": [{
         "id": "M0001", "agent_id": "agent-001", "task": "Reconciliar requisito de producto.",
-        "status": "ASSIGNED", "assigned": True, "context_paths": []
+        "status": "ASSIGNED", "assigned": True, "context_paths: [],
+        "mission_type": "PRODUCT", "requirement_ids": ["R001"]
     }]}), encoding="utf-8")
     calls = []
     def unexpected_provider_call(request, timeout):
@@ -445,3 +447,23 @@ def test_queen_blocks_product_assignment_until_exact_430_requirement_list_is_rea
     saved = queen.get_missions()[0]
     assert saved["status"] == "PENDING" and saved["assigned"] is False
     assert queen.product_requirement_ids() == set()
+
+
+def test_agent_blocks_unclassified_assigned_mission_before_ollama_call(tmp_path, monkeypatch):
+    ledger = tmp_path / "missions.json"
+    monkeypatch.setattr(agent, "MISSION_CONTROL", ledger)
+    monkeypatch.setattr(agent, "AGENTS_DIR", tmp_path / "evidence")
+    ledger.write_text(json.dumps({"missions": [{
+        "id": "M0001", "agent_id": "agent-001", "task": "Task with no governance mapping.",
+        "status": "ASSIGNED", "assigned": True, "context_paths": [],
+        "mission_type": "UNDEFINED", "requirement_ids": []
+    }]}), encoding="utf-8")
+    calls = []
+    def unexpected_provider_call(request, timeout):
+        calls.append(request.full_url)
+        raise AssertionError("No debe invocar Ollama para una misión sin clasificar")
+    monkeypatch.setattr(agent, "urlopen", unexpected_provider_call)
+    result = agent.run_agent("M0001")
+    assert result["status"] == "BLOCKED"
+    assert "sin clasificación PLATFORM/PRODUCT" in result["error"]
+    assert calls == []
