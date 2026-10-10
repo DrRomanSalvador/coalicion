@@ -38,12 +38,3 @@ jobs:
           CURRENT_RUN_ID: ${{ github.run_id }}
         shell: bash
         run: python scripts/automatic_pr_integration.py
-
-      - name: Enable automatic squash merge after validation
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          gh pr merge "$PR_NUMBER" --auto --squash
