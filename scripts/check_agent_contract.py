@@ -27,8 +27,9 @@ REQUIRED = {
         "datos insuficientes",
     ],
     "docs/BRANCH_PROTECTION.md": ["Exigir pull request antes de fusionar", "Bloquear force-push"],
+    "docs/REPOSITORY_STRATEGY.md": ["Cuándo mantener un monorepo", "Cuándo considerar multirrepo"],
     ".github/copilot-instructions.md": ["AGENTS.md", "acceptance requirements"],
-    "README.md": ["AGENTS.md", "CONTRATO_MAESTRO_IA.md", "ENGINEERING_CHARTER.md", "DORA_METRICS.md"],
+    "README.md": ["AGENTS.md", "CONTRATO_MAESTRO_IA.md", "ENGINEERING_CHARTER.md", "DORA_METRICS.md", "REPOSITORY_STRATEGY.md", "BRANCH_PROTECTION.md"],
 }
 errors = []
 for relative, markers in REQUIRED.items():
