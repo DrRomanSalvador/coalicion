@@ -139,13 +139,13 @@ def run_agent(mission_id: str, model: str = DEFAULT_MODEL, ollama_url: str = DEF
                     "Distingue hechos, hipótesis y recomendaciones. Usa evidencia del repositorio, identifica "
                     "rutas/funciones, añade regresión para cada bug cuando sea viable, preserva trazabilidad, "
                     "seguridad, determinismo y rollback. Nunca declares PASS: la salida requiere revisión "
-                    "independiente.\\n\\nNORMAS CANÓNICAS OBLIGATORIAS:\\n"
+                    "independiente.\n\nNORMAS CANÓNICAS OBLIGATORIAS:\n"
                     + load_mandatory_contract()
                 )},
                 {"role": "user", "content": (
-                    f"Agente: {mission.get('agent_id')}\\nMisión: {mission_id}\\n"
-                    f"Título: {mission.get('title', mission_id)}\\nTarea:\\n{mission['task']}\\n\\n"
-                    f"Contexto real del repositorio:\\n{context or '(Sin archivos de contexto.)'}\\n\\n"
+                    f"Agente: {mission.get('agent_id')}\nMisión: {mission_id}\n"
+                    f"Título: {mission.get('title', mission_id)}\nTarea:\n{mission['task']}\n\n"
+                    f"Contexto real del repositorio:\n{context or '(Sin archivos de contexto.)'}\n\n"
                     "Entrega un informe auditable: causa raíz, cambio mínimo, principios 01–25 aplicables, "
                     "pruebas concretas y resultado solo si se ejecutó, riesgos y rollback. "
                     "No inventes ejecuciones ni resultados."
