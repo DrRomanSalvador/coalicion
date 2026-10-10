@@ -56,6 +56,100 @@ async function taskList(env: Env, userId: string): Promise<Task[]> {
   const r = await env.DB.prepare("SELECT id, title, done, priority, created_at FROM tasks WHERE user_id = ? ORDER BY done ASC, priority DESC, id DESC LIMIT 10").bind(userId).all<Task>();
   return r.results;
 }
+
+const EVIDENCE_BASE = "https://raw.githubusercontent.com/DrRomanSalvador/coalicion/main/";
+type JsonEvidence = Record<string, any>;
+async function readEvidence(path: string): Promise<JsonEvidence> {
+  const response = await fetch(EVIDENCE_BASE + path, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(6000) });
+  if (!response.ok) throw new Error("Evidence fetch failed");
+  const value: unknown = await response.json();
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Evidence shape invalid");
+  return value as JsonEvidence;
+}
+async function readProductEvidence(): Promise<{observations: JsonEvidence; situation: JsonEvidence; coverage: JsonEvidence; monitor: JsonEvidence}> {
+  const [observations, situation, coverage, monitor] = await Promise.all([
+    readEvidence("artifacts/estimation/observations.json"),
+    readEvidence("artifacts/situation_state.json"),
+    readEvidence("ci_evidence/poll_source_coverage.json"),
+    readEvidence("artifacts/poll_monitor_state.json")
+  ]);
+  if (observations.schema !== "REAL_ESTIMATION_OBSERVATIONS_V1" || situation.schema !== "COALICION_SITUATION_STATE_V1" || coverage.schema !== "POLL_SOURCE_COVERAGE_V1" || monitor.schema !== "POLL_MONITOR_STATE_V3") throw new Error("Evidence contract mismatch");
+  return {observations, situation, coverage, monitor};
+}
+function printableNumber(value: unknown): string {
+  return typeof value === "number" && Number.isFinite(value) ? String(value) : "n/d";
+}
+function evidenceAge(value: unknown): string {
+  if (typeof value !== "string" || !Number.isFinite(Date.parse(value))) return "antigüedad no verificable";
+  const ageMs = Date.now() - Date.parse(value);
+  if (ageMs < -300000) return "fecha futura; revisar";
+  const hours = Math.floor(Math.max(0, ageMs) / 3600000);
+  return hours >= 24 ? "desactualizada (" + Math.floor(hours / 24) + " días)" : "actualizada hace " + hours + " h";
+}
+async function productReply(env: Env, msg: TelegramMessage, command: string, arg: string, userId: string): Promise<void> {
+  const chatId = msg.chat.id;
+  let data: Awaited<ReturnType<typeof readProductEvidence>>;
+  try { data = await readProductEvidence(); } catch {
+    await send(env, chatId, "⛔ EVIDENCIA NO VERIFICABLE\nNo se pudo leer o validar la evidencia materializada de COALICIÓN. No se mostrarán cifras electorales inferidas. Reintenta cuando se recupere la fuente.");
+    return;
+  }
+  const {observations: obs, situation: sit, coverage, monitor} = data;
+  const polls = Array.isArray(obs.polls) ? obs.polls.filter((p: any) => p && typeof p === "object") : [];
+  const counts = sit.counts && typeof sit.counts === "object" ? sit.counts : {};
+  const health = sit.source_health && typeof sit.source_health === "object" ? sit.source_health : {};
+  const asOf = sit.as_of || obs.generated_at;
+  if (command === "/encuestas") {
+    const matched = (arg ? polls.filter((p: any) => JSON.stringify(p).toLowerCase().includes(arg.toLowerCase())) : polls).slice(0, 8);
+    const lines = matched.map((p: any) => {
+      const parties = p.parties && typeof p.parties === "object"
+        ? Object.entries(p.parties).filter((e): e is [string, number] => typeof e[1] === "number" && Number.isFinite(e[1])).sort((a,b) => b[1]-a[1]).slice(0,5).map(([name, value]) => name + " " + value.toFixed(1) + "%").join(" · ")
+        : "porcentajes no disponibles";
+      return "• " + String(p.publication_date || "fecha n/d") + " · " + String(p.pollster || p.source_id || "fuente n/d") + "\n  " + parties + "\n  Clasificación: " + String(p.validation || p.source_tier || "no clasificada") + "\n  " + String(p.source_url || "URL n/d");
+    });
+    await send(env, chatId, "📊 ENCUESTAS MATERIALIZADAS\nCorte: " + String(asOf || "n/d") + " · " + evidenceAge(asOf) + "\nNacionales: " + printableNumber(obs.national_poll_count) + " · territoriales: " + printableNumber(obs.territorial_poll_count) + "\n\n" + (lines.length ? lines.join("\n\n") : "Sin observaciones coincidentes.") + "\n\nLos porcentajes nacionales no se transforman en escaños ni en estimaciones territoriales.");
+    return;
+  }
+  if (command === "/fuentes") {
+    const unhealthy = Array.isArray(coverage.unhealthy_primary_sources) ? coverage.unhealthy_primary_sources : [];
+    const stale = Array.isArray(coverage.stale_or_unverified_primary_sources) ? coverage.stale_or_unverified_primary_sources : [];
+    const last = coverage.last_runtime_coverage || {};
+    const monitorCount = Object.keys(monitor.poll_hashes || {}).length;
+    await send(env, chatId, "🛰️ SALUD DE FUENTES\nEstado de cobertura: " + String(coverage.status || "n/d") + " · alcance: " + String(coverage.scope || "n/d") + "\nFuentes configuradas: " + printableNumber(coverage.configured_sources) + " · primarias: " + printableNumber(coverage.primary_sources) + " · sanas: " + printableNumber(coverage.healthy_primary_sources) + "\nComprobaciones registradas: " + printableNumber(last.sources_checked) + " · encuestas con hash en el monitor: " + monitorCount + "\nPrimarias con incidencias: " + (unhealthy.length ? unhealthy.map(String).join(", ") : "ninguna registrada") + "\nPrimarias obsoletas/no verificadas: " + (stale.length ? stale.map(String).join(", ") : "ninguna registrada") + "\n\nLímite: cobertura de transporte no equivale a una encuesta validada de cada encuestadora.");
+    return;
+  }
+  if (command === "/escanos") {
+    let prediction: JsonEvidence;
+    try { prediction = await readEvidence("artifacts/territorial_prediction_20261008.json"); } catch {
+      await send(env, chatId, "⛔ ESCAÑOS BLOQUEADOS\nNo se puede verificar el artefacto territorial. No se publica ningún reparto.");
+      return;
+    }
+    const valid = prediction.status === "PASS" && prediction.policy?.fail_closed === true && prediction.policy?.national_to_territorial_inference === false && prediction.seat_total === 350 && prediction.constituencies && Object.keys(prediction.constituencies).length === 52;
+    if (!valid) {
+      const blockers = Array.isArray(prediction.blockers) ? prediction.blockers.map(String) : ["Contrato territorial incompleto."];
+      await send(env, chatId, "🗳️ ESCAÑOS · CÁLCULO BLOQUEADO\nEstado observado: " + String(prediction.status || "n/d") + " · evidencia territorial: " + printableNumber(prediction.observed_territorial_polls) + "\n\nBloqueos:\n• " + blockers.join("\n• ") + "\n\nNo se extrapolan porcentajes nacionales ni encuestas autonómicas a las 52 circunscripciones.");
+      return;
+    }
+    await send(env, chatId, "🗳️ ESCAÑOS\nLa matriz territorial declara 52 circunscripciones y 350 escaños. Consulta el artefacto reproducible para el detalle por circunscripción.");
+    return;
+  }
+  if (command === "/buscar") {
+    const matches = polls.filter((p: any) => JSON.stringify(p).toLowerCase().includes(arg.toLowerCase())).slice(0,5);
+    const tasks = await env.DB.prepare("SELECT id,title,done,priority FROM tasks WHERE user_id=? AND title LIKE ? ORDER BY done ASC,priority DESC LIMIT 5").bind(userId, "%" + arg.slice(0,100) + "%").all<Task>();
+    const lines = [...matches.map((p: any) => "📊 " + String(p.publication_date || "fecha n/d") + " · " + String(p.pollster || p.source_id || "encuesta") + " · " + String(p.source_url || "URL n/d")), ...tasks.results.map(t => "📋 #" + t.id + " " + (t.done ? "completada" : "pendiente") + " · " + t.title)];
+    await send(env, chatId, "🔎 EVIDENCIA Y TAREAS: " + arg + "\n\n" + (lines.length ? lines.join("\n") : "Sin coincidencias en la evidencia materializada ni en las tareas."));
+    return;
+  }
+  const changed = Array.isArray(sit.headline?.changed) ? sit.headline.changed : [];
+  const uncertainties = Array.isArray(sit.headline?.uncertainties) ? sit.headline.uncertainties : [];
+  const questions = Array.isArray(sit.headline?.questions) ? sit.headline.questions : [];
+  const lines = ["🧭 COALICIÓN · SALA DE SITUACIÓN", "Radar: " + String(sit.radar || "n/d"), "Corte: " + String(asOf || "n/d") + " · " + evidenceAge(asOf), "Encuestas nacionales: " + printableNumber(counts.national_polls) + " · territoriales: " + printableNumber(counts.territorial_polls), "Última publicación: " + String(counts.latest_poll_date || "n/d"), "Fuentes primarias sanas: " + printableNumber(health.healthy_primary) + "/" + printableNumber(health.primary), "", "CAMBIOS OBSERVADOS", ...(changed.length ? changed.slice(0,4).map((v: any) => "• " + String(v.party || v.type || "cambio") + (typeof v.delta_pp === "number" ? " " + (v.delta_pp > 0 ? "+" : "") + v.delta_pp.toFixed(1) + " pp" : "") + " · " + String(v.latest_poll_date || "")) : ["• Sin cambios comparables materializados."]), "", "INCERTIDUMBRES / BLOQUEOS", ...(uncertainties.length ? uncertainties.slice(0,4).map((v: any) => "• " + String(v.statement || v.code || "incertidumbre")) : ["• No hay incertidumbres registradas en el resumen materializado."]), "", "No se publican escaños sin matriz territorial general validada."];
+  if (command === "/urgente") {
+    const high = uncertainties.filter((v: any) => String(v.severity || "").toUpperCase() === "HIGH");
+    lines.splice(0, lines.length, "🚨 COALICIÓN · ATENCIÓN PRIORITARIA", "Corte: " + String(asOf || "n/d") + " · " + evidenceAge(asOf), "", ...(high.length ? high.map((v: any) => "• " + String(v.statement || v.code || "bloqueo")) : ["• No constan bloqueos HIGH en la evidencia materializada."]), "", "Encuestas nacionales: " + printableNumber(counts.national_polls) + " · territoriales: " + printableNumber(counts.territorial_polls));
+  }
+  if (questions.length && command !== "/urgente") lines.push("", "PREGUNTAS DE CONTROL", ...questions.slice(0,2).map((v: any) => "• " + String(v.question || v.id || "pregunta")));
+  await send(env, chatId, lines.join("\n"), keyboard([[{text:"📊 Encuestas",callback_data:"cmd:encuestas"},{text:"🛰️ Fuentes",callback_data:"cmd:fuentes"}],[{text:"🗳️ Escaños",callback_data:"cmd:escanos"},{text:"🚨 Urgente",callback_data:"cmd:urgente"}],[{text:"📋 Tareas",callback_data:"task:list"},{text:"❓ Ayuda",callback_data:"cmd:ayuda"}]]));
+}
 async function handleMessage(env: Env, msg: TelegramMessage): Promise<void> {
   if (!msg.from || msg.from.is_bot || msg.from.id.toString() !== env.TELEGRAM_ALLOWED_USER_ID) return;
   const text = (msg.text || "").trim();
@@ -65,9 +159,9 @@ async function handleMessage(env: Env, msg: TelegramMessage): Promise<void> {
   const separator = text.indexOf(" ");
   const arg = separator >= 0 ? text.slice(separator + 1).trim() : "";
   if (command === "/start") {
-    await send(env, chatId, "🐝 COALICIÓN · Centro de mando\n\nWebhook seguro activo y tareas con persistencia. El análisis electoral completo sigue en el motor COALICIÓN; este servicio gestiona la interfaz y el estado del despacho.", keyboard([[{text:"📍 Hoy",callback_data:"cmd:hoy"},{text:"🚨 Urgente",callback_data:"cmd:urgente"}],[{text:"📋 Tareas",callback_data:"task:list"},{text:"⚙️ Configuración",callback_data:"cmd:config"}],[{text:"❓ Ayuda",callback_data:"cmd:ayuda"}]]));
+    await send(env, chatId, "🐝 COALICIÓN · Centro de mando\n\nWebhook seguro activo y tareas con persistencia. El análisis electoral completo sigue en el motor COALICIÓN; este servicio gestiona la interfaz y el estado del despacho.", keyboard([[{text:"🧭 Situación",callback_data:"cmd:hoy"},{text:"🚨 Urgente",callback_data:"cmd:urgente"}],[{text:"📊 Encuestas",callback_data:"cmd:encuestas"},{text:"🛰️ Fuentes",callback_data:"cmd:fuentes"}],[{text:"🗳️ Escaños",callback_data:"cmd:escanos"},{text:"📋 Tareas",callback_data:"task:list"}],[{text:"⚙️ Configuración",callback_data:"cmd:config"},{text:"❓ Ayuda",callback_data:"cmd:ayuda"}]]));
   } else if (command === "/ayuda" || command === "/help") {
-    await send(env, chatId, "Comandos disponibles:\n/hoy · /urgente · /resumen · /buscar texto\n/tarea texto · /tarea · /config · /ayuda\n\nLos botones permiten completar tareas y cambiar su prioridad. Acceso restringido al operador autorizado.");
+    await send(env, chatId, "Comandos disponibles:\n/situacion · /hoy · /resumen · /urgente\n/encuestas [texto] · /fuentes · /escanos · /buscar texto\n/tarea texto · /tarea · /config · /ayuda\n\nLos informes electorales consultan evidencia materializada y bloquean cifras no verificables.");
   } else if (command === "/tarea") {
     if (!arg) {
       const tasks = await taskList(env, userId);
@@ -79,20 +173,14 @@ async function handleMessage(env: Env, msg: TelegramMessage): Promise<void> {
     await env.DB.prepare("INSERT INTO tasks(user_id, chat_id, title) VALUES(?,?,?)").bind(userId, String(chatId), arg).run();
     await send(env, chatId, "✅ Tarea guardada de forma persistente:\n" + arg, keyboard([[{text:"Ver tareas",callback_data:"task:list"}]]));
   } else if (command === "/buscar") {
-    if (!arg) return send(env, chatId, "Uso: /buscar texto. Busca en tus tareas persistentes; la búsqueda de evidencia electoral materializada se habilitará cuando se conecte el índice del motor.");
-    const results = await env.DB.prepare("SELECT id,title,done,priority FROM tasks WHERE user_id=? AND title LIKE ? ORDER BY done ASC,priority DESC LIMIT 8").bind(userId, `%${arg.slice(0,100)}%`).all<Task>();
-    await send(env, chatId, results.results.length ? "🔎 Tareas coincidentes:\n" + results.results.map(t=>`#${t.id} ${t.done?"✅":"▫️"} ${t.title}`).join("\n") : "No hay tareas coincidentes.");
+    if (!arg) return send(env, chatId, "Uso: /buscar texto. Busca en encuestas materializadas y tareas persistentes.");
+    return productReply(env, msg, command, arg, userId);
   } else if (command === "/config") {
     const row = await env.DB.prepare("SELECT value FROM preferences WHERE user_id=? AND key='muted'").bind(userId).first<{value:string}>();
     const muted = row?.value === "1";
     await send(env, chatId, "⚙️ PREFERENCIAS\nPreferencia guardada en el webhook: alertas " + (muted ? "silenciadas" : "activas") + ".\nEsta preferencia aún no cambia la configuración del motor Python.", keyboard([[{text:muted?"🔔 Activar alertas":"🔕 Silenciar alertas",callback_data:"pref:toggle-muted"}]]));
-  } else if (command === "/hoy" || command === "/urgente" || command === "/resumen") {
-    const tasks = await taskList(env, userId);
-    const pending = tasks.filter(t=>!t.done);
-    const urgent = pending.filter(t=>t.priority);
-    const title = command === "/urgente" ? "🚨 URGENTE" : command === "/resumen" ? "🗞️ RESUMEN" : "🧭 COALICIÓN · HOY";
-    const selected = command === "/urgente" ? urgent : pending;
-    await send(env, chatId, title + "\n\n" + (command === "/resumen" ? "Estado del despacho guardado de forma persistente.\n" : "") + `Tareas pendientes: ${pending.length}\nPrioridad alta: ${urgent.length}\n\n` + (selected.length ? selected.map(t=>`${t.priority?"🔴":"▫️"} #${t.id} ${t.title}`).join("\n") : "No hay tareas pendientes en esta categoría.") + "\n\nNota: este parte no afirma disponer de nuevos datos electorales; resume el estado persistente del despacho.", keyboard([[{text:"📋 Gestionar tareas",callback_data:"task:list"}]]));
+  } else if (["/situacion", "/hoy", "/resumen", "/urgente", "/encuestas", "/fuentes", "/escanos"].includes(command)) {
+    return productReply(env, msg, command === "/hoy" || command === "/resumen" ? "/situacion" : command, arg, userId);
   } else {
     await send(env, chatId, "No reconozco ese comando. Usa /ayuda.");
   }
@@ -104,7 +192,7 @@ async function handleCallback(env: Env, update: Update): Promise<void> {
   const chatId = cb.message.chat.id;
   const userId = String(cb.from.id);
   const data = cb.data || "";
-  if (data === "cmd:hoy" || data === "cmd:urgente" || data === "cmd:config" || data === "cmd:ayuda") {
+  if (["cmd:hoy", "cmd:urgente", "cmd:config", "cmd:ayuda", "cmd:encuestas", "cmd:fuentes", "cmd:escanos"].includes(data)) {
     const command = data.slice(4);
     return handleMessage(env, {...cb.message, text:"/"+command, from:cb.from});
   }

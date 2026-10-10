@@ -8,7 +8,7 @@ Persistent Cloudflare Workers webhook frontend for the COALICIÓN dispatch bot. 
 - Only the numeric account in `TELEGRAM_ALLOWED_USER_ID` can invoke commands or callbacks.
 - Tokens are secrets and must never be committed or pasted into chat.
 - D1 writes are persistent. Duplicate Telegram update IDs are ignored.
-- `/hoy`, `/urgente`, and `/resumen` currently summarize persisted dispatch tasks. They do **not** claim fresh election evidence. `/buscar` searches tasks only. The existing Python bot and electoral pipeline are not silently represented as migrated.
+- `/situacion`, `/hoy`, and `/resumen` read the committed situation snapshot; `/urgente` surfaces high-severity uncertainties; `/encuestas` lists materialized poll observations; `/fuentes` reports source-coverage evidence; `/escanos` refuses a seat projection unless a valid 52-constituency, 350-seat matrix is present; `/buscar` searches materialized observations and tasks. The Worker does not execute Python models; it reads public committed artifacts and fails closed if their schemas cannot be verified.
 
 ## Required GitHub Actions secrets
 
@@ -31,7 +31,7 @@ Before the first deploy, open the Cloudflare Dashboard → **Workers & Pages** a
 2. Complete the one-time `workers.dev` onboarding described above.
 3. Open Actions → **Deploy COALICIÓN Telegram webhook** → **Run workflow**.
 4. The workflow validates secrets, runs tests and type-checking, deploys the Worker, configures Worker secrets, registers Telegram's webhook, and verifies `/health`. It stops if a required secret is missing or Cloudflare rejects deployment.
-5. Open the bot in Telegram and send `/start`. Test `/tarea Preparar briefing`, `/tarea`, `/hoy`, and the task buttons.
+5. Open the bot in Telegram and send `/start`. Test `/situacion`, `/encuestas`, `/fuentes`, `/escanos`, `/buscar CIS`, `/tarea Preparar briefing`, `/tarea`, and the task buttons.
 
 The workflow discovers the deployed `workers.dev` URL and registers the webhook automatically; no manual `curl` command is required. If Cloudflare rejects the D1 binding because the database has not been created or linked, inspect the Wrangler error and configure the D1 database ID in `telegram-worker/wrangler.jsonc` before rerunning.
 
