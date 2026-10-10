@@ -91,9 +91,37 @@ def fetch_runs(
                     "name": run.get("name", ""),
                     "status": run.get("status", ""),
                     "conclusion": run.get("conclusion"),
+                    "run_number": run.get("run_number"),
+                    "run_attempt": run.get("run_attempt"),
+                    "created_at": run.get("created_at"),
                 }
             )
-    return runs
+    return latest_runs_per_workflow(runs)
+
+
+def latest_runs_per_workflow(runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Use the newest attempt per workflow so an obsolete failed run cannot poison a retry."""
+    latest: dict[str, tuple[tuple[Any, ...], dict[str, Any]]] = {}
+    for run in runs:
+        name = str(run.get("name") or run.get("id") or "unnamed")
+        try:
+            run_number = int(run.get("run_number") or 0)
+            attempt = int(run.get("run_attempt") or 0)
+            run_id = int(run.get("id") or 0)
+        except (TypeError, ValueError):
+            run_number, attempt, run_id = 0, 0, 0
+        rank = (run_number, attempt, str(run.get("created_at") or ""), run_id)
+        if name not in latest or rank > latest[name][0]:
+            latest[name] = (rank, run)
+    return [
+        {
+            "id": run.get("id"),
+            "name": run.get("name", ""),
+            "status": run.get("status", ""),
+            "conclusion": run.get("conclusion"),
+        }
+        for _, run in latest.values()
+    ]
 
 
 def fetch_changed_files(
