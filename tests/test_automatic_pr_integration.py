@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from automatic_pr_integration import fetch_changed_files, required_checks_for_files, validate_pr_body, fetch_pr_body
+from automatic_pr_integration import fetch_changed_files, required_checks_for_files, validate_pr_body, fetch_pr_body, fetch_current_pr_head_sha
 
 
 def test_contract_and_resilience_checks_are_always_required():
@@ -35,6 +35,23 @@ def test_docs_only_change_does_not_require_untriggered_product_pipeline():
     required = required_checks_for_files(["README.md"])
     assert "Product pipeline 2026" not in required
     assert "Exhaustive fail-closed validation" not in required
+
+
+def test_current_pr_head_sha_is_read_from_live_github_state():
+    def fake_runner(*args, **kwargs):
+        return subprocess.CompletedProcess(args[0], 0, stdout="a" * 40 + "\\n", stderr="")
+    assert fetch_current_pr_head_sha("owner/repo", "17", runner=fake_runner) == "a" * 40
+
+
+def test_current_pr_head_sha_fails_closed_on_malformed_response():
+    def fake_runner(*args, **kwargs):
+        return subprocess.CompletedProcess(args[0], 0, stdout="unknown", stderr="")
+    try:
+        fetch_current_pr_head_sha("owner/repo", "17", runner=fake_runner)
+    except Exception as exc:
+        assert "malformed current PR head SHA" in str(exc)
+    else:
+        raise AssertionError("Malformed live SHA must never permit a merge")
 
 
 def test_changed_file_fetch_flattens_paginated_github_response():
