@@ -1,6 +1,6 @@
 # Colmena — agentes locales Ollama
 
-La Colmena usa Ollama como único backend de inferencia. No requiere `Reina_token`, `HF_TOKEN`, cuenta de inferencia, créditos ni proveedor externo. Los 179 registros son slots lógicos; no son 179 procesos ejecutándose a la vez.
+La Colmena usa Ollama como único backend de inferencia. No requiere tokens, cuenta de inferencia, créditos ni proveedor externo. Los 179 registros son slots lógicos; no son 179 procesos ejecutándose a la vez.
 
 ## Flujo canónico
 1. Leer `AGENTS.md`, `CONTRATO_MAESTRO_IA.md` y `docs/COLMENA_STATE.json`.
@@ -22,7 +22,7 @@ python scripts/colmena_queen.py --record-result artifacts/colmena/agents/agent-0
 La misión debe estar asignada explícitamente en `docs/COLMENA_MISSION_CONTROL.json`. El resultado del modelo requiere revisión independiente. La ejecución del agente genera análisis y evidencia; no modifica por sí misma el código fuente del producto.
 
 ## GitHub Actions y coste
-Usar **COALICIÓN — Agentes locales Ollama** en Actions. El runner estándar de un repositorio público y el software Ollama no requieren créditos de Hugging Face. El modelo se descarga/cacha en el runner; el tiempo y memoria siguen siendo limitados, por lo que un modelo pequeño como `qwen2.5:3b` es el valor inicial. Si la descarga o inferencia falla, el trabajo queda bloqueado y no cambia automáticamente a un proveedor de pago.
+Usar **COALICIÓN — Agentes locales Ollama** en Actions. El runner estándar de un repositorio público y el software Ollama no requieren créditos de inferencia externos. El modelo se descarga/cacha en el runner; el tiempo y memoria siguen siendo limitados, por lo que un modelo pequeño como `qwen2.5:3b` es el valor inicial. Si la descarga o inferencia falla, el trabajo queda bloqueado y no cambia automáticamente a un proveedor de pago.
 
 ## Estados
 - `PENDING`: sin asignación.
