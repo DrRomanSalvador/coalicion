@@ -86,6 +86,46 @@ def validate_missions(missions: list[dict[str, Any]]) -> None:
                 f"Estado/assigned incoherentes en {mission.get('id')}: "
                 f"status={mission.get('status')!r}, assigned={mission.get('assigned')!r}."
             )
+        mission_type = mission.get("mission_type", "UNDEFINED")
+        if mission_type not in {"PLATFORM", "PRODUCT", "UNDEFINED"}:
+            raise ValueError(f"Tipo de misión no válido en {mission.get('id')}: {mission_type!r}.")
+        requirement_ids = mission.get("requirement_ids", [])
+        if not isinstance(requirement_ids, list) or any(not isinstance(item, str) or not item.strip() for item in requirement_ids):
+            raise ValueError(f"requirement_ids inválido en {mission.get('id')}.")
+
+
+def product_requirement_ids() -> set[str]:
+    """Devuelve IDs solo si el checklist canónico completo está materializado."""
+    index = load_json(ROOT / "docs" / "COALICION_PRODUCT_REQUIREMENTS_430.json", {})
+    requirements = index.get("requirements")
+    if (
+        index.get("schema") != "COALICION_PRODUCT_REQUIREMENTS_V1"
+        or index.get("status") != "READY"
+        or index.get("expected_count") != 430
+        or not isinstance(requirements, list)
+        or len(requirements) != 430
+    ):
+        return set()
+    ids = [
+        item.get("id") for item in requirements
+        if isinstance(item, dict) and isinstance(item.get("id"), str) and item.get("id").strip()
+        and isinstance(item.get("acceptance_criteria"), list) and item["acceptance_criteria"]
+    ]
+    return set(ids) if len(ids) == 430 and len(set(ids)) == 430 else set()
+
+
+def mission_is_assignable(mission: dict[str, Any]) -> bool:
+    """No asigna slots sin clasificar ni producto sin requisito fuente verificable."""
+    if not isinstance(mission.get("task"), str) or not mission["task"].strip():
+        return False
+    mission_type = mission.get("mission_type", "UNDEFINED")
+    if mission_type == "PLATFORM":
+        return True
+    if mission_type == "PRODUCT":
+        ids = mission.get("requirement_ids", [])
+        known = product_requirement_ids()
+        return bool(ids) and bool(known) and set(ids).issubset(known)
+    return False
 
 
 def status_report() -> dict[str, Any]:
@@ -152,7 +192,7 @@ def assign_next_batch(batch_size: int = 5) -> list[dict[str, Any]]:
     eligible = [
         m for m in missions
         if m["status"] == "PENDING" and not m.get("assigned")
-        and isinstance(m.get("task"), str) and m["task"].strip()
+        and mission_is_assignable(m)
     ]
     batch = eligible[:batch_size]
     timestamp = now()
@@ -190,6 +230,8 @@ def reassign_blocked(mission_id: str) -> dict[str, Any]:
         )
     if not isinstance(mission.get("task"), str) or not mission["task"].strip():
         raise ValueError("Fail-closed: no se puede reabrir una misión sin tarea concreta.")
+    if not mission_is_assignable(mission):
+        raise ValueError("Fail-closed: la misión no tiene tipo válido o requisito de producto verificable.")
     timestamp = now()
     history = mission.setdefault("attempt_history", [])
     history.append({
