@@ -188,8 +188,8 @@ def test_auto_merge_gate_uses_testable_fail_closed_api_client():
     assert "pull-requests: write" in workflow
     assert "GH_TOKEN: ${{ github.token }}" in workflow
     assert "run: python scripts/automatic_pr_integration.py" in workflow
-    assert "Checkout exact PR head for gate script" in workflow
-    assert "ref: ${{ github.event.pull_request.head.sha }}" in workflow
+    assert "Checkout trusted base revision for gate script" in workflow
+    assert "ref: ${{ github.event.pull_request.base.sha }}" in workflow
     assert "persist-credentials: false" in workflow
     assert "GitHubAPIAuthError" in client
     assert "GitHub Actions API authentication/authorization failed" in client
