@@ -13,8 +13,7 @@ permissions:
 
 concurrency:
   group: inspect-interior-source-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
+  cancel-in-progress: false
 jobs:
   inspect:
     runs-on: ubuntu-latest
