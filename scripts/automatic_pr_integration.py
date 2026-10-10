@@ -395,11 +395,36 @@ def main() -> int:
         )
         return 1
 
-    # This workflow is a validation gate, not a merge authority. GitHub branch
-    # protection must enforce required checks; never mutate the PR from this job.
+    # Ask GitHub to queue the squash merge for this exact validated revision.
+    # GitHub still enforces every required check, review, signature, and branch rule.
     print(
         "All required checks succeeded and remained stable for 30 seconds. "
-        f"Validated revision={sha}; integration may proceed only through repository branch protection.",
+        f"Requesting protected auto-squash merge for revision={sha}.",
+        flush=True,
+    )
+    merge = subprocess.run(
+        ["gh", "pr", "merge", pr_number, "--auto", "--squash", "--match-head-commit", sha],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if merge.returncode:
+        detail = "\\n".join(
+            part.strip()
+            for part in (merge.stderr or "", merge.stdout or "")
+            if part and part.strip()
+        ) or f"gh pr merge exited with status {merge.returncode}"
+        print(
+            "::error::Could not enable protected auto-merge. "
+            "Check repository auto-merge settings, token permissions, and branch rules. "
+            + detail,
+            file=sys.stderr,
+            flush=True,
+        )
+        return 1
+    print(
+        "GitHub accepted the auto-squash merge request. The platform will merge only "
+        "after all branch protection requirements are satisfied.",
         flush=True,
     )
     return 0
