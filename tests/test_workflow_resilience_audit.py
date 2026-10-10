@@ -91,7 +91,16 @@ def test_product_release_audit_rejects_stale_evidence_push():
 
 
 def test_workflow_audit_blocks_cancellation_of_active_runs():
-    unsafe = "permissions:\\n  contents: read\\nconcurrency:\\n  group: test\\n  cancel-in-progress: true\\njobs:\\n  test:\\n    runs-on: ubuntu-latest\\n    timeout-minutes: 5\\n"
+    unsafe = """permissions:
+  contents: read
+concurrency:
+  group: test
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+"""
     safe = unsafe.replace("cancel-in-progress: true", "cancel-in-progress: false")
     assert audit_cancels_in_progress(unsafe)
     assert not audit_cancels_in_progress(safe)
