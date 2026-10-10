@@ -126,7 +126,13 @@ def test_required_agent_contract_executes_all_25_principle_gate_regressions():
     source = (WORKFLOWS / "agent-contract.yml").read_text(encoding="utf-8")
     assert "Run the full 25-principle PR evidence gate regression suite" in source
     assert "python -m pytest -q tests/test_automatic_pr_integration.py" in source
-    assert "name: Engineering contract checks" in source
+    assert "name: Verify mandatory agent contract" in source
+
+
+def test_auto_merge_gate_cancels_stale_validation_for_superseded_head():
+    workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
+    assert "group: pr-validation-${{ github.event.pull_request.number }}" in workflow
+    assert "cancel-in-progress: true" in workflow
 
 
 def test_pr_validation_gate_paginates_and_excludes_only_its_own_run():
