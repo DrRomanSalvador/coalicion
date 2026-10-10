@@ -32,17 +32,19 @@ describe("COALICIÓN Telegram webhook", () => {
     expect(await response.text()).toBe("ignored");
   });
   it("answers an authorized /start command through Telegram", async () => {
-    const statement = (query: string) => ({
-      bind: (..._values: unknown[]) => statement(query),
-      first: async () => null,
-      all: async () => ({ results: [] }),
-      run: async () => ({ meta: { changes: 1 } })
-    });
+    function statement(query: string): any {
+      return {
+        bind: (..._values: unknown[]) => statement(query),
+        first: async () => null,
+        all: async () => ({ results: [] }),
+        run: async () => ({ meta: { changes: 1 } })
+      };
+    }
     const mockDb = {
       batch: async () => [],
       prepare: (query: string) => statement(query)
     };
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ok:true,result:{message_id:1}}), {status:200,headers:{"content-type":"application/json"}}));
+    const fetchMock = vi.fn(async (_input?: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify({ok:true,result:{message_id:1}}), {status:200,headers:{"content-type":"application/json"}}));
     vi.stubGlobal("fetch", fetchMock);
     try {
       const response = await worker.fetch(new Request("https://worker.test/telegram/webhook", {
