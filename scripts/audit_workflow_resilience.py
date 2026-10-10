@@ -137,11 +137,11 @@ def workflow_contract_findings(relative_path: str, source: str) -> list[dict[str
             "missing_contract": "no workflow-level or job-level permissions declaration",
         })
     jobs_section = source.split("jobs:", 1)[1] if "jobs:" in source else ""
-    job_matches = list(re.finditer(r"(?m)^  ([A-Za-z0-9_-]+):\\s*$", jobs_section))
+    job_matches = list(re.finditer(r"(?m)^  ([A-Za-z0-9_-]+):\s*$", jobs_section))
     for index, match in enumerate(job_matches):
         end = job_matches[index + 1].start() if index + 1 < len(job_matches) else len(jobs_section)
         block = jobs_section[match.start():end]
-        if not re.search(r"(?m)^\\s+timeout-minutes:\\s*\\d+\\s*$", block):
+        if not re.search(r"(?m)^\s+timeout-minutes:\s*\\d+\s*$", block):
             findings.append({
                 "path": relative_path,
                 "missing_contract": f"job {match.group(1)} has no timeout-minutes",
