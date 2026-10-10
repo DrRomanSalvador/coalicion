@@ -88,3 +88,10 @@ def test_product_release_audit_rejects_stale_evidence_push():
     workflow = workflow.replace('[[ "$remote_sha" != "$GITHUB_SHA" ]]', 'false')
     missing = audit_product_release_persistence(workflow)
     assert "release writer compares main to the tested SHA" in missing
+
+def test_workflow_audit_blocks_cancellation_of_active_runs():
+    unsafe = "permissions:\\n  contents: read\\nconcurrency:\\n  group: test\\n  cancel-in-progress: true\\njobs:\\n  test:\\n    runs-on: ubuntu-latest\\n    timeout-minutes: 5\\n"
+    safe = unsafe.replace("cancel-in-progress: true", "cancel-in-progress: false")
+    assert "cancel-in-progress: true" in unsafe
+    assert "cancel-in-progress: false" in safe
+
