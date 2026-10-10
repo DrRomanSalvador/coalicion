@@ -3,7 +3,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from audit_workflow_resilience import audit_self_healer_contract, audit_telegram_pages_contract, permission_declarations, writer_without_concurrency, audit_product_release_persistence, audit_cancels_in_progress
+from audit_workflow_resilience import audit_self_healer_contract, audit_telegram_pages_contract, permission_declarations, writer_without_concurrency, audit_product_release_persistence, audit_cancels_in_progress, workflow_contract_findings
 
 
 def test_main_self_healer_has_all_blocking_recovery_contracts():
@@ -104,3 +104,58 @@ jobs:
     safe = unsafe.replace("cancel-in-progress: true", "cancel-in-progress: false")
     assert audit_cancels_in_progress(unsafe)
     assert not audit_cancels_in_progress(safe)
+
+def test_mandatory_workflow_contract_rejects_missing_concurrency():
+    source = """name: unsafe
+on: [push]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps: []
+"""
+    findings = workflow_contract_findings(".github/workflows/unsafe.yml", source)
+    assert any(item["missing_contract"] == "no concurrency group" for item in findings)
+
+
+def test_mandatory_workflow_contract_rejects_active_cancellation():
+    source = """name: unsafe
+on: [push]
+permissions:
+  contents: read
+concurrency:
+  group: unsafe
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps: []
+"""
+    findings = workflow_contract_findings(".github/workflows/unsafe.yml", source)
+    assert any("cancel an in-progress execution" in item["missing_contract"] for item in findings)
+
+
+def test_mandatory_workflow_contract_requires_bounded_jobs_and_permissions():
+    source = """name: unsafe
+on: [push]
+concurrency:
+  group: unsafe
+  cancel-in-progress: false
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps: []
+"""
+    findings = workflow_contract_findings(".github/workflows/unsafe.yml", source)
+    assert any("permissions declaration" in item["missing_contract"] for item in findings)
+    assert any("has no timeout-minutes" in item["missing_contract"] for item in findings)
+
+
+def test_current_mandatory_workflow_contracts_have_concurrency_and_bounded_jobs():
+    workflow_dir = ROOT / ".github" / "workflows"
+    for path in sorted([*workflow_dir.glob("*.yml"), *workflow_dir.glob("*.yaml")]):
+        findings = workflow_contract_findings(str(path.relative_to(ROOT)), path.read_text(encoding="utf-8"))
+        assert findings == [], f"{path.name}: {findings}"
