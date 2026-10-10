@@ -140,6 +140,8 @@ export default {
     let update: Update;
     try { update = await request.json() as Update; } catch { return response("invalid JSON",400); }
     if (!Number.isSafeInteger(update.update_id)) return response("invalid update",400);
+    const senderId = update.message?.from?.id ?? update.callback_query?.from?.id;
+    if (senderId === undefined || String(senderId) !== env.TELEGRAM_ALLOWED_USER_ID) return response("ignored");
     try {
       await init(env);
       const inserted = await env.DB.prepare("INSERT OR IGNORE INTO processed_updates(update_id) VALUES(?)").bind(update.update_id).run() as {meta?:{changes?:number}};
