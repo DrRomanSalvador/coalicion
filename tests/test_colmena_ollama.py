@@ -119,3 +119,19 @@ def test_ollama_workflow_uses_one_model_store_for_server_and_pull():
     assert '(ollama serve > /tmp/ollama.log 2>&1 &)' in source
     assert 'ollama pull "$LOCAL_MODEL"' in source
     assert 'ollama list | grep -F "$LOCAL_MODEL"' in source
+
+
+def test_lightweight_workflow_never_pushes_directly_to_main():
+    source = (ROOT / ".github/workflows/colmena_atomic_swarm.yml").read_text(encoding="utf-8")
+    assert "git push origin HEAD:main" not in source
+    assert "contents: read" in source
+    assert "actions/upload-artifact@v4" in source
+    assert '"main_modified": False' in source
+    assert "colmena-light-checkpoint-" in source
+
+
+def test_assignment_workflow_treats_no_executable_tasks_as_safe_noop():
+    source = (ROOT / ".github/workflows/colmena_ollama_assign.yml").read_text(encoding="utf-8")
+    assert "python scripts/colmena_queen.py --assign" in source
+    assert "peter-evans/create-pull-request@v7" in source
+    assert "base: ${{ inputs.base_branch }}" in source
