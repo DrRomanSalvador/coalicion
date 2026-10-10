@@ -68,6 +68,8 @@ def load_mandatory_contract() -> str:
         "docs/ENGINEERING_CHARTER.md",
         "docs/ENGINEERING_ENFORCEMENT_MATRIX.md",
         "docs/COLMENA_STATE.json",
+        "docs/COALICION_PRODUCT_GOVERNANCE.md",
+        "docs/COALICION_PRODUCT_REQUIREMENTS_430.json",
     )
     root = ROOT.resolve()
     chunks: list[str] = []
@@ -92,6 +94,32 @@ def load_mandatory_contract() -> str:
     if covered != expected:
         missing = sorted(expected - covered)
         raise ValueError(f"Fail-closed: la matriz no cubre los 25 principios; faltan {missing}.")
+    product_index_path = root / "docs/COALICION_PRODUCT_REQUIREMENTS_430.json"
+    try:
+        product_index = json.loads(product_index_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError("Fail-closed: no se puede leer el índice canónico de 430 requisitos.") from exc
+    requirements = product_index.get("requirements")
+    expected_count = product_index.get("expected_count")
+    ids = [
+        item.get("id")
+        for item in requirements
+        if isinstance(item, dict) and isinstance(item.get("id"), str) and item.get("id").strip()
+    ] if isinstance(requirements, list) else []
+    if (
+        product_index.get("schema") != "COALICION_PRODUCT_REQUIREMENTS_V1"
+        or product_index.get("status") != "READY"
+        or expected_count != 430
+        or len(requirements) != 430
+        or len(ids) != 430
+        or len(set(ids)) != 430
+        or any(not isinstance(item.get("acceptance_criteria"), list) or not item["acceptance_criteria"]
+               for item in requirements)
+    ):
+        raise ValueError(
+            "Fail-closed: la lista maestra exacta de 430 requisitos no está materializada "
+            "con 430 IDs únicos y criterios de aceptación; no se ejecuta ninguna misión de producto."
+        )
     if total_chars > 50000:
         raise ValueError("Fail-closed: los contratos obligatorios exceden el límite de contexto.")
     return "\n\n".join(chunks)
