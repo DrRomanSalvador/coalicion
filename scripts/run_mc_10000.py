@@ -68,8 +68,6 @@ def main():
             if allocation.status!="OK":
                 raise SystemExit(f"BLOCKED: allocation {name} {allocation.status} tied={allocation.tie}")
             status_counts[allocation.status]=status_counts.get(allocation.status,0)+1
-            if allocation.status!="OK":
-                raise SystemExit(f"BLOCKED: allocation {name} {allocation.status}")
             total_seats+=sum(allocation.seats.values())
         seat_sums[i]=total_seats
     if not np.all(seat_sums==350):
