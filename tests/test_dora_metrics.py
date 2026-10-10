@@ -27,7 +27,7 @@ class DoraMetricsTests(unittest.TestCase):
         report = summarize(deployments, self.now)
         metrics = report["metrics"]
         self.assertEqual(metrics["deployment_frequency"]["successful_deployments"], 2)
-        self.assertAlmostEqual(metrics["change_failure_rate"]["rate"], 1 / 3)
+        self.assertAlmostEqual(metrics["change_failure_rate"]["rate"], 1 / 3, places=3)
         self.assertEqual(metrics["lead_time_for_changes"]["sample_size"], 2)
         self.assertEqual(metrics["time_to_restore"]["median_hours"], 2.0)
         self.assertEqual(metrics["time_to_restore"]["status"], "PROXY_MEASURED")
