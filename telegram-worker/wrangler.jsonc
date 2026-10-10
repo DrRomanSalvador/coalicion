@@ -1,0 +1,15 @@
+{
+  "$schema": "https://www.schemastore.org/wrangler",
+  "name": "coalicion-telegram",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-09",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "limits": { "cpu_ms": 50 },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "coalicion-telegram-state"
+    }
+  ]
+}
