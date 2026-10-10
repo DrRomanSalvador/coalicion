@@ -44,8 +44,8 @@ describe("COALICIÓN Telegram webhook", () => {
       batch: async () => [],
       prepare: (query: string) => statement(query)
     };
-    const fetchMock = vi.fn(async (_input?: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify({ok:true,result:{message_id:1}}), {status:200,headers:{"content-type":"application/json"}}));
-    vi.stubGlobal("fetch", fetchMock);
+    const sentPayloads: Array<{body?: BodyInit | null}> = [];
+    vi.stubGlobal("fetch", async (_input: RequestInfo | URL, init?: RequestInit) => { sentPayloads.push({body:init?.body}); return new Response(JSON.stringify({ok:true,result:{message_id:1}}), {status:200,headers:{"content-type":"application/json"}}); });
     try {
       const response = await worker.fetch(new Request("https://worker.test/telegram/webhook", {
         method:"POST",
@@ -53,8 +53,8 @@ describe("COALICIÓN Telegram webhook", () => {
         body:JSON.stringify({update_id:3,message:{message_id:1,date:1,text:"/start",chat:{id:8459054385,type:"private"},from:{id:8459054385,is_bot:false}}})
       }), {...env,DB:mockDb} as any);
       expect(response.status).toBe(200);
-      expect(fetchMock).toHaveBeenCalledOnce();
-      const sent = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+      expect(sentPayloads).toHaveLength(1);
+      const sent = JSON.parse(String(sentPayloads[0].body));
       expect(sent.text).toContain("COALICIÓN");
       expect(sent.reply_markup.inline_keyboard.length).toBeGreaterThan(0);
     } finally {
