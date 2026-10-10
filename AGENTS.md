@@ -105,3 +105,5 @@ Aplicar el documento canónico `docs/ENGINEERING_CHARTER.md`: claridad, automati
 - Revisar tendencias y contexto; no optimizar métricas aisladas ni usarlas para premiar cantidad de commits. La frecuencia de commits no equivale a frecuencia de despliegue.
 - Consultar `docs/DORA_METRICS.md` para definiciones, limitaciones y pasos de instrumentación.
 
+## 13. Estructura del repositorio
+Seguir `docs/REPOSITORY_STRATEGY.md` antes de crear repositorios, módulos o pipelines nuevos. No dividir ni duplicar por moda; decidir monorepo/multirrepo con evidencia de ownership, seguridad, releases y coste operativo.
