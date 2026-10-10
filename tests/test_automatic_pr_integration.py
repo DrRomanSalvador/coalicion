@@ -151,13 +151,17 @@ def test_pr_body_gate_rejects_missing_principles_even_when_some_are_listed():
 
 
 def test_pr_body_gate_rejects_duplicate_principle_dispositions():
-    body = _valid_pr_body() + "\n- **01** APLICA — Duplicado deliberado para probar el bloqueo."
+    body = _valid_pr_body().replace(
+        "- **02** APLICA — Este principio se evalúa porque el cambio altera el contrato de integración número 02.",
+        "- **02** APLICA — Este principio se evalúa porque el cambio altera el contrato de integración número 02.\\n"
+        "- **01** APLICA — Duplicado deliberado dentro de la sección para probar el bloqueo.",
+    )
     missing = validate_pr_body(body)
     assert any("principle 01 is declared more than once" in item for item in missing)
 
 
 def test_pr_body_gate_requires_reasoned_na_disposition():
-    body = _valid_pr_body({7: "N/A — no procede"})
+    body = _valid_pr_body({7: "N/A — no procede en el alcance concreto de este cambio" })
     missing = validate_pr_body(body)
     assert any("principle 07 is N/A without an explicit justification" in item for item in missing)
 
