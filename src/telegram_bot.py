@@ -35,6 +35,8 @@ SCENARIO_DIR = ROOT / "artifacts"
 API_TIMEOUT = 40
 API_RETRIES = 4
 MAX_MESSAGE = 4090
+# Operator account explicitly supplied for Telegram access-approval notifications.
+OPERATOR_TELEGRAM_ID = "8459054385"
 
 COMMANDS = [
     ("hoy", "¿Qué está pasando ahora?"),
@@ -672,12 +674,14 @@ def _allowed_ids() -> set[str]:
     return {x.strip() for x in raw.split(",") if x.strip()}
 
 def _owner_ids() -> set[str]:
-    return {
+    configured = {
         x.strip()
         for name in ("TELEGRAM_ADMIN_IDS", "TELEGRAM_CHAT_ID")
         for x in os.environ.get(name, "").split(",")
         if x.strip()
     }
+    configured.add(OPERATOR_TELEGRAM_ID)
+    return configured
 
 
 def _owner_allowed(update: dict[str, Any]) -> bool:
