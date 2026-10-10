@@ -137,7 +137,7 @@ REQUIRED_PR_SECTIONS = (
 
 
 def validate_pr_body(body: str) -> list[str]:
-    """Fail closed when a PR omits mandatory engineering evidence."""
+    """Fail closed unless all 25 principles have an explicit, reasoned disposition."""
     missing = [
         section
         for section in REQUIRED_PR_SECTIONS
@@ -145,31 +145,53 @@ def validate_pr_body(body: str) -> list[str]:
     ]
 
     heading = re.search(
-        r"(?im)^[ \t]*(?:#{1,6}[ \t]+)?Principios afectados \(01–25\):[ \t]*(.*)$",
+        r"(?im)^[ \\t]*(?:#{1,6}[ \\t]+)?Principios afectados \\(01–25\\):[ \\t]*(.*)$",
         body,
     )
     principle_text = ""
     if heading:
         following = body[heading.end():]
-        next_heading = re.search(r"(?m)^[ \t]*#{1,6}[ \t]+\S", following)
+        next_heading = re.search(r"(?m)^[ \\t]*#{1,6}[ \\t]+\\S", following)
         section_body = following[:next_heading.start()] if next_heading else following
-        principle_text = "\n".join(
+        principle_text = "\\n".join(
             part.strip()
             for part in (heading.group(1), section_body)
             if part and part.strip()
         ).strip()
 
-    has_principle_ids = bool(re.search(r"(?<!\d)(?:0[1-9]|1\d|2[0-5])(?!\d)", principle_text))
-    normalized = principle_text.casefold()
-    justified_na = bool(
-        re.search(r"\bn/?a\b", normalized)
-        and re.search(r"\b(justificaci[oó]n|porque|motivo|no aplica|no son aplicables)\b", normalized)
-        and len(re.sub(r"\bn/?a\b", "", normalized).strip(" \t\r\n-:;.")) >= 12
-    )
-    if not has_principle_ids and not justified_na:
-        missing.append(
-            "a populated list of applicable principles (01–25), or an explicit justified N/A"
+    dispositions: dict[int, tuple[str, str]] = {}
+    for line in principle_text.splitlines():
+        match = re.match(
+            r"^\\s*(?:[-*]\\s*)?(?:\\*\\*)?(0[1-9]|1[0-9]|2[0-5])(?:\\*\\*)?\\s+"
+            r"(APLICA|N/A|NO APLICA)\\b\\s*[:—-]?\\s*(.*?)\\s*$",
+            line,
+            flags=re.IGNORECASE,
         )
+        if not match:
+            continue
+        number = int(match.group(1))
+        disposition = match.group(2).upper()
+        rationale = re.sub(r"[*_]", "", match.group(3)).strip()
+        if number in dispositions:
+            missing.append(f"principle {number:02d} is declared more than once")
+            continue
+        if len(rationale) < 20:
+            missing.append(f"principle {number:02d} needs a concrete rationale (at least 20 characters)")
+            continue
+        if disposition in {"N/A", "NO APLICA"} and not re.search(
+            r"\\b(porque|motivo|justificaci[oó]n|no modifica|no afecta|no cambia|no corresponde|fuera de alcance)\\b",
+            rationale,
+            flags=re.IGNORECASE,
+        ):
+            missing.append(f"principle {number:02d} is N/A without an explicit justification")
+            continue
+        dispositions[number] = (disposition, rationale)
+
+    for number in range(1, 26):
+        if number not in dispositions:
+            missing.append(
+                f"principle {number:02d} must have exactly one APLICA/N/A disposition and a concrete rationale"
+            )
     return missing
 
 def fetch_pr_body(
