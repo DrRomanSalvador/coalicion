@@ -14,21 +14,26 @@ Persistent Cloudflare Workers webhook frontend for the COALICIÓN dispatch bot. 
 
 Set these in repository Settings → Secrets and variables → Actions → Repository secrets:
 
-- `CLOUDFLARE_API_TOKEN`: scoped to Workers Scripts edit and D1 edit/use for the account.
+- `CLOUDFLARE_API_TOKEN`: scoped to the Cloudflare account's required Worker deployment permissions.
 - `CLOUDFLARE_ACCOUNT_ID`: Cloudflare account ID.
 - `TELEGRAM_BOT_TOKEN`: token from BotFather.
-- `TELEGRAM_ALLOWED_USER_ID`: operator's numeric Telegram user ID.
+- `TELEGRAM_ALLOWED_USER_ID`: operator's numeric Telegram user ID (digits only).
 
-Never add secret values to source control. The deployment workflow generates a fresh webhook secret automatically and will refuse to run when any required secret is missing.
+Never add secret values to source control. The workflow validates required secrets without printing them and generates a fresh webhook secret for the Worker.
+
+## One-time Cloudflare setup
+
+Before the first deploy, open the Cloudflare Dashboard → **Workers & Pages** and complete the account's **workers.dev** onboarding/register a workers.dev subdomain. Wrangler cannot complete this interactive account setup from a non-interactive GitHub Actions runner. The workflow now detects this specific failure and prints an actionable error instead of a generic deployment failure.
 
 ## Deploy
 
-1. Add the four repository secrets listed above (the existing `TELEGRAM_BOT_TOKEN` is already used by the current bot workflow).
-2. Open Actions → **Deploy COALICIÓN Telegram webhook** → **Run workflow**.
-3. The workflow runs tests and type-checking, deploys the Worker, provisions its D1 binding, stores Worker secrets, registers Telegram's webhook, and verifies `/health`. It stops before deployment if any required secret is missing.
-4. Open the bot in Telegram and send `/start`. Test `/tarea Preparar briefing`, `/tarea`, `/hoy`, and the task buttons.
+1. Add the four repository secrets listed above (the existing `TELEGRAM_BOT_TOKEN` may already be used by the current bot workflow; verify that it exists).
+2. Complete the one-time `workers.dev` onboarding described above.
+3. Open Actions → **Deploy COALICIÓN Telegram webhook** → **Run workflow**.
+4. The workflow validates secrets, runs tests and type-checking, deploys the Worker, configures Worker secrets, registers Telegram's webhook, and verifies `/health`. It stops if a required secret is missing or Cloudflare rejects deployment.
+5. Open the bot in Telegram and send `/start`. Test `/tarea Preparar briefing`, `/tarea`, `/hoy`, and the task buttons.
 
-The workflow discovers the deployed `workers.dev` URL and registers the webhook automatically; no manual `curl` command is required. If Cloudflare automatic D1 provisioning is rejected by the account, create the D1 database in Cloudflare and add its ID to `telegram-worker/wrangler.jsonc`, then rerun deployment.
+The workflow discovers the deployed `workers.dev` URL and registers the webhook automatically; no manual `curl` command is required. If Cloudflare rejects the D1 binding because the database has not been created or linked, inspect the Wrangler error and configure the D1 database ID in `telegram-worker/wrangler.jsonc` before rerunning.
 
 ## Local verification
 

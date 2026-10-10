@@ -6,10 +6,12 @@ on:
     paths:
       - "telegram-worker/**"
       - ".github/workflows/telegram_worker_ci.yml"
+      - ".github/workflows/deploy_telegram_worker.yml"
   pull_request:
     paths:
       - "telegram-worker/**"
       - ".github/workflows/telegram_worker_ci.yml"
+      - ".github/workflows/deploy_telegram_worker.yml"
   workflow_dispatch:
 
 permissions:
