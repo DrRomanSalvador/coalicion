@@ -1969,7 +1969,28 @@ def poll_once(offset: int | None = None) -> int | None:
     return next_offset
 
 
-def run_polling(*, poll_timeout: int = 25, sleep_seconds: float = 1.0) -> None:
+POLL_OFFSET = ROOT / "artifacts/telegram_poll_offset.json"
+
+
+def _load_poll_offset() -> int | None:
+    value = _safe_json(POLL_OFFSET).get("offset")
+    return value if isinstance(value, int) and value >= 0 else None
+
+
+def _save_poll_offset(offset: int | None) -> None:
+    if offset is None:
+        return
+    POLL_OFFSET.parent.mkdir(parents=True, exist_ok=True)
+    temporary = POLL_OFFSET.with_suffix(".json.tmp")
+    temporary.write_text(json.dumps({"offset": offset}), encoding="utf-8")
+    temporary.replace(POLL_OFFSET)
+
+
+def run_polling(
+    *, poll_timeout: int = 20, sleep_seconds: float = 0.0,
+    max_runtime_seconds: float | None = None,
+) -> None:
+    """Poll continuously, or run a bounded cycle suitable for ephemeral CI runners."""
     restore_telegram_state()
     _token()
     try:
@@ -1977,10 +1998,15 @@ def run_polling(*, poll_timeout: int = 25, sleep_seconds: float = 1.0) -> None:
     except TelegramBotError:
         pass
     _configure_bot_ui()
-    offset = None
-    while True:
+    offset = _load_poll_offset()
+    deadline = time.monotonic() + max_runtime_seconds if max_runtime_seconds is not None else None
+
+    while deadline is None or time.monotonic() < deadline:
+        remaining = deadline - time.monotonic() if deadline is not None else poll_timeout
+        if remaining <= 1:
+            break
         params: dict[str, Any] = {
-            "timeout": poll_timeout,
+            "timeout": max(0, min(poll_timeout, int(remaining) - 1)),
             "allowed_updates": ["message", "callback_query", "inline_query"],
         }
         if offset is not None:
@@ -1989,9 +2015,13 @@ def run_polling(*, poll_timeout: int = 25, sleep_seconds: float = 1.0) -> None:
         for update in payload.get("result") or []:
             if isinstance(update, dict):
                 offset = _handle_update(update, offset)
+                _save_poll_offset(offset)
         _maybe_send_scheduled_digest()
-        if sleep_seconds:
+        if sleep_seconds and (deadline is None or time.monotonic() + sleep_seconds < deadline):
             time.sleep(sleep_seconds)
+
+    _save_poll_offset(offset)
+    snapshot_telegram_state()
 
 
 if __name__ == "__main__":
