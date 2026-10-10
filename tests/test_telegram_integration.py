@@ -122,3 +122,23 @@ def test_unauthorized_start_is_denied_without_briefing(monkeypatch):
     assert len(messages) == 1
     assert "no está autorizado" in messages[0].lower()
     assert "SALA DE SITUACIÓN" not in messages[0]
+
+
+def test_transport_error_never_discloses_bot_token(monkeypatch):
+    token = "123456:TEST_SECRET_TOKEN"
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", token)
+    monkeypatch.setattr(telegram_bot.time, "sleep", lambda _seconds: None)
+
+    def fail_request(*args, **kwargs):
+        raise telegram_bot.requests.ConnectionError(
+            f"connection failed for https://api.telegram.org/bot{token}/getUpdates"
+        )
+
+    monkeypatch.setattr(telegram_bot.requests, "post", fail_request)
+    try:
+        telegram_bot._api("getUpdates")
+    except telegram_bot.TelegramBotError as exc:
+        assert token not in str(exc)
+        assert "transport failed" in str(exc).lower()
+    else:
+        raise AssertionError("failed transport must raise TelegramBotError")
