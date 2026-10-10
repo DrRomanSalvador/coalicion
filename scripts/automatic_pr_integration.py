@@ -290,29 +290,13 @@ def main() -> int:
         )
         return 1
 
-    merge = subprocess.run(
-        [
-            "gh",
-            "pr",
-            "merge",
-            pr_number,
-            "--repo",
-            repo,
-            "--match-head-commit",
-            sha,
-            "--squash",
-        ],
-        check=False,
+    # This workflow is a validation gate, not a merge authority. GitHub branch
+    # protection must enforce required checks; never mutate the PR from this job.
+    print(
+        "All required checks succeeded and remained stable for 30 seconds. "
+        f"Validated revision={sha}; integration may proceed only through repository branch protection.",
+        flush=True,
     )
-    if merge.returncode:
-        print(
-            f"::error::GitHub refused PR #{pr_number} merge for verified SHA {sha} "
-            f"(exit {merge.returncode}); branch protection was not bypassed.",
-            file=sys.stderr,
-            flush=True,
-        )
-        return merge.returncode
-    print("Merged only after all observed checks and required validations passed.", flush=True)
     return 0
 
 
