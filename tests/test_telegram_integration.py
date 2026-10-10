@@ -65,3 +65,60 @@ def test_authorization_fails_closed_when_both_chat_settings_are_absent(monkeypat
     monkeypatch.delenv("TELEGRAM_ALLOWED_CHATS", raising=False)
     monkeypatch.delenv("TELEGRAM_CHAT_ID", raising=False)
     assert not telegram_bot._chat_allowed("123")
+
+
+def test_authorized_start_sends_useful_briefing(monkeypatch, tmp_path):
+    monkeypatch.setenv("TELEGRAM_ALLOWED_CHATS", "123")
+    monkeypatch.delenv("TELEGRAM_CHAT_ID", raising=False)
+    monkeypatch.setattr(telegram_bot, "USER_STATE", tmp_path / "user-state.json")
+    monkeypatch.setattr(telegram_bot, "_audit", lambda *args, **kwargs: True)
+    monkeypatch.setattr(telegram_bot, "_preferences", lambda update: {"frequency": "daily"})
+    calls = []
+    monkeypatch.setattr(
+        telegram_bot, "_api",
+        lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True},
+    )
+    update = {
+        "update_id": 101,
+        "message": {
+            "chat": {"id": 123, "type": "private"},
+            "from": {"id": 456},
+            "text": "/start",
+        },
+    }
+
+    assert telegram_bot._handle_update(update, None) == 102
+    messages = [
+        kwargs["json"]["text"]
+        for method, kwargs in calls
+        if method == "sendMessage" and "json" in kwargs
+    ]
+    assert messages
+    assert any("SALA DE SITUACIÓN" in message for message in messages)
+
+
+def test_unauthorized_start_is_denied_without_briefing(monkeypatch):
+    monkeypatch.setenv("TELEGRAM_ALLOWED_CHATS", "123")
+    calls = []
+    monkeypatch.setattr(
+        telegram_bot, "_api",
+        lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True},
+    )
+    update = {
+        "update_id": 102,
+        "message": {
+            "chat": {"id": 999, "type": "private"},
+            "from": {"id": 888},
+            "text": "/start",
+        },
+    }
+
+    assert telegram_bot._handle_update(update, None) == 103
+    messages = [
+        kwargs["json"]["text"]
+        for method, kwargs in calls
+        if method == "sendMessage" and "json" in kwargs
+    ]
+    assert len(messages) == 1
+    assert "no está autorizado" in messages[0].lower()
+    assert "SALA DE SITUACIÓN" not in messages[0]
