@@ -137,7 +137,7 @@ jobs:
           with urllib.request.urlopen(req) as resp: print(resp.read().decode())
           PY
       - name: Persist failed SEEC diagnostics
-        if: needs.seec.result != 'success'
+        if: needs.seec.result == 'failure'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -147,7 +147,7 @@ jobs:
           import base64, json, os, pathlib, urllib.request
           root=pathlib.Path("/tmp/seec-diagnostics")
           logs=sorted(root.rglob("*.log")) if root.exists() else []
-          detail="\n\n".join(f"--- {p.name} ---\n"+p.read_text(errors="replace") for p in logs)
+          detail="\n\n".join(f"--- {p.name} ---\n"+p.read_text(errors="replace")[:200000] for p in logs)[:500000]
           body=f"SEEC_PRODUCTION_FAILURE\nsha: {os.environ['GITHUB_SHA']}\nrun: {os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}\n\n"+(detail or "No diagnostic logs were produced.")
           api=f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/contents/ci_evidence/seec_production_failure.txt"
           headers={"Authorization":"Bearer "+os.environ["GH_TOKEN"],"Accept":"application/vnd.github+json","Content-Type":"application/json","X-GitHub-Api-Version":"2022-11-28"}
