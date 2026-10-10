@@ -96,6 +96,87 @@ def fetch_runs(
     return runs
 
 
+def fetch_changed_files(
+    repo: str,
+    pr_number: str,
+    runner: Callable[..., Any] = subprocess.run,
+) -> list[str]:
+    """Fetch the complete PR file list; never guess which gates the change requires."""
+    result = runner(
+        [
+            "gh",
+            "api",
+            "--paginate",
+            "--slurp",
+            f"repos/{repo}/pulls/{pr_number}/files?per_page=100",
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode:
+        detail = (result.stderr or result.stdout or "unknown GitHub API error").strip()
+        raise GitHubAPITransientError(f"Could not inspect changed PR files: {detail}")
+    try:
+        pages = json.loads(result.stdout)
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise GitHubAPITransientError(f"GitHub returned invalid PR-file JSON: {exc}") from exc
+    if isinstance(pages, dict):
+        pages = [pages]
+    if not isinstance(pages, list):
+        raise GitHubAPITransientError("GitHub PR-file response was not a page list")
+    filenames: set[str] = set()
+    for page in pages:
+        if isinstance(page, dict):
+            page = [page]
+        if not isinstance(page, list):
+            raise GitHubAPITransientError("GitHub PR-file response contained a malformed page")
+        for item in page:
+            if isinstance(item, dict) and isinstance(item.get("filename"), str):
+                filenames.add(item["filename"])
+    if not filenames:
+        raise GitHubAPITransientError("GitHub returned no changed files for the pull request")
+    return sorted(filenames)
+
+
+def required_checks_for_files(changed_files: list[str]) -> set[str]:
+    """Select mandatory checks from the actual changed paths, not eventual API timing."""
+    required = {
+        "Methodology validation",
+        "Methodology extensions validation",
+        "Methodology integration",
+        "Mandatory engineering contract",
+        "Workflow resilience contract tests",
+    }
+    paths = [path.replace("\\", "/") for path in changed_files]
+    product_prefixes = ("scripts/", "src/", "tests/", "data/", "config/")
+    product_exact = {
+        "run26.py", "requirements.txt", "requirements.lock", "pyproject.toml",
+        ".github/workflows/product_pipeline.yml",
+    }
+    if any(path.startswith(product_prefixes) or path in product_exact for path in paths):
+        required.add("Product pipeline 2026")
+    exhaustive_prefixes = ("src/", "tests/", "scripts/", "config/", "data/", "artifacts/data/",
+                           "docs/", "schemas/", "web/")
+    if any(path.startswith(exhaustive_prefixes) or path.startswith(".github/workflows/")
+           or path.endswith(".py") or path in {"requirements.txt", "requirements.lock",
+                                                "pyproject.toml", "Dockerfile"} for path in paths):
+        required.add("Exhaustive fail-closed validation")
+    if any(path.startswith("telegram-worker/") or path in {
+        ".github/workflows/telegram_worker_ci.yml",
+        ".github/workflows/deploy_telegram_worker.yml",
+    } for path in paths):
+        required.add("Telegram Worker CI")
+    dora_paths = {
+        "scripts/dora_metrics.py", "tests/test_dora_metrics.py",
+        ".github/workflows/dora-metrics.yml", ".github/workflows/deploy_telegram_worker.yml",
+        "docs/DORA_METRICS.md",
+    }
+    if any(path in dora_paths for path in paths):
+        required.add("DORA engineering metrics")
+    return required
+
+
 def main() -> int:
     repo = os.environ.get("GH_REPO", "").strip()
     sha = os.environ.get("HEAD_SHA", "").strip()
@@ -119,13 +200,17 @@ def main() -> int:
         )
         return 2
 
-    required = {
-        "Exhaustive fail-closed validation",
-        "Methodology validation",
-        "Methodology extensions validation",
-        "Methodology integration",
-        "Workflow resilience contract tests",
-    }
+    try:
+        changed_files = fetch_changed_files(repo, pr_number)
+    except GitHubAPITransientError as exc:
+        print(f"::error::{exc}", file=sys.stderr, flush=True)
+        return 1
+    required = required_checks_for_files(changed_files)
+    print(
+        "Required checks for changed files: "
+        + json.dumps({"files": changed_files, "checks": sorted(required)}, sort_keys=True),
+        flush=True,
+    )
     # Product pipeline can run for 90 minutes; leave queue and stability margin.
     deadline = time.monotonic() + 110 * 60
     stable_signature = None
