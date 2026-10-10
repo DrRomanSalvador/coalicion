@@ -50,7 +50,7 @@ async function send(env: Env, chatId: number, text: string, replyMarkup?: unknow
 }
 const keyboard = (rows: unknown[][]) => ({ inline_keyboard: rows });
 async function init(env: Env): Promise<void> {
-  for (const statement of schema) await env.DB.prepare(statement).run();
+  await env.DB.batch(schema.map(statement => env.DB.prepare(statement)));
 }
 async function taskList(env: Env, userId: string): Promise<Task[]> {
   const r = await env.DB.prepare("SELECT id, title, done, priority, created_at FROM tasks WHERE user_id = ? ORDER BY done ASC, priority DESC, id DESC LIMIT 10").bind(userId).all<Task>();
@@ -149,6 +149,8 @@ export default {
       await env.DB.prepare("DELETE FROM processed_updates WHERE processed_at < datetime('now','-7 days')").run();
       return response("ok");
     } catch {
+      // Release the idempotency claim on failure so Telegram can retry the update.
+      try { await env.DB.prepare("DELETE FROM processed_updates WHERE update_id = ?").bind(update.update_id).run(); } catch { /* preserve the original failure */ }
       // A 500 response lets Telegram retry transient failures; no internals or tokens are returned.
       return response("temporary processing failure",500);
     }
