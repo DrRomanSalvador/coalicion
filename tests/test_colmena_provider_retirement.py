@@ -43,3 +43,11 @@ def test_ollama_server_is_verified_in_the_same_step_as_agent_execution():
     assert "ollama serve > /tmp/ollama-execute.log" in execution_step
     assert "Ollama no está disponible en el paso de ejecución." in execution_step
     assert 'ollama list | grep -F "$LOCAL_MODEL"' in execution_step
+
+
+def test_invocation_explains_product_requirement_gate_before_assigning_missions():
+    text = (ROOT / "docs/INVOCACION_COLMENA.md").read_text(encoding="utf-8")
+    assert "misiones `PRODUCT`" in text
+    assert "misiones `PLATFORM`" in text
+    assert "slots `UNDEFINED` no se asignan" in text
+    assert "BLOCKED_SOURCE_LIST_NOT_MATERIALIZED" in text
