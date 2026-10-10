@@ -248,6 +248,12 @@ Cada alerta incluye cuando proceda:
 
 El calendario debe obtener fechas y plazos de fuentes oficiales primarias (BOE, INE, JEC, Interior, Congreso/Senado y autoridad competente), guardar el documento fuente y registrar cambios. Toda fecha de convocatoria, campaña, censo, candidaturas, voto o escrutinio debe verificarse contra la publicación oficial vigente. Una fecha escrita en esta especificación es una hipótesis a contrastar, no fuente jurídica suficiente por sí sola.
 
+
+
+## Fechas electorales oficiales verificadas para el ciclo 2026
+
+El [Real Decreto 806/2026, BOE-A-2026-20742](https://www.boe.es/buscar/doc.php?id=BOE-A-2026-20742), publicado el 6 de octubre de 2026, convoca elecciones al Congreso y al Senado para el **29 de noviembre de 2026**; fija la campaña del **13 al 27 de noviembre de 2026** y la sesión constitutiva de las Cámaras para el **23 de diciembre de 2026 a las 10:00**. Estas fechas deben materializarse en un calendario versionado con el BOE como evidencia; su verificación documental no demuestra que el calendario operativo exista o esté funcionando.
+
 ## 8. Política de auditoría
 
 - Auditar por requisito, no por nombre de módulo.
