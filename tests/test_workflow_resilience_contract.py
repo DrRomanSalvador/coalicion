@@ -138,6 +138,12 @@ def test_auto_merge_gate_exits_stale_head_without_cancelling_active_work():
     assert "this stale validation exits without requesting a merge" in client
 
 
+def test_product_pipeline_path_filters_match_gate_required_checks():
+    workflow = (WORKFLOWS / "product_pipeline.yml").read_text(encoding="utf-8")
+    assert '      - "requirements.lock"' in workflow
+    assert '      - "pyproject.toml"' in workflow
+
+
 def test_pr_validation_gate_paginates_and_excludes_only_its_own_run():
     workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
     source = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
