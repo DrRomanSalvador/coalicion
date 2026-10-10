@@ -954,16 +954,77 @@ def _export_payload(kind: str) -> tuple[bytes, str, str]:
         return out.getvalue().encode("utf-8"), "coalicion_encuestas.csv", "text/csv"
     if kind == "pdf":
         from io import BytesIO
-        from reportlab.lib.pagesizes import A4
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-        from reportlab.lib.styles import getSampleStyleSheet
+
+        report = _briefing_text()
+        try:
+            from reportlab.lib.pagesizes import A4
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+            from reportlab.lib.styles import getSampleStyleSheet
+        except ImportError:
+            # A dependency-free, valid PDF fallback for minimal CI/runtime installs.
+            # Standard PDF fonts are not Unicode-complete, so unsupported glyphs
+            # are replaced rather than allowing report generation to fail.
+            import textwrap
+
+            def pdf_escape(value: str) -> str:
+                safe = value.encode("ascii", "replace").decode("ascii")
+                return safe.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+            lines = []
+            for raw_line in report.splitlines():
+                if not raw_line.strip():
+                    lines.append("")
+                else:
+                    lines.extend(textwrap.wrap(raw_line, width=88, break_long_words=True, break_on_hyphens=False) or [""])
+            pages = [lines[i:i + 48] for i in range(0, max(1, len(lines)), 48)]
+            objects: list[bytes] = [
+                b"<< /Type /Catalog /Pages 2 0 R >>",
+                b"",  # Pages tree is filled after page objects are assigned.
+                b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+            ]
+            page_refs = []
+            for page_lines in pages:
+                stream_parts = ["BT", "/F1 9 Tf", "45 800 Td", "12 TL"]
+                for line in page_lines:
+                    stream_parts.append(f"({pdf_escape(line)}) Tj")
+                    stream_parts.append("T*")
+                stream_parts.append("ET")
+                stream = "\\n".join(stream_parts).encode("ascii")
+                page_obj_num = len(objects) + 1
+                content_obj_num = page_obj_num + 1
+                page_refs.append(f"{page_obj_num} 0 R")
+                objects.append(
+                    f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents {content_obj_num} 0 R >>".encode("ascii")
+                )
+                objects.append(
+                    b"<< /Length " + str(len(stream)).encode("ascii") + b" >>\\nstream\\n" + stream + b"\\nendstream"
+                )
+            objects[1] = ("<< /Type /Pages /Kids [" + " ".join(page_refs) + f"] /Count {len(page_refs)} >>").encode("ascii")
+            output = bytearray(b"%PDF-1.4\\n%\\xe2\\xe3\\xcf\\xd3\\n")
+            offsets = [0]
+            for number, obj in enumerate(objects, start=1):
+                offsets.append(len(output))
+                output.extend(f"{number} 0 obj\\n".encode("ascii"))
+                output.extend(obj)
+                output.extend(b"\\nendobj\\n")
+            xref_offset = len(output)
+            output.extend(f"xref\\n0 {len(objects) + 1}\\n".encode("ascii"))
+            output.extend(b"0000000000 65535 f \\n")
+            for offset in offsets[1:]:
+                output.extend(f"{offset:010d} 00000 n \\n".encode("ascii"))
+            output.extend(
+                f"trailer\\n<< /Size {len(objects) + 1} /Root 1 0 R >>\\nstartxref\\n{xref_offset}\\n%%EOF\\n".encode("ascii")
+            )
+            return bytes(output), "coalicion_informe.pdf", "application/pdf"
+
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         styles = getSampleStyleSheet()
         story = [Paragraph("COALICIÓN · Informe de situación", styles["Title"]), Spacer(1, 12)]
-        for line in _briefing_text().splitlines():
+        for line in report.splitlines():
             if line.strip():
-                story.append(Paragraph(line.replace("&", "&amp;"), styles["BodyText"]))
+                escaped = (line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+                story.append(Paragraph(escaped, styles["BodyText"]))
         doc.build(story)
         return buffer.getvalue(), "coalicion_informe.pdf", "application/pdf"
     if kind == "changes":
