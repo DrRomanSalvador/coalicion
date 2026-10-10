@@ -5,7 +5,6 @@
   "compatibility_date": "2026-10-09",
   "workers_dev": true,
   "observability": { "enabled": true },
-  "limits": { "cpu_ms": 50 },
   "d1_databases": [
     {
       "binding": "DB",
