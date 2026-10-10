@@ -59,6 +59,44 @@ def save_evidence(path: Path, result: dict[str, Any]) -> None:
     temporary.replace(path)
 
 
+def load_mandatory_contract() -> str:
+    """Carga las normas canónicas; la inferencia no arranca si faltan."""
+    required = (
+        "AGENTS.md",
+        "CONTRATO_MAESTRO_IA.md",
+        "README.md",
+        "docs/ENGINEERING_CHARTER.md",
+        "docs/ENGINEERING_ENFORCEMENT_MATRIX.md",
+        "docs/COLMENA_STATE.json",
+    )
+    root = ROOT.resolve()
+    chunks: list[str] = []
+    total_chars = 0
+    for relative in required:
+        path = (root / relative).resolve()
+        if not path.is_relative_to(root) or not path.is_file():
+            raise ValueError(f"Fail-closed: falta el contrato obligatorio {relative}.")
+        text = path.read_text(encoding="utf-8")
+        if not text.strip():
+            raise ValueError(f"Fail-closed: contrato obligatorio vacío: {relative}.")
+        # Se lee el README completo; se envían el inicio y el índice para no consumir
+        # el contexto disponible con secciones ajenas a la misión.
+        if relative == "README.md":
+            headings = "\n".join(line for line in text.splitlines() if line.startswith("#"))[:5000]
+            text = text[:6000] + "\n\n[ÍNDICE DE SECCIONES DEL README]\n" + headings
+        total_chars += len(text)
+        chunks.append(f"### Norma canónica: {relative}\n{text}")
+    matrix = (root / "docs/ENGINEERING_ENFORCEMENT_MATRIX.md").read_text(encoding="utf-8")
+    covered = set(re.findall(r"^\|\s*(\d{2})\s*\|", matrix, flags=re.MULTILINE))
+    expected = {f"{number:02d}" for number in range(1, 26)}
+    if covered != expected:
+        missing = sorted(expected - covered)
+        raise ValueError(f"Fail-closed: la matriz no cubre los 25 principios; faltan {missing}.")
+    if total_chars > 45000:
+        raise ValueError("Fail-closed: los contratos obligatorios exceden el límite de contexto.")
+    return "\n\n".join(chunks)
+
+
 def run_agent(mission_id: str, model: str = DEFAULT_MODEL, ollama_url: str = DEFAULT_URL) -> dict[str, Any]:
     result: dict[str, Any] = {
         "schema": "COLMENA_AGENT_EVIDENCE_V1",
@@ -91,19 +129,29 @@ def run_agent(mission_id: str, model: str = DEFAULT_MODEL, ollama_url: str = DEF
             "stream": False,
             "messages": [
                 {"role": "system", "content": (
-                    "Eres un agente analítico de COALICIÓN. No afirmes haber modificado archivos, "
-                    "ejecutado pruebas ni consultado fuentes si no ocurrió. Distingue hechos, hipótesis "
-                    "y recomendaciones. Usa el contexto adjunto como evidencia. Responde en español, "
-                    "con hallazgos concretos, rutas, riesgos y pruebas propuestas. Nunca certifiques PASS."
+                    "Eres un agente de ingeniería de COALICIÓN. Debes obedecer las normas canónicas "
+                    "incluidas a continuación y los 25 principios con su matriz de control. Si hay "
+                    "contradicción, falta un contrato o no puedes verificar algo, DETENTE, explica el "
+                    "bloqueo y no inventes. Aplica la regla boy scout: deja cada área mejor de como la "
+                    "encontraste; corrige la causa raíz con el cambio mínimo, reutiliza lo válido, elimina "
+                    "solo lo obsoleto o sin uso tras revisar referencias, y no introduzcas duplicación. "
+                    "No afirmes haber editado archivos, ejecutado pruebas o consultado fuentes si no ocurrió. "
+                    "Distingue hechos, hipótesis y recomendaciones. Usa evidencia del repositorio, identifica "
+                    "rutas/funciones, añade regresión para cada bug cuando sea viable, preserva trazabilidad, "
+                    "seguridad, determinismo y rollback. Nunca declares PASS: la salida requiere revisión "
+                    "independiente.\\n\\nNORMAS CANÓNICAS OBLIGATORIAS:\\n"
+                    + load_mandatory_contract()
                 )},
                 {"role": "user", "content": (
-                    f"Agente: {mission.get('agent_id')}\nMisión: {mission_id}\n"
-                    f"Título: {mission.get('title', mission_id)}\nTarea:\n{mission['task']}\n\n"
-                    f"Contexto real del repositorio:\n{context or '(Sin archivos de contexto.)'}\n\n"
-                    "Entrega un informe auditable. No inventes ejecuciones ni resultados."
+                    f"Agente: {mission.get('agent_id')}\\nMisión: {mission_id}\\n"
+                    f"Título: {mission.get('title', mission_id)}\\nTarea:\\n{mission['task']}\\n\\n"
+                    f"Contexto real del repositorio:\\n{context or '(Sin archivos de contexto.)'}\\n\\n"
+                    "Entrega un informe auditable: causa raíz, cambio mínimo, principios 01–25 aplicables, "
+                    "pruebas concretas y resultado solo si se ejecutó, riesgos y rollback. "
+                    "No inventes ejecuciones ni resultados."
                 )},
             ],
-            "options": {"temperature": 0.2, "num_predict": 700},
+            "options": {"temperature": 0.2, "num_predict": 700, "num_ctx": 24576},
         }
         request = Request(
             f"{ollama_url.rstrip('/')}/api/chat",
