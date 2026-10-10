@@ -13,6 +13,7 @@ def test_contract_and_resilience_checks_are_always_required():
     assert "Mandatory engineering contract" in required
     assert "Workflow resilience contract tests" in required
     assert "Methodology validation" in required
+    assert "Repository-wide self-regulation" in required
 
 
 def test_code_and_test_changes_require_product_and_exhaustive_gates():
