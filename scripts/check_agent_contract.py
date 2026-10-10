@@ -10,7 +10,7 @@ REQUIRED = {
         "## 11. Método de ingeniería de alto nivel",
         "## 12. Métricas de ingeniería y DORA",
         "DETENER",
-        "no inventar requisitos",
+        "no inventar datos",
     ],
     "docs/ENGINEERING_CHARTER.md": [
         "## Nivel I — Calidad profesional",
