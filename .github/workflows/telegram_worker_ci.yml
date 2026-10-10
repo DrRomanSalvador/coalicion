@@ -1,0 +1,35 @@
+name: Telegram Worker CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "telegram-worker/**"
+      - ".github/workflows/telegram_worker_ci.yml"
+  pull_request:
+    paths:
+      - "telegram-worker/**"
+      - ".github/workflows/telegram_worker_ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        working-directory: telegram-worker
+        run: npm install --no-audit --no-fund
+      - name: Run tests
+        working-directory: telegram-worker
+        run: npm test
+      - name: Type-check
+        working-directory: telegram-worker
+        run: npm run typecheck
