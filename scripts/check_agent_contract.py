@@ -10,7 +10,7 @@ REQUIRED = {
         "## 11. Método de ingeniería de alto nivel",
         "## 12. Métricas de ingeniería y DORA",
         "DETENER",
-        "no se invent",
+        "no inventar requisitos",
     ],
     "docs/ENGINEERING_CHARTER.md": [
         "## Nivel I — Calidad profesional",
@@ -24,7 +24,7 @@ REQUIRED = {
         "Lead time for changes",
         "Change failure rate",
         "Time to restore service",
-        "INSUFFICIENT_DATA",
+        "datos insuficientes",
     ],
     "docs/BRANCH_PROTECTION.md": ["Exigir pull request antes de fusionar", "Bloquear force-push"],
     ".github/copilot-instructions.md": ["AGENTS.md", "acceptance requirements"],
