@@ -19,7 +19,7 @@
   },
   "blocking_errors": [],
   "last_action": "Retirar el runtime de inferencia Hugging Face sin créditos y consolidar la Colmena en Ollama",
-  "last_action_result": "MIGRATION_IN_PROGRESS; workflow Ollama añadido en rama; ejecución real y pruebas de CI pendientes.",
+  "last_action_result": "MIGRATION_PREPARED; Ollama-only workflow and tests are present on the feature branch; runtime CI and end-to-end mission execution remain unverified.",
   "next_single_action": "Completar la suite reproducible sobre main y cerrar únicamente los bloqueos verificables; mantener P3 y v1.0.0 bloqueados sin matriz territorial 2026 y auditoría externa independiente",
   "certification": "READY_FOR_EXTERNAL_AUDIT",
   "data_source": "PRIMARY_INTERIOR_WORKBOOK_MATERIALIZED_AND_HASH_VERIFIED",
@@ -127,7 +127,7 @@
     "review_required": 0,
     "tasks_defined": 10,
     "approval_required_before_assignment_or_execution": true,
-    "note": "Backend activo de agentes: Ollama local, sin créditos externos. La ejecución del workflow debe validarse en GitHub Actions.",
+    "note": "Backend activo de agentes: Ollama local, sin secretos ni créditos externos. La ejecución real del workflow todavía debe verificarse.",
     "source_of_truth": "docs/COLMENA_MISSION_CONTROL.json",
     "snapshot_updated_at": "2026-10-09T13:28:11.346Z"
   },
