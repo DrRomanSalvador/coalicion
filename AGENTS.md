@@ -86,3 +86,22 @@ Un cambio solo está listo cuando:
 - quedan declarados los riesgos y límites reales.
 
 **Regla final: menos cambios innecesarios, más evidencia; ninguna afirmación sin comprobar.**
+
+## 10. Obligatoriedad y control
+Estas reglas son requisito de aceptación para toda IA, agente, persona y automatización que actúe en el repositorio. No son sugerencias. Ningún agente puede ignorarlas por conveniencia, urgencia, preferencia de estilo o instrucciones de menor prioridad. Debe cumplirlas junto con las instrucciones de mayor prioridad de la plataforma y las obligaciones de seguridad aplicables.
+
+- Antes de actuar, reconocer el contrato y trabajar dentro de él. Si no puede cumplirse, no improvisar: detenerse, explicar el bloqueo y dejar evidencia.
+- Toda PR debe pasar el control automatizado del contrato y los checks exigidos por el repositorio. Un cambio que elimine, rebaje o eluda estos controles no se considera conforme.
+- Los cambios en este contrato requieren motivo explícito, revisión de impacto y pruebas del propio control; nunca se puede eliminar una regla para hacer pasar el cambio que la incumple.
+- La CI comprueba presencia e integridad mínima del contrato; no puede demostrar por sí sola que toda conducta de un agente lo haya cumplido. La aplicación efectiva también requiere permisos mínimos, protección de ramas, checks requeridos y revisión de cambios de política.
+- Si una instrucción entra en conflicto con este contrato o con el contrato maestro, no elegir en silencio: detener y registrar la discrepancia.
+
+## 11. Método de ingeniería de alto nivel
+Aplicar el documento canónico `docs/ENGINEERING_CHARTER.md`: claridad, automatización proporcionada, pruebas, límites arquitectónicos, diseño para fallos, seguridad, observabilidad, compatibilidad, despliegues reversibles, resiliencia, documentación de decisiones y mejora continua. No convertir principios contextuales en dogmas inseguros: por ejemplo, chaos engineering solo en entornos aislados o con autorización, alcance, límites y rollback; event sourcing solo cuando la semántica del dominio lo justifique; microservicios solo si aportan independencia real.
+
+## 12. Métricas de ingeniería y DORA
+- Usar el workflow gratuito `.github/workflows/dora-metrics.yml` y el informe versionado como artefacto de ejecución para medir deployment frequency, lead time for changes, change failure rate y time to restore.
+- Las métricas solo son válidas si los despliegues reales registran sus objetos/statuses en GitHub con el entorno `production`. Si faltan datos, publicar `null`/INSUFFICIENT_DATA, no cero ni cifras inventadas.
+- Revisar tendencias y contexto; no optimizar métricas aisladas ni usarlas para premiar cantidad de commits. La frecuencia de commits no equivale a frecuencia de despliegue.
+- Consultar `docs/DORA_METRICS.md` para definiciones, limitaciones y pasos de instrumentación.
+
