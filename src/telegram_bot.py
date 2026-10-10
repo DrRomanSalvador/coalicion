@@ -2247,7 +2247,10 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
     if command:
         command = command.split("@", 1)[0].strip().lower()
         if command == "/buscar":
-            response, markup = _search_text(_command_query(text_in, "/buscar")), _navigation_markup("/buscar")
+            query = _command_query(text_in, "/buscar")
+            if not query and not text_in.startswith("/"):
+                query = text_in[7:].strip() if text_in.lower().startswith("buscar ") else text_in
+            response, markup = _search_text(query), _navigation_markup("/buscar")
         elif command == "/tarea":
             task_title = _command_query(text_in, "/tarea")
             if task_title:
