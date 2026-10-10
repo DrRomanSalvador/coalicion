@@ -118,11 +118,14 @@ def run_agent(mission_id: str, model: str = DEFAULT_MODEL, ollama_url: str = DEF
         if not isinstance(content, str) or not content.strip():
             raise RuntimeError("Ollama devolvió una respuesta vacía.")
         result.update(status="REVIEW_REQUIRED", response=content.strip())
-    except (ValueError, OSError, json.JSONDecodeError, HTTPError, URLError, socket.timeout, TimeoutError, RuntimeError) as exc:
+    except Exception as exc:
         result["error"] = f"{type(exc).__name__}: {exc}"
     result["completed_at"] = now()
     evidence_path = AGENTS_DIR / f"{safe_name(str(result.get('agent_id', 'unknown')))}_{safe_name(mission_id)}.json"
-    result["evidence_path"] = str(evidence_path.relative_to(ROOT))
+    try:
+        result["evidence_path"] = str(evidence_path.relative_to(ROOT))
+    except ValueError:
+        result["evidence_path"] = str(evidence_path)
     save_evidence(evidence_path, result)
     return result
 
