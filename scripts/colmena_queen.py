@@ -94,7 +94,7 @@ def status_report() -> dict[str, Any]:
     report = {"total": len(missions), **{k.lower(): v for k, v in counts.items()}}
     print("COLMENA REINA — CONTROL DE MISIONES")
     print("Modo: QUEEN_COORDINATION_MODE + 179_LOGICAL_MISSIONS_OLLAMA")
-    print("Proveedor: Hugging Face | Credencial: Reina_token")
+    print("Proveedor único: Ollama local; sin secretos ni créditos externos")
     print(f"Slots lógicos: {report['total']}")
     for key in sorted(counts):
         print(f"{key:17}: {counts[key]}")
@@ -270,7 +270,7 @@ def record_result(result_path: Path) -> dict[str, Any]:
         "mission_id": mission_id,
         "agent_id": agent_id,
         "status": status,
-        "provider": "huggingface",
+        "provider": "local-ollama",
         "evidence_path": evidence_path,
         "evidence_sha256": evidence_sha256,
         "recorded_at": timestamp,
