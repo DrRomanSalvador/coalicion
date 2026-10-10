@@ -8,7 +8,7 @@
   "radar": {
     "version": "1.0",
     "status": "OK",
-    "as_of": "2026-10-09",
+    "as_of": "2026-10-10",
     "election_date": "2026-11-29",
     "alert_count": 2,
     "alerts": [
@@ -18,7 +18,7 @@
         "title": "Inicio de presentación de candidaturas",
         "facts": {
           "date": "2026-10-21",
-          "days_remaining": 12
+          "days_remaining": 11
         },
         "evidence": [],
         "reason": "Hito electoral dentro de los próximos 14 días.",
@@ -30,7 +30,7 @@
         "title": "Cierre de comunicación de coaliciones",
         "facts": {
           "date": "2026-10-16",
-          "days_remaining": 7
+          "days_remaining": 6
         },
         "evidence": [],
         "reason": "Hito electoral dentro de los próximos 14 días.",
@@ -41,8 +41,8 @@
       "2412ff271c1f841bb487875f7e98280cb8290b2767dd5619a65939afbd89d4e9"
     ],
     "traceability": {
-      "input_hash": "9800b453aa7bcf702192fa45a7f79dc36605182d43902b9fe57000d825fd688d",
-      "output_hash": "59d98cb3aa14c268276806ae62c3de70beb1e843202f32a7c2b9f01cd98c3ce1"
+      "input_hash": "2d93169b3db10a6f276979abfaf88b1dabb92f55b7d143f1a0d6911561622573",
+      "output_hash": "5e52b94c04100a5650b931fa42dbfc4ddc40c99f1d3eea305d2b20ec2706a912"
     },
     "policy": {
       "descriptive_only": true,
