@@ -20,6 +20,8 @@ def test_code_and_test_changes_require_product_and_exhaustive_gates():
     required = required_checks_for_files(["scripts/automatic_pr_integration.py", "tests/test_gate.py"])
     assert "Product pipeline 2026" in required
     assert "Exhaustive fail-closed validation" in required
+    assert "Product pipeline 2026" in required_checks_for_files(["requirements.lock"])
+    assert "Product pipeline 2026" in required_checks_for_files(["pyproject.toml"])
 
 
 def test_dora_and_telegram_changes_require_their_specific_gates():
