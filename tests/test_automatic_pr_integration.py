@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from automatic_pr_integration import fetch_changed_files, required_checks_for_files
+from automatic_pr_integration import fetch_changed_files, required_checks_for_files, validate_pr_body, fetch_pr_body
 
 
 def test_contract_and_resilience_checks_are_always_required():
@@ -84,3 +84,38 @@ def test_latest_pending_attempt_is_not_hidden_by_older_success():
     ]
     latest = latest_runs_per_workflow(runs)
     assert latest == [{"id": 20, "name": "Contract", "status": "in_progress", "conclusion": None}]
+
+def test_pr_body_requires_root_cause_principles_tests_ci_and_rollback():
+    valid = """Causa raíz: causa reproducida
+Solución mínima: cambio acotado
+Principios afectados (01–25): 03, 05, 15, 24
+Pruebas ejecutadas y resultado: pytest PASS
+CI del SHA exacto: pendiente de ejecución
+Riesgo y rollback: revertir este commit
+Excepciones: ninguna
+"""
+    assert validate_pr_body(valid) == []
+
+
+def test_pr_body_gate_rejects_empty_or_unfilled_principle_mapping():
+    empty = """Causa raíz:
+Solución mínima:
+Principios afectados (01–25):
+Pruebas ejecutadas y resultado:
+CI del SHA exacto:
+Riesgo y rollback:
+Excepciones:
+"""
+    missing = validate_pr_body(empty)
+    assert any("populated list of applicable principles" in item for item in missing)
+
+
+def test_pr_body_fetch_fails_closed_on_github_api_error():
+    def fake_runner(*args, **kwargs):
+        return subprocess.CompletedProcess(args[0], 1, stdout="", stderr="HTTP 403")
+    try:
+        fetch_pr_body("owner/repo", "17", runner=fake_runner)
+    except Exception as exc:
+        assert "Could not inspect PR description" in str(exc)
+    else:
+        raise AssertionError("API failure must not bypass mandatory PR evidence")
