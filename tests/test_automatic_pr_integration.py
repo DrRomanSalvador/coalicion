@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from automatic_pr_integration import fetch_changed_files, required_checks_for_files, validate_pr_body, fetch_pr_body, fetch_current_pr_head_sha
+from automatic_pr_integration import fetch_changed_files, required_checks_for_files, validate_pr_body, fetch_pr_body, fetch_current_pr_head_sha, canonical_principle_titles
 
 
 def test_contract_and_resilience_checks_are_always_required():
@@ -159,33 +159,7 @@ def test_latest_pending_attempt_is_not_hidden_by_older_success():
     latest = latest_runs_per_workflow(runs)
     assert latest == [{"id": 20, "name": "Contract", "status": "in_progress", "conclusion": None}]
 
-PRINCIPLE_TITLES = {
-    1: "Legibilidad antes que ingenio",
-    2: "Automatizar lo repetible",
-    3: "Pruebas como requisito de integración",
-    4: "Responsabilidad única y límites claros",
-    5: "Diseñar para el fallo",
-    6: "Seguridad desde el diseño",
-    7: "Medir antes de optimizar",
-    8: "Tecnología al servicio del problema",
-    9: "Siempre integrable y listo para desplegar",
-    10: "Mejora continua sin cuotas artificiales",
-    11: "Autorreparación segura",
-    12: "Chaos engineering con límites",
-    13: "Inmutabilidad donde aporta garantías",
-    14: "Latencia como atributo medible",
-    15: "Gobierno arquitectónico automatizado",
-    16: "Observabilidad estructurada",
-    17: "Contratos de API evolutivos",
-    18: "Simplicidad operativa",
-    19: "Decisiones registradas",
-    20: "Postmortems sin culpabilizar",
-    21: "Hacer fácil lo correcto",
-    22: "Compatibilidad como contrato explícito",
-    23: "Minimalismo radical con evidencia",
-    24: "Mínima sorpresa y determinismo",
-    25: "Utilidad y responsabilidad",
-}
+PRINCIPLE_TITLES = canonical_principle_titles()
 
 
 def _valid_pr_body(principle_overrides=None, markdown=True):
@@ -212,6 +186,14 @@ def _valid_pr_body(principle_overrides=None, markdown=True):
         f"{heading}Riesgo y rollback:\nRiesgo delimitado; revertir el commit revierte el cambio.\n"
         f"{heading}Excepciones\nNinguna excepción sin declarar.\n"
     )
+
+
+def test_canonical_principle_titles_are_loaded_from_the_single_charter_source():
+    titles = canonical_principle_titles()
+    assert set(titles) == set(range(1, 26))
+    charter = (ROOT / "docs" / "ENGINEERING_CHARTER.md").read_text(encoding="utf-8")
+    for title in titles.values():
+        assert f"**{title}." in charter
 
 
 def test_pr_body_requires_reasoned_disposition_for_all_25_principles():
