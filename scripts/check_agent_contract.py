@@ -26,7 +26,9 @@ REQUIRED = {
         "Time to restore service",
         "INSUFFICIENT_DATA",
     ],
-    "README.md": ["AGENTS.md", "CONTRATO_MAESTRO_IA.md"],
+    "docs/BRANCH_PROTECTION.md": ["Exigir pull request antes de fusionar", "Bloquear force-push"],
+    ".github/copilot-instructions.md": ["AGENTS.md", "acceptance requirements"],
+    "README.md": ["AGENTS.md", "CONTRATO_MAESTRO_IA.md", "ENGINEERING_CHARTER.md", "DORA_METRICS.md"],
 }
 errors = []
 for relative, markers in REQUIRED.items():
