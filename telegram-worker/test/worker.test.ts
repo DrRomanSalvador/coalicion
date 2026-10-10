@@ -26,7 +26,12 @@ describe("COALICIÓN Telegram webhook", () => {
     const response = await worker.fetch(new Request("https://worker.test/telegram/webhook", {method:"POST",headers:{"X-Telegram-Bot-Api-Secret-Token":env.TELEGRAM_WEBHOOK_SECRET},body:"{"}), env as any);
     expect(response.status).toBe(400);
   });
-  it("ignores unauthorized Telegram senders before touching D1", async () => {\n    const response = await worker.fetch(new Request("https://worker.test/telegram/webhook", {method:"POST",headers:{"X-Telegram-Bot-Api-Secret-Token":env.TELEGRAM_WEBHOOK_SECRET,"content-type":"application/json"},body:JSON.stringify({update_id:2,message:{message_id:1,date:1,text:"/start",chat:{id:123,type:"private"},from:{id:999,is_bot:false}}})}), env as any);\n    expect(response.status).toBe(200);\n    expect(await response.text()).toBe("ignored");\n  });\n  it("fails closed when secrets are not configured", async () => {
+  it("ignores unauthorized Telegram senders before touching D1", async () => {
+    const response = await worker.fetch(new Request("https://worker.test/telegram/webhook", {method:"POST",headers:{"X-Telegram-Bot-Api-Secret-Token":env.TELEGRAM_WEBHOOK_SECRET,"content-type":"application/json"},body:JSON.stringify({update_id:2,message:{message_id:1,date:1,text:"/start",chat:{id:123,type:"private"},from:{id:999,is_bot:false}}})}), env as any);
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe("ignored");
+  });
+  it("fails closed when secrets are not configured", async () => {
     const response = await worker.fetch(new Request("https://worker.test/telegram/webhook", {method:"POST"}), {DB:{}} as any);
     expect(response.status).toBe(503);
   });
