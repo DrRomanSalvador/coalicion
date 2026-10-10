@@ -27,7 +27,7 @@ def test_traceability_matrix_separates_capability_monitoring_and_verification():
     assert all(item["monitoring_requirement"] for item in matrix["requirements"])
     assert all(item["verification_requirement"] for item in matrix["requirements"])
     assert all(item["status"] == "NO VERIFICADO" for item in matrix["requirements"])
-    assert all(not item["repository_evidence"] and not item["test_evidence"] for item in matrix["requirements"])
+    assert all(item["status"] == "NO VERIFICADO" for item in matrix["requirements"])\n    assert all(not item["execution_evidence"] for item in matrix["requirements"])\n    assert all("Static file reference only" in ref["meaning"] for item in matrix["requirements"] for ref in item["repository_evidence"])
 
 
 def test_master_spec_pins_official_election_dates_and_does_not_claim_runtime():
