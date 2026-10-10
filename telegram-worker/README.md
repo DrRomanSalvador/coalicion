@@ -18,13 +18,12 @@ Set these in repository Settings → Secrets and variables → Actions → Repos
 - `CLOUDFLARE_ACCOUNT_ID`: Cloudflare account ID.
 - `TELEGRAM_BOT_TOKEN`: token from BotFather.
 - `TELEGRAM_ALLOWED_USER_ID`: operator's numeric Telegram user ID.
-- `TELEGRAM_WEBHOOK_SECRET`: random secret of 32+ characters using only A-Z, a-z, 0-9, underscore, and hyphen.
 
-Never add secret values to source control. The deployment workflow will refuse to run when any required secret is missing.
+Never add secret values to source control. The deployment workflow generates a fresh webhook secret automatically and will refuse to run when any required secret is missing.
 
 ## Deploy
 
-1. Add the five repository secrets listed above (the existing `TELEGRAM_BOT_TOKEN` is already used by the current bot workflow).
+1. Add the four repository secrets listed above (the existing `TELEGRAM_BOT_TOKEN` is already used by the current bot workflow).
 2. Open Actions → **Deploy COALICIÓN Telegram webhook** → **Run workflow**.
 3. The workflow runs tests and type-checking, deploys the Worker, provisions its D1 binding, stores Worker secrets, registers Telegram's webhook, and verifies `/health`. It stops before deployment if any required secret is missing.
 4. Open the bot in Telegram and send `/start`. Test `/tarea Preparar briefing`, `/tarea`, `/hoy`, and the task buttons.
