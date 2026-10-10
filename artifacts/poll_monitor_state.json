@@ -1345,7 +1345,8 @@
     "electomania_ajax::5c45e592a86f271d9beb66b1cd5e8a5c27db7e5159dbc333e4069df47cd7b1f2": "c8d142c2855d7ee159cfb41d5d1786a0202aebd879639e67fd28501640775b8d",
     "electomania_ajax::54d8c300513d5d7e6f0d6fee83f69ebbf3c4d60a32d4db44fad47c0bc3fddc8f": "e84f234c276ec5046f06ac37db06b411dee3cb4bb22fb1143359a4109139c8b4",
     "electomania_ajax::b63473a93af1176864c80bc4fbf6ae46092e3b4a2eb02cfcd11d1808fda5daf4": "b458d8aaaf3d7db6ab24f4a1f7299c4bccb749830dfaf34f394827054494f8b9",
-    "electomania_ajax::c1cb25fa00af39151c4c0e1b979646d19ac0536e6777906b2eb7863b23534418": "21cefc4cbcb7ba8d6f1d415569a83f3228ab36d80452a9b42890ff2e97f9a2a4"
+    "electomania_ajax::c1cb25fa00af39151c4c0e1b979646d19ac0536e6777906b2eb7863b23534418": "21cefc4cbcb7ba8d6f1d415569a83f3228ab36d80452a9b42890ff2e97f9a2a4",
+    "electomania_ajax::cae612e65a2f69c21f7d474d13cb2c67d603dc7d566507719d13ca1bc5b80723": "4e2a95e48692e14694f2d6ad31aae3e268309a0d2e1d1c4e69e75a91c7504a7e"
   },
   "source_hashes": {
     "datoelectoral": "c79e861bc1cd3c71b03ad107a8d8514a62330d12f2c5022334913472f626a6cc",
@@ -1367,13 +1368,15 @@
     "myfdata": "107b7d046641adaa11279d35ca6413cd935aff55ca72859109ced85b387436f3",
     "invymark": "a679e8f268ae0d2f153f9cf609825aa7c88576ae6c19b9d218e95a2c52fdd1a9",
     "political_stats_spain": "218d8e23b638ec30dcff807c25dbde6acef615e8a855c76c921177bcdf855b0d",
-    "elpais_40db": "c6ef5eb8f5776b08a62473435c62a6b93e51ad051a445f9bdad5e0642898b910"
+    "elpais_40db": "c6ef5eb8f5776b08a62473435c62a6b93e51ad051a445f9bdad5e0642898b910",
+    "sigma_dos": "e6cb377853c4170ee3768f565714c571e17a90e9926e6165909aa98b28630b4b",
+    "gad3": "33aa94228c3262a046958ce7efde9c1f483792bae14c3ef9ddc79b775df6062f"
   },
-  "runs": 491,
+  "runs": 492,
   "total_validated": 3,
   "baseline_completed": true,
-  "last_run": "2026-10-10T06:25:09.799296+00:00",
-  "last_status": "READY",
+  "last_run": "2026-10-10T06:47:33.561097+00:00",
+  "last_status": "BLOCKED",
   "last_new": 0,
   "last_changed": 0,
   "last_discoveries": 0,
@@ -1381,6 +1384,14 @@
     {
       "source_id": "elpais_40db",
       "error": "RuntimeError:SOURCE_FETCH_FAILED; https://elpais.com/noticias/barometro-el-pais/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/barometro-el-pais/ | https://elpais.com/noticias/barometro-el-pais/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/barometro-el-pais/ | https://elpais.com/noticias/encuestas/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/encuestas/ | https://elpais.com/noticias/encuestas/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/encuestas/"
+    },
+    {
+      "source_id": "sigma_dos",
+      "error": "RuntimeError:SOURCE_FETCH_FAILED; https://www.sigmados.com/ => ConnectTimeout:HTTPSConnectionPool(host='www.sigmados.com', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.sigmados.com', port=443) at 0x7ff500c564e0>, 'Connection to www.sigmados.com timed out. (connect timeout=30)')) | https://www.sigmados.com/ => ConnectTimeout:HTTPSConnectionPool(host='www.sigmados.com', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.sigmados.com', port=443) at 0x7ff500c56a80>, 'Connection to www.sigmados.com timed out. (connect timeout=30)'))"
+    },
+    {
+      "source_id": "gad3",
+      "error": "RuntimeError:SOURCE_FETCH_FAILED; https://www.gad3.com/informes/ => ConnectTimeout:HTTPSConnectionPool(host='www.gad3.com', port=443): Max retries exceeded with url: /informes/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.gad3.com', port=443) at 0x7ff500c56ff0>, 'Connection to www.gad3.com timed out. (connect timeout=30)')) | https://www.gad3.com/informes/ => ConnectTimeout:HTTPSConnectionPool(host='www.gad3.com', port=443): Max retries exceeded with url: /informes/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.gad3.com', port=443) at 0x7ff500c57440>, 'Connection to www.gad3.com timed out. (connect timeout=30)'))"
     },
     {
       "source_id": "invymark",
@@ -1404,7 +1415,7 @@
       "source_tier": "PRIMARY_POLLSTER",
       "source_url": "https://electomania.es/encuestas/",
       "raw_archived": true,
-      "checked_at": "2026-10-10T06:25:10.306638+00:00"
+      "checked_at": "2026-10-10T06:47:34.127059+00:00"
     },
     "cis_catalog": {
       "status": "OK",
@@ -1413,7 +1424,7 @@
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://www.cis.es/es/estudios/catalogo",
       "raw_archived": false,
-      "checked_at": "2026-10-10T06:25:11.851048+00:00"
+      "checked_at": "2026-10-10T06:47:35.695718+00:00"
     },
     "cis_news": {
       "status": "OK",
@@ -1422,14 +1433,14 @@
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://www.cis.es/es/sala-prensa/noticias",
       "raw_archived": false,
-      "checked_at": "2026-10-10T06:25:12.410979+00:00"
+      "checked_at": "2026-10-10T06:47:36.275439+00:00"
     },
     "elpais_40db": {
       "status": "FAILED",
       "format": "national_html",
       "coverage_role": "discovery",
       "error": "RuntimeError:SOURCE_FETCH_FAILED; https://elpais.com/noticias/barometro-el-pais/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/barometro-el-pais/ | https://elpais.com/noticias/barometro-el-pais/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/barometro-el-pais/ | https://elpais.com/noticias/encuestas/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/encuestas/ | https://elpais.com/noticias/encuestas/ => HTTPError:403 Client Error: Forbidden for url: https://elpais.com/noticias/encuestas/",
-      "checked_at": "2026-10-10T06:25:15.951638+00:00"
+      "checked_at": "2026-10-10T06:47:39.823056+00:00"
     },
     "datoelectoral": {
       "status": "OK",
@@ -1438,7 +1449,7 @@
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://www.datoelectoral.es/encuestas",
       "raw_archived": false,
-      "checked_at": "2026-10-10T06:25:16.169403+00:00"
+      "checked_at": "2026-10-10T06:47:40.072289+00:00"
     },
     "europe_elects_spain": {
       "status": "OK",
@@ -1447,7 +1458,7 @@
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://europeelects.eu/spain/",
       "raw_archived": false,
-      "checked_at": "2026-10-10T06:25:16.788456+00:00"
+      "checked_at": "2026-10-10T06:47:40.552515+00:00"
     },
     "myfdata": {
       "status": "FAILED",
@@ -1457,22 +1468,18 @@
       "checked_at": "2026-10-07T17:06:22.476929+00:00"
     },
     "sigma_dos": {
-      "status": "OK",
+      "status": "FAILED",
       "format": "national_html",
       "coverage_role": "primary",
-      "source_tier": "PRIMARY_POLLSTER",
-      "source_url": "https://www.sigmados.com/",
-      "raw_archived": true,
-      "checked_at": "2026-10-10T06:25:17.721311+00:00"
+      "error": "RuntimeError:SOURCE_FETCH_FAILED; https://www.sigmados.com/ => ConnectTimeout:HTTPSConnectionPool(host='www.sigmados.com', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.sigmados.com', port=443) at 0x7ff500c564e0>, 'Connection to www.sigmados.com timed out. (connect timeout=30)')) | https://www.sigmados.com/ => ConnectTimeout:HTTPSConnectionPool(host='www.sigmados.com', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.sigmados.com', port=443) at 0x7ff500c56a80>, 'Connection to www.sigmados.com timed out. (connect timeout=30)'))",
+      "checked_at": "2026-10-10T06:48:41.897324+00:00"
     },
     "gad3": {
-      "status": "OK",
+      "status": "FAILED",
       "format": "national_html",
       "coverage_role": "primary",
-      "source_tier": "PRIMARY_POLLSTER",
-      "source_url": "https://www.gad3.com/informes/",
-      "raw_archived": true,
-      "checked_at": "2026-10-10T06:25:19.384255+00:00"
+      "error": "RuntimeError:SOURCE_FETCH_FAILED; https://www.gad3.com/informes/ => ConnectTimeout:HTTPSConnectionPool(host='www.gad3.com', port=443): Max retries exceeded with url: /informes/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.gad3.com', port=443) at 0x7ff500c56ff0>, 'Connection to www.gad3.com timed out. (connect timeout=30)')) | https://www.gad3.com/informes/ => ConnectTimeout:HTTPSConnectionPool(host='www.gad3.com', port=443): Max retries exceeded with url: /informes/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.gad3.com', port=443) at 0x7ff500c57440>, 'Connection to www.gad3.com timed out. (connect timeout=30)'))",
+      "checked_at": "2026-10-10T06:49:43.044232+00:00"
     },
     "nc_report": {
       "status": "OK",
@@ -1481,7 +1488,7 @@
       "source_tier": "PRIMARY_POLLSTER",
       "source_url": "https://ncreport.es/",
       "raw_archived": false,
-      "checked_at": "2026-10-10T06:25:20.398683+00:00"
+      "checked_at": "2026-10-10T06:49:44.507761+00:00"
     },
     "demoscopia": {
       "status": "OK",
@@ -1490,7 +1497,7 @@
       "source_tier": "PRIMARY_POLLSTER",
       "source_url": "https://www.demoscopia.es/encuestas/",
       "raw_archived": false,
-      "checked_at": "2026-10-10T06:25:20.579650+00:00"
+      "checked_at": "2026-10-10T06:49:44.700577+00:00"
     },
     "celeste_tel": {
       "status": "OK",
@@ -1499,27 +1506,27 @@
       "source_tier": "PRIMARY_POLLSTER",
       "source_url": "https://www.celeste-tel.es/",
       "raw_archived": false,
-      "checked_at": "2026-10-10T06:25:22.605141+00:00"
+      "checked_at": "2026-10-10T06:49:46.792004+00:00"
     },
     "invymark": {
       "status": "FAILED",
       "format": "national_html",
       "coverage_role": "discovery",
       "error": "RuntimeError:SOURCE_FETCH_FAILED; https://invymark.es/ => SSLError:HTTPSConnectionPool(host='invymark.es', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1010)'))) | https://invymark.es/ => SSLError:HTTPSConnectionPool(host='invymark.es', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1010)')))",
-      "checked_at": "2026-10-10T06:25:25.186083+00:00"
+      "checked_at": "2026-10-10T06:49:49.730981+00:00"
     },
     "political_stats_spain": {
       "status": "FAILED",
       "format": "page",
       "coverage_role": "discovery",
       "error": "RuntimeError:SOURCE_FETCH_FAILED; https://politicalstats.eu/spain => ConnectionError:HTTPSConnectionPool(host='politicalstats.eu', port=443): Max retries exceeded with url: /spain (Caused by NameResolutionError(\"HTTPSConnection(host='politicalstats.eu', port=443): Failed to resolve 'politicalstats.eu' ([Errno -2] Name or service not known)\")) | https://politicalstats.eu/spain => ConnectionError:HTTPSConnectionPool(host='politicalstats.eu', port=443): Max retries exceeded with url: /spain (Caused by NameResolutionError(\"HTTPSConnection(host='politicalstats.eu', port=443): Failed to resolve 'politicalstats.eu' ([Errno -2] Name or service not known)\"))",
-      "checked_at": "2026-10-10T06:25:26.333401+00:00"
+      "checked_at": "2026-10-10T06:49:51.316304+00:00"
     },
     "europe_elects_twitter": {
       "status": "SKIPPED_OPTIONAL",
       "format": "twitter",
       "coverage_role": "discovery",
-      "checked_at": "2026-10-10T06:25:26.333433+00:00"
+      "checked_at": "2026-10-10T06:49:51.316334+00:00"
     },
     "lasexta_invymark_discovery": {
       "status": "OK",
@@ -1528,7 +1535,7 @@
       "source_tier": "SECONDARY_REPLICA",
       "source_url": "https://www.lasexta.com/elecciones/generales/encuestas-elecciones-generales_202610056ac365161c30184d44b52907.html",
       "raw_archived": false,
-      "checked_at": "2026-10-10T06:25:26.988260+00:00"
+      "checked_at": "2026-10-10T06:49:51.971094+00:00"
     },
     "pollingforecast_registry": {
       "status": "OK",
@@ -1537,7 +1544,7 @@
       "source_tier": "UNCLASSIFIED",
       "source_url": "https://www.pollingforecast.com/es/polls?lang=es&tab=raw",
       "raw_archived": false,
-      "checked_at": "2026-10-10T06:25:27.785271+00:00"
+      "checked_at": "2026-10-10T06:49:52.871158+00:00"
     }
   },
   "failure_streaks": {
@@ -1545,16 +1552,16 @@
     "cis_news": 0,
     "datoelectoral": 0,
     "europe_elects_spain": 0,
-    "gad3": 0,
+    "gad3": 1,
     "nc_report": 0,
     "demoscopia": 0,
     "celeste_tel": 0,
     "electomania_ajax": 0,
-    "elpais_40db": 2,
+    "elpais_40db": 3,
     "myfdata": 3,
-    "sigma_dos": 0,
-    "invymark": 490,
-    "political_stats_spain": 490,
+    "sigma_dos": 1,
+    "invymark": 491,
+    "political_stats_spain": 491,
     "lasexta_invymark_discovery": 0,
     "pollingforecast_registry": 0
   },
@@ -1564,13 +1571,16 @@
     "political_stats_spain": "d7e42b594fbc4c954fb7431cdc0564d024eea46a7fd89cd44c27b8ee4a022124"
   },
   "last_coverage": {
-    "claim": "COBERTURA_TOTAL_VERIFICADA",
+    "claim": "COBERTURA_TOTAL_NO_VERIFICADA",
     "scope": "configured_national_poll_universe",
-    "total": true,
+    "total": false,
     "sources_checked": 16,
     "primary_sources": 6,
     "discovery_sources": 10,
-    "blockers": []
+    "blockers": [
+      "SOURCE_NOT_HEALTHY:sigma_dos",
+      "SOURCE_NOT_HEALTHY:gad3"
+    ]
   },
   "poll_versions": {
     "datoelectoral::2026-09-23::Barómetro de septiembre 2026 (estudio 3577 del CIS)": [
