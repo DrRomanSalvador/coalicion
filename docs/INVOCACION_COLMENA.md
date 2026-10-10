@@ -14,20 +14,7 @@ Valida:
 4. Tests de contrato, registro de errores, producto, motor de coaliciones y auditoría.
 5. Demo E2E real: `python scripts/demo_e2e.py`.
 
-## Reina Hugging Face opcional
-
-Modo formal: `QUEEN_COORDINATION_MODE + 179_AGENTS_HF`. La credencial exacta es `Reina_token`. La política exige aprobación explícita antes de nuevas asignaciones/ejecuciones. El conteo actual se deriva de `docs/COLMENA_MISSION_CONTROL.json` y se sincroniza al cambiar el ledger; no se deben tratar cifras históricas de esta guía como estado en tiempo real. La última ejecución registrada quedó BLOCKED por falta de créditos del proveedor HF.
-La integración complementaria está documentada en `docs/COLMENA_HF_AGENTS.md`.
-- `python scripts/colmena_queen_hf.py --status`: inspeccionar 179 slots lógicos.
-- `python scripts/colmena_queen_hf.py --assign 5`: asignar hasta cinco misiones con tarea concreta.
-- GitHub Actions → **COALICIÓN — Asignación persistente de misiones HF**: tras la aprobación explícita, asigna un lote de 1–5 y persiste Mission Control en la rama invocada; no ejecuta agentes.
-- GitHub Actions → **COALICIÓN — Agentes lógicos Hugging Face**: ejecución manual de una misión mediante HF.
-- El workflow exige un mission_id ya asignado, usa exactamente el secreto Reina_token, reconcilia el JSON con la Reina y persiste docs/COLMENA_MISSION_CONTROL.json, docs/COLMENA_STATE.json y artifacts/colmena/agents/ mediante commit en la rama invocada; además sube un artefacto recuperable de 90 días. Un artefacto de Actions por sí solo no equivale a persistencia en Git.
-- Requiere secreto `Reina_token`; no se invoca HF ni se consumen créditos en la validación base.
-- Los 179 slots no son 179 procesos concurrentes. Cada ejecución invoca un agente explícitamente.
-- La respuesta del modelo queda en `REVIEW_REQUIRED`; no puede certificar PASS ni afirmar que ejecutó pruebas/cambió código sin evidencia.
-
-## Persistencia y límites
+## Agentes IA locales Ollama\n\nLa ejecución de agentes usa exclusivamente Ollama local; no requiere tokens ni créditos externos. Consulta `docs/COLMENA_OLLAMA_AGENTS.md`. La validación ligera permanece separada del runtime de IA.\n\n## Persistencia y límites
 El workflow base registra `last_colmena_checkpoint` en `docs/COLMENA_STATE.json` solo tras superar todas las comprobaciones. Incluye commit probado, run ID, intento, lista de checks y timestamp UTC.
 - No se declara PASS si falla una comprobación.
 - El checkpoint valida únicamente los checks enumerados; no es certificación externa.
