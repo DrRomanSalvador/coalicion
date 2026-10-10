@@ -62,7 +62,8 @@ async function handleMessage(env: Env, msg: TelegramMessage): Promise<void> {
   const chatId = msg.chat.id;
   const userId = String(msg.from.id);
   const command = text.split(/\s+/, 1)[0].split("@")[0].toLowerCase();
-  const arg = text.slice(text.indexOf(" ") + 1).trim();
+  const separator = text.indexOf(" ");
+  const arg = separator >= 0 ? text.slice(separator + 1).trim() : "";
   if (command === "/start") {
     await send(env, chatId, "🐝 COALICIÓN · Centro de mando\n\nWebhook seguro activo y tareas con persistencia. El análisis electoral completo sigue en el motor COALICIÓN; este servicio gestiona la interfaz y el estado del despacho.", keyboard([[{text:"📍 Hoy",callback_data:"cmd:hoy"},{text:"🚨 Urgente",callback_data:"cmd:urgente"}],[{text:"📋 Tareas",callback_data:"task:list"},{text:"⚙️ Configuración",callback_data:"cmd:config"}],[{text:"❓ Ayuda",callback_data:"cmd:ayuda"}]]));
   } else if (command === "/ayuda" || command === "/help") {
