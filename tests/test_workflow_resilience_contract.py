@@ -129,10 +129,13 @@ def test_required_agent_contract_executes_all_25_principle_gate_regressions():
     assert "name: Verify mandatory agent contract" in source
 
 
-def test_auto_merge_gate_cancels_stale_validation_for_superseded_head():
+def test_auto_merge_gate_exits_stale_head_without_cancelling_active_work():
     workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
+    client = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
     assert "group: pr-validation-${{ github.event.pull_request.number }}" in workflow
-    assert "cancel-in-progress: true" in workflow
+    assert "cancel-in-progress: false" in workflow
+    assert "fetch_current_pr_head_sha(repo, pr_number)" in client
+    assert "this stale validation exits without requesting a merge" in client
 
 
 def test_pr_validation_gate_paginates_and_excludes_only_its_own_run():
