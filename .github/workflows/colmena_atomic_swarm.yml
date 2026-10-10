@@ -4,6 +4,30 @@ on:
   workflow_dispatch:
   repository_dispatch:
     types: [poll_monitor_completed]
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/colmena_atomic_swarm.yml"
+      - ".github/workflows/colmena_ollama_agents.yml"
+      - ".github/workflows/colmena_ollama_assign.yml"
+      - "scripts/colmena_queen.py"
+      - "scripts/colmena_agent_ollama.py"
+      - "src/colmena_resume.py"
+      - "src/reproducibility_contract.py"
+      - "src/error_registry.py"
+      - "src/coalition.py"
+      - "src/decision.py"
+      - "src/electoral.py"
+      - "scripts/demo_e2e.py"
+      - "tests/test_colmena_ollama.py"
+      - "tests/test_reproducibility_contract.py"
+      - "tests/test_error_registry.py"
+      - "tests/test_colmena_resume.py"
+      - "tests/test_product_contract.py"
+      - "tests/test_resume_error_registry_consistency.py"
+      - "tests/test_demo_e2e.py"
+      - "tests/test_coalition.py"
+      - "tests/test_neutral_audit.py"
   push:
     branches: [main]
     paths:
