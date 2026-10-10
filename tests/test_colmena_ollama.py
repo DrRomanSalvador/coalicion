@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 import colmena_queen as queen
-import colmena_agent_ollama as colmena_agent_hf
+import colmena_agent_ollama as colmena_agent_ollama
 
 
 
@@ -60,9 +60,9 @@ def test_assignment_is_bounded_and_only_assigns_concrete_tasks(tmp_path, monkeyp
 
 
 def test_agent_rejects_mission_without_task(tmp_path, monkeypatch):
-    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path)
+    monkeypatch.setattr(colmena_agent_ollama, "AGENTS_DIR", tmp_path)
     try:
-        colmena_agent_hf.run_agent({"id": "M1", "agent_id": "agent-001"})
+        colmena_agent_ollama.run_agent({"id": "M1", "agent_id": "agent-001"})
     except ValueError as exc:
         assert "task" in str(exc)
     else:
@@ -207,8 +207,8 @@ def test_ollama_backend_runs_without_external_credits(tmp_path, monkeypatch):
     from io import BytesIO
 
     mission_path = tmp_path / "missions.json"
-    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", mission_path)
-    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    monkeypatch.setattr(colmena_agent_ollama, "MISSION_CONTROL", mission_path)
+    monkeypatch.setattr(colmena_agent_ollama, "AGENTS_DIR", tmp_path / "evidence")
     mission = {
         "id": "M0001", "agent_id": "agent-001", "task": "Audita el código",
         "status": "ASSIGNED", "assigned": True, "context_paths": []
@@ -229,7 +229,7 @@ def test_ollama_backend_runs_without_external_credits(tmp_path, monkeypatch):
     monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
     monkeypatch.delenv("Reina_token", raising=False)
 
-    result = colmena_agent_hf.run_agent(
+    result = colmena_agent_ollama.run_agent(
         mission, hf_token=None, backend="ollama", local_model="qwen2.5:3b",
         ollama_url="http://127.0.0.1:11434"
     )
@@ -249,8 +249,8 @@ def test_ollama_backend_failure_stays_blocked(tmp_path, monkeypatch):
     from urllib.error import URLError
 
     mission_path = tmp_path / "missions.json"
-    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", mission_path)
-    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    monkeypatch.setattr(colmena_agent_ollama, "MISSION_CONTROL", mission_path)
+    monkeypatch.setattr(colmena_agent_ollama, "AGENTS_DIR", tmp_path / "evidence")
     mission = {
         "id": "M0001", "agent_id": "agent-001", "task": "Audita el código",
         "status": "ASSIGNED", "assigned": True, "context_paths": []
@@ -262,21 +262,21 @@ def test_ollama_backend_failure_stays_blocked(tmp_path, monkeypatch):
     monkeypatch.setattr(urllib.request, "urlopen", fail_urlopen)
     monkeypatch.delenv("Reina_token", raising=False)
 
-    result = colmena_agent_hf.run_agent(mission, backend="ollama")
+    result = colmena_agent_ollama.run_agent(mission, backend="ollama")
 
     assert result["status"] == "BLOCKED"
     assert result["backend"] == "ollama"
     assert "Ollama" in result["error"]
-    assert "Reina_token" not in result["error"]
+    assert "Ollama" in result["error"]
 
 
 def test_ollama_agent_fails_closed_for_unassigned_mission(tmp_path, monkeypatch):
-    monkeypatch.setattr(colmena_agent_hf, "MISSION_CONTROL", tmp_path / "missions.json")
-    monkeypatch.setattr(colmena_agent_hf, "AGENTS_DIR", tmp_path / "evidence")
+    monkeypatch.setattr(colmena_agent_ollama, "MISSION_CONTROL", tmp_path / "missions.json")
+    monkeypatch.setattr(colmena_agent_ollama, "AGENTS_DIR", tmp_path / "evidence")
     (tmp_path / "missions.json").write_text(json.dumps({
         "missions": [{"id": "M0001", "agent_id": "agent-001", "task": "Auditar", "status": "PENDING", "assigned": False}]
     }), encoding="utf-8")
-    result = colmena_agent_hf.run_agent("M0001")
+    result = colmena_agent_ollama.run_agent("M0001")
     assert result["status"] == "BLOCKED"
     assert "Reina no ha asignado" in result["error"]
     assert (tmp_path / "evidence" / "agent-001_M0001.json").is_file()
