@@ -110,6 +110,7 @@ def load_mandatory_contract() -> str:
         product_index.get("schema") != "COALICION_PRODUCT_REQUIREMENTS_V1"
         or product_index.get("status") != "READY"
         or expected_count != 430
+        or not isinstance(requirements, list)
         or len(requirements) != 430
         or len(ids) != 430
         or len(set(ids)) != 430
