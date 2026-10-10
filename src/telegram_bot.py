@@ -1932,7 +1932,12 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
         # Private Telegram chats use the user's ID as the chat ID.
         # Explicitly configured administrators can therefore use the bot
         # without weakening the allowlist for arbitrary users or groups.
-        allowed = _chat_allowed(chat_id) or (chat_id == user_id and _admin_allowed(update))
+        authorized_users = {str(x) for x in _config().get("authorized_users", [])}
+        allowed = (
+            _chat_allowed(chat_id)
+            or (chat_id == user_id and user_id in authorized_users)
+            or (chat_id == user_id and _admin_allowed(update))
+        )
         print(f"Telegram authorization: allowed={allowed}", file=sys.stderr)
     else:
         allowed = False
