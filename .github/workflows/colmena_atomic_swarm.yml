@@ -50,7 +50,7 @@ on:
       - ".github/workflows/colmena_atomic_swarm.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: colmena-light-main
