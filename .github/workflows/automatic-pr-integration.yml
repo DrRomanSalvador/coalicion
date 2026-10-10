@@ -16,9 +16,10 @@ concurrency:
 
 jobs:
   enable-auto-merge:
-    name: Verify mandatory agent contract
+    name: Automatic PR integration gate
     if: >-
       github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.head.ref != 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 120
