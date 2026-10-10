@@ -24,17 +24,12 @@ Never add secret values to source control. The deployment workflow will refuse t
 
 ## Deploy
 
-The workflow `.github/workflows/deploy_telegram_worker.yml` deploys this directory after tests pass. Cloudflare's automatic binding provisioning creates the D1 resource on first deployment. Confirm the D1 binding exists in Cloudflare if the first deployment reports a provisioning limitation.
+1. Add the five repository secrets listed above (the existing `TELEGRAM_BOT_TOKEN` is already used by the current bot workflow).
+2. Open Actions → **Deploy COALICIÓN Telegram webhook** → **Run workflow**.
+3. The workflow runs tests and type-checking, deploys the Worker, provisions its D1 binding, stores Worker secrets, registers Telegram's webhook, and verifies `/health`. It stops before deployment if any required secret is missing.
+4. Open the bot in Telegram and send `/start`. Test `/tarea Preparar briefing`, `/tarea`, `/hoy`, and the task buttons.
 
-After deployment, obtain the URL shown in the workflow log (normally `https://coalicion-telegram.<your-subdomain>.workers.dev`). Then set the webhook once, replacing placeholders locally:
-
-```bash
-curl -sS -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
-  -H 'content-type: application/json' \
-  -d "{\"url\":\"https://coalicion-telegram.<your-subdomain>.workers.dev/telegram/webhook\",\"secret_token\":\"$TELEGRAM_WEBHOOK_SECRET\",\"allowed_updates\":[\"message\",\"callback_query\"],\"drop_pending_updates\":false}"
-```
-
-Do not publish the expanded command or its secrets. Verify with `getWebhookInfo`, then open the bot in Telegram and send `/start`.
+The workflow discovers the deployed `workers.dev` URL and registers the webhook automatically; no manual `curl` command is required. If Cloudflare automatic D1 provisioning is rejected by the account, create the D1 database in Cloudflare and add its ID to `telegram-worker/wrangler.jsonc`, then rerun deployment.
 
 ## Local verification
 
