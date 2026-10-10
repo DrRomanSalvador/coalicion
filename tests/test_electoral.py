@@ -13,6 +13,16 @@ def test_quotient_tie_uses_votes():
 def test_absolute_tie_blocks_not_lexicographic():
     r=dhondt({"ZZ":100,"AA":100},1,200)
     assert r.status=="EMPATE_ABSOLUTO_PENDIENTE" and r.tie==("AA","ZZ")
+
+
+
+def test_multi_party_absolute_tie_can_use_explicit_resolver():
+    votes = {"A": 100, "B": 100, "C": 100, "D": 100}
+    unresolved = dhondt(votes, 1, 400)
+    assert unresolved.status == "EMPATE_ABSOLUTO_PENDIENTE"
+    resolved = dhondt(votes, 1, 400, tie_breaker=lambda tied: tied[-1])
+    assert resolved.status == "OK"
+    assert resolved.seats == {"A": 0, "B": 0, "C": 0, "D": 1}
 def test_ceuta_majority():
     assert ceuta_melilla({"A":40,"B":35},75).seats["A"]==1
 def test_ceuta_tie_blocks():
