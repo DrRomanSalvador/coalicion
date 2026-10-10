@@ -1,0 +1,26 @@
+name: Mandatory engineering contract
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: Verify mandatory agent contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check mandatory policies and links
+        run: python scripts/check_agent_contract.py
+      - name: Test DORA calculations
+        run: python -m unittest tests.test_dora_metrics -v
