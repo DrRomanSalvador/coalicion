@@ -1,0 +1,55 @@
+name: DORA engineering metrics
+
+on:
+  workflow_dispatch:
+    inputs:
+      window_days:
+        description: "Historical measurement window (1-365 days)"
+        required: false
+        default: "30"
+  schedule:
+    - cron: "17 7 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/dora_metrics.py"
+      - "tests/test_dora_metrics.py"
+      - ".github/workflows/dora-metrics.yml"
+      - "docs/DORA_METRICS.md"
+
+permissions:
+  contents: read
+  deployments: read
+
+jobs:
+  measure:
+    name: Measure recorded production deployments
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test metric calculations
+        run: python -m unittest tests.test_dora_metrics -v
+
+      - name: Generate DORA report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          DORA_WINDOW_DAYS: ${{ inputs.window_days || '30' }}
+          DORA_OUTPUT_DIR: artifacts/dora
+        run: python scripts/dora_metrics.py
+
+      - name: Preserve report as an auditable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dora-metrics
+          path: artifacts/dora/
+          if-no-files-found: error
+          retention-days: 90
