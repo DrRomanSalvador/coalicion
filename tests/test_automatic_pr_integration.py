@@ -174,6 +174,24 @@ def test_pr_body_requires_reasoned_disposition_for_all_25_principles():
     assert validate_pr_body(_valid_pr_body()) == []
 
 
+def test_pr_body_gate_rejects_generic_rationale_without_canonical_title():
+    body = _valid_pr_body().replace(
+        "- **01** APLICA — Legibilidad antes que ingenio — Este principio se evalúa porque el cambio altera el contrato de integración número 01.",
+        "- **01** APLICA — Un principio cualquiera — Esta explicación genérica es suficientemente larga pero no identifica el principio canónico.",
+    )
+    missing = validate_pr_body(body)
+    assert any("principle 01 must name its canonical title" in item for item in missing)
+
+
+def test_pr_body_gate_rejects_canonical_title_without_substantive_rationale():
+    body = _valid_pr_body().replace(
+        "- **01** APLICA — Legibilidad antes que ingenio — Este principio se evalúa porque el cambio altera el contrato de integración número 01.",
+        "- **01** APLICA — Legibilidad antes que ingenio",
+    )
+    missing = validate_pr_body(body)
+    assert any("principle 01 needs a concrete rationale after its canonical title" in item for item in missing)
+
+
 def test_pr_body_gate_rejects_missing_principles_even_when_some_are_listed():
     body = _valid_pr_body().replace(
         "- **25** APLICA — Utilidad y responsabilidad — Este principio se evalúa porque el cambio altera el contrato de integración número 25.\n",
