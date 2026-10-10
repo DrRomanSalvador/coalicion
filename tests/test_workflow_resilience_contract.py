@@ -108,8 +108,8 @@ def test_self_healer_reports_exhausted_failures_even_when_retryable_candidates_e
     assert 'select(.status == "completed" and .run_attempt < 3)' in source
     assert '[[ "${#candidates[@]}" -eq 0 ]]' in source
     assert source.index("EXHAUSTED_RETRY_BUDGET") < source.index('if [[ "$failures" -gt 0 ]]; then')
-    assert 'printf \'%s\\\\n\' "$exhausted"' not in source
-    assert source.count('printf \'%s\\n\' "$exhausted" | tee -a "$GITHUB_STEP_SUMMARY"') == 2
+    assert 'printf \'%s\\\n\' "$exhausted"' not in source
+    assert source.count('printf \'%s\n\' "$exhausted" | tee -a "$GITHUB_STEP_SUMMARY"') == 2
 
 
 def test_global_orchestrator_automatically_checks_for_stuck_canonical_runs():
@@ -136,6 +136,26 @@ def test_auto_merge_gate_exits_stale_head_without_cancelling_active_work():
     assert "cancel-in-progress: false" in workflow
     assert "fetch_current_pr_head_sha(repo, pr_number)" in client
     assert "this stale validation exits without requesting a merge" in client
+
+
+def test_seec_pull_request_validation_has_read_only_permissions():
+    workflow = (WORKFLOWS / "seec-production-real.yml").read_text(encoding="utf-8")
+    assert "pull_request_target:" in workflow
+    assert "permissions:\n  contents: read" in workflow
+    assert "persist-credentials: false" in workflow
+    assert "contents: write" not in workflow.split("jobs:", 1)[0]
+    assert "name: Persist SEEC evidence on trusted main push" in workflow
+    assert "if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'" in workflow
+    assert "      contents: write" in workflow
+
+
+def test_seec_write_capable_job_does_not_execute_on_pull_requests():
+    workflow = (WORKFLOWS / "seec-production-real.yml").read_text(encoding="utf-8")
+    writer = workflow.split("  persist_evidence:", 1)[1]
+    assert "if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'" in writer
+    assert "actions/download-artifact@v4" in writer
+    assert "ref: main" in writer
+    assert "refs/pull/" not in writer
 
 
 def test_product_pipeline_path_filters_match_gate_required_checks():
