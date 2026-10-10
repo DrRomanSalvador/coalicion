@@ -56,6 +56,17 @@ def test_current_pr_head_sha_classifies_authorization_failure_for_fast_exit():
         raise AssertionError("Authorization failure must not be retried for 110 minutes")
 
 
+def test_github_cli_timeout_is_bounded_and_reported_as_transient():
+    def fake_runner(*args, **kwargs):
+        raise subprocess.TimeoutExpired(args[0], timeout=30)
+    try:
+        fetch_current_pr_head_sha("owner/repo", "17", runner=fake_runner)
+    except Exception as exc:
+        assert "timed out after 30 seconds" in str(exc)
+    else:
+        raise AssertionError("A stalled GitHub API call must be bounded")
+
+
 def test_current_pr_head_sha_fails_closed_on_malformed_response():
     def fake_runner(*args, **kwargs):
         return subprocess.CompletedProcess(args[0], 0, stdout="unknown", stderr="")
