@@ -148,14 +148,16 @@ def _valid_pr_body(principle_overrides=None, markdown=True):
     overrides = principle_overrides or {}
     lines = []
     for number in range(1, 26):
-        if number in overrides:
-            detail = overrides[number]
-        else:
-            detail = (
-                f"{PRINCIPLE_TITLES[number]} — Este principio se evalúa porque el cambio altera "
-                f"el contrato de integración número {number:02d}."
-            )
-        lines.append(f"- **{number:02d}** APLICA — {detail}")
+        disposition, rationale = overrides.get(
+            number,
+            (
+                "APLICA",
+                f"Este principio se evalúa porque el cambio altera el contrato de integración número {number:02d}.",
+            ),
+        )
+        lines.append(
+            f"- **{number:02d}** {disposition} — {PRINCIPLE_TITLES[number]} — {rationale}"
+        )
     heading = "## " if markdown else ""
     return (
         f"{heading}Causa raíz:\\nCausa reproducible y comprobada.\\n"
@@ -168,14 +170,13 @@ def _valid_pr_body(principle_overrides=None, markdown=True):
     )
 
 
-
 def test_pr_body_requires_reasoned_disposition_for_all_25_principles():
     assert validate_pr_body(_valid_pr_body()) == []
 
 
 def test_pr_body_gate_rejects_missing_principles_even_when_some_are_listed():
     body = _valid_pr_body().replace(
-        "- **25** APLICA — Este principio se evalúa porque el cambio altera el contrato de integración número 25.\n",
+        "- **25** APLICA — Utilidad y responsabilidad — Este principio se evalúa porque el cambio altera el contrato de integración número 25.\\n",
         "",
     )
     missing = validate_pr_body(body)
@@ -183,39 +184,38 @@ def test_pr_body_gate_rejects_missing_principles_even_when_some_are_listed():
 
 
 def test_pr_body_gate_rejects_duplicate_principle_dispositions():
-    body = _valid_pr_body().replace(
-        "- **02** APLICA — Este principio se evalúa porque el cambio altera el contrato de integración número 02.",
-        "- **02** APLICA — Este principio se evalúa porque el cambio altera el contrato de integración número 02.\n"
-        "- **01** APLICA — Duplicado deliberado dentro de la sección para probar el bloqueo.",
-    )
+    body = _valid_pr_body() + "\\n- **01** APLICA — Legibilidad antes que ingenio — Duplicado deliberado para probar el bloqueo."
     missing = validate_pr_body(body)
     assert any("principle 01 is declared more than once" in item for item in missing)
 
 
 def test_pr_body_gate_requires_reasoned_na_disposition():
-    body = _valid_pr_body({7: "Medir antes de optimizar — N/A — no procede en el alcance concreto de este cambio" })
+    body = _valid_pr_body({
+        7: ("N/A", "no procede en el alcance concreto de este cambio")
+    })
     missing = validate_pr_body(body)
     assert any("principle 07 is N/A without an explicit justification" in item for item in missing)
 
 
 def test_pr_body_gate_accepts_explicitly_justified_na_for_one_principle():
     body = _valid_pr_body({
-        7: "Medir antes de optimizar — N/A — justificación: este cambio no incluye optimizaciones ni modifica rendimiento."
+        7: ("N/A", "justificación: este cambio no incluye optimizaciones ni modifica rendimiento.")
     })
     assert validate_pr_body(body) == []
 
 
 def test_pr_body_gate_rejects_empty_principle_section():
     body = _valid_pr_body().replace(
-        "Principios afectados (01–25):\n" + "\n".join(
-            f"- **{number:02d}** APLICA — Este principio se evalúa porque el cambio altera "
-            f"el contrato de integración número {number:02d}."
+        "Principios afectados (01–25):\\n" + "\\n".join(
+            f"- **{number:02d}** APLICA — {PRINCIPLE_TITLES[number]} — "
+            f"Este principio se evalúa porque el cambio altera el contrato de integración número {number:02d}."
             for number in range(1, 26)
-        ) + "\n",
-        "Principios afectados (01–25):\n",
+        ) + "\\n",
+        "Principios afectados (01–25):\\n",
     )
     missing = validate_pr_body(body)
     assert any("principle 01 must have exactly one" in item for item in missing)
+
 
 
 def test_pr_body_fetch_fails_closed_on_github_api_error():
