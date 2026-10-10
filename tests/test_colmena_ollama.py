@@ -394,7 +394,7 @@ def test_agent_rejects_assigned_mission_without_task_before_ollama_call(tmp_path
 
 def test_product_governance_requires_all_missions_to_map_to_requirement_ids():
     doc = (ROOT / "docs/COALICION_PRODUCT_GOVERNANCE.md").read_text(encoding="utf-8")
-    assert "Cada misión atómica referencia uno o más IDs" in doc
+    assert "Cada misión `PRODUCT` referencia uno o más IDs" in doc
     assert "La Reina debe reconciliar el 100 %" in doc
     assert "Las 179 misiones son capacidad de coordinación" in doc
     assert "encuesta → voto → territorio → D’Hondt" in doc
