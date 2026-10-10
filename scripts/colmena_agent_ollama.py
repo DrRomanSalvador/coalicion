@@ -59,6 +59,36 @@ def save_evidence(path: Path, result: dict[str, Any]) -> None:
     temporary.replace(path)
 
 
+def load_product_requirement_ids() -> set[str]:
+    """Devuelve el conjunto exacto solo si el checklist original está completo."""
+    path = ROOT.resolve() / "docs/COALICION_PRODUCT_REQUIREMENTS_430.json"
+    try:
+        index = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError("Fail-closed: no se puede leer el índice canónico de 430 requisitos.") from exc
+    requirements = index.get("requirements")
+    ids = [
+        item.get("id") for item in requirements
+        if isinstance(item, dict) and isinstance(item.get("id"), str) and item.get("id").strip()
+    ] if isinstance(requirements, list) else []
+    if (
+        index.get("schema") != "COALICION_PRODUCT_REQUIREMENTS_V1"
+        or index.get("status") != "READY"
+        or index.get("expected_count") != 430
+        or not isinstance(requirements, list)
+        or len(requirements) != 430
+        or len(ids) != 430
+        or len(set(ids)) != 430
+        or any(not isinstance(item.get("acceptance_criteria"), list) or not item["acceptance_criteria"]
+               for item in requirements)
+    ):
+        raise ValueError(
+            "Fail-closed: la lista maestra exacta de 430 requisitos no está materializada "
+            "con 430 IDs únicos y criterios de aceptación; no se ejecuta ninguna misión de producto."
+        )
+    return set(ids)
+
+
 def load_mandatory_contract(require_product_backlog: bool = True) -> str:
     """Carga las normas canónicas; la inferencia no arranca si faltan."""
     required = (
@@ -94,33 +124,8 @@ def load_mandatory_contract(require_product_backlog: bool = True) -> str:
     if covered != expected:
         missing = sorted(expected - covered)
         raise ValueError(f"Fail-closed: la matriz no cubre los 25 principios; faltan {missing}.")
-    product_index_path = root / "docs/COALICION_PRODUCT_REQUIREMENTS_430.json"
-    try:
-        product_index = json.loads(product_index_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ValueError("Fail-closed: no se puede leer el índice canónico de 430 requisitos.") from exc
-    requirements = product_index.get("requirements")
-    expected_count = product_index.get("expected_count")
-    ids = [
-        item.get("id")
-        for item in requirements
-        if isinstance(item, dict) and isinstance(item.get("id"), str) and item.get("id").strip()
-    ] if isinstance(requirements, list) else []
-    if require_product_backlog and (
-        product_index.get("schema") != "COALICION_PRODUCT_REQUIREMENTS_V1"
-        or product_index.get("status") != "READY"
-        or expected_count != 430
-        or not isinstance(requirements, list)
-        or len(requirements) != 430
-        or len(ids) != 430
-        or len(set(ids)) != 430
-        or any(not isinstance(item.get("acceptance_criteria"), list) or not item["acceptance_criteria"]
-               for item in requirements)
-    ):
-        raise ValueError(
-            "Fail-closed: la lista maestra exacta de 430 requisitos no está materializada "
-            "con 430 IDs únicos y criterios de aceptación; no se ejecuta ninguna misión de producto."
-        )
+    if require_product_backlog:
+        load_product_requirement_ids()
     if total_chars > 50000:
         raise ValueError("Fail-closed: los contratos obligatorios exceden el límite de contexto.")
     return "\n\n".join(chunks)
@@ -150,6 +155,19 @@ def run_agent(mission_id: str, model: str = DEFAULT_MODEL, ollama_url: str = DEF
             raise ValueError("Fail-closed: la Reina no ha asignado esta misión.")
         if not isinstance(mission.get("task"), str) or not mission["task"].strip():
             raise ValueError("Fail-closed: la misión no tiene tarea concreta.")
+        mission_type = mission.get("mission_type", "UNDEFINED")
+        if mission_type not in {"PLATFORM", "PRODUCT"}:
+            raise ValueError("Fail-closed: misión sin clasificación PLATFORM/PRODUCT; no se ejecuta Ollama.")
+        if mission_type == "PRODUCT":
+            requirement_ids = mission.get("requirement_ids")
+            known_ids = load_product_requirement_ids()
+            if (
+                not isinstance(requirement_ids, list)
+                or not requirement_ids
+                or any(not isinstance(item, str) for item in requirement_ids)
+                or not set(requirement_ids).issubset(known_ids)
+            ):
+                raise ValueError("Fail-closed: misión PRODUCT sin IDs válidos de la lista original de 430 requisitos.")
         if not model.strip():
             raise ValueError("El modelo Ollama no puede estar vacío.")
         context = load_context(mission)
