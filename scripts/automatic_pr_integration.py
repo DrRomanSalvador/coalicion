@@ -125,6 +125,35 @@ def latest_runs_per_workflow(runs: list[dict[str, Any]]) -> list[dict[str, Any]]
     ]
 
 
+PRINCIPLE_TITLES = {
+    1: "Legibilidad antes que ingenio",
+    2: "Automatizar lo repetible",
+    3: "Pruebas como requisito de integración",
+    4: "Responsabilidad única y límites claros",
+    5: "Diseñar para el fallo",
+    6: "Seguridad desde el diseño",
+    7: "Medir antes de optimizar",
+    8: "Tecnología al servicio del problema",
+    9: "Siempre integrable y listo para desplegar",
+    10: "Mejora continua sin cuotas artificiales",
+    11: "Autorreparación segura",
+    12: "Chaos engineering con límites",
+    13: "Inmutabilidad donde aporta garantías",
+    14: "Latencia como atributo medible",
+    15: "Gobierno arquitectónico automatizado",
+    16: "Observabilidad estructurada",
+    17: "Contratos de API evolutivos",
+    18: "Simplicidad operativa",
+    19: "Decisiones registradas",
+    20: "Postmortems sin culpabilizar",
+    21: "Hacer fácil lo correcto",
+    22: "Compatibilidad como contrato explícito",
+    23: "Minimalismo radical con evidencia",
+    24: "Mínima sorpresa y determinismo",
+    25: "Utilidad y responsabilidad",
+}
+
+
 REQUIRED_PR_SECTIONS = (
     "Causa raíz:",
     "Solución mínima:",
@@ -172,6 +201,12 @@ def validate_pr_body(body: str) -> list[str]:
         number = int(match.group(1))
         disposition = match.group(2).upper()
         rationale = re.sub(r"[*_]", "", match.group(3)).strip()
+        canonical_title = PRINCIPLE_TITLES[number]
+        if not rationale.casefold().startswith(canonical_title.casefold()):
+            missing.append(
+                f"principle {number:02d} must name its canonical title: {canonical_title}"
+            )
+            continue
         if number in dispositions:
             missing.append(f"principle {number:02d} is declared more than once")
             continue
