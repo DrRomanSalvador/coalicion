@@ -39,7 +39,7 @@ def test_docs_only_change_does_not_require_untriggered_product_pipeline():
 
 def test_current_pr_head_sha_is_read_from_live_github_state():
     def fake_runner(*args, **kwargs):
-        return subprocess.CompletedProcess(args[0], 0, stdout="a" * 40 + "\\n", stderr="")
+        return subprocess.CompletedProcess(args[0], 0, stdout="a" * 40 + "\n", stderr="")
     assert fetch_current_pr_head_sha("owner/repo", "17", runner=fake_runner) == "a" * 40
 
 
