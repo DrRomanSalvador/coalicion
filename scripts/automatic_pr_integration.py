@@ -83,8 +83,6 @@ def fetch_runs(
         for run in page.get("workflow_runs", []):
             if not isinstance(run, dict) or run.get("head_sha") != sha:
                 continue
-            if str(run.get("id", "")) == current_run_id:
-                continue
             runs.append(
                 {
                     "id": run.get("id"),
@@ -96,7 +94,10 @@ def fetch_runs(
                     "created_at": run.get("created_at"),
                 }
             )
-    return latest_runs_per_workflow(runs)
+    # Select the newest attempt before excluding this job. Otherwise an older
+    # failed attempt of the same workflow can incorrectly block its own retry.
+    latest = latest_runs_per_workflow(runs)
+    return [run for run in latest if str(run.get("id", "")) != current_run_id]
 
 
 def latest_runs_per_workflow(runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
