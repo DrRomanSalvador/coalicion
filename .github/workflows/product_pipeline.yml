@@ -30,8 +30,7 @@ permissions:
 concurrency:
   # Keep main and each PR isolated; only supersede older runs for the same ref.
   group: product-pipeline-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
+  cancel-in-progress: false
 jobs:
   product:
     runs-on: ubuntu-latest
