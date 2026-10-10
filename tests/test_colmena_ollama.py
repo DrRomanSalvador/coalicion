@@ -99,7 +99,8 @@ def test_ollama_failure_is_blocked_and_never_falls_back(tmp_path, monkeypatch):
     monkeypatch.setattr(agent, "load_mandatory_contract", lambda **kwargs: "CONTRATO DE PRUEBA; principios 01–25.")
     ledger.write_text(json.dumps({"missions": [{
         "id": "M0001", "agent_id": "agent-001", "task": "Audita",
-        "status": "ASSIGNED", "assigned": True, "context_paths": []
+        "status": "ASSIGNED", "assigned": True, "context_paths": [],
+        "mission_type": "PLATFORM", "requirement_ids": []
     }]}), encoding="utf-8")
     def fail_urlopen(request, timeout): raise URLError("Ollama no está iniciado")
     monkeypatch.setattr(agent, "urlopen", fail_urlopen)
