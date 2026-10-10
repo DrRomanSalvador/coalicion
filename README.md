@@ -4,7 +4,7 @@
 
 # COALICIÓN — PUNTO DE ENTRADA ÚNICO
 
-Este repositorio es la memoria operativa y reproducible del proyecto. Toda IA debe leer primero este README, `AGENTS.md` y `CONTRATO_MAESTRO_IA.md`. `AGENTS.md` define la metodología común de código, Git, pruebas, PR y automatizaciones.
+Este repositorio es la memoria operativa y reproducible del proyecto. Toda IA debe leer primero este README, `AGENTS.md` y `CONTRATO_MAESTRO_IA.md`. `AGENTS.md` define la metodología común de código, Git, pruebas, PR y automatizaciones. La carta técnica obligatoria está en `docs/ENGINEERING_CHARTER.md`; las métricas DORA, su workflow y sus limitaciones se describen en `docs/DORA_METRICS.md`.
 
 ## Regla suprema
 **Mismos datos + mismas reglas + mismos parámetros + misma versión = mismo resultado.**
