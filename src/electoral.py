@@ -46,18 +46,21 @@ def dhondt(votes:Mapping[str,int], seats:int, valid_votes_total:int, blank_votes
                 tied_tuple=tuple(sorted(tied))
                 if tie_breaker is None:
                     return Allocation(result,"EMPATE_ABSOLUTO_PENDIENTE",tied_tuple)
-                if len(tied_tuple)!=2:
-                    return Allocation(result,"EMPATE_ABSOLUTO_PENDIENTE",tied_tuple)
-                key=frozenset(tied_tuple)
-                previous=tie_state.get(key)
-                if previous is None:
+                    if len(tied_tuple)==2:
+                    key=frozenset(tied_tuple)
+                    previous=tie_state.get(key)
+                    if previous is None:
+                        chosen=tie_breaker(tied_tuple)
+                        if chosen not in tied_tuple:
+                            raise ValueError("tie_breaker devolvió una candidatura no empatada")
+                        tie_state[key]=chosen
+                    else:
+                        chosen=tied_tuple[1] if previous==tied_tuple[0] else tied_tuple[0]
+                        tie_state[key]=chosen
+                else:
                     chosen=tie_breaker(tied_tuple)
                     if chosen not in tied_tuple:
                         raise ValueError("tie_breaker devolvió una candidatura no empatada")
-                    tie_state[key]=chosen
-                else:
-                    chosen=tied_tuple[1] if previous==tied_tuple[0] else tied_tuple[0]
-                    tie_state[key]=chosen
                 tied=[chosen]
         result[tied[0]]+=1
     return Allocation(result,"OK")
