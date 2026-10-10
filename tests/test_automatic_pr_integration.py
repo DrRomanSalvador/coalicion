@@ -127,13 +127,13 @@ def _valid_pr_body(principle_overrides=None, markdown=True):
             )
     heading = "## " if markdown else ""
     return (
-        f"{heading}Causa raíz:\\nCausa reproducible y comprobada.\\n"
-        f"{heading}Solución mínima:\\nCambio acotado con regresión.\\n"
-        f"{heading}Principios afectados (01–25):\\n" + "\\n".join(lines) + "\\n"
-        f"{heading}Pruebas ejecutadas y resultado:\\nPruebas de contrato preparadas; CI pendiente.\\n"
-        f"{heading}CI del SHA exacto:\\nPendiente de CI para el SHA de esta PR.\\n"
-        f"{heading}Riesgo y rollback:\\nRiesgo delimitado; revertir el commit revierte el cambio.\\n"
-        f"{heading}Excepciones\\nNinguna excepción sin declarar.\\n"
+        f"{heading}Causa raíz:\nCausa reproducible y comprobada.\n"
+        f"{heading}Solución mínima:\nCambio acotado con regresión.\n"
+        f"{heading}Principios afectados (01–25):\n" + "\n".join(lines) + "\n"
+        f"{heading}Pruebas ejecutadas y resultado:\nPruebas de contrato preparadas; CI pendiente.\n"
+        f"{heading}CI del SHA exacto:\nPendiente de CI para el SHA de esta PR.\n"
+        f"{heading}Riesgo y rollback:\nRiesgo delimitado; revertir el commit revierte el cambio.\n"
+        f"{heading}Excepciones\nNinguna excepción sin declarar.\n"
     )
 
 
@@ -143,7 +143,7 @@ def test_pr_body_requires_reasoned_disposition_for_all_25_principles():
 
 def test_pr_body_gate_rejects_missing_principles_even_when_some_are_listed():
     body = _valid_pr_body().replace(
-        "- **25** APLICA — Este principio se evalúa porque el cambio altera el contrato de integración número 25.\\n",
+        "- **25** APLICA — Este principio se evalúa porque el cambio altera el contrato de integración número 25.\n",
         "",
     )
     missing = validate_pr_body(body)
@@ -151,7 +151,7 @@ def test_pr_body_gate_rejects_missing_principles_even_when_some_are_listed():
 
 
 def test_pr_body_gate_rejects_duplicate_principle_dispositions():
-    body = _valid_pr_body() + "\\n- **01** APLICA — Duplicado deliberado para probar el bloqueo."
+    body = _valid_pr_body() + "\n- **01** APLICA — Duplicado deliberado para probar el bloqueo."
     missing = validate_pr_body(body)
     assert any("principle 01 is declared more than once" in item for item in missing)
 
@@ -171,12 +171,12 @@ def test_pr_body_gate_accepts_explicitly_justified_na_for_one_principle():
 
 def test_pr_body_gate_rejects_empty_principle_section():
     body = _valid_pr_body().replace(
-        "Principios afectados (01–25):\\n" + "\\n".join(
+        "Principios afectados (01–25):\n" + "\n".join(
             f"- **{number:02d}** APLICA — Este principio se evalúa porque el cambio altera "
             f"el contrato de integración número {number:02d}."
             for number in range(1, 26)
-        ) + "\\n",
-        "Principios afectados (01–25):\\n",
+        ) + "\n",
+        "Principios afectados (01–25):\n",
     )
     missing = validate_pr_body(body)
     assert any("principle 01 must have exactly one" in item for item in missing)
