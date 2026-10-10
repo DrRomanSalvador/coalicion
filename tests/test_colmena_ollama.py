@@ -211,7 +211,7 @@ def test_ollama_agent_has_no_remote_inference_client():
     assert "huggingface_hub" not in source
     assert "inferenceclient" not in source
     assert "hf_token" not in source
-    assert '"/api/chat"' in source
+    assert "/api/chat" in source
 
 
 
@@ -318,7 +318,7 @@ def test_agent_loads_all_25_canonical_engineering_controls():
     matrix = (ROOT / "docs/ENGINEERING_ENFORCEMENT_MATRIX.md").read_text(encoding="utf-8")
     rows = {row for row in range(1, 26) if f"| {row:02d} |" in matrix}
     assert rows == set(range(1, 26))
-    assert "Principio" in (ROOT / "docs/ENGINEERING_CHARTER.md")
+    assert "Principio" in (ROOT / "docs/ENGINEERING_CHARTER.md").read_text(encoding="utf-8")
 
 
 def test_agent_system_prompt_enforces_boy_scout_rule_and_safe_retirement():
