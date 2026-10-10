@@ -8,7 +8,9 @@ converts heuristic findings into a false certification.
 from __future__ import annotations
 
 import json
+import os
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -103,6 +105,50 @@ def audit_telegram_pages_contract(source: str) -> list[str]:
     return [label for label, literal in checks.items() if literal not in source]
 
 
+def source_revision() -> str:
+    """Stamp reports with the exact audited Git revision; stale reports are distinguishable."""
+    configured = os.environ.get("GITHUB_SHA", "").strip()
+    if configured:
+        return configured
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True,
+            capture_output=True, check=True, timeout=5,
+        )
+        return result.stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return "UNKNOWN"
+
+
+def workflow_contract_findings(relative_path: str, source: str) -> list[dict[str, str]]:
+    """Blocking policy: explicit permissions, serialized runs, no active-run cancellation, bounded jobs."""
+    findings: list[dict[str, str]] = []
+    if not re.search(r"(?m)^concurrency:\s*$", source):
+        findings.append({"path": relative_path, "missing_contract": "no concurrency group"})
+    if audit_cancels_in_progress(source):
+        findings.append({
+            "path": relative_path,
+            "missing_contract": "workflow is configured to cancel an in-progress execution",
+        })
+    workflow_permissions, job_permissions = permission_declarations(source)
+    if not (workflow_permissions or job_permissions):
+        findings.append({
+            "path": relative_path,
+            "missing_contract": "no workflow-level or job-level permissions declaration",
+        })
+    jobs_section = source.split("jobs:", 1)[1] if "jobs:" in source else ""
+    job_matches = list(re.finditer(r"(?m)^  ([A-Za-z0-9_-]+):\\s*$", jobs_section))
+    for index, match in enumerate(job_matches):
+        end = job_matches[index + 1].start() if index + 1 < len(job_matches) else len(jobs_section)
+        block = jobs_section[match.start():end]
+        if not re.search(r"(?m)^\\s+timeout-minutes:\\s*\\d+\\s*$", block):
+            findings.append({
+                "path": relative_path,
+                "missing_contract": f"job {match.group(1)} has no timeout-minutes",
+            })
+    return findings
+
+
 def main() -> int:
     if not WORKFLOWS.is_dir():
         print(f"FAIL: missing workflow directory: {WORKFLOWS}", file=sys.stderr)
@@ -185,11 +231,7 @@ def main() -> int:
                     {"path": relative_path, "missing_contract": item}
                     for item in missing_contracts
                 )
-        if audit_cancels_in_progress(source):
-            critical_findings.append({
-                "path": relative_path,
-                "missing_contract": "workflow is configured to cancel an in-progress execution",
-            })
+        critical_findings.extend(workflow_contract_findings(relative_path, source))
 
         if writer_without_concurrency(source):
             critical_findings.append({
@@ -232,6 +274,7 @@ def main() -> int:
         "schema": "WORKFLOW_RESILIENCE_AUDIT_V1",
         "status": "PASS" if not read_errors and entries and not critical_findings else "FAIL",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "source_revision": source_revision(),
         "workflow_count": len(entries),
         "counts": {
             "without_workflow_permissions": sum(not item["workflow_permissions_declared"] for item in entries),
