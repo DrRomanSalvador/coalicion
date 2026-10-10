@@ -32,6 +32,8 @@ def test_ollama_docs_make_provider_and_evidence_limits_explicit():
     assert "no se intenta ningún proveedor remoto" in text
     assert "los 25 principios" in text
     assert "regla boy scout" in text
+    assert "exactamente 430 requisitos originales" in text
+    assert "No se inventan 430 requisitos" in text
 
 
 def test_ollama_server_is_verified_in_the_same_step_as_agent_execution():
