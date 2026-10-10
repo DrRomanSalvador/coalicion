@@ -114,29 +114,72 @@ def test_latest_pending_attempt_is_not_hidden_by_older_success():
     latest = latest_runs_per_workflow(runs)
     assert latest == [{"id": 20, "name": "Contract", "status": "in_progress", "conclusion": None}]
 
-def test_pr_body_requires_root_cause_principles_tests_ci_and_rollback():
-    valid = """Causa raíz: causa reproducida
-Solución mínima: cambio acotado
-Principios afectados (01–25): 03, 05, 15, 24
-Pruebas ejecutadas y resultado: pytest PASS
-CI del SHA exacto: pendiente de ejecución
-Riesgo y rollback: revertir este commit
-Excepciones: ninguna
-"""
-    assert validate_pr_body(valid) == []
+def _valid_pr_body(principle_overrides=None, markdown=True):
+    overrides = principle_overrides or {}
+    lines = []
+    for number in range(1, 26):
+        if number in overrides:
+            lines.append(f"- **{number:02d}** {overrides[number]}")
+        else:
+            lines.append(
+                f"- **{number:02d}** APLICA — Este principio se evalúa porque el cambio altera "
+                f"el contrato de integración número {number:02d}."
+            )
+    heading = "## " if markdown else ""
+    return (
+        f"{heading}Causa raíz:\\nCausa reproducible y comprobada.\\n"
+        f"{heading}Solución mínima:\\nCambio acotado con regresión.\\n"
+        f"{heading}Principios afectados (01–25):\\n" + "\\n".join(lines) + "\\n"
+        f"{heading}Pruebas ejecutadas y resultado:\\nPruebas de contrato preparadas; CI pendiente.\\n"
+        f"{heading}CI del SHA exacto:\\nPendiente de CI para el SHA de esta PR.\\n"
+        f"{heading}Riesgo y rollback:\\nRiesgo delimitado; revertir el commit revierte el cambio.\\n"
+        f"{heading}Excepciones\\nNinguna excepción sin declarar.\\n"
+    )
 
 
-def test_pr_body_gate_rejects_empty_or_unfilled_principle_mapping():
-    empty = """Causa raíz:
-Solución mínima:
-Principios afectados (01–25):
-Pruebas ejecutadas y resultado:
-CI del SHA exacto:
-Riesgo y rollback:
-Excepciones:
-"""
-    missing = validate_pr_body(empty)
-    assert any("populated list of applicable principles" in item for item in missing)
+def test_pr_body_requires_reasoned_disposition_for_all_25_principles():
+    assert validate_pr_body(_valid_pr_body()) == []
+
+
+def test_pr_body_gate_rejects_missing_principles_even_when_some_are_listed():
+    body = _valid_pr_body().replace(
+        "- **25** APLICA — Este principio se evalúa porque el cambio altera el contrato de integración número 25.\\n",
+        "",
+    )
+    missing = validate_pr_body(body)
+    assert any("principle 25 must have exactly one" in item for item in missing)
+
+
+def test_pr_body_gate_rejects_duplicate_principle_dispositions():
+    body = _valid_pr_body() + "\\n- **01** APLICA — Duplicado deliberado para probar el bloqueo."
+    missing = validate_pr_body(body)
+    assert any("principle 01 is declared more than once" in item for item in missing)
+
+
+def test_pr_body_gate_requires_reasoned_na_disposition():
+    body = _valid_pr_body({7: "N/A — no procede"})
+    missing = validate_pr_body(body)
+    assert any("principle 07 is N/A without an explicit justification" in item for item in missing)
+
+
+def test_pr_body_gate_accepts_explicitly_justified_na_for_one_principle():
+    body = _valid_pr_body({
+        7: "N/A — justificación: este cambio no incluye optimizaciones ni modifica rendimiento."
+    })
+    assert validate_pr_body(body) == []
+
+
+def test_pr_body_gate_rejects_empty_principle_section():
+    body = _valid_pr_body().replace(
+        "Principios afectados (01–25):\\n" + "\\n".join(
+            f"- **{number:02d}** APLICA — Este principio se evalúa porque el cambio altera "
+            f"el contrato de integración número {number:02d}."
+            for number in range(1, 26)
+        ) + "\\n",
+        "Principios afectados (01–25):\\n",
+    )
+    missing = validate_pr_body(body)
+    assert any("principle 01 must have exactly one" in item for item in missing)
 
 
 def test_pr_body_fetch_fails_closed_on_github_api_error():
@@ -149,55 +192,6 @@ def test_pr_body_fetch_fails_closed_on_github_api_error():
     else:
         raise AssertionError("API failure must not bypass mandatory PR evidence")
 
-
-def test_pr_body_gate_accepts_markdown_heading_with_principles_on_next_line():
-    valid = """## Causa raíz:
-Reproducible.
-## Solución mínima:
-Parser corregido.
-## Principios afectados (01–25):
-01, 02, 03, 05, 06, 09, 11, 15, 19, 20, 21, 22, 24.
-## Pruebas ejecutadas y resultado:
-pytest PASS.
-## CI del SHA exacto:
-Pendiente de CI.
-## Riesgo y rollback:
-Revertir el commit.
-## Excepciones
-Ninguna.
-"""
-    assert validate_pr_body(valid) == []
-
-
-def test_pr_body_gate_rejects_markdown_principles_heading_with_empty_section():
-    body = """## Causa raíz:
-Causa.
-## Solución mínima:
-Solución.
-## Principios afectados (01–25):
-## Pruebas ejecutadas y resultado:
-Pendiente.
-## CI del SHA exacto:
-Pendiente.
-## Riesgo y rollback:
-Rollback.
-## Excepciones
-Ninguna.
-"""
-    missing = validate_pr_body(body)
-    assert any("populated list of applicable principles" in item for item in missing)
-
-
-def test_pr_body_gate_accepts_explicit_justified_na():
-    body = """Causa raíz: causa.
-Solución mínima: solución.
-Principios afectados (01–25): N/A — justificación: ningún principio resulta directamente afectado por este cambio.
-Pruebas ejecutadas y resultado: pytest PASS.
-CI del SHA exacto: pendiente.
-Riesgo y rollback: revertir.
-Excepciones: ninguna.
-"""
-    assert validate_pr_body(body) == []
 
 def test_pr_gate_enables_auto_squash_merge_without_manual_clicks():
     workflow = (ROOT / ".github/workflows/automatic-pr-integration.yml").read_text(encoding="utf-8")
