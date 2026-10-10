@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   contract:
-    name: Engineering contract checks
+    name: Verify mandatory agent contract
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
