@@ -136,7 +136,7 @@ def canonical_principle_titles() -> dict[int, str]:
             f"Cannot read canonical engineering charter at {charter}: {exc}"
         ) from exc
     titles: dict[int, str] = {}
-    for match in re.finditer(r"(?m)^(\\d{1,2})\\. \\*\\*(.+?)\\.\\*\\*", content):
+    for match in re.finditer(r"(?m)^(\d{1,2})\. \*\*(.+?)\.\*\*", content):
         number = int(match.group(1))
         if 1 <= number <= 25:
             titles[number] = match.group(2).strip()
