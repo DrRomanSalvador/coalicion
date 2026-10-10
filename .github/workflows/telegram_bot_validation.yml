@@ -12,6 +12,7 @@ on:
       - "tests/test_telegram_integration.py"
       - "tests/test_telegram_source_status.py"
       - "requirements.txt"
+      - ".github/workflows/telegram_bot_validation.yml"
   pull_request:
     paths:
       - "src/telegram_bot.py"
