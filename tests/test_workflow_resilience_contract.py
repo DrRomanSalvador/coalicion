@@ -70,12 +70,12 @@ def test_colmena_agent_evidence_persistence_retries_concurrent_branch_updates():
     assert "refusing to overwrite newer state" in source
 
 
-def test_methodology_ci_cancels_superseded_runs_per_ref():
+def test_methodology_ci_preserves_active_runs_per_ref():
     for name in ("methodology-validation.yml", "methodology_integration.yml", "methodology_validation.yml"):
         source = (WORKFLOWS / name).read_text(encoding="utf-8")
         assert "concurrency:" in source
         assert "github.event.pull_request.number || github.ref" in source
-        assert "cancel-in-progress: true" in source
+        assert "cancel-in-progress: false" in source
 
 
 def test_scheduled_electoral_radar_serializes_runs_per_ref():
