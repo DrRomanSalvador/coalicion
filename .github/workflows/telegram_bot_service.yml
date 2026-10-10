@@ -28,7 +28,7 @@ jobs:
   service:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 2
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_ALLOWED_CHATS: ${{ secrets.TELEGRAM_ALLOWED_CHATS }}
@@ -43,14 +43,14 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: requirements.txt
-      - name: Install dependencies
-        run: python -m pip install -r requirements.txt
+      - name: Install runtime dependency
+        run: python -m pip install --disable-pip-version-check requests
       - name: Validate token
         run: |
           test -n "$TELEGRAM_BOT_TOKEN"
           test "$TELEGRAM_BOT_TOKEN" != "TU_TOKEN_AQUI"
-      - name: Poll Telegram (bounded cycle)
-        run: python -c "from src.telegram_bot import run_polling; run_polling(max_runtime_seconds=180)"
+      - name: Drain Telegram updates
+        run: python -c "from src.telegram_bot import run_polling; run_polling(max_runtime_seconds=45)"
       - name: Persist bot state
         if: always()
         shell: bash
