@@ -1,0 +1,86 @@
+name: Deploy COALICIÓN Telegram webhook
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "telegram-worker/**"
+      - ".github/workflows/deploy_telegram_worker.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coalicion-telegram-worker-production
+  cancel-in-progress: false
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_ALLOWED_USER_ID: ${{ secrets.TELEGRAM_ALLOWED_USER_ID }}
+      TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: telegram-worker/package.json
+      - name: Validate required secrets without printing them
+        shell: bash
+        run: |
+          set -euo pipefail
+          for key in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID TELEGRAM_BOT_TOKEN TELEGRAM_ALLOWED_USER_ID TELEGRAM_WEBHOOK_SECRET; do
+            if [[ -z "${!key:-}" ]]; then echo "::error::Missing required repository secret: $key"; exit 1; fi
+          done
+          [[ "$TELEGRAM_WEBHOOK_SECRET" =~ ^[A-Za-z0-9_-]{32,256}$ ]] || { echo "::error::TELEGRAM_WEBHOOK_SECRET must be 32-256 characters: letters, digits, underscore, hyphen."; exit 1; }
+          [[ "$TELEGRAM_ALLOWED_USER_ID" =~ ^[0-9]+$ ]] || { echo "::error::TELEGRAM_ALLOWED_USER_ID must be a numeric Telegram user ID."; exit 1; }
+      - name: Install dependencies
+        working-directory: telegram-worker
+        run: npm install --no-audit --no-fund
+      - name: Test webhook security and command handlers
+        working-directory: telegram-worker
+        run: npm test
+      - name: Type-check worker
+        working-directory: telegram-worker
+        run: npm run typecheck
+      - name: Deploy Worker and provision D1 binding
+        id: deploy
+        working-directory: telegram-worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx wrangler deploy 2>&1 | tee "$RUNNER_TEMP/wrangler-deploy.log"
+          URL="$(grep -Eo 'https://coalicion-telegram\.[a-zA-Z0-9-]+\.workers\.dev' "$RUNNER_TEMP/wrangler-deploy.log" | tail -n 1 || true)"
+          if [[ -z "$URL" ]]; then
+            echo "::error::Could not detect workers.dev URL. Inspect deployment output in the Actions run; webhook was not configured."
+            exit 1
+          fi
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+      - name: Configure Worker secrets
+        working-directory: telegram-worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' "$TELEGRAM_BOT_TOKEN" | npx wrangler secret put TELEGRAM_BOT_TOKEN
+          printf '%s' "$TELEGRAM_WEBHOOK_SECRET" | npx wrangler secret put TELEGRAM_WEBHOOK_SECRET
+          printf '%s' "$TELEGRAM_ALLOWED_USER_ID" | npx wrangler secret put TELEGRAM_ALLOWED_USER_ID
+      - name: Register Telegram webhook
+        shell: bash
+        env:
+          WORKER_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          set -euo pipefail
+          payload="$(python -c 'import json,os; print(json.dumps({"url":os.environ["WORKER_URL"]+"/telegram/webhook","secret_token":os.environ["TELEGRAM_WEBHOOK_SECRET"],"allowed_updates":["message","callback_query"],"drop_pending_updates":False}))')"
+          result="$(curl --fail-with-body --silent --show-error --retry 3 --retry-delay 2 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" -H 'content-type: application/json' --data "$payload")"
+          python -c 'import json,sys; d=json.loads(sys.argv[1]); assert d.get("ok") is True, "Telegram rejected webhook registration"; print("Telegram webhook registered.")' "$result"
+      - name: Verify public health endpoint
+        env:
+          WORKER_URL: ${{ steps.deploy.outputs.url }}
+        run: curl --fail --silent --show-error --retry 5 --retry-delay 2 "$WORKER_URL/health"
