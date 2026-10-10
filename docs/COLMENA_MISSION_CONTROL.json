@@ -13,8 +13,8 @@
       "assigned": false,
       "note": "Reasignada explícitamente por la Reina tras bloqueo; intento anterior conservado en attempt_history.",
       "context_paths": [
-        "scripts/colmena_queen_hf.py",
-        "tests/test_colmena_hf_agents.py"
+        "scripts/colmena_queen.py",
+        "tests/test_colmena_ollama.py"
       ],
       "assigned_at": "2026-10-09T13:13:34.994445+00:00",
       "result_recorded_at": "2026-10-09T13:13:36.049658+00:00",
@@ -43,8 +43,8 @@
       "assigned": true,
       "note": "Definir una tarea concreta y verificable antes de ejecutar.",
       "context_paths": [
-        "scripts/colmena_agent_hf.py",
-        ".github/workflows/colmena_hf_agents.yml"
+        "scripts/colmena_agent_ollama.py",
+        "tests/test_colmena_ollama.py"
       ],
       "assigned_at": "2026-10-09T12:42:28.943444+00:00"
     },
@@ -57,8 +57,8 @@
       "assigned": true,
       "note": "Definir una tarea concreta y verificable antes de ejecutar.",
       "context_paths": [
-        ".github/workflows/colmena_hf_agents.yml",
-        "docs/COLMENA_HF_AGENTS.md"
+        ".github/workflows/colmena_ollama_agents.yml",
+        "scripts/colmena_agent_ollama.py"
       ],
       "assigned_at": "2026-10-09T12:42:28.943444+00:00"
     },
@@ -71,8 +71,8 @@
       "assigned": true,
       "note": "Definir una tarea concreta y verificable antes de ejecutar.",
       "context_paths": [
-        "scripts/colmena_queen_hf.py",
-        "tests/test_colmena_hf_agents.py"
+        "scripts/colmena_queen.py",
+        "tests/test_colmena_ollama.py"
       ],
       "assigned_at": "2026-10-09T12:42:28.943444+00:00"
     },
@@ -86,7 +86,8 @@
       "note": "Definir una tarea concreta y verificable antes de ejecutar.",
       "context_paths": [
         "docs/COLMENA_STATE.json",
-        "docs/INVOCACION_COLMENA.md"
+        "docs/INVOCACION_COLMENA.md",
+        "docs/COLMENA_MISSION_CONTROL.json"
       ],
       "assigned_at": "2026-10-09T12:42:28.943444+00:00"
     },
@@ -99,9 +100,8 @@
       "assigned": true,
       "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
       "context_paths": [
-        ".github/workflows/colmena_hf_assign.yml",
-        "scripts/colmena_queen_hf.py",
-        "tests/test_colmena_hf_agents.py"
+        ".github/workflows/colmena_ollama_assign.yml",
+        "scripts/colmena_queen.py"
       ],
       "assigned_at": "2026-10-09T12:54:39.767186+00:00"
     },
@@ -114,9 +114,8 @@
       "assigned": true,
       "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
       "context_paths": [
-        ".github/workflows/colmena_hf_agents.yml",
-        "scripts/colmena_queen_hf.py",
-        "tests/test_colmena_hf_agents.py"
+        ".github/workflows/colmena_ollama_agents.yml",
+        "scripts/colmena_queen.py"
       ],
       "assigned_at": "2026-10-09T12:54:39.767186+00:00"
     },
@@ -129,8 +128,8 @@
       "assigned": true,
       "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
       "context_paths": [
-        "scripts/colmena_agent_hf.py",
-        ".github/workflows/colmena_hf_agents.yml"
+        "scripts/colmena_agent_ollama.py",
+        "tests/test_colmena_ollama.py"
       ],
       "assigned_at": "2026-10-09T12:54:39.767186+00:00"
     },
@@ -143,8 +142,8 @@
       "assigned": true,
       "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
       "context_paths": [
-        "scripts/colmena_agent_hf.py",
-        "tests/test_colmena_hf_agents.py"
+        "scripts/colmena_agent_ollama.py",
+        "tests/test_colmena_ollama.py"
       ],
       "assigned_at": "2026-10-09T12:54:39.767186+00:00"
     },
@@ -158,8 +157,8 @@
       "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
       "context_paths": [
         "docs/COLMENA_MISSION_CONTROL.json",
-        "scripts/colmena_queen_hf.py",
-        "tests/test_colmena_hf_agents.py"
+        "scripts/colmena_queen.py",
+        "tests/test_colmena_ollama.py"
       ],
       "assigned_at": "2026-10-09T12:54:39.767186+00:00"
     },
