@@ -41,35 +41,14 @@ MAX_MESSAGE = 4090
 OPERATOR_TELEGRAM_ID = "8459054385"
 
 COMMANDS = [
-    ("hoy", "¿Qué está pasando ahora?"),
-    ("situacion", "Sala de situación en tiempo real"),
-    ("tendencias", "Tendencias descriptivas"),
-    ("incertidumbre", "Incertidumbre materializada"),
-    ("briefing", "¿Qué debo saber ahora mismo?"),
-    ("mes", "¿Qué importa este mes?"),
-    ("cambios", "¿Qué ha cambiado?"),
-    ("encuestas", "¿Qué dicen los sondeos?"),
-    ("escanos", "¿Qué implican en escaños?"),
-    ("mayorias", "¿Qué mayorías son aritméticamente posibles?"),
-    ("coaliciones", "¿Qué combinaciones son aritméticamente posibles?"),
-    ("territorio", "¿Dónde están los cambios?"),
-    ("calendario", "¿Qué plazos importan?"),
-    ("fuentes", "¿Qué fuentes están activas?"),
-    ("evidencia", "¿De dónde sale cada dato?"),
-    ("escenarios", "¿Qué escenarios están calculados?"),
-    ("auditoria", "¿Qué nivel de verificación tiene?"),
-    ("estado", "Estado operativo"),
-    ("demo", "Demo territorial 2026"),
-    ("urgencias", "¿Qué requiere atención?"),
-    ("alertas", "Configurar alertas"),
-    ("hechos", "Solo hechos"),
-    ("exportar", "Exportar datos"),
-    ("comparar", "Comparar observaciones"),
-    ("admin_alertas", "Administración de alertas"),
-    ("admin_config", "Configuración administrativa"),
-    ("radar", "Radar de novedades"),
-    ("menu", "Menú completo"),
-    ("ayuda", "Ayuda"),
+    ("start", "Activar el centro de mando"),
+    ("hoy", "Agenda y situación de hoy"),
+    ("urgente", "Solo asuntos que requieren atención"),
+    ("resumen", "Novedades desde el último parte"),
+    ("buscar", "Buscar en datos y evidencias"),
+    ("tarea", "Crear y consultar tareas"),
+    ("config", "Preferencias y alertas"),
+    ("ayuda", "Ayuda contextual"),
 ]
 
 
@@ -1296,6 +1275,12 @@ def _natural_query(text: str) -> str | None:
     normalized = unicodedata.normalize("NFD", text.lower())
     normalized = "".join(c for c in normalized if unicodedata.category(c) != "Mn")
     rules = [
+        (("/start", "centro de mando", "activar"), "/briefing"),
+        (("/urgente", "solo urgente", "urgente", "que exige decision ahora"), "/urgencias"),
+        (("/resumen", "resumen desde la ultima conexion", "resumen"), "/resumen"),
+        (("/tarea", "crear tarea", "mis tareas", "delegar tarea"), "/tarea"),
+        (("/config", "preferencias", "configuracion de alertas"), "/alertas"),
+        (("/buscar", "buscar "), "/buscar"),
         (("/situacion", "sala de situacion en tiempo real"), "/situacion"),
         (("/tendencias", "tendencias"), "/tendencias"),
         (("/incertidumbre", "incertidumbre"), "/incertidumbre"),
@@ -1443,8 +1428,107 @@ def _menu_markup() -> dict[str, Any]:
             [{"text": "🧪 ¿Qué escenarios hay?", "callback_data": "cmd:/escenarios"}],
             [{"text": "🛡 ¿Qué nivel de verificación tiene?", "callback_data": "cmd:/auditoria"},
              {"text": "📡 Radar", "callback_data": "cmd:/radar"}],
+            [{"text": "🚨 Urgente", "callback_data": "cmd:/urgencias"},
+             {"text": "📋 Tareas", "callback_data": "cmd:/tarea"}],
+            [{"text": "🔔 Configuración", "callback_data": "cmd:/alertas"},
+             {"text": "🔎 Buscar", "callback_data": "cmd:/buscar"}],
         ]
     }
+
+
+TASKS = ROOT / "artifacts/telegram_tasks.json"
+TASK_STATES = {"open": "Pendiente", "done": "Completada"}
+
+
+def _tasks() -> dict[str, Any]:
+    value = _safe_json(TASKS)
+    return value if isinstance(value, dict) else {}
+
+
+def _save_tasks(value: dict[str, Any]) -> None:
+    TASKS.parent.mkdir(parents=True, exist_ok=True)
+    tmp = TASKS.with_suffix(".tmp")
+    tmp.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+    tmp.replace(TASKS)
+    snapshot_telegram_state()
+
+
+def _task_markup(task_id: str) -> dict[str, Any]:
+    return {"inline_keyboard": [
+        [{"text": "✅ Completar", "callback_data": f"task:done:{task_id}"},
+         {"text": "🔴 Prioritaria", "callback_data": f"task:priority:{task_id}"}],
+        [{"text": "📋 Ver tareas", "callback_data": "cmd:/tarea"},
+         {"text": "🏠 Inicio", "callback_data": "home"}],
+    ]}
+
+
+def _task_text(task_id: str | None = None) -> str:
+    tasks = _tasks()
+    if task_id:
+        item = tasks.get(task_id)
+        if not isinstance(item, dict):
+            return "La tarea ya no existe o no está disponible."
+        return (f"📌 TAREA {task_id}\n\n{item.get('title', '')}\n"
+                f"Estado: {TASK_STATES.get(item.get('status', 'open'), 'Pendiente')}\n"
+                f"Prioridad: {'Alta' if item.get('priority') == 'high' else 'Normal'}\n"
+                f"Creada: {item.get('created_at', 'n/d')}")
+    items = [(key, value) for key, value in tasks.items() if isinstance(value, dict)]
+    items.sort(key=lambda pair: (pair[1].get("status") == "done", pair[1].get("created_at", "")))
+    lines = ["📋 DESPACHO · TAREAS", ""]
+    if not items:
+        lines.append("No hay tareas registradas.")
+    for key, item in items[-15:]:
+        status = "✅" if item.get("status") == "done" else ("🔴" if item.get("priority") == "high" else "▫️")
+        lines.append(f"{status} {key} · {item.get('title', '')}")
+    lines.extend(["", "Crear: /tarea preparar informe para mañana"])
+    return "\n".join(lines)
+
+
+def _create_task(title: str, update: dict[str, Any]) -> tuple[str, dict[str, Any] | None]:
+    title = " ".join(title.split()).strip()
+    if len(title) < 3:
+        return ("📋 DESPACHO · TAREAS\n\nIndica la tarea después del comando.\n"
+                "Ejemplo: /tarea preparar informe para mañana\n\n" + _task_text(), None)
+    title = title[:300].rstrip()
+    tasks = _tasks()
+    sequence = max((int(key[1:]) for key in tasks if key.startswith("T") and key[1:].isdigit()), default=0) + 1
+    task_id = f"T{sequence:05d}"
+    tasks[task_id] = {
+        "title": title, "status": "open", "priority": "normal",
+        "created_at": now_madrid().isoformat(),
+        "created_by": _user_id(update), "chat_id": _chat_id(update),
+    }
+    _save_tasks(tasks)
+    return f"✅ Tarea registrada\n\n{task_id} · {title}\nEstado: pendiente", _task_markup(task_id)
+
+
+def _search_text(query: str) -> str:
+    query = " ".join(query.split()).strip()
+    if len(query) < 2:
+        return "🔎 BÚSQUEDA\n\nEscribe /buscar seguido de un término: CIS, PSOE, Madrid o una fecha."
+    needle = query.casefold()
+    hits: list[str] = []
+    for index, poll in enumerate(_latest_polls()):
+        if needle in json.dumps(poll, ensure_ascii=False, sort_keys=True).casefold():
+            hits.append(f"🗳 Encuesta {index + 1} · {poll.get('publication_date', 'n/d')} · "
+                        f"{poll.get('pollster', poll.get('source_id', 'fuente no indicada'))}")
+            if len(hits) >= 8:
+                break
+    for source in _sources():
+        if needle in json.dumps(source, ensure_ascii=False, sort_keys=True).casefold() and len(hits) < 12:
+            hits.append(f"📡 Fuente · {source.get('id', source.get('name', 'sin identificar'))} · "
+                        f"{source.get('status', source.get('health', 'estado n/d'))}")
+    if not hits:
+        return (f"🔎 BÚSQUEDA · {query}\n\nSin coincidencias en los sondeos y estados de fuente "
+                "materializados. No se ha consultado la web ni inventado resultados.")
+    return f"🔎 BÚSQUEDA · {query}\n\n" + "\n".join(f"• {hit}" for hit in hits)
+
+
+def _command_query(text_in: str, command: str) -> str:
+    parts = text_in.split(None, 1)
+    return parts[1].strip() if len(parts) > 1 and parts[0].split("@", 1)[0].lower() == command else ""
+
+
 
 def _help_text() -> str:
     return (
@@ -1683,6 +1767,7 @@ def render_command(command: str) -> str:
     aliases = {
         "/start": "/briefing", "/menu": "/briefing", "/help": "/ayuda",
         "/prediccion": "/escanos", "/agenda": "/calendario",
+        "/urgente": "/urgencias", "/config": "/alertas",
     }
     command = aliases.get(command, command)
     if command.startswith("/evidencia ") or command.startswith("/evidencia\n"):
@@ -1713,6 +1798,11 @@ def render_command(command: str) -> str:
         "/estado": _status_text,
         "/radar": _radar_text,
         "/alertas": lambda: "🔔 ALERTAS · CONFIGURACIÓN\n\nAbre /alertas para gestionar categorías, frecuencia, silencio y umbral.",
+        "/urgente": _urgencies_text,
+        "/resumen": _changes_text,
+        "/buscar": lambda: _search_text(""),
+        "/tarea": _task_text,
+        "/config": _alerts_text,
         "/hechos": _facts_text,
         "/exportar": lambda: "📤 EXPORTACIÓN\n\nElige CSV/JSON desde las fichas disponibles.",
         "/comparar": lambda: _comparison_text("5"),
@@ -2036,6 +2126,24 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
                 idx = values.index(old) if old in values else 0
                 _set_preferences(update, threshold=values[(idx + 1) % len(values)])
                 text, markup = _alerts_text(update), _alerts_markup(update)
+            elif data.startswith("task:done:") or data.startswith("task:priority:"):
+                action, task_id = data.split(":", 2)[1:]
+                tasks = _tasks()
+                item = tasks.get(task_id)
+                if isinstance(item, dict):
+                    if action == "done":
+                        item["status"] = "done"
+                    else:
+                        item["priority"] = "normal" if item.get("priority") == "high" else "high"
+                    tasks[task_id] = item
+                    _save_tasks(tasks)
+                    text = _task_text(task_id)
+                    markup = (_task_markup(task_id) if item.get("status") != "done" else
+                              {"inline_keyboard": [[
+                                  {"text": "📋 Ver tareas", "callback_data": "cmd:/tarea"},
+                                  {"text": "🏠 Inicio", "callback_data": "home"}]]})
+                else:
+                    text, markup = "La tarea ya no existe o ya fue archivada.", _navigation_markup("/tarea")
             elif data.startswith("evidence:poll:"):
                 index = int(data.rsplit(":", 1)[-1])
                 text, markup = _poll_card(index), _poll_card_markup(index)
@@ -2102,7 +2210,22 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
     key = str(_user_id(update) or chat_id)
     if command:
         command = command.split("@", 1)[0].strip().lower()
-        if command == "/alertas":
+        if command == "/buscar":
+            response, markup = _search_text(_command_query(text_in, "/buscar")), _navigation_markup("/buscar")
+        elif command == "/tarea":
+            task_title = _command_query(text_in, "/tarea")
+            if task_title:
+                response, markup = _create_task(task_title, update)
+            else:
+                response, markup = _task_text(), {"inline_keyboard": [
+                    [{"text": "🏠 Inicio", "callback_data": "home"}]
+                ]}
+                response += "\n\nPara crearla, envía /tarea seguido de su descripción."
+        elif command == "/resumen":
+            response, markup = _digest_text("nightly"), _navigation_markup("/resumen")
+        elif command == "/config":
+            response, markup = _alerts_text(update), _alerts_markup(update)
+        elif command == "/alertas":
             response, markup = _alerts_text(update), _alerts_markup(update)
         elif command == "/hechos":
             response, markup = _facts_text(), _navigation_markup("/hechos")
