@@ -407,7 +407,7 @@ def test_agent_blocks_product_mission_without_430_requirements_before_ollama_cal
     monkeypatch.setattr(agent, "AGENTS_DIR", tmp_path / "evidence")
     ledger.write_text(json.dumps({"missions": [{
         "id": "M0001", "agent_id": "agent-001", "task": "Reconciliar requisito de producto.",
-        "status": "ASSIGNED", "assigned": True, "context_paths: [],
+        "status": "ASSIGNED", "assigned": True, "context_paths": [],
         "mission_type": "PRODUCT", "requirement_ids": ["R001"]
     }]}), encoding="utf-8")
     calls = []
