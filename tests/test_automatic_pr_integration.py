@@ -175,4 +175,5 @@ def test_pr_gate_enables_auto_squash_merge_without_manual_clicks():
     assert "name: Verify mandatory agent contract" in workflow
     assert "contents: write" in workflow
     assert "pull-requests: write" in workflow
-    assert 'gh pr merge "$PR_NUMBER" --auto --squash' in workflow
+    client = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
+    assert '"gh", "pr", "merge", pr_number, "--auto", "--squash", "--match-head-commit", sha' in client
