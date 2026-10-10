@@ -212,3 +212,10 @@ Riesgo y rollback: revertir.
 Excepciones: ninguna.
 """
     assert validate_pr_body(body) == []
+
+
+def test_engineering_matrix_makes_principle_rationale_a_permanent_pr_requirement():
+    matrix = (ROOT / "docs" / "ENGINEERING_ENFORCEMENT_MATRIX.md").read_text(encoding="utf-8")
+    assert "No basta enumerar números" in matrix
+    assert "Una lista desnuda" in matrix
+    assert "La revisión de aplicabilidad es habitual en todas las PR" in matrix
