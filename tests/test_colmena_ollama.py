@@ -63,7 +63,7 @@ def test_agent_uses_ollama_without_external_token(tmp_path, monkeypatch):
     monkeypatch.setattr(agent, "MISSION_CONTROL", ledger)
     monkeypatch.setattr(agent, "AGENTS_DIR", tmp_path / "evidence")
     monkeypatch.setattr(agent, "ROOT", tmp_path)
-    monkeypatch.setattr(agent, "load_mandatory_contract", lambda: "CONTRATO DE PRUEBA; principios 01–25.")
+    monkeypatch.setattr(agent, "load_mandatory_contract", lambda **kwargs: "CONTRATO DE PRUEBA; principios 01–25.")
     ledger.write_text(json.dumps({"missions": [{
         "id": "M0001", "agent_id": "agent-001", "task": "Audita el código",
         "status": "ASSIGNED", "assigned": True, "context_paths": []
@@ -95,7 +95,7 @@ def test_ollama_failure_is_blocked_and_never_falls_back(tmp_path, monkeypatch):
     ledger = tmp_path / "missions.json"
     monkeypatch.setattr(agent, "MISSION_CONTROL", ledger)
     monkeypatch.setattr(agent, "AGENTS_DIR", tmp_path / "evidence")
-    monkeypatch.setattr(agent, "load_mandatory_contract", lambda: "CONTRATO DE PRUEBA; principios 01–25.")
+    monkeypatch.setattr(agent, "load_mandatory_contract", lambda **kwargs: "CONTRATO DE PRUEBA; principios 01–25.")
     ledger.write_text(json.dumps({"missions": [{
         "id": "M0001", "agent_id": "agent-001", "task": "Audita",
         "status": "ASSIGNED", "assigned": True, "context_paths": []
@@ -343,7 +343,7 @@ def test_agent_system_prompt_enforces_boy_scout_rule_and_safe_retirement():
     assert "regla boy scout" in source
     assert "tras revisar referencias" in source
     assert "añade regresión para cada bug" in source
-    assert "load_mandatory_contract()" in source
+    assert "load_mandatory_contract(require_product_backlog=" in source
     assert '"num_ctx": 24576' in source
 
 
@@ -375,7 +375,7 @@ def test_agent_rejects_assigned_mission_without_task_before_ollama_call(tmp_path
     monkeypatch.setattr(agent, "MISSION_CONTROL", ledger)
     monkeypatch.setattr(agent, "AGENTS_DIR", tmp_path / "evidence")
     monkeypatch.setattr(agent, "ROOT", tmp_path)
-    monkeypatch.setattr(agent, "load_mandatory_contract", lambda: "CONTRATO DE PRUEBA; principios 01–25.")
+    monkeypatch.setattr(agent, "load_mandatory_contract", lambda **kwargs: "CONTRATO DE PRUEBA; principios 01–25.")
     ledger.write_text(json.dumps({"missions": [{
         "id": "M0001", "agent_id": "agent-001", "task": "",
         "status": "ASSIGNED", "assigned": True, "context_paths": []
