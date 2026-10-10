@@ -315,16 +315,24 @@ def test_reassign_blocked_rejects_nonblocked_and_taskless_missions(tmp_path, mon
 
 
 
-def test_agent_loads_all_25_canonical_engineering_controls():
-    contract = agent.load_mandatory_contract()
-    assert "AGENTS.md" in contract
-    assert "CONTRATO_MAESTRO_IA.md" in contract
-    assert "ENGINEERING_CHARTER.md" in contract
-    assert "ENGINEERING_ENFORCEMENT_MATRIX.md" in contract
+def test_agent_has_all_25_engineering_controls_and_blocks_without_exact_product_list():
     matrix = (ROOT / "docs/ENGINEERING_ENFORCEMENT_MATRIX.md").read_text(encoding="utf-8")
     rows = {row for row in range(1, 26) if f"| {row:02d} |" in matrix}
     assert rows == set(range(1, 26))
     assert "25 principios operativos" in (ROOT / "docs/ENGINEERING_CHARTER.md").read_text(encoding="utf-8")
+    governance = (ROOT / "docs/COALICION_PRODUCT_GOVERNANCE.md").read_text(encoding="utf-8")
+    assert "430 requisitos de producto" in governance
+    assert "no se reconstruyen requisitos de memoria" in governance
+    index = json.loads((ROOT / "docs/COALICION_PRODUCT_REQUIREMENTS_430.json").read_text(encoding="utf-8"))
+    assert index["expected_count"] == 430
+    assert index["status"] == "BLOCKED_SOURCE_LIST_NOT_MATERIALIZED"
+    assert index["requirements"] == []
+    try:
+        agent.load_mandatory_contract()
+    except ValueError as exc:
+        assert "lista maestra exacta de 430 requisitos" in str(exc)
+    else:
+        raise AssertionError("La inferencia debe bloquearse hasta importar la lista original íntegra")
 
 
 def test_agent_system_prompt_enforces_boy_scout_rule_and_safe_retirement():
@@ -379,3 +387,11 @@ def test_agent_rejects_assigned_mission_without_task_before_ollama_call(tmp_path
     assert "tarea concreta" in result["error"]
     assert calls == []
     assert (tmp_path / "evidence" / "agent-001_M0001.json").is_file()
+
+
+def test_product_governance_requires_all_missions_to_map_to_requirement_ids():
+    doc = (ROOT / "docs/COALICION_PRODUCT_GOVERNANCE.md").read_text(encoding="utf-8")
+    assert "Cada misión atómica referencia uno o más IDs" in doc
+    assert "La Reina debe reconciliar el 100 %" in doc
+    assert "Las 179 misiones son capacidad de coordinación" in doc
+    assert "encuesta → voto → territorio → D’Hondt" in doc
