@@ -432,7 +432,7 @@ def main() -> int:
         check=False,
     )
     if merge.returncode:
-        detail = "\\n".join(
+        detail = "\n".join(
             part.strip()
             for part in (merge.stderr or "", merge.stdout or "")
             if part and part.strip()
