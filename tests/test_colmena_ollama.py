@@ -55,6 +55,7 @@ def test_agent_uses_ollama_without_external_token(tmp_path, monkeypatch):
     monkeypatch.setattr(agent, "MISSION_CONTROL", ledger)
     monkeypatch.setattr(agent, "AGENTS_DIR", tmp_path / "evidence")
     monkeypatch.setattr(agent, "ROOT", tmp_path)
+    monkeypatch.setattr(agent, "load_mandatory_contract", lambda: "CONTRATO DE PRUEBA; principios 01–25.")
     ledger.write_text(json.dumps({"missions": [{
         "id": "M0001", "agent_id": "agent-001", "task": "Audita el código",
         "status": "ASSIGNED", "assigned": True, "context_paths": []
@@ -83,6 +84,7 @@ def test_ollama_failure_is_blocked_and_never_falls_back(tmp_path, monkeypatch):
     ledger = tmp_path / "missions.json"
     monkeypatch.setattr(agent, "MISSION_CONTROL", ledger)
     monkeypatch.setattr(agent, "AGENTS_DIR", tmp_path / "evidence")
+    monkeypatch.setattr(agent, "load_mandatory_contract", lambda: "CONTRATO DE PRUEBA; principios 01–25.")
     ledger.write_text(json.dumps({"missions": [{
         "id": "M0001", "agent_id": "agent-001", "task": "Audita",
         "status": "ASSIGNED", "assigned": True, "context_paths": []
@@ -301,3 +303,25 @@ def test_reassign_blocked_rejects_nonblocked_and_taskless_missions(tmp_path, mon
         assert "sin tarea concreta" in str(exc)
     else:
         raise AssertionError("No debe reabrirse una misión sin tarea")
+
+
+
+def test_agent_loads_all_25_canonical_engineering_controls():
+    contract = agent.load_mandatory_contract()
+    assert "AGENTS.md" in contract
+    assert "CONTRATO_MAESTRO_IA.md" in contract
+    assert "ENGINEERING_CHARTER.md" in contract
+    assert "ENGINEERING_ENFORCEMENT_MATRIX.md" in contract
+    matrix = (ROOT / "docs/ENGINEERING_ENFORCEMENT_MATRIX.md").read_text(encoding="utf-8")
+    rows = {row for row in range(1, 26) if f"| {row:02d} |" in matrix}
+    assert rows == set(range(1, 26))
+    assert "Principio" in (ROOT / "docs/ENGINEERING_CHARTER.md")
+
+
+def test_agent_system_prompt_enforces_boy_scout_rule_and_safe_retirement():
+    source = (ROOT / "scripts/colmena_agent_ollama.py").read_text(encoding="utf-8")
+    assert "regla boy scout" in source
+    assert "tras revisar referencias" in source
+    assert "añade regresión para cada bug" in source
+    assert "load_mandatory_contract()" in source
+    assert '"num_ctx": 24576' in source
