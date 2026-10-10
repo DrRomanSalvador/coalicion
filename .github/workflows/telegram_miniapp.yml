@@ -38,7 +38,7 @@ jobs:
             echo "GitHub Pages is absent; the admin token will attempt to enable it."
             echo "deploy_enabled=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::warning::Mini App deployment skipped: GitHub Pages is not enabled and this workflow has no repository-administration token. The workflow cannot enable Pages using GITHUB_TOKEN. Enable Pages once in Settings > Pages with Source = GitHub Actions, then rerun this workflow. No deployment was attempted."
+            echo "::warning::Mini App deployment skipped: GitHub Pages is not enabled and this workflow has no repository-administration token. The workflow cannot enable Pages using GITHUB_TOKEN; GITHUB_TOKEN cannot create the Pages site. Enable Pages once in Settings > Pages with Source = GitHub Actions, then rerun this workflow. No deployment was attempted."
             echo "deploy_enabled=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Configure GitHub Pages
