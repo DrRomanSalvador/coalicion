@@ -544,8 +544,9 @@ def test_demo_blocks_false_pass_without_territorial_calibration_or_seat_invarian
     assert "PARTY_A: 180" not in result
 
 
-def test_bounded_polling_drains_queue_without_waiting(monkeypatch):
+def test_bounded_polling_keeps_listening_after_empty_poll(monkeypatch):
     calls = []
+    clock = {"now": 0.0}
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "test-token")
     monkeypatch.setattr(telegram_bot, "restore_telegram_state", lambda: None)
     monkeypatch.setattr(telegram_bot, "snapshot_telegram_state", lambda: None)
@@ -553,14 +554,18 @@ def test_bounded_polling_drains_queue_without_waiting(monkeypatch):
     monkeypatch.setattr(telegram_bot, "_maybe_send_scheduled_digest", lambda: None)
     monkeypatch.setattr(telegram_bot, "_load_poll_offset", lambda: None)
     monkeypatch.setattr(telegram_bot, "_save_poll_offset", lambda offset: None)
-    monkeypatch.setattr(
-        telegram_bot, "_api",
-        lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True, "result": []},
-    )
+    monkeypatch.setattr(telegram_bot.time, "monotonic", lambda: clock["now"])
+    def fake_api(method, **kwargs):
+        calls.append((method, kwargs))
+        if method == "getUpdates":
+            clock["now"] += 23.0
+        return {"ok": True, "result": []}
+    monkeypatch.setattr(telegram_bot, "_api", fake_api)
 
     telegram_bot.run_polling(max_runtime_seconds=45)
 
     polls = [(method, kwargs) for method, kwargs in calls if method == "getUpdates"]
-    assert len(polls) == 1
-    assert polls[0][1]["params"]["timeout"] == 0
+    assert len(polls) == 2
+    assert polls[0][1]["params"]["timeout"] == telegram_bot.LONG_POLL_TIMEOUT
+    assert polls[1][1]["params"]["timeout"] > 0
     assert calls[0][0] == "deleteWebhook"
