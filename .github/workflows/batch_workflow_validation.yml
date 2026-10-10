@@ -171,6 +171,17 @@ jobs:
           main_sha = api("commits/main")["sha"]
           workflow_data = api("actions/workflows?per_page=100")
           workflows = workflow_data.get("workflows", [])
+          # Deterministic queue: validation contracts first, then canonical MC evidence,
+          # then all other eligible workflows. This order is deliberate and auditable.
+          priority = {
+              "workflow-resilience-tests.yml": 0,
+              "exhaustive_validation.yml": 1,
+              "mc-10000.yml": 2,
+          }
+          workflows.sort(key=lambda item: (
+              priority.get(item.get("path", "").rsplit("/", 1)[-1], 10),
+              item.get("path", ""),
+          ))
           current_data = api(f"actions/runs?branch=main&head_sha={main_sha}&per_page=100")
           current_runs = current_data.get("workflow_runs", [])
           latest_by_workflow = {}
@@ -229,18 +240,15 @@ jobs:
               if missing:
                   skipped.append((path, "required inputs lack safe defaults: " + ", ".join(missing)))
                   continue
-              started = now_iso()
-              try:
-                  api(f"actions/workflows/{wid}/dispatches", method="POST", payload={"ref": "main", "inputs": inputs})
-                  entry = {
-                      "id": wid, "name": name, "path": path, "run_id": None,
-                      "source": "dispatched", "dispatch_at": started, "retry_requested": False,
-                      "state": "waiting", "reason": "workflow_dispatch accepted",
-                  }
-                  entries.append(entry)
-                  print(f"DISPATCHED:{path}@main", flush=True)
-              except Exception as exc:
-                  failed.append((path, f"dispatch failed: {exc}"))
+              # Enqueue only. The dispatcher below starts one new workflow at a time.
+              # Inputs stay attached to the queue item so they cannot be lost or recomputed.
+              entries.append({
+                  "id": wid, "name": name, "path": path, "run_id": None,
+                  "source": "queued", "dispatch_at": None, "inputs": inputs,
+                  "retry_requested": False, "state": "queued",
+                  "reason": "waiting for the previous workflow to finish",
+              })
+              print(f"QUEUED:{path}@main", flush=True)
 
           print(
               f"START main_sha={main_sha} workflows={len(workflows)} "
@@ -250,6 +258,27 @@ jobs:
           deadline = time.monotonic() + 300 * 60
           missing_deadline = {}
           while entries and time.monotonic() < deadline:
+              # Strict single-flight dispatch: do not launch the next queued workflow
+              # until every currently tracked run has reached a terminal state.
+              active = any(entry["state"] == "waiting" for entry in entries)
+              queued = next((entry for entry in entries if entry["state"] == "queued"), None)
+              if queued is not None and not active:
+                  started = now_iso()
+                  try:
+                      api(
+                          f"actions/workflows/{queued['id']}/dispatches",
+                          method="POST",
+                          payload={"ref": "main", "inputs": queued.pop("inputs", {})},
+                      )
+                      queued["source"] = "dispatched"
+                      queued["dispatch_at"] = started
+                      queued["state"] = "waiting"
+                      queued["reason"] = "workflow_dispatch accepted; running as the sole newly dispatched job"
+                      print(f"DISPATCHED:{queued['path']}@main", flush=True)
+                  except Exception as exc:
+                      queued["state"] = "failed"
+                      queued["reason"] = f"dispatch failed: {exc}"
+                      failed.append((queued["path"], queued["reason"]))
               query = urllib.parse.urlencode({
                   "branch": "main", "event": "workflow_dispatch",
                   "created": f">={batch_start}", "per_page": "100",
