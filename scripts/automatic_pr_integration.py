@@ -265,6 +265,7 @@ def required_checks_for_files(changed_files: list[str]) -> set[str]:
         "Methodology integration",
         "Mandatory engineering contract",
         "Workflow resilience contract tests",
+        "Repository-wide self-regulation",
     }
     paths = [path.replace("\\", "/") for path in changed_files]
     product_prefixes = ("scripts/", "src/", "tests/", "data/", "config/")
