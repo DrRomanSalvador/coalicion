@@ -7,7 +7,7 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize, ready_for_review]
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "17 */6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -47,7 +47,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --upgrade pip
           if [[ -f requirements.lock ]]; then
             python -m pip install -r requirements.lock
           elif [[ -f requirements.txt ]]; then
@@ -92,7 +91,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pytest -q
+          # autonomous_fix_and_validate.py already runs the complete pytest suite.
+          # Do not run pytest a second time in this workflow.
           python scripts/autonomous_fix_and_validate.py --strict
 
       - name: Revalidate exact revision after all tests
@@ -107,8 +107,17 @@ jobs:
           if [[ "$GITHUB_EVENT_NAME" != "pull_request" && "$GITHUB_REF" == "refs/heads/main" ]]; then
             git fetch --no-tags origin main
             current_main="$(git rev-parse origin/main)"
-            if [[ "$current_main" != "$EXPECTED_SHA" ]]; then
-              echo "::error::Stale validation: tested=$EXPECTED_SHA current_main=$current_main"
+            if git merge-base --is-ancestor "$EXPECTED_SHA" "$current_main"; then
+              if [[ "$current_main" != "$EXPECTED_SHA" ]]; then
+                echo "::warning::main advanced during validation. This run validates $EXPECTED_SHA only; the newer main commit must pass its own push-triggered validation."
+                {
+                  echo "Validated commit: $EXPECTED_SHA"
+                  echo "main at completion: $current_main"
+                  echo "This run does not certify the newer main commit; its own push-triggered run must validate it."
+                } >> "$GITHUB_STEP_SUMMARY"
+              fi
+            else
+              echo "::error::Tested revision is not an ancestor of current main: tested=$EXPECTED_SHA current_main=$current_main"
               exit 1
             fi
           fi
