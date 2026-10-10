@@ -77,6 +77,9 @@ def test_agent_uses_ollama_without_external_token(tmp_path, monkeypatch):
     assert result["response"] == "Hallazgo verificable."
     assert calls[0][0] == "http://127.0.0.1:11434/api/chat"
     assert calls[0][2]["model"] == "qwen2.5:3b"
+    system_prompt = calls[0][2]["messages"][0]["content"]
+    assert "regla boy scout" in system_prompt
+    assert "CONTRATO DE PRUEBA; principios 01–25." in system_prompt
 
 
 def test_ollama_failure_is_blocked_and_never_falls_back(tmp_path, monkeypatch):
@@ -325,3 +328,14 @@ def test_agent_system_prompt_enforces_boy_scout_rule_and_safe_retirement():
     assert "añade regresión para cada bug" in source
     assert "load_mandatory_contract()" in source
     assert '"num_ctx": 24576' in source
+
+
+
+def test_mandatory_contract_loader_fails_closed_when_contracts_are_missing(tmp_path, monkeypatch):
+    monkeypatch.setattr(agent, "ROOT", tmp_path)
+    try:
+        agent.load_mandatory_contract()
+    except ValueError as exc:
+        assert "falta el contrato obligatorio" in str(exc)
+    else:
+        raise AssertionError("La inferencia debe bloquearse si faltan las normas canónicas")
