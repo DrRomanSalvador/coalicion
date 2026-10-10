@@ -63,7 +63,7 @@ def get_missions() -> list[dict[str, Any]]:
             "schema": "COLMENA_MISSION_CONTROL_V1",
             "total": TOTAL_AGENTS,
             "mode": "LOGICAL_SLOTS",
-            "note": "Los slots no son procesos autónomos. Una tarea requiere definición, Reina_token y ejecución explícita.",
+            "note": "Los slots son registros lógicos. Cada tarea requiere definición y aprobación explícita antes de ejecutar Ollama.",
             "missions": missions,
         })
     validate_missions(missions)
