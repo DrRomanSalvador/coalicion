@@ -40,7 +40,7 @@ Do not publish the expanded command or its secrets. Verify with `getWebhookInfo`
 
 ```bash
 cd telegram-worker
-npm ci
+npm install --no-audit --no-fund
 npm test
 npm run typecheck
 ```
