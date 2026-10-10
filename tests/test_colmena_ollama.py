@@ -111,3 +111,11 @@ def test_model_result_cannot_mark_mission_pass(tmp_path, monkeypatch):
         assert "PASS" in str(exc)
     else:
         raise AssertionError("La Reina no debe aceptar PASS de un modelo")
+
+
+def test_ollama_workflow_uses_one_model_store_for_server_and_pull():
+    source = (ROOT / ".github/workflows/colmena_ollama_agents.yml").read_text(encoding="utf-8")
+    assert 'export OLLAMA_MODELS="$HOME/.ollama/models"' in source
+    assert '(ollama serve > /tmp/ollama.log 2>&1 &)' in source
+    assert 'ollama pull "$LOCAL_MODEL"' in source
+    assert 'ollama list | grep -F "$LOCAL_MODEL"' in source
