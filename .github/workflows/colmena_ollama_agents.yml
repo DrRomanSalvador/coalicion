@@ -60,16 +60,15 @@ jobs:
           curl -fsSL https://ollama.com/install.sh | sh
           if sudo systemctl is-active --quiet ollama; then sudo systemctl stop ollama; fi
           mkdir -p "$HOME/.ollama/models"
-          # CLI and server must share the same cache/model store.
           export OLLAMA_MODELS="$HOME/.ollama/models"
-          (ollama serve > /tmp/ollama.log 2>&1 &)
+          (ollama serve > /tmp/ollama-pull.log 2>&1 &)
           for _ in $(seq 1 45); do
             if curl --silent --fail http://127.0.0.1:11434/api/tags >/dev/null; then break; fi
             sleep 2
           done
-          curl --silent --fail http://127.0.0.1:11434/api/tags >/dev/null || { cat /tmp/ollama.log; exit 1; }
+          curl --silent --fail http://127.0.0.1:11434/api/tags >/dev/null || { cat /tmp/ollama-pull.log; exit 1; }
           ollama pull "$LOCAL_MODEL"
-          ollama list | grep -F "$LOCAL_MODEL" || { cat /tmp/ollama.log; echo "El modelo no aparece en el almacén activo de Ollama." >&2; exit 1; }
+          ollama list | grep -F "$LOCAL_MODEL" || { cat /tmp/ollama-pull.log; echo "El modelo no aparece en el almacén activo de Ollama." >&2; exit 1; }
       - name: Validar misión asignada y ejecutar solo Ollama
         id: execute
         env:
@@ -79,6 +78,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Actions may clean up background processes between steps; ensure the API is alive here.
+          export OLLAMA_MODELS="$HOME/.ollama/models"
+          mkdir -p "$OLLAMA_MODELS"
+          if ! curl --silent --fail http://127.0.0.1:11434/api/tags >/dev/null; then
+            (ollama serve > /tmp/ollama-execute.log 2>&1 &)
+            for _ in $(seq 1 45); do
+              if curl --silent --fail http://127.0.0.1:11434/api/tags >/dev/null; then break; fi
+              sleep 2
+            done
+          fi
+          curl --silent --fail http://127.0.0.1:11434/api/tags >/dev/null || { cat /tmp/ollama-execute.log 2>/dev/null || true; echo "Ollama no está disponible en el paso de ejecución." >&2; exit 1; }
+          ollama list | grep -F "$LOCAL_MODEL" || { echo "El modelo no está en el almacén activo de Ollama." >&2; exit 1; }
           if [ "$RETRY_BLOCKED" = "true" ]; then
             python scripts/colmena_queen.py --reassign-blocked "$MISSION_ID"
           fi
