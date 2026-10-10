@@ -18,6 +18,12 @@ Valida:
 
 La ejecución de agentes usa exclusivamente Ollama local; no requiere tokens ni créditos externos. Consulta `docs/COLMENA_OLLAMA_AGENTS.md`. La validación ligera permanece separada del runtime de IA.
 
+Antes de asignar:
+- Las misiones `PLATFORM` pueden auditar la infraestructura si tienen tarea concreta.
+- Las misiones `PRODUCT` solo se asignan cuando la lista maestra original de 430 requisitos está íntegra, con IDs únicos y criterios de aceptación, y la misión referencia esos IDs.
+- Los slots `UNDEFINED` no se asignan aunque tengan texto de tarea.
+- El índice actual está `BLOCKED_SOURCE_LIST_NOT_MATERIALIZED`; no ejecutar ni declarar cobertura del producto hasta importar la lista original. No inventar sustitutos.
+
 ## Persistencia y límites
 El workflow base registra `last_colmena_checkpoint` en `docs/COLMENA_STATE.json` solo tras superar todas las comprobaciones. Incluye commit probado, run ID, intento, lista de checks y timestamp UTC.
 - No se declara PASS si falla una comprobación.
