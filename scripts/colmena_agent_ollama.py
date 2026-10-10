@@ -92,7 +92,7 @@ def load_mandatory_contract() -> str:
     if covered != expected:
         missing = sorted(expected - covered)
         raise ValueError(f"Fail-closed: la matriz no cubre los 25 principios; faltan {missing}.")
-    if total_chars > 45000:
+    if total_chars > 50000:
         raise ValueError("Fail-closed: los contratos obligatorios exceden el límite de contexto.")
     return "\n\n".join(chunks)
 
