@@ -14,7 +14,11 @@ Valida:
 4. Tests de contrato, registro de errores, producto, motor de coaliciones y auditoría.
 5. Demo E2E real: `python scripts/demo_e2e.py`.
 
-## Agentes IA locales Ollama\n\nLa ejecución de agentes usa exclusivamente Ollama local; no requiere tokens ni créditos externos. Consulta `docs/COLMENA_OLLAMA_AGENTS.md`. La validación ligera permanece separada del runtime de IA.\n\n## Persistencia y límites
+## Agentes IA locales Ollama
+
+La ejecución de agentes usa exclusivamente Ollama local; no requiere tokens ni créditos externos. Consulta `docs/COLMENA_OLLAMA_AGENTS.md`. La validación ligera permanece separada del runtime de IA.
+
+## Persistencia y límites
 El workflow base registra `last_colmena_checkpoint` en `docs/COLMENA_STATE.json` solo tras superar todas las comprobaciones. Incluye commit probado, run ID, intento, lista de checks y timestamp UTC.
 - No se declara PASS si falla una comprobación.
 - El checkpoint valida únicamente los checks enumerados; no es certificación externa.
