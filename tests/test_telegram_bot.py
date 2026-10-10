@@ -571,6 +571,8 @@ def test_bounded_polling_keeps_listening_after_empty_poll(monkeypatch):
     assert calls[0][0] == "deleteWebhook"
 
 def test_dispatcher_task_creation_and_completion_callback(monkeypatch, tmp_path):
+    telegram_bot._RATE.clear()
+    monkeypatch.setattr(telegram_bot, "snapshot_telegram_state", lambda: None)
     monkeypatch.setattr(telegram_bot, "TASKS", tmp_path / "telegram_tasks.json")
     monkeypatch.setattr(telegram_bot, "USER_STATE", tmp_path / "user_state.json")
     monkeypatch.setattr(telegram_bot, "AUDIT_LOG", tmp_path / "audit.jsonl")
@@ -616,6 +618,7 @@ def test_public_command_list_is_dispatcher_not_catalog():
     ]
 
 def test_task_delegation_fails_closed_without_team_chat(monkeypatch, tmp_path):
+    telegram_bot._RATE.clear()
     monkeypatch.setattr(telegram_bot, "TASKS", tmp_path / "telegram_tasks.json")
     monkeypatch.setattr(telegram_bot, "USER_STATE", tmp_path / "user_state.json")
     monkeypatch.setattr(telegram_bot, "AUDIT_LOG", tmp_path / "audit.jsonl")
