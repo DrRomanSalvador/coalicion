@@ -260,3 +260,13 @@ def test_batch_workflow_uses_gh_cli_token_handling_and_reports_auth_failures_exp
     assert "GitHub API authorization failed (403)" in source
     assert "if not token:" in source
 
+def test_batch_validation_dispatches_one_prioritized_workflow_at_a_time():
+    source = (WORKFLOWS / "batch_workflow_validation.yml").read_text(encoding="utf-8")
+    assert '"workflow-resilience-tests.yml": 0' in source
+    assert '"exhaustive_validation.yml": 1' in source
+    assert '"mc-10000.yml": 2' in source
+    assert '"source": "queued"' in source
+    assert 'Strict single-flight dispatch' in source
+    assert 'queued = next((entry for entry in entries if entry["state"] == "queued"), None)' in source
+    assert 'if queued is not None and not active:' in source
+    assert '"state": "waiting"' in source
