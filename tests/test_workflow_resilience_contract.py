@@ -122,7 +122,7 @@ def test_global_orchestrator_automatically_checks_for_stuck_canonical_runs():
 
 
 
-def test_auto_merge_gate_paginates_and_excludes_only_its_own_run():
+def test_pr_validation_gate_paginates_and_excludes_only_its_own_run():
     workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
     source = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
     assert '"gh",\n            "api",\n            "--paginate",\n            "--slurp"' in source
@@ -132,14 +132,16 @@ def test_auto_merge_gate_paginates_and_excludes_only_its_own_run():
     assert 'if run.get("name") != self_name' not in source
 
 
-def test_auto_merge_gate_blocks_failed_missing_and_stale_commit_checks():
+def test_pr_validation_gate_blocks_failed_missing_and_stale_commit_checks():
     workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
     source = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
     assert 'run["conclusion"] not in {"success", "skipped"}' in source
     assert 'missing_success = sorted(required - completed_successfully)' in source
     assert "Blocking merge: checks did not reach a stable all-green state within 110 minutes." in source
-    assert '"--match-head-commit"' in source
-    assert 'sha,' in source
+    assert '"gh",\n            "pr",\n            "merge"' not in source
+    assert "integration may proceed only through repository branch protection" in source
+    assert "contents: write" not in workflow
+    assert "pull-requests: write" not in workflow
 
 
 def test_poll_monitor_fails_closed_after_persisting_blocked_state():
