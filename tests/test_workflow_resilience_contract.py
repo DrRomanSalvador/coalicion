@@ -126,7 +126,7 @@ def test_required_agent_contract_executes_all_25_principle_gate_regressions():
     source = (WORKFLOWS / "agent-contract.yml").read_text(encoding="utf-8")
     assert "Run the full 25-principle PR evidence gate regression suite" in source
     assert "python -m pytest -q tests/test_automatic_pr_integration.py" in source
-    assert "name: Verify mandatory agent contract" in source
+    assert "name: Engineering contract checks" in source
 
 
 def test_pr_validation_gate_paginates_and_excludes_only_its_own_run():
