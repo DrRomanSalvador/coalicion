@@ -230,6 +230,27 @@ def validate_pr_body(body: str) -> list[str]:
             )
     return missing
 
+def fetch_current_pr_head_sha(
+    repo: str,
+    pr_number: str,
+    runner: Callable[..., Any] = subprocess.run,
+) -> str:
+    """Read the live PR head so an old validation run never merges a superseded SHA."""
+    result = runner(
+        ["gh", "api", f"repos/{repo}/pulls/{pr_number}", "--jq", ".head.sha"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode:
+        detail = (result.stderr or result.stdout or "unknown GitHub API error").strip()
+        raise GitHubAPITransientError(f"Could not verify current PR head: {detail}")
+    current_sha = result.stdout.strip()
+    if not re.fullmatch(r"[0-9a-fA-F]{40}", current_sha):
+        raise GitHubAPITransientError("GitHub returned an empty or malformed current PR head SHA")
+    return current_sha
+
+
 def fetch_pr_body(
     repo: str,
     pr_number: str,
@@ -383,6 +404,14 @@ def main() -> int:
 
     while time.monotonic() < deadline:
         try:
+            current_head_sha = fetch_current_pr_head_sha(repo, pr_number)
+            if current_head_sha != sha:
+                print(
+                    "::notice::PR head changed while this gate was waiting; "
+                    "this stale validation exits without requesting a merge.",
+                    flush=True,
+                )
+                return 0
             runs = fetch_runs(repo, sha, current_run_id)
         except GitHubAPIAuthError as exc:
             # Retrying a rejected credential cannot heal permissions; fail promptly.
