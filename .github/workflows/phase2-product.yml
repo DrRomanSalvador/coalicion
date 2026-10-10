@@ -55,8 +55,7 @@ env:
 
 concurrency:
   group: phase2-product-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
+  cancel-in-progress: false
 jobs:
   phase2:
     runs-on: ubuntu-latest

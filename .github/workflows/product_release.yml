@@ -20,7 +20,7 @@ permissions:
   contents: write
 concurrency:
   group: product-release-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   release:
     runs-on: ubuntu-latest

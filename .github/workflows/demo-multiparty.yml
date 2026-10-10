@@ -51,8 +51,7 @@ permissions:
 
 concurrency:
   group: coalicion-demo-multiparty-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
+  cancel-in-progress: false
 jobs:
   demo:
     runs-on: ubuntu-latest

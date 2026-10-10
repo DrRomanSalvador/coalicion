@@ -18,8 +18,7 @@ permissions:
 
 concurrency:
   group: phase2-layer0-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
+  cancel-in-progress: false
 jobs:
   verify:
     runs-on: ubuntu-latest

@@ -3,7 +3,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from audit_workflow_resilience import audit_self_healer_contract, audit_telegram_pages_contract, permission_declarations, writer_without_concurrency, audit_product_release_persistence
+from audit_workflow_resilience import audit_self_healer_contract, audit_telegram_pages_contract, permission_declarations, writer_without_concurrency, audit_product_release_persistence, audit_cancels_in_progress
 
 
 def test_main_self_healer_has_all_blocking_recovery_contracts():
@@ -88,3 +88,19 @@ def test_product_release_audit_rejects_stale_evidence_push():
     workflow = workflow.replace('[[ "$remote_sha" != "$GITHUB_SHA" ]]', 'false')
     missing = audit_product_release_persistence(workflow)
     assert "release writer compares main to the tested SHA" in missing
+
+
+def test_workflow_audit_blocks_cancellation_of_active_runs():
+    unsafe = """permissions:
+  contents: read
+concurrency:
+  group: test
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+"""
+    safe = unsafe.replace("cancel-in-progress: true", "cancel-in-progress: false")
+    assert audit_cancels_in_progress(unsafe)
+    assert not audit_cancels_in_progress(safe)

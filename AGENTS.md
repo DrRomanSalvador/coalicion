@@ -107,3 +107,6 @@ Aplicar el documento canónico `docs/ENGINEERING_CHARTER.md`: claridad, automati
 
 ## 13. Estructura del repositorio
 Seguir `docs/REPOSITORY_STRATEGY.md` antes de crear repositorios, módulos o pipelines nuevos. No dividir ni duplicar por moda; decidir monorepo/multirrepo con evidencia de ownership, seguridad, releases y coste operativo.
+
+## 14. No interrumpir ejecuciones activas
+Todos los workflows deben evitar cancelar ejecuciones en curso: `cancel-in-progress: false`. La auditoría `scripts/audit_workflow_resilience.py` bloquea cualquier workflow que configure cancelación activa. Si una ejecución nueva llega mientras otra está en marcha, la activa termina; las ejecuciones pendientes deben reconciliarse por SHA y el gate debe rechazar resultados obsoletos. GitHub Actions no ofrece una cola FIFO ilimitada por grupo: no prometer que conserva todas las ejecuciones pendientes; diseñar los trabajos para validar el SHA, ser idempotentes y procesar la revisión más reciente sin pisar una ejecución activa.

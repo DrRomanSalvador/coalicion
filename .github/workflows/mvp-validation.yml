@@ -39,8 +39,7 @@ on:
 
 concurrency:
   group: mvp-validation-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
+  cancel-in-progress: false
 jobs:
   validate:
     runs-on: ubuntu-latest

@@ -17,7 +17,7 @@ permissions:
   contents: read
 concurrency:
   group: unlock-verification-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   verify:
     runs-on: ubuntu-latest

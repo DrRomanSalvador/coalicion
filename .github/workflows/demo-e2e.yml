@@ -22,8 +22,7 @@ permissions:
 
 concurrency:
   group: coalicion-demo-e2e-${{ github.ref }}
-  cancel-in-progress: true
-
+  cancel-in-progress: false
 jobs:
   demo:
     runs-on: ubuntu-latest

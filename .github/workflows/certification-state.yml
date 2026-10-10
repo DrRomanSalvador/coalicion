@@ -20,8 +20,7 @@ permissions:
 
 concurrency:
   group: certification-state-${{ github.ref }}
-  cancel-in-progress: true
-
+  cancel-in-progress: false
 jobs:
   state:
     runs-on: ubuntu-latest

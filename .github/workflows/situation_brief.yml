@@ -20,8 +20,7 @@ permissions:
 
 concurrency:
   group: situation-brief-${{ github.ref }}
-  cancel-in-progress: true
-
+  cancel-in-progress: false
 jobs:
   generate:
     runs-on: ubuntu-latest

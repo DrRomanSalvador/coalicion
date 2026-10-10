@@ -81,6 +81,11 @@ def writer_without_concurrency(source: str) -> bool:
     return pushes and not serialized
 
 
+def audit_cancels_in_progress(source: str) -> bool:
+    """Return true when a workflow is configured to cancel a running execution."""
+    return bool(re.search(r"(?m)^\s*cancel-in-progress:\s*true\s*$", source))
+
+
 def audit_telegram_pages_contract(source: str) -> list[str]:
     """Require safe Pages deployment and an honest non-failing skip when setup is unavailable."""
     checks = {
@@ -180,6 +185,12 @@ def main() -> int:
                     {"path": relative_path, "missing_contract": item}
                     for item in missing_contracts
                 )
+        if audit_cancels_in_progress(source):
+            critical_findings.append({
+                "path": relative_path,
+                "missing_contract": "workflow is configured to cancel an in-progress execution",
+            })
+
         if writer_without_concurrency(source):
             critical_findings.append({
                 "path": relative_path,
