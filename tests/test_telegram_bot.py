@@ -352,7 +352,7 @@ def test_export_pdf_falls_back_when_reportlab_is_unavailable(tmp_path, monkeypat
             raise ImportError("ReportLab intentionally unavailable in this regression test")
         return original_import(name, *args, **kwargs)
 
-    monkeypatch.setattr(builtins, "__import__", import_without_report)
+    monkeypatch.setattr(builtins, "__import__", import_without_reportlab)
     pdf_data, filename, content_type = telegram_bot._export_payload("pdf")
     assert filename.endswith(".pdf")
     assert content_type == "application/pdf"
