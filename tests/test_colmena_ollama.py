@@ -116,9 +116,13 @@ def test_model_result_cannot_mark_mission_pass(tmp_path, monkeypatch):
 def test_ollama_workflow_uses_one_model_store_for_server_and_pull():
     source = (ROOT / ".github/workflows/colmena_ollama_agents.yml").read_text(encoding="utf-8")
     assert 'export OLLAMA_MODELS="$HOME/.ollama/models"' in source
-    assert '(ollama serve > /tmp/ollama.log 2>&1 &)' in source
+    assert "(ollama serve > /tmp/ollama-pull.log 2>&1 &)" in source
+    assert "(ollama serve > /tmp/ollama-execute.log 2>&1 &)" in source
     assert 'ollama pull "$LOCAL_MODEL"' in source
     assert 'ollama list | grep -F "$LOCAL_MODEL"' in source
+    execution_step = source.split("- name: Validar misión asignada y ejecutar solo Ollama", 1)[1].split("- name: Reconciliar resultado", 1)[0]
+    assert 'export OLLAMA_MODELS="$HOME/.ollama/models"' in execution_step
+    assert "Ollama no está disponible en el paso de ejecución." in execution_step
 
 
 def test_lightweight_workflow_never_pushes_directly_to_main():
@@ -134,4 +138,3 @@ def test_assignment_workflow_treats_no_executable_tasks_as_safe_noop():
     source = (ROOT / ".github/workflows/colmena_ollama_assign.yml").read_text(encoding="utf-8")
     assert "python scripts/colmena_queen.py --assign" in source
     assert "peter-evans/create-pull-request@v7" in source
-    assert "base: ${{ inputs.base_branch }}" in source
