@@ -16,35 +16,43 @@ concurrency:
 jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      deploy_enabled: ${{ steps.preflight.outputs.deploy_enabled }}
     steps:
       - uses: actions/checkout@v4
       - name: Preflight GitHub Pages configuration
+        id: preflight
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.PAGES_ADMIN_TOKEN || github.token }}
           PAGES_ADMIN_TOKEN: ${{ secrets.PAGES_ADMIN_TOKEN }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
           if gh api "repos/$REPOSITORY/pages" >/dev/null 2>&1; then
-            echo "GitHub Pages is already configured."
+            echo "GitHub Pages is configured."
+            echo "deploy_enabled=true" >> "$GITHUB_OUTPUT"
           elif [[ -n "$PAGES_ADMIN_TOKEN" ]]; then
-            echo "GitHub Pages is absent; PAGES_ADMIN_TOKEN is available to enable it."
+            echo "GitHub Pages is absent; the admin token will attempt to enable it."
+            echo "deploy_enabled=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::error::GitHub Pages is not enabled and GITHUB_TOKEN cannot create the Pages site. Enable Pages in repository Settings, or add a PAGES_ADMIN_TOKEN secret with repository administration/Pages permissions."
-            exit 1
+            echo "::warning::Mini App deployment skipped: GitHub Pages is not enabled and this workflow has no repository-administration token. The workflow cannot enable Pages using GITHUB_TOKEN. Enable Pages once in Settings > Pages with Source = GitHub Actions, then rerun this workflow. No deployment was attempted."
+            echo "deploy_enabled=false" >> "$GITHUB_OUTPUT"
           fi
-      - uses: actions/configure-pages@v5
+      - name: Configure GitHub Pages
+        if: steps.preflight.outputs.deploy_enabled == 'true'
+        uses: actions/configure-pages@v5
         with:
           enablement: true
           token: ${{ secrets.PAGES_ADMIN_TOKEN || github.token }}
-      - uses: actions/upload-pages-artifact@v3
+      - name: Upload Mini App
+        if: steps.preflight.outputs.deploy_enabled == 'true'
+        uses: actions/upload-pages-artifact@v3
         with:
           path: web/telegram
-      - id: deployment
+      - name: Deploy Mini App
+        if: steps.preflight.outputs.deploy_enabled == 'true'
+        id: deployment
         uses: actions/deploy-pages@v4
