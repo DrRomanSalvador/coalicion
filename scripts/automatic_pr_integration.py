@@ -245,7 +245,7 @@ def fetch_current_pr_head_sha(
     if result.returncode:
         detail = (result.stderr or result.stdout or "unknown GitHub API error").strip()
         lowered = detail.lower()
-        auth_status = re.search(r"\\bhttp(?:\\s+error)?\\s*(401|403)\\b", lowered)
+        auth_status = re.search(r"\bhttp(?:\s+error)?\s*(401|403)\b", lowered)
         auth_phrase = any(
             marker in lowered
             for marker in (
