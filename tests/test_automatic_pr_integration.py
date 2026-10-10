@@ -292,6 +292,8 @@ def test_pr_gate_enables_auto_squash_merge_without_manual_clicks():
     assert "name: Automatic PR integration gate" in workflow
     assert "name: Verify mandatory agent contract" not in workflow
     assert "github.event.pull_request.head.repo.full_name == github.repository" in workflow
+    assert "pull_request_target:" in workflow
+    assert "  pull_request:\\n" not in workflow
     assert "contents: write" in workflow
     assert "pull-requests: write" in workflow
     client = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
