@@ -145,15 +145,15 @@ def validate_pr_body(body: str) -> list[str]:
     ]
 
     heading = re.search(
-        r"(?im)^[ \\t]*(?:#{1,6}[ \\t]+)?Principios afectados \\(01–25\\):[ \\t]*(.*)$",
+        r"(?im)^[ \t]*(?:#{1,6}[ \t]+)?Principios afectados \(01–25\):[ \t]*(.*)$",
         body,
     )
     principle_text = ""
     if heading:
         following = body[heading.end():]
-        next_heading = re.search(r"(?m)^[ \\t]*#{1,6}[ \\t]+\\S", following)
+        next_heading = re.search(r"(?m)^[ \t]*#{1,6}[ \t]+\S", following)
         section_body = following[:next_heading.start()] if next_heading else following
-        principle_text = "\\n".join(
+        principle_text = "\n".join(
             part.strip()
             for part in (heading.group(1), section_body)
             if part and part.strip()
@@ -162,8 +162,8 @@ def validate_pr_body(body: str) -> list[str]:
     dispositions: dict[int, tuple[str, str]] = {}
     for line in principle_text.splitlines():
         match = re.match(
-            r"^\\s*(?:[-*]\\s*)?(?:\\*\\*)?(0[1-9]|1[0-9]|2[0-5])(?:\\*\\*)?\\s+"
-            r"(APLICA|N/A|NO APLICA)\\b\\s*[:—-]?\\s*(.*?)\\s*$",
+            r"^\s*(?:[-*]\s*)?(?:\*\*)?(0[1-9]|1[0-9]|2[0-5])(?:\*\*)?\s+"
+            r"(APLICA|N/A|NO APLICA)\b\s*[:—-]?\s*(.*?)\s*$",
             line,
             flags=re.IGNORECASE,
         )
@@ -179,7 +179,7 @@ def validate_pr_body(body: str) -> list[str]:
             missing.append(f"principle {number:02d} needs a concrete rationale (at least 20 characters)")
             continue
         if disposition in {"N/A", "NO APLICA"} and not re.search(
-            r"\\b(porque|motivo|justificaci[oó]n|no modifica|no afecta|no cambia|no corresponde|fuera de alcance)\\b",
+            r"\b(porque|motivo|justificaci[oó]n|no modifica|no afecta|no cambia|no corresponde|fuera de alcance)\b",
             rationale,
             flags=re.IGNORECASE,
         ):
