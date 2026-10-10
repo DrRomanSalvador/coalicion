@@ -204,6 +204,8 @@ def summarize(deployments: list[dict[str, Any]], now: datetime) -> dict[str, Any
 def render_markdown(report: dict[str, Any]) -> str:
     m = report["metrics"]
     sample = report["sample"]
+    cfr_rate = m["change_failure_rate"]["rate"]
+    cfr_value = f"{cfr_rate * 100:.2f}%" if cfr_rate is not None else "INSUFFICIENT_DATA"
     lines = [
         "# COALICIÓN — DORA engineering metrics",
         "",
@@ -217,7 +219,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         "|---|---:|---|---|",
         f"| Deployment frequency | {m['deployment_frequency']['per_day'] if m['deployment_frequency']['per_day'] is not None else 'INSUFFICIENT_DATA'} per day | {m['deployment_frequency']['status']} | {m['deployment_frequency']['successful_deployments']} successful deployments |",
         f"| Lead time for changes | {m['lead_time_for_changes']['median_hours'] if m['lead_time_for_changes']['median_hours'] is not None else 'INSUFFICIENT_DATA'} h median | {m['lead_time_for_changes']['status']} | n={m['lead_time_for_changes']['sample_size']}; commit timestamp to deployment |",
-        f"| Change failure rate | {(f"{m['change_failure_rate']['rate'] * 100:.2f}%" if m['change_failure_rate']['rate'] is not None else 'INSUFFICIENT_DATA')} | {m['change_failure_rate']['status']} | {m['change_failure_rate']['failed_deployments']}/{m['change_failure_rate']['terminal_deployments']} terminal deployments |",
+        f"| Change failure rate | {cfr_value} | {m['change_failure_rate']['status']} | {m['change_failure_rate']['failed_deployments']}/{m['change_failure_rate']['terminal_deployments']} terminal deployments |",
         f"| Time to restore | {m['time_to_restore']['median_hours'] if m['time_to_restore']['median_hours'] is not None else 'INSUFFICIENT_DATA'} h median | {m['time_to_restore']['status']} | n={m['time_to_restore']['sample_size']}; deployment-based proxy |",
         "",
         "## Limitations",
