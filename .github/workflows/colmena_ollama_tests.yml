@@ -6,7 +6,10 @@ on:
       - "scripts/colmena_queen.py"
       - "scripts/colmena_agent_ollama.py"
       - "tests/test_colmena_ollama.py"
+      - "tests/test_colmena_provider_retirement.py"
       - "docs/COLMENA_MISSION_CONTROL.json"
+      - "docs/INVOCACION_COLMENA.md"
+      - "docs/COLMENA_OLLAMA_AGENTS.md"
       - ".github/workflows/colmena_ollama_agents.yml"
       - ".github/workflows/colmena_ollama_assign.yml"
       - ".github/workflows/colmena_ollama_tests.yml"
@@ -16,7 +19,10 @@ on:
       - "scripts/colmena_queen.py"
       - "scripts/colmena_agent_ollama.py"
       - "tests/test_colmena_ollama.py"
+      - "tests/test_colmena_provider_retirement.py"
       - "docs/COLMENA_MISSION_CONTROL.json"
+      - "docs/INVOCACION_COLMENA.md"
+      - "docs/COLMENA_OLLAMA_AGENTS.md"
       - ".github/workflows/colmena_ollama_agents.yml"
       - ".github/workflows/colmena_ollama_assign.yml"
       - ".github/workflows/colmena_ollama_tests.yml"
@@ -39,5 +45,5 @@ jobs:
           python-version: "3.12"
       - name: Install test runner
         run: python -m pip install --disable-pip-version-check "pytest>=8,<10"
-      - name: Test mission safety and Ollama-only execution
-        run: python -m pytest -q tests/test_colmena_ollama.py
+      - name: Test mission safety, provider retirement and Ollama-only execution
+        run: python -m pytest -q tests/test_colmena_ollama.py tests/test_colmena_provider_retirement.py
