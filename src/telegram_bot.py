@@ -762,8 +762,7 @@ def _handle_access_callback(update: dict[str, Any], data: str) -> bool:
     if not data.startswith(("access:approve:", "access:deny:")):
         return False
     callback = update.get("callback_query") or {}
-    if callback.get("id"):
-        _answer_callback(str(callback["id"]))
+    # _handle_update acknowledges callbacks before dispatch; do not acknowledge twice.
     if not _owner_allowed(update):
         return True
     action, request_key = data.split(":", 2)[1:]
