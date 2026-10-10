@@ -20,8 +20,7 @@ permissions:
 
 concurrency:
   group: complete-backtest-final-${{ github.ref }}
-  cancel-in-progress: true
-
+  cancel-in-progress: false
 jobs:
   backtest:
     runs-on: ubuntu-latest
