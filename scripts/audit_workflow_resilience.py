@@ -141,7 +141,7 @@ def workflow_contract_findings(relative_path: str, source: str) -> list[dict[str
     for index, match in enumerate(job_matches):
         end = job_matches[index + 1].start() if index + 1 < len(job_matches) else len(jobs_section)
         block = jobs_section[match.start():end]
-        if not re.search(r"(?m)^\s+timeout-minutes:\s*\\d+\s*$", block):
+        if not re.search(r"(?m)^\s+timeout-minutes:\s*\d+\s*$", block):
             findings.append({
                 "path": relative_path,
                 "missing_contract": f"job {match.group(1)} has no timeout-minutes",
