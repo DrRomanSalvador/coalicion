@@ -35,9 +35,9 @@ El circuito debe operar por circunscripción, indicar fuentes y supuestos, seña
 
 ## Cómo gobierna la Abeja Reina
 
-- Cada misión atómica referencia uno o más IDs de los 430 requisitos.
+- Cada misión `PRODUCT` referencia uno o más IDs de los 430 requisitos. Las misiones `PLATFORM` se limitan a mantenimiento/auditoría de infraestructura y deben indicar su contrato técnico y evidencia; no cuentan como cobertura del producto.
 - Cada requisito queda enlazado a evidencia, tests, estado, dependencias, riesgos y misión responsable.
-- Las 179 misiones son capacidad de coordinación, no 179 objetivos inventados ni prueba de cobertura completa.
+- Las 179 misiones son capacidad de coordinación, no 179 objetivos inventados ni prueba de cobertura completa. Los slots `UNDEFINED` no se asignan aunque alguien les escriba una tarea sin clasificarlos.
 - La Reina debe reconciliar el 100 % de los 430 requisitos contra misiones y evidencias antes de declarar completitud.
 - Priorizar brechas por utilidad inmediata, impacto de decisión, riesgo, dependencias y tiempo; no por comodidad ni por código ya existente.
 - Ejecutar lotes de hasta cinco, con aprobación cuando corresponda, sin solapamientos ni duplicidades.
