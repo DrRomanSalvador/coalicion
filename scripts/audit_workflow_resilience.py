@@ -34,7 +34,6 @@ REVIEW_PATTERNS = {
 }
 
 
-
 def permission_declarations(source: str) -> tuple[bool, bool]:
     """Return (workflow-level, job-level) permission declarations, including inline maps."""
     workflow_level = bool(re.search(r"(?m)^permissions:\s*(?:\{[^}]*\})?\s*(?:#.*)?$", source))
@@ -48,7 +47,7 @@ def audit_self_healer_contract(source: str) -> list[str]:
         "query is paginated and scoped to current main SHA": 'gh api --paginate --slurp "repos/$REPOSITORY/actions/runs?head_sha=$main_sha&per_page=100"',
         "self-healer excludes its own workflow": "select(.workflow_id != $self_id)",
         "only completed runs below the retry budget on current main are eligible": 'select(.status == "completed" and .run_attempt < 3)',
-        "attempt number is rechecked before rerun": "run_attempt=" ,
+        "attempt number is rechecked before rerun": "run_attempt=",
         "stale or over-budget candidates are skipped": '[[ "$status" == "completed" && "$run_sha" == "$main_sha" && "$run_attempt" -lt "$max_attempts" ]] || continue',
         "only current main branch/SHA is eligible": 'select(.head_branch == "main" and .head_sha == $sha)',
         "each sweep caps successful reruns and candidate attempts": '[[ "$count" -lt 5 && "$attempted" -lt 25 ]]',
@@ -61,9 +60,6 @@ def audit_self_healer_contract(source: str) -> list[str]:
         "manual path rejects unknown run states": "unknown status",
     }
     return [label for label, literal in checks.items() if literal not in source]
-
-
-
 
 
 def audit_product_release_persistence(source: str) -> list[str]:
@@ -86,16 +82,18 @@ def writer_without_concurrency(source: str) -> bool:
 
 
 def audit_telegram_pages_contract(source: str) -> list[str]:
-    """Require a permission-aware Pages deployment instead of an opaque first-run 404."""
+    """Require safe Pages deployment and an honest non-failing skip when setup is unavailable."""
     checks = {
         "workflow declares Pages deployment permissions": "pages: write",
         "workflow declares OIDC deployment permission": "id-token: write",
         "deployment checks Pages setup before configure-pages": "Preflight GitHub Pages configuration",
-        "first-time enablement uses an explicit admin token": "secrets.PAGES_ADMIN_TOKEN || github.token",
+        "first-time enablement prefers an explicit admin token": "secrets.PAGES_ADMIN_TOKEN || github.token",
         "workflow enables Pages when authorized": "enablement: true",
         "workflow publishes the Mini App artifact": "actions/upload-pages-artifact@v3",
         "workflow deploys the artifact": "actions/deploy-pages@v4",
-        "missing permission has an actionable diagnostic": "GITHUB_TOKEN cannot create the Pages site",
+        "missing permission is handled without falsely reporting deployment": "deploy_enabled=false",
+        "missing permission has an actionable diagnostic": "Enable Pages once in Settings > Pages",
+        "Pages-dependent steps are skipped when unavailable": "if: steps.preflight.outputs.deploy_enabled == 'true'",
     }
     return [label for label, literal in checks.items() if literal not in source]
 
