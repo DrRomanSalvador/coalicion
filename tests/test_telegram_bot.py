@@ -650,3 +650,28 @@ def test_alert_buttons_offer_context_and_silencing():
     buttons = [b for row in markup["inline_keyboard"] for b in row]
     assert any(b["callback_data"] == "cmd:/encuestas" for b in buttons)
     assert any(b["callback_data"] == "alert:toggle:nueva_encuesta" for b in buttons)
+
+
+def test_scheduled_dispatch_preserves_webhook_and_sends_digest_and_alerts(monkeypatch):
+    calls = []
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "test-token")
+    monkeypatch.setattr(telegram_bot, "restore_telegram_state", lambda: calls.append("restore"))
+    monkeypatch.setattr(telegram_bot, "_configure_bot_ui", lambda: calls.append("configure"))
+    monkeypatch.setattr(telegram_bot, "_maybe_send_scheduled_digest", lambda: calls.append("digest"))
+    monkeypatch.setattr(telegram_bot, "_config", lambda: {"chats": {"42": {"frequency": "immediate"}}})
+    monkeypatch.setattr(
+        telegram_bot,
+        "_send_alerts_to_chat",
+        lambda chat_id, frequency="immediate": calls.append(("alerts", chat_id, frequency)),
+    )
+    monkeypatch.setattr(telegram_bot, "snapshot_telegram_state", lambda: calls.append("snapshot"))
+
+    telegram_bot.run_scheduled_dispatch()
+
+    assert calls == [
+        "restore",
+        "configure",
+        "digest",
+        ("alerts", 42, "immediate"),
+        "snapshot",
+    ]
