@@ -2,17 +2,9 @@ name: Workflow resilience contract tests
 
 on:
   push:
-    paths:
-      - ".github/workflows/**"
-      - "scripts/audit_workflow_resilience.py"
-      - "tests/test_workflow_resilience_audit.py"
-      - "tests/test_workflow_resilience_contract.py"
+    branches: [main]
   pull_request:
-    paths:
-      - ".github/workflows/**"
-      - "scripts/audit_workflow_resilience.py"
-      - "tests/test_workflow_resilience_audit.py"
-      - "tests/test_workflow_resilience_contract.py"
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -20,7 +12,7 @@ permissions:
 
 concurrency:
   group: workflow-resilience-contracts-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   audit:
