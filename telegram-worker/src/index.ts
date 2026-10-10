@@ -113,7 +113,7 @@ async function handleCallback(env: Env, update: Update): Promise<void> {
     const row = await env.DB.prepare("SELECT value FROM preferences WHERE user_id=? AND key='muted'").bind(userId).first<{value:string}>();
     const next = row?.value === "1" ? "0" : "1";
     await env.DB.prepare("INSERT INTO preferences(user_id,key,value,updated_at) VALUES(?,'muted',?,CURRENT_TIMESTAMP) ON CONFLICT(user_id,key) DO UPDATE SET value=excluded.value,updated_at=CURRENT_TIMESTAMP").bind(userId,next).run();
-    return send(env,chatId,"Alertas informativas "+(next==="1"?"silenciadas.":"activadas."));
+    return send(env,chatId,"Preferencia del webhook guardada: alertas "+(next==="1"?"silenciadas.":"activadas.")+" Esta acción aún no modifica la configuración de alertas del motor Python.");
   }
   const match = /^task:open:(\d+)$/.exec(data);
   if (match) {
