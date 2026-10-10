@@ -154,6 +154,31 @@ jobs:
     assert any("has no timeout-minutes" in item["missing_contract"] for item in findings)
 
 
+def test_workflow_audit_rejects_job_without_permissions_even_if_sibling_has_them():
+    source = """name: unsafe
+on: [push]
+concurrency:
+  group: unsafe
+  cancel-in-progress: false
+jobs:
+  first:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps: []
+  second:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps: []
+"""
+    findings = workflow_contract_findings(".github/workflows/unsafe.yml", source)
+    assert any(
+        item["missing_contract"] == "job second has no job-level permissions declaration"
+        for item in findings
+    )
+
+
 def test_current_mandatory_workflow_contracts_have_concurrency_and_bounded_jobs():
     workflow_dir = ROOT / ".github" / "workflows"
     for path in sorted([*workflow_dir.glob("*.yml"), *workflow_dir.glob("*.yaml")]):
