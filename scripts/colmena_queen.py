@@ -116,11 +116,7 @@ def sync_state_summary(missions: list[dict[str, Any]]) -> None:
     last_mission = next((m for m in missions if m.get("id") == last_mission_id), {})
     last_error = str(last_mission.get("result_summary", "")).lower()
     if counts["BLOCKED"]:
-        status = (
-            "BLOCKED_EXTERNAL_PROVIDER_CREDITS"
-            if any(token in last_error for token in ("http 402", "payment required", "no remaining credits", "falta de créditos"))
-            else "BLOCKED_MISSION_REQUIRES_REVIEW"
-        )
+        status = "BLOCKED_MISSION_REQUIRES_REVIEW"
     elif counts["ASSIGNED"]:
         status = "MISSIONS_ASSIGNED"
     elif counts["REVIEW_REQUIRED"]:
