@@ -71,6 +71,10 @@ jobs:
           batch_start = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
           def api(path, method="GET", payload=None):
+              # gh api requires the full repository route; GH_REPO alone does not
+              # implicitly scope arbitrary REST paths. Normalize every endpoint here.
+              if not path.startswith("repos/"):
+                  path = f"repos/{repo}/{path.lstrip('/')}"
               command = ["gh", "api", path, "--method", method]
               body = None
               if payload is not None:
