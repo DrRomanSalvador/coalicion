@@ -277,6 +277,14 @@ def test_pr_body_gate_rejects_empty_principle_section():
 
 
 
+def test_empty_pr_body_is_returned_for_fail_closed_evidence_validation():
+    def fake_runner(*args, **kwargs):
+        return subprocess.CompletedProcess(args[0], 0, stdout="", stderr="")
+    body = fetch_pr_body("owner/repo", "17", runner=fake_runner)
+    assert body == ""
+    assert validate_pr_body(body)
+
+
 def test_pr_body_fetch_fails_closed_on_github_api_error():
     def fake_runner(*args, **kwargs):
         return subprocess.CompletedProcess(args[0], 1, stdout="", stderr="HTTP 403")
