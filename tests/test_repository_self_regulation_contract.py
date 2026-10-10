@@ -35,12 +35,12 @@ def test_repository_self_regulation_captures_diagnostics_and_tracks_unresolved_f
 
 def test_pull_request_validation_is_read_only_and_issue_writer_is_isolated():
     source = WORKFLOW.read_text(encoding="utf-8")
-    assert "permissions:\\n  actions: read\\n  contents: read" in source
+    assert "permissions:\n  actions: read\n  contents: read" in source
     assert "issues: write" not in source.split("jobs:", 1)[0]
     assert "persist-credentials: false" in source
     assert "track_failure:" in source
     assert "if: failure() && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main'" in source
-    assert "    permissions:\\n      issues: write" in source
+    assert "    permissions:\n      issues: write" in source
 
 
 def test_repository_self_regulation_has_no_fail_open_steps():
