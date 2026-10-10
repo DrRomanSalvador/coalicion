@@ -17,6 +17,7 @@ on:
       - ".github/workflows/dora-metrics.yml"
       - ".github/workflows/deploy_telegram_worker.yml"
       - "docs/DORA_METRICS.md"
+      - ".github/workflows/deploy_telegram_worker.yml"
   push:
     branches: [main]
     paths:
