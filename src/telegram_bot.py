@@ -2348,6 +2348,23 @@ def _save_poll_offset(offset: int | None) -> None:
     temporary.replace(POLL_OFFSET)
 
 
+def run_scheduled_dispatch() -> None:
+    """Run scheduled digests and deduplicated alerts without touching webhook polling."""
+    restore_telegram_state()
+    _token()
+    _configure_bot_ui()
+    _maybe_send_scheduled_digest()
+    cfg = _config()
+    for chat_id, prefs in (cfg.get("chats") or {}).items():
+        if not isinstance(prefs, dict) or prefs.get("frequency", "immediate") != "immediate":
+            continue
+        try:
+            _send_alerts_to_chat(int(chat_id), frequency="immediate")
+        except (TelegramBotError, ValueError):
+            continue
+    snapshot_telegram_state()
+
+
 def run_polling(
     *, poll_timeout: int = 0, sleep_seconds: float = 0.0,
     max_runtime_seconds: float | None = None,
