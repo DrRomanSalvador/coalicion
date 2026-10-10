@@ -65,6 +65,20 @@ def test_current_pr_head_sha_fails_closed_on_malformed_response():
         raise AssertionError("Malformed live SHA must never permit a merge")
 
 
+def test_path_filtered_pr_workflows_are_mandatory_for_their_triggering_files():
+    cases = [
+        ("scripts/colmena_queen_hf.py", "Colmena HF — tests aislados"),
+        ("scripts/demo_multiparty.py", "Demo multiparty 2023"),
+        ("scripts/ingest_official_electoral_history.R", "Inspect official Interior download transport"),
+        ("src/web/routes.py", "mvp-validation"),
+        ("scripts/run_seec_production.py", "SEEC production real"),
+        ("src/telegram_bot.py", "Telegram bot validation"),
+        ("scripts/complete_historical_calibration.py", "Unlock verification"),
+    ]
+    for path, expected_check in cases:
+        assert expected_check in required_checks_for_files([path]), path
+
+
 def test_changed_file_fetch_flattens_paginated_github_response():
     payload = json.dumps([
         [{"filename": "README.md"}, {"filename": "scripts/a.py"}],
