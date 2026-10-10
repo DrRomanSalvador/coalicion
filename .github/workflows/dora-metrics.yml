@@ -9,6 +9,14 @@ on:
         default: "30"
   schedule:
     - cron: "17 7 * * *"
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/dora_metrics.py"
+      - "tests/test_dora_metrics.py"
+      - ".github/workflows/dora-metrics.yml"
+      - ".github/workflows/deploy_telegram_worker.yml"
+      - "docs/DORA_METRICS.md"
   push:
     branches: [main]
     paths:
@@ -20,6 +28,10 @@ on:
 permissions:
   contents: read
   deployments: read
+
+concurrency:
+  group: dora-metrics-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
 
 jobs:
   measure:
