@@ -184,6 +184,8 @@ def test_pr_validation_gate_blocks_failed_missing_and_stale_commit_checks():
     assert 'missing_success = sorted(required - completed_successfully)' in source
     assert "timeout=30" in source
     assert "GitHub auto-merge request timed out after 30 seconds" in source
+    assert "current_body = fetch_pr_body(repo, pr_number)" in source
+    assert "this stale validation exits without requesting a merge" in source
     assert "Blocking merge: checks did not reach a stable all-green state within 110 minutes." in source
     assert '"gh", "pr", "merge", pr_number, "--auto", "--squash", "--match-head-commit", sha' in source
     assert "GitHub accepted the auto-squash merge request" in source
