@@ -9,7 +9,7 @@
   "input_sha256": "dd42f9fe6ba3720488a352d2e2ce6459b16d8d5deb1e50882a6e3e99a1c2cfa1",
   "constituencies": 52,
   "seats": 350,
-  "sampler": "Dirichlet-multinomial composition with concentration=200; canonical 2023 territorial matrix; simulation prior, not posterior",
+  "sampler": "Dirichlet-multinomial composition with concentration=200; canonical 2023 territorial matrix; simulation prior, not posterior; exact allocation ties resolved by seeded lottery for Monte Carlo only",
   "concentration": 200.0,
   "invariants": {
     "every_draw_seat_sum_350": true,
@@ -19,7 +19,7 @@
   "status_counts": {
     "OK": 520000
   },
-  "resampled_absolute_ties": 16,
+  "resolved_simulation_ties_by_seeded_lottery": 13,
   "predictive_claim": false,
   "fail_closed": true
 }
