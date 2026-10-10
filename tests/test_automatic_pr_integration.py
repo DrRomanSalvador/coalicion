@@ -57,3 +57,30 @@ def test_changed_file_fetch_fails_closed_on_api_error():
         assert "Could not inspect changed PR files" in str(exc)
     else:
         raise AssertionError("API failure must not silently skip required checks")
+
+def test_latest_successful_attempt_supersedes_old_failure_for_same_workflow():
+    from scripts.automatic_pr_integration import latest_runs_per_workflow
+    runs = [
+        {"id": 10, "name": "Contract", "status": "completed", "conclusion": "failure",
+         "run_number": 8, "run_attempt": 1, "created_at": "2026-10-10T10:00:00Z"},
+        {"id": 10, "name": "Contract", "status": "completed", "conclusion": "success",
+         "run_number": 8, "run_attempt": 2, "created_at": "2026-10-10T10:05:00Z"},
+        {"id": 11, "name": "Product", "status": "completed", "conclusion": "success",
+         "run_number": 2, "run_attempt": 1, "created_at": "2026-10-10T10:01:00Z"},
+    ]
+    latest = latest_runs_per_workflow(runs)
+    by_name = {run["name"]: run for run in latest}
+    assert by_name["Contract"]["conclusion"] == "success"
+    assert len(latest) == 2
+
+
+def test_latest_pending_attempt_is_not_hidden_by_older_success():
+    from scripts.automatic_pr_integration import latest_runs_per_workflow
+    runs = [
+        {"id": 20, "name": "Contract", "status": "completed", "conclusion": "success",
+         "run_number": 9, "run_attempt": 1, "created_at": "2026-10-10T10:00:00Z"},
+        {"id": 20, "name": "Contract", "status": "in_progress", "conclusion": None,
+         "run_number": 9, "run_attempt": 2, "created_at": "2026-10-10T10:05:00Z"},
+    ]
+    latest = latest_runs_per_workflow(runs)
+    assert latest == [{"id": 20, "name": "Contract", "status": "in_progress", "conclusion": None}]
