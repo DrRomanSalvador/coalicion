@@ -1941,6 +1941,7 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
             _chat_allowed(chat_id)
             or (chat_id == user_id and user_id in authorized_users)
             or (chat_id == user_id and _admin_allowed(update))
+            or _owner_allowed(update)
         )
         print(f"Telegram authorization: allowed={allowed}", file=sys.stderr)
     else:
