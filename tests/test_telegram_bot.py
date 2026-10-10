@@ -336,6 +336,31 @@ def test_export_payload_supports_csv_json_pdf(tmp_path, monkeypatch):
     assert pdf_data.startswith(b"%PDF")
 
 
+def test_export_pdf_falls_back_when_reportlab_is_unavailable(tmp_path, monkeypatch):
+    import builtins
+
+    observations = tmp_path / "observations.json"
+    observations.write_text(json.dumps({
+        "polls": [{"publication_date": "2026-10-08", "pollster": "CIS", "parties": {"PP": 33.0}}]
+    }), encoding="utf-8")
+    monkeypatch.setattr(telegram_bot, "OBSERVATIONS", observations)
+    monkeypatch.setattr(telegram_bot, "STATE", tmp_path / "state.json")
+    original_import = builtins.__import__
+
+    def import_without_reportlab(name, *args, **kwargs):
+        if name == "reportlab" or name.startswith("reportlab."):
+            raise ImportError("ReportLab intentionally unavailable in this regression test")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", import_without_report)
+    pdf_data, filename, content_type = telegram_bot._export_payload("pdf")
+    assert filename.endswith(".pdf")
+    assert content_type == "application/pdf"
+    assert pdf_data.startswith(b"%PDF-1.4")
+    assert b"startxref" in pdf_data
+    assert b"%%EOF" in pdf_data
+
+
 def test_rate_limit_private_is_fail_closed(monkeypatch):
     telegram_bot._RATE.clear()
     update = {"message": {"chat": {"id": 123, "type": "private"}, "from": {"id": 42}}}
