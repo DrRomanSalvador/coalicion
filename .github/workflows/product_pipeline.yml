@@ -12,6 +12,8 @@ on:
       - "config/**"
       - "tests/**"
       - "requirements.txt"
+      - "requirements.lock"
+      - "pyproject.toml"
       - ".github/workflows/product_pipeline.yml"
   pull_request:
     paths:
@@ -22,6 +24,8 @@ on:
       - "config/**"
       - "tests/**"
       - "requirements.txt"
+      - "requirements.lock"
+      - "pyproject.toml"
       - ".github/workflows/product_pipeline.yml"
 
 permissions:
