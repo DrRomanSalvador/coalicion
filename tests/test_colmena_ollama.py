@@ -207,3 +207,97 @@ def test_ollama_agent_has_no_remote_inference_client():
     assert "inferenceclient" not in source
     assert "hf_token" not in source
     assert '"/api/chat"' in source
+
+
+
+def test_assignment_refuses_undefined_tasks(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(queen, "MISSION_CONTROL", tmp_path / "missions.json")
+    monkeypatch.setattr(queen, "STATE_PATH", tmp_path / "state.json")
+    assert queen.assign_next_batch(5) == []
+    assert "No hay misiones ejecutables" in capsys.readouterr().out
+
+
+def test_result_reconciliation_records_review_hash_and_never_accepts_pass(tmp_path, monkeypatch):
+    ledger, state = tmp_path / "missions.json", tmp_path / "state.json"
+    monkeypatch.setattr(queen, "MISSION_CONTROL", ledger)
+    monkeypatch.setattr(queen, "STATE_PATH", state)
+    missions = queen.get_missions()
+    missions[0].update({"task": "Revisar contrato.", "status": "ASSIGNED", "assigned": True})
+    queen.save_json(ledger, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
+    evidence = tmp_path / "evidence.json"
+    evidence.write_text(json.dumps({
+        "mission_id": "M0001", "agent_id": "agent-001",
+        "status": "REVIEW_REQUIRED", "response": "Informe generado."
+    }), encoding="utf-8")
+    recorded = queen.record_result(evidence)
+    assert recorded["status"] == "REVIEW_REQUIRED"
+    assert recorded["evidence_sha256"]
+    saved = queen.get_missions()[0]
+    assert saved["status"] == "REVIEW_REQUIRED" and saved["assigned"] is False
+    persisted = json.loads(state.read_text(encoding="utf-8"))["last_agent_execution"]
+    assert persisted["provider"] == "local-ollama"
+    assert persisted["evidence_sha256"] == recorded["evidence_sha256"]
+    assert persisted["review_required_before_pass"] is True
+
+    evidence.write_text(json.dumps({
+        "mission_id": "M0001", "agent_id": "agent-001", "status": "PASS"
+    }), encoding="utf-8")
+    try:
+        queen.record_result(evidence)
+    except ValueError as exc:
+        assert "PASS" in str(exc)
+    else:
+        raise AssertionError("La Reina no debe aceptar PASS certificado por el modelo")
+
+
+def test_result_reconciliation_rejects_unassigned_and_wrong_agent(tmp_path, monkeypatch):
+    ledger = tmp_path / "missions.json"
+    monkeypatch.setattr(queen, "MISSION_CONTROL", ledger)
+    missions = queen.get_missions()
+    evidence = tmp_path / "evidence.json"
+    evidence.write_text(json.dumps({
+        "mission_id": "M0001", "agent_id": "agent-001", "status": "REVIEW_REQUIRED"
+    }), encoding="utf-8")
+    try:
+        queen.record_result(evidence)
+    except ValueError as exc:
+        assert "no está asignada" in str(exc)
+    else:
+        raise AssertionError("No debe registrar evidencia de una misión no asignada")
+
+    missions[0].update({"task": "Tarea concreta", "status": "ASSIGNED", "assigned": True})
+    queen.save_json(ledger, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
+    evidence.write_text(json.dumps({
+        "mission_id": "M0001", "agent_id": "agent-equivocado", "status": "REVIEW_REQUIRED"
+    }), encoding="utf-8")
+    try:
+        queen.record_result(evidence)
+    except ValueError as exc:
+        assert "no coincide" in str(exc)
+    else:
+        raise AssertionError("No debe aceptar evidencia de otro agente")
+
+
+def test_reassign_blocked_rejects_nonblocked_and_taskless_missions(tmp_path, monkeypatch):
+    ledger = tmp_path / "missions.json"
+    monkeypatch.setattr(queen, "MISSION_CONTROL", ledger)
+    monkeypatch.setattr(queen, "STATE_PATH", tmp_path / "state.json")
+    missions = queen.get_missions()
+    missions[0].update({"task": "Tarea concreta", "status": "ASSIGNED", "assigned": True})
+    queen.save_json(ledger, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
+    try:
+        queen.reassign_blocked("M0001")
+    except ValueError as exc:
+        assert "BLOCKED" in str(exc)
+    else:
+        raise AssertionError("No debe reabrirse una misión que no esté BLOCKED")
+
+    missions = queen.get_missions()
+    missions[0].update({"task": "", "status": "BLOCKED", "assigned": False})
+    queen.save_json(ledger, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
+    try:
+        queen.reassign_blocked("M0001")
+    except ValueError as exc:
+        assert "sin tarea concreta" in str(exc)
+    else:
+        raise AssertionError("No debe reabrirse una misión sin tarea")
