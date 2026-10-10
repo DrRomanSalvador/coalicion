@@ -85,7 +85,7 @@ async function handleMessage(env: Env, msg: TelegramMessage): Promise<void> {
   } else if (command === "/config") {
     const row = await env.DB.prepare("SELECT value FROM preferences WHERE user_id=? AND key='muted'").bind(userId).first<{value:string}>();
     const muted = row?.value === "1";
-    await send(env, chatId, "⚙️ PREFERENCIAS\nAlertas informativas: " + (muted ? "silenciadas" : "activas"), keyboard([[{text:muted?"🔔 Activar alertas":"🔕 Silenciar alertas",callback_data:"pref:toggle-muted"}]]));
+    await send(env, chatId, "⚙️ PREFERENCIAS\nPreferencia guardada en el webhook: alertas " + (muted ? "silenciadas" : "activas") + ".\nEsta preferencia aún no cambia la configuración del motor Python.", keyboard([[{text:muted?"🔔 Activar alertas":"🔕 Silenciar alertas",callback_data:"pref:toggle-muted"}]]));
   } else if (command === "/hoy" || command === "/urgente" || command === "/resumen") {
     const tasks = await taskList(env, userId);
     const pending = tasks.filter(t=>!t.done);
