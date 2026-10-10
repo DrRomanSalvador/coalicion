@@ -122,6 +122,13 @@ def test_global_orchestrator_automatically_checks_for_stuck_canonical_runs():
 
 
 
+def test_required_agent_contract_executes_all_25_principle_gate_regressions():
+    source = (WORKFLOWS / "agent-contract.yml").read_text(encoding="utf-8")
+    assert "Run the full 25-principle PR evidence gate regression suite" in source
+    assert "python -m pytest -q tests/test_automatic_pr_integration.py" in source
+    assert "name: Verify mandatory agent contract" in source
+
+
 def test_pr_validation_gate_paginates_and_excludes_only_its_own_run():
     workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
     source = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
