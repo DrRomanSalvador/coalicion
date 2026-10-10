@@ -1,0 +1,140 @@
+{
+  "schema": "POLL_MONITOR_V3",
+  "checked_at": "2026-10-10T10:11:36.046010+00:00",
+  "coverage": {
+    "claim": "COBERTURA_TOTAL_NO_VERIFICADA",
+    "scope": "configured_national_poll_universe",
+    "total": false,
+    "sources_checked": 16,
+    "primary_sources": 6,
+    "discovery_sources": 10,
+    "blockers": [
+      "SOURCE_NOT_HEALTHY:sigma_dos",
+      "SOURCE_NOT_HEALTHY:gad3"
+    ]
+  },
+  "status": "BLOCKED",
+  "found_polls": 3,
+  "validated_polls": [
+    {
+      "poll_id": "datoelectoral::2026-09-23::Barómetro de septiembre 2026 (estudio 3577 del CIS)",
+      "publication_date": "2026-09-23",
+      "pollster": "Centro de Investigaciones Sociológicas (CIS)",
+      "source_id": "datoelectoral",
+      "source_url": "https://www.datoelectoral.es/encuestas",
+      "parties": {
+        "PSOE": 31.0,
+        "PP": 25.5,
+        "VOX": 16.6,
+        "SUMAR": 5.7,
+        "PODEMOS": 3.7,
+        "ERC": 2.5,
+        "SE ACABÓ LA FIESTA": 1.8,
+        "EH BILDU": 1.3,
+        "BNG": 0.7,
+        "JUNTS": 0.7,
+        "PNV": 0.7,
+        "CC": 0.2,
+        "UPN": 0.1,
+        "OTROS PARTIDOS": 8.6
+      },
+      "source_tier": "SECONDARY_REPLICA",
+      "fieldwork_start": null,
+      "fieldwork_end": null,
+      "sample_size": 4042,
+      "methodology": null,
+      "territorial": null,
+      "validation": "SECONDARY_REPLICA",
+      "captured_at": "2026-10-08T10:57:42.154077+00:00",
+      "source_content_hash": "a2e1d095fe81b7c2c49746ce09aac4fc49652948faedf3d04040367dc4f6b18a"
+    },
+    {
+      "poll_id": "datoelectoral::2026-09-07::Barómetro de julio 2026 (estudio 3571 del CIS)",
+      "publication_date": "2026-09-07",
+      "pollster": "Centro de Investigaciones Sociológicas (CIS)",
+      "source_id": "datoelectoral",
+      "source_url": "https://www.datoelectoral.es/encuestas",
+      "parties": {
+        "PSOE": 33.0,
+        "PP": 25.1,
+        "VOX": 15.3,
+        "SUMAR": 6.1,
+        "ERC": 2.7,
+        "SE ACABÓ LA FIESTA": 2.6,
+        "PODEMOS": 2.5,
+        "PNV": 1.0,
+        "BNG": 0.9,
+        "EH BILDU": 0.8,
+        "JUNTS": 0.7,
+        "CC": 0.2,
+        "UPN": 0.2,
+        "OTROS PARTIDOS": 8.0
+      },
+      "source_tier": "SECONDARY_REPLICA",
+      "fieldwork_start": null,
+      "fieldwork_end": null,
+      "sample_size": 4020,
+      "methodology": null,
+      "territorial": null,
+      "validation": "SECONDARY_REPLICA",
+      "captured_at": "2026-10-08T10:57:42.154077+00:00",
+      "source_content_hash": "a2e1d095fe81b7c2c49746ce09aac4fc49652948faedf3d04040367dc4f6b18a"
+    },
+    {
+      "poll_id": "datoelectoral::2026-06-26::Barómetro de junio 2026 (estudio 3567 del CIS)",
+      "publication_date": "2026-06-26",
+      "pollster": "Centro de Investigaciones Sociológicas (CIS)",
+      "source_id": "datoelectoral",
+      "source_url": "https://www.datoelectoral.es/encuestas",
+      "parties": {
+        "PSOE": 31.3,
+        "PP": 27.1,
+        "VOX": 15.8,
+        "SUMAR": 6.4,
+        "PODEMOS": 2.8,
+        "SE ACABÓ LA FIESTA": 1.9,
+        "ERC": 1.9,
+        "EH BILDU": 1.2,
+        "JUNTS": 1.0,
+        "BNG": 1.0,
+        "PNV": 0.6,
+        "CC": 0.2,
+        "UPN": 0.1,
+        "OTROS PARTIDOS": 7.6
+      },
+      "source_tier": "SECONDARY_REPLICA",
+      "fieldwork_start": null,
+      "fieldwork_end": null,
+      "sample_size": 4024,
+      "methodology": null,
+      "territorial": null,
+      "validation": "SECONDARY_REPLICA",
+      "captured_at": "2026-10-08T10:57:42.154077+00:00",
+      "source_content_hash": "a2e1d095fe81b7c2c49746ce09aac4fc49652948faedf3d04040367dc4f6b18a"
+    }
+  ],
+  "new_polls": [],
+  "changed_polls": [],
+  "discoveries": [],
+  "failures": [
+    {
+      "source_id": "sigma_dos",
+      "error": "RuntimeError:SOURCE_FETCH_FAILED; https://www.sigmados.com/ => ConnectTimeout:HTTPSConnectionPool(host='www.sigmados.com', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.sigmados.com', port=443) at 0x7fafeeb07ce0>, 'Connection to www.sigmados.com timed out. (connect timeout=30)')) | https://www.sigmados.com/ => ConnectTimeout:HTTPSConnectionPool(host='www.sigmados.com', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.sigmados.com', port=443) at 0x7fafeeb20200>, 'Connection to www.sigmados.com timed out. (connect timeout=30)'))"
+    },
+    {
+      "source_id": "gad3",
+      "error": "RuntimeError:SOURCE_FETCH_FAILED; https://www.gad3.com/informes/ => ConnectTimeout:HTTPSConnectionPool(host='www.gad3.com', port=443): Max retries exceeded with url: /informes/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.gad3.com', port=443) at 0x7fafeeb208f0>, 'Connection to www.gad3.com timed out. (connect timeout=30)')) | https://www.gad3.com/informes/ => ConnectTimeout:HTTPSConnectionPool(host='www.gad3.com', port=443): Max retries exceeded with url: /informes/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.gad3.com', port=443) at 0x7fafeeb07f20>, 'Connection to www.gad3.com timed out. (connect timeout=30)'))"
+    },
+    {
+      "source_id": "invymark",
+      "error": "RuntimeError:SOURCE_FETCH_FAILED; https://invymark.es/ => SSLError:HTTPSConnectionPool(host='invymark.es', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1010)'))) | https://invymark.es/ => SSLError:HTTPSConnectionPool(host='invymark.es', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1010)')))"
+    },
+    {
+      "source_id": "political_stats_spain",
+      "error": "RuntimeError:SOURCE_FETCH_FAILED; https://politicalstats.eu/spain => ConnectionError:HTTPSConnectionPool(host='politicalstats.eu', port=443): Max retries exceeded with url: /spain (Caused by NameResolutionError(\"HTTPSConnection(host='politicalstats.eu', port=443): Failed to resolve 'politicalstats.eu' ([Errno -2] Name or service not known)\")) | https://politicalstats.eu/spain => ConnectionError:HTTPSConnectionPool(host='politicalstats.eu', port=443): Max retries exceeded with url: /spain (Caused by NameResolutionError(\"HTTPSConnection(host='politicalstats.eu', port=443): Failed to resolve 'politicalstats.eu' ([Errno -2] Name or service not known)\"))"
+    }
+  ],
+  "descriptive_only": true,
+  "seat_projection": "BLOCKED_NO_TERRITORIAL_INPUT",
+  "notification_status": "NOT_REQUIRED"
+}
