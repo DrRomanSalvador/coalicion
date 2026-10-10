@@ -143,6 +143,7 @@ def test_seec_pull_request_validation_has_read_only_permissions():
     assert "pull_request_target:" in workflow
     assert "permissions:\n  contents: read" in workflow
     assert "persist-credentials: false" in workflow
+    assert "repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}" in workflow
     assert "contents: write" not in workflow.split("jobs:", 1)[0]
     assert "name: Persist SEEC evidence on trusted main push" in workflow
     assert "if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'" in workflow
