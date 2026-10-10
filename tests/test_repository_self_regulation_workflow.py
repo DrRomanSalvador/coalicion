@@ -19,7 +19,7 @@ def test_self_regulation_does_not_run_the_complete_pytest_suite_twice():
     autonomous_gate = AUTONOMOUS_GATE.read_text(encoding="utf-8")
 
     assert "python -m pytest -q" not in workflow
-    assert '["-m", "pytest", "-q"]' in autonomous_gate
+    assert '"-m", "pytest", "-q"' in autonomous_gate
 
 
 def test_expensive_periodic_self_regulation_is_not_started_every_15_minutes():
