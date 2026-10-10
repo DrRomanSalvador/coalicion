@@ -45,8 +45,15 @@ def test_agent_fails_closed_without_assignment(tmp_path, monkeypatch):
         "id": "M0001", "agent_id": "agent-001", "task": "Auditar", "status": "PENDING", "assigned": False
     }]}), encoding="utf-8")
     result = agent.run_agent("M0001")
+    calls = []
+    def unexpected_provider_call(request, timeout):
+        calls.append(request.full_url)
+        raise AssertionError("No debe llamar a Ollama para una misión no asignada")
+    monkeypatch.setattr(agent, "urlopen", unexpected_provider_call)
+    result = agent.run_agent("M0001")
     assert result["status"] == "BLOCKED"
     assert "Reina no ha asignado" in result["error"]
+    assert calls == []
     assert (tmp_path / "evidence" / "agent-001_M0001.json").is_file()
 
 
@@ -339,3 +346,37 @@ def test_mandatory_contract_loader_fails_closed_when_contracts_are_missing(tmp_p
         assert "falta el contrato obligatorio" in str(exc)
     else:
         raise AssertionError("La inferencia debe bloquearse si faltan las normas canónicas")
+
+
+
+def test_mission_control_initializes_logical_slots_without_fake_tasks(tmp_path, monkeypatch):
+    ledger = tmp_path / "missions.json"
+    monkeypatch.setattr(queen, "MISSION_CONTROL", ledger)
+    missions = queen.get_missions()
+    assert len(missions) == 179
+    assert len({mission["id"] for mission in missions}) == 179
+    assert all(mission["status"] == "PENDING" and mission["assigned"] is False for mission in missions)
+    assert all(not mission.get("task") for mission in missions)
+    assert json.loads(ledger.read_text(encoding="utf-8"))["mode"] == "LOGICAL_SLOTS"
+
+
+def test_agent_rejects_assigned_mission_without_task_before_ollama_call(tmp_path, monkeypatch):
+    ledger = tmp_path / "missions.json"
+    monkeypatch.setattr(agent, "MISSION_CONTROL", ledger)
+    monkeypatch.setattr(agent, "AGENTS_DIR", tmp_path / "evidence")
+    monkeypatch.setattr(agent, "ROOT", tmp_path)
+    monkeypatch.setattr(agent, "load_mandatory_contract", lambda: "CONTRATO DE PRUEBA; principios 01–25.")
+    ledger.write_text(json.dumps({"missions": [{
+        "id": "M0001", "agent_id": "agent-001", "task": "",
+        "status": "ASSIGNED", "assigned": True, "context_paths": []
+    }]}), encoding="utf-8")
+    calls = []
+    def unexpected_provider_call(request, timeout):
+        calls.append(request.full_url)
+        raise AssertionError("No debe llamar a Ollama sin tarea concreta")
+    monkeypatch.setattr(agent, "urlopen", unexpected_provider_call)
+    result = agent.run_agent("M0001")
+    assert result["status"] == "BLOCKED"
+    assert "tarea concreta" in result["error"]
+    assert calls == []
+    assert (tmp_path / "evidence" / "agent-001_M0001.json").is_file()
