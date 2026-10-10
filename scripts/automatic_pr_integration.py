@@ -210,8 +210,9 @@ def validate_pr_body(body: str) -> list[str]:
         if number in dispositions:
             missing.append(f"principle {number:02d} is declared more than once")
             continue
-        if len(rationale) < 20:
-            missing.append(f"principle {number:02d} needs a concrete rationale (at least 20 characters)")
+        explanation = rationale[len(canonical_title):].strip(" \\t:—-")
+        if len(explanation) < 20:
+            missing.append(f"principle {number:02d} needs a concrete rationale after its canonical title (at least 20 characters)")
             continue
         if disposition in {"N/A", "NO APLICA"} and not re.search(
             r"\b(porque|motivo|justificaci[oó]n|no modifica|no afecta|no cambia|no corresponde|fuera de alcance)\b",
