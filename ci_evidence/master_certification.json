@@ -2,7 +2,7 @@
   "schema": "MASTER_CERTIFICATION_V2",
   "status": "READY_FOR_EXTERNAL_AUDIT",
   "certification": "READY_FOR_EXTERNAL_AUDIT",
-  "tested_commit": "98266f863aded530d47535d3a11f9d13c1ae8aec",
+  "tested_commit": "3cde20b137cae295e98479586891f848ced92b0d",
   "tested_ref": "refs/heads/main",
   "evidence_sha256": {
     "ci_evidence/historico_manifest.json": "02dc5d8ed791cccd3aeae574b254ec31b0c560cb2dcf185f6de91355199a06fd",
@@ -17,7 +17,7 @@
     "data/raw/Elecciones-Congreso.xlsx": "dba3394f1812f338067231bce68acf56af1e13ddf8cfb709a814bcc46357ebc2",
     "data/official_interior_congreso_1977_2023.csv": "ece9dbb32e00af1456d7d422b35414e39f8b63ba01745c0b6a2d4b6e07da2bf3",
     "artifacts/data/election_2023_canonical.json": "dd42f9fe6ba3720488a352d2e2ce6459b16d8d5deb1e50882a6e3e99a1c2cfa1",
-    "artifacts/data/election_2023_canonical.json.sha256": "4bf5f28d5fed732e8ab4f6fdaf257d861c6b8008609e0bfde63e29560d4f9e67",
+    "artifacts/data/election_2023_canonical.json.sha256": "3e0c1666d6aa209df24c441116b5cef371ff7fef0ab811d4e2927901858f9bd8",
     "ci_evidence/external_audit.json": "545d44ae01f2562eb5a5331dd90a59eb4b4fc7d2d95840bed4350a0f4e810179"
   },
   "fail_closed": true,
