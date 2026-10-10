@@ -37,4 +37,4 @@ def test_master_spec_pins_official_election_dates_and_does_not_claim_runtime():
     assert "13 al 27 de noviembre de 2026" in spec
     assert "BOE-A-2026-20742" in spec
     assert "no demuestra que el calendario ya esté implementado" in audit
-    assert "ninguna fila se considera OPERATIVA" in audit
+    assert "ninguna fila se considera operativa" in audit.lower()
