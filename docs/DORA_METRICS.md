@@ -14,7 +14,7 @@
 4. **Time to restore service:** mediana y promedio de horas entre el estado fallido de un despliegue y el siguiente despliegue exitoso. Es una aproximación operativa; no sustituye el inicio/fin de un incidente real.
 
 ## Condición imprescindible
-Los despliegues reales deben crear un objeto GitHub Deployment con el entorno exacto `production` y publicar sus estados. Si Cloudflare u otro destino se despliega sin registrar estos objetos/statuses en GitHub, el informe marcará datos insuficientes; no inventará ceros. La instrumentación del despliegue debe ser añadida y probada en su workflow real antes de interpretar los resultados como DORA completos.
+El workflow `.github/workflows/deploy_telegram_worker.yml` queda instrumentado para crear un objeto GitHub Deployment con entorno exacto `production` y registrar `in_progress`, `success` o `failure` según despliegue y health check. Otros destinos productivos deben añadir la misma instrumentación en su workflow real. Si no hay registros válidos, el informe marcará datos insuficientes; no inventará ceros. La primera ejecución real debe contrastarse con el proveedor antes de considerar la serie completamente verificada.
 
 ## Lectura correcta
 - Sin despliegues en la ventana: frecuencia = 0 solo si el endpoint se consultó correctamente; las demás métricas quedan `null`/insuficientes cuando no existe denominador.
@@ -25,10 +25,10 @@ Los despliegues reales deben crear un objeto GitHub Deployment con el entorno ex
 - DORA son métricas de equipo/sistema, no rankings individuales. No aumentar commits, reducir pruebas o evitar despliegues para mejorar artificialmente el indicador.
 
 ## Cómo activar medición válida
-1. En el workflow que despliega realmente a producción, crear un deployment GitHub para el SHA exacto y el entorno `production`.
+1. Verificar que el workflow real registra el SHA y entorno exactos.
 2. Publicar estados `in_progress`, `success` o `failure` con el resultado real del proveedor.
 3. Conceder únicamente los permisos necesarios `deployments: write` al workflow de despliegue; el informe solo necesita `deployments: read` y `contents: read`.
-4. Verificar un despliegue correcto y uno fallido de prueba en entorno seguro, y contrastar manualmente el informe antes de usarlo como referencia operativa.
+4. Contrastar el primer despliegue real y su health check con el informe. Probar el camino de fallo en entorno seguro antes de usar el CFR/tiempo de recuperación como serie operativa.
 
 ## Alternativas gratuitas
 GitHub Actions + Deployments API es la opción integrada seleccionada para este repositorio. OpenTelemetry es una opción abierta para instrumentar métricas/logs/trazas, pero no calcula DORA por sí solo: requiere almacenamiento, paneles y definir eventos de despliegue/incidente. No se introduce una plataforma externa hasta que exista necesidad y coste operativo justificados.
