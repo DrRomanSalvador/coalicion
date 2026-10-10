@@ -24,6 +24,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Restore durable poll state from dedicated branch
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          state_branch="automation/poll-monitor-state"
+          if git ls-remote --exit-code --heads origin "$state_branch" >/dev/null 2>&1; then
+            git fetch --no-tags origin "refs/heads/$state_branch"
+            for path in \
+              artifacts/poll_monitor_state.json \
+              artifacts/survey_history.jsonl \
+              artifacts/surveys \
+              artifacts/estimation/observations.json \
+              ci_evidence/poll_source_coverage.json; do
+              if git cat-file -e "FETCH_HEAD:$path" 2>/dev/null; then
+                git checkout FETCH_HEAD -- "$path"
+              fi
+            done
+            echo "Estado duradero restaurado desde $state_branch."
+          else
+            echo "Primera ejecución: aún no existe $state_branch; se usan los artefactos iniciales del repositorio."
+          fi
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -77,54 +100,54 @@ jobs:
             echo "::warning::Poll monitor reported BLOCKED. Derived inputs are not refreshed; state will be persisted before the final failure gate."
           fi
 
-      - name: Persistir estado con autocuración de carreras
+      - name: Persistir estado en rama duradera (sin escribir en main)
         if: always() && github.ref == 'refs/heads/main' && steps.monitor.outputs.monitor_exit_code != ''
         id: persist
+        shell: bash
         run: |
           set -euo pipefail
           git config user.name "coalicion-poll-monitor[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          for attempt in 1 2 3 4 5; do
-            git fetch origin main
-            git reset --hard origin/main
+          # The protected main branch is read-only for automation. Persist the
+          # mutable monitor snapshot on its dedicated branch instead.
+          git fetch origin main
+          git reset --hard origin/main
+          test -f /tmp/poll-monitor-snapshot/poll_monitor_state.json || { echo "::error::Poll state snapshot missing."; exit 1; }
+          cp /tmp/poll-monitor-snapshot/poll_monitor_state.json artifacts/poll_monitor_state.json
+          cp /tmp/poll-monitor-snapshot/survey_history.jsonl artifacts/survey_history.jsonl
+          rm -rf artifacts/surveys
+          mkdir -p artifacts/surveys
+          cp -a /tmp/poll-monitor-snapshot/surveys/. artifacts/surveys/
+          git add artifacts/poll_monitor_state.json artifacts/surveys artifacts/survey_history.jsonl
+          if [[ -f /tmp/poll-monitor-snapshot/observations.json ]]; then
+            cp /tmp/poll-monitor-snapshot/observations.json artifacts/estimation/observations.json
+            git add artifacts/estimation/observations.json
+          fi
+          if [[ -f /tmp/poll-monitor-snapshot/poll_source_coverage.json ]]; then
+            cp /tmp/poll-monitor-snapshot/poll_source_coverage.json ci_evidence/poll_source_coverage.json
+            git add ci_evidence/poll_source_coverage.json
+          fi
 
-            # Reaplicar el snapshot ya validado. Nunca hacemos rebase de JSON/JSONL.
-            test -f /tmp/poll-monitor-snapshot/poll_monitor_state.json || { echo "::error::Poll state snapshot missing."; exit 1; }
-            cp /tmp/poll-monitor-snapshot/poll_monitor_state.json artifacts/poll_monitor_state.json
-            cp /tmp/poll-monitor-snapshot/survey_history.jsonl artifacts/survey_history.jsonl
-            rm -rf artifacts/surveys
-            mkdir -p artifacts/surveys
-            cp -a /tmp/poll-monitor-snapshot/surveys/. artifacts/surveys/
-            git add artifacts/poll_monitor_state.json artifacts/surveys artifacts/survey_history.jsonl
-            if [[ -f /tmp/poll-monitor-snapshot/observations.json ]]; then
-              cp /tmp/poll-monitor-snapshot/observations.json artifacts/estimation/observations.json
-              git add artifacts/estimation/observations.json
-            fi
-            if [[ -f /tmp/poll-monitor-snapshot/poll_source_coverage.json ]]; then
-              cp /tmp/poll-monitor-snapshot/poll_source_coverage.json ci_evidence/poll_source_coverage.json
-              git add ci_evidence/poll_source_coverage.json
-            fi
-            if git diff --cached --quiet; then
-              echo "changed=false" >> "$GITHUB_OUTPUT"
-              echo "Sin cambios persistibles."
-              exit 0
-            fi
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Sin cambios persistibles."
+            exit 0
+          fi
 
-            git commit -m "chore: persist poll monitor state"
-
-            if git push origin HEAD:main; then
-              echo "changed=true" >> "$GITHUB_OUTPUT"
-              echo "Persistencia publicada en main (intento $attempt)."
-              exit 0
-            fi
-
-            echo "Carrera detectada; regenerando commit sobre el main más reciente (intento $attempt)."
-          done
-
-          echo "ERROR: no se pudo publicar el estado después de 5 intentos."
-          exit 1
-
+          git commit -m "chore: persist poll monitor state"
+          state_branch="automation/poll-monitor-state"
+          if git ls-remote --exit-code --heads origin "$state_branch" >/dev/null 2>&1; then
+            git fetch --no-tags origin "refs/heads/$state_branch:refs/remotes/origin/$state_branch"
+            expected="$(git rev-parse "refs/remotes/origin/$state_branch")"
+            git push --force-with-lease="refs/heads/$state_branch:$expected" origin "HEAD:refs/heads/$state_branch"
+          else
+            git push origin "HEAD:refs/heads/$state_branch"
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "Persistencia publicada en $state_branch; main no se modifica."
+          
       - name: Despertar COALMENA automáticamente
         if: steps.persist.outputs.changed == 'true' && steps.monitor.outputs.monitor_exit_code == '0' && steps.monitor.outcome == 'success'
         env:
@@ -135,7 +158,7 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             "/repos/${GITHUB_REPOSITORY}/dispatches" \
             -f event_type="poll_monitor_completed" \
-            -f "client_payload[commit]=${GITHUB_SHA}" \
+            -f "client_payload[commit]=${{ steps.persist.outputs.commit || github.sha }}" \
             -f "client_payload[source]=poll_monitor"
       - name: Fail closed after persisting monitor state
         if: always() && steps.monitor.outcome != 'skipped'
