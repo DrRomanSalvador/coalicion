@@ -113,24 +113,53 @@ def test_private_admin_is_authorized_by_user_id(monkeypatch, tmp_path):
     assert any(method == "sendMessage" for method, _ in calls)
 
 
-def test_unauthorized_chat_reply_explains_allowlist(monkeypatch):
+def test_unauthorized_chat_sends_access_request_to_operator(monkeypatch, tmp_path):
     monkeypatch.delenv("TELEGRAM_ALLOWED_CHATS", raising=False)
-    monkeypatch.delenv("TELEGRAM_CHAT_ID", raising=False)
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "7")
     monkeypatch.delenv("TELEGRAM_ADMIN_IDS", raising=False)
+    monkeypatch.setattr(telegram_bot, "TELEGRAM_CONFIG", tmp_path / "telegram_config.json")
     calls = []
     monkeypatch.setattr(telegram_bot, "_api", lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True})
     update = {
         "update_id": 9,
         "message": {
-            "from": {"id": 42},
+            "from": {"id": 42, "first_name": "Ada", "username": "ada"},
             "chat": {"id": 42, "type": "private"},
-            "text": "/start",
+            "text": "Quiero acceder a COALICIÓN",
         },
     }
     assert telegram_bot._handle_update(update, None) == 10
-    reply = next(kwargs["json"]["text"] for method, kwargs in calls if method == "sendMessage")
-    assert "ID de chat: 42" in reply
-    assert "TELEGRAM_ALLOWED_CHATS" in reply
+    messages = [kwargs["json"] for method, kwargs in calls if method == "sendMessage"]
+    assert any("ID de chat: 42" in m["text"] and "No tienes que configurar secretos" in m["text"] for m in messages)
+    owner = next(m for m in messages if m["chat_id"] == 7)
+    assert "ID de usuario: 42" in owner["text"]
+    assert "Quiero acceder a COALICIÓN" in owner["text"]
+    assert owner["reply_markup"]["inline_keyboard"][0][0]["callback_data"] == "access:approve:42:42"
+
+
+def test_operator_approves_user_from_telegram_without_secrets_edit(monkeypatch, tmp_path):
+    monkeypatch.delenv("TELEGRAM_ALLOWED_CHATS", raising=False)
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "7")
+    monkeypatch.delenv("TELEGRAM_ADMIN_IDS", raising=False)
+    monkeypatch.setattr(telegram_bot, "TELEGRAM_CONFIG", tmp_path / "telegram_config.json")
+    telegram_bot._save_config({
+        "users": {}, "chats": {},
+        "access_requests": {"42:42": {"chat_id": "42", "user_id": "42", "name": "Ada", "username": "ada", "message": "Hola", "chat_type": "private"}},
+        "authorized_users": [], "authorized_chats": [],
+    })
+    calls = []
+    monkeypatch.setattr(telegram_bot, "_api", lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True})
+    update = {
+        "update_id": 10,
+        "callback_query": {
+            "id": "approve1", "from": {"id": 7}, "data": "access:approve:42:42",
+            "message": {"chat": {"id": 7, "type": "private"}, "message_id": 5},
+        },
+    }
+    assert telegram_bot._handle_update(update, None) == 11
+    assert "42" in telegram_bot._config()["authorized_users"]
+    assert telegram_bot._config()["access_requests"] == {}
+    assert telegram_bot._owner_allowed(update)
 
 
 def test_callback_menu_edits_existing_message(monkeypatch, tmp_path):
