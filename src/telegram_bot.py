@@ -1968,16 +1968,18 @@ def _send_alerts_to_chat(chat_id: int, *, frequency: str = "immediate") -> None:
 
 def _maybe_send_scheduled_digest() -> None:
     now = now_madrid()
-    if now.minute > 5:
+    # The service polls every few minutes; accept the first two minutes of the
+    # target five-minute slot to avoid duplicate sends while tolerating runner jitter.
+    if now.minute % 5 > 1:
         return
     cfg = _config()
     marker = ROOT / "artifacts/telegram_digest_state.json"
     state = _safe_json(marker)
     schedules = {
-        8: ("morning", "daily"),
-        22: ("nightly", "daily"),
+        (7, 30): ("morning", "daily"),
+        (21, 0): ("nightly", "daily"),
     }
-    schedule = schedules.get(now.hour)
+    schedule = schedules.get((now.hour, now.minute))
     if schedule is None:
         return
     period, frequency = schedule
