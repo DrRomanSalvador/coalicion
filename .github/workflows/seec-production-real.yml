@@ -103,7 +103,6 @@ jobs:
         with:
           name: seec-production-diagnostics
           path: /tmp/seec-diagnostics
-          if-no-artifact-found: ignore
       - name: Download successful SEEC evidence
         if: needs.seec.result == 'success'
         uses: actions/download-artifact@v4
