@@ -40,11 +40,18 @@ def test_telegram_pages_workflow_has_permission_aware_first_deployment():
     assert audit_telegram_pages_contract(workflow) == []
 
 
-def test_pages_audit_rejects_unavailable_implicit_enablement():
+def test_pages_audit_rejects_missing_admin_token_fallback():
     workflow = (ROOT / ".github" / "workflows" / "telegram_miniapp.yml").read_text(encoding="utf-8")
     workflow = workflow.replace("secrets.PAGES_ADMIN_TOKEN || github.token", "github.token")
     missing = audit_telegram_pages_contract(workflow)
-    assert "first-time enablement uses an explicit admin token" in missing
+    assert "first-time enablement prefers an explicit admin token" in missing
+
+
+def test_pages_audit_rejects_failure_instead_of_safe_skip():
+    workflow = (ROOT / ".github" / "workflows" / "telegram_miniapp.yml").read_text(encoding="utf-8")
+    workflow = workflow.replace("deploy_enabled=false", "exit 1")
+    missing = audit_telegram_pages_contract(workflow)
+    assert "missing permission is handled without falsely reporting deployment" in missing
 
 
 def test_healer_sweep_bounds_candidates_and_continues_after_request_errors():
