@@ -24,6 +24,11 @@ def test_repository_self_regulation_tests_and_rechecks_exact_commit():
     assert '[[ "$current_main" != "$EXPECTED_SHA" ]]' in source
 
 
+def test_pr_target_validation_does_not_compare_pr_head_to_main_sha():
+    source = WORKFLOW.read_text(encoding="utf-8")
+    assert 'if [[ "$GITHUB_EVENT_NAME" != "pull_request" && "$GITHUB_EVENT_NAME" != "pull_request_target" && "$GITHUB_REF" == "refs/heads/main" ]]; then' in source
+
+
 def test_repository_self_regulation_captures_diagnostics_and_tracks_unresolved_failures():
     source = WORKFLOW.read_text(encoding="utf-8")
     assert "if: always()" in source
