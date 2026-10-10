@@ -50,10 +50,24 @@ jobs:
         run: |
           test -n "$TELEGRAM_BOT_TOKEN"
           test "$TELEGRAM_BOT_TOKEN" != "TU_TOKEN_AQUI"
+      - name: Detect active Telegram webhook
+        id: webhook
+        shell: bash
+        run: |
+          set -euo pipefail
+          info="$(curl --fail --silent --show-error --retry 2 --retry-delay 1 "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo")"
+          webhook_url="$(python -c 'import json,sys; print(json.loads(sys.argv[1]).get("result",{}).get("url",""))' "$info")"
+          if [[ -n "$webhook_url" ]]; then
+            echo "active=true" >> "$GITHUB_OUTPUT"
+            echo "Webhook mode is active; skipping getUpdates polling to avoid Telegram conflict."
+          else
+            echo "active=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Drain Telegram updates
+        if: steps.webhook.outputs.active != 'true'
         run: python -c "from src.telegram_bot import run_polling; run_polling(max_runtime_seconds=270, poll_timeout=20)"
       - name: Persist bot state
-        if: always()
+        if: always() && steps.webhook.outputs.active != 'true'
         shell: bash
         run: |
           set -euo pipefail
