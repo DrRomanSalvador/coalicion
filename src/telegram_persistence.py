@@ -14,6 +14,7 @@ STATE_FILES = {
     "alert_state": ROOT / "artifacts/telegram_alert_state.json",
     "digest_state": ROOT / "artifacts/telegram_digest_state.json",
     "audit_log": ROOT / "artifacts/telegram_audit.jsonl",
+    "tasks": ROOT / "artifacts/telegram_tasks.json",
 }
 
 def _read(path: Path) -> Any:
