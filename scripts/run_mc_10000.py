@@ -38,7 +38,14 @@ def main():
     rng=np.random.Generator(np.random.PCG64(int(args.seed)))
     seat_sums=np.empty(n,dtype=np.int16)
     status_counts={}
-    resampled_ties=0
+    resolved_ties=0
+    def resolve_simulation_tie(tied):
+        nonlocal resolved_ties
+        resolved_ties += 1
+        # Monte Carlo only: explicit seeded lottery, not a claim about an
+        # official legal outcome. Production allocation without this callback
+        # remains fail-closed on unresolved absolute ties.
+        return tied[int(rng.integers(0, len(tied)))]
     for i in range(n):
         total_seats=0
         for name,row in constituencies.items():
@@ -48,22 +55,18 @@ def main():
             total=max(sum(votes.values()),1)
             probs=np.array([v/total for v in votes.values()],dtype=float)
             special=name if name in {"Ceuta","Melilla"} else ""
-            allocation=None
-            for _attempt in range(1000):
-                draw=rng.dirichlet(np.maximum(probs*CONCENTRATION,0.05))
-                simulated={party:int(round(float(frac)*total)) for party,frac in zip(votes,draw)}
-                diff=total-sum(simulated.values())
-                if diff:
-                    simulated[max(simulated,key=simulated.get)]+=diff
-                valid=sum(simulated.values())+blank
-                candidate=allocate(simulated,seat_n,valid,special=special,blank_votes=blank)
-                if candidate.status=="EMPATE_ABSOLUTO_PENDIENTE":
-                    resampled_ties+=1
-                    continue
-                allocation=candidate
-                break
-            if allocation is None:
-                raise SystemExit(f"BLOCKED: unresolved absolute tie after 1000 resamples in {name}")
+            draw=rng.dirichlet(np.maximum(probs*CONCENTRATION,0.05))
+            simulated={party:int(round(float(frac)*total)) for party,frac in zip(votes,draw)}
+            diff=total-sum(simulated.values())
+            if diff:
+                simulated[max(simulated,key=simulated.get)]+=diff
+            valid=sum(simulated.values())+blank
+            allocation=allocate(
+                simulated,seat_n,valid,special=special,blank_votes=blank,
+                tie_breaker=resolve_simulation_tie,
+            )
+            if allocation.status!="OK":
+                raise SystemExit(f"BLOCKED: allocation {name} {allocation.status} tied={allocation.tie}")
             status_counts[allocation.status]=status_counts.get(allocation.status,0)+1
             if allocation.status!="OK":
                 raise SystemExit(f"BLOCKED: allocation {name} {allocation.status}")
@@ -83,12 +86,12 @@ def main():
         "input_sha256":source_hash,
         "constituencies":52,
         "seats":350,
-        "sampler":"Dirichlet-multinomial composition with concentration=200; canonical 2023 territorial matrix; simulation prior, not posterior",
+        "sampler":"Dirichlet-multinomial composition with concentration=200; canonical 2023 territorial matrix; simulation prior, not posterior; exact allocation ties resolved by seeded lottery for Monte Carlo only",
         "concentration":CONCENTRATION,
         "invariants":{"every_draw_seat_sum_350":True,"all_allocations_status_OK":True},
         "allocation_calls":n*52,
         "status_counts":status_counts,
-        "resampled_absolute_ties":resampled_ties,
+        "resolved_simulation_ties_by_seeded_lottery":resolved_ties,
         "predictive_claim":False,
         "fail_closed":True,
     }
