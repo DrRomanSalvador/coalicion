@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   enable-auto-merge:
-    name: Automatic PR integration gate
+    name: Verify mandatory agent contract
     if: >-
       github.event.pull_request.draft == false &&
       github.event.pull_request.head.repo.full_name == github.repository &&
