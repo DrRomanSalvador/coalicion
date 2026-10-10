@@ -14,7 +14,7 @@ Puedes obtenerlo mediante el Bot API, por ejemplo consultando las actualizacione
 
 En `DrRomanSalvador/coalicion → Settings → Secrets and variables → Actions` crea:
 
-- `TELEGRAM_BOT_TOKEN`: token entregado por @BotFather.
+- `reina_token`: token entregado por @BotFather. El workflow lo inyecta en runtime como `TELEGRAM_BOT_TOKEN`; el secreto nunca se expone en el código.
 - `TELEGRAM_CHAT_ID`: chat de destino de notificaciones de workflows que usan un único destinatario.
 - `TELEGRAM_ALLOWED_CHATS`: lista separada por comas de chats autorizados a recibir alertas del monitor de encuestas. Si falta, el workflow usa `TELEGRAM_CHAT_ID` como destino único. No se escriben IDs en el código.
 
