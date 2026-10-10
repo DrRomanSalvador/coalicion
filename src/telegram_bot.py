@@ -1817,8 +1817,12 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
         return next_offset
 
     chat_id = _chat_id(update)
+    user_id = _user_id(update)
     if chat_id:
-        allowed = _chat_allowed(chat_id)
+        # Private Telegram chats use the user's ID as the chat ID.
+        # Explicitly configured administrators can therefore use the bot
+        # without weakening the allowlist for arbitrary users or groups.
+        allowed = _chat_allowed(chat_id) or (chat_id == user_id and _admin_allowed(update))
         print(f"Telegram authorization: allowed={allowed}", file=sys.stderr)
     else:
         allowed = False
@@ -1827,7 +1831,15 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
         if callback and callback.get("id"):
             _answer_callback(str(callback["id"]))
         elif (update.get("message") or {}).get("chat"):
-            _send(int(chat_id), "🛡 Este chat no está autorizado para utilizar COALICIÓN.")
+            _send(
+                int(chat_id),
+                "🛡 Este chat no está autorizado para utilizar COALICIÓN.\n\n"
+                f"ID de chat: {chat_id}\nID de usuario: {user_id or 'no disponible'}\n\n"
+                "En GitHub → Settings → Secrets and variables → Actions, añade tu ID "
+                "numérico a TELEGRAM_ALLOWED_CHATS. Para autorizar funciones de "
+                "administración, añade también tu ID a TELEGRAM_ADMIN_IDS. "
+                "Separa varios IDs con comas y vuelve a ejecutar «Telegram bot service»."
+            )
         return next_offset
 
     if not _rate_allowed(update):
