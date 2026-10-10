@@ -138,10 +138,10 @@ def test_pr_validation_gate_blocks_failed_missing_and_stale_commit_checks():
     assert 'run["conclusion"] not in {"success", "skipped"}' in source
     assert 'missing_success = sorted(required - completed_successfully)' in source
     assert "Blocking merge: checks did not reach a stable all-green state within 110 minutes." in source
-    assert '"gh",\n            "pr",\n            "merge"' not in source
-    assert "integration may proceed only through repository branch protection" in source
-    assert "contents: write" not in workflow
-    assert "pull-requests: write" not in workflow
+    assert '"gh", "pr", "merge", pr_number, "--auto", "--squash", "--match-head-commit", sha' in source
+    assert "GitHub accepted the auto-squash merge request" in source
+    assert "contents: write" in workflow
+    assert "pull-requests: write" in workflow
 
 
 def test_poll_monitor_fails_closed_after_persisting_blocked_state():
@@ -177,6 +177,8 @@ def test_auto_merge_gate_uses_testable_fail_closed_api_client():
     workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
     client = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
     assert "actions: read" in workflow
+    assert "contents: write" in workflow
+    assert "pull-requests: write" in workflow
     assert "GH_TOKEN: ${{ github.token }}" in workflow
     assert "run: python scripts/automatic_pr_integration.py" in workflow
     assert "Checkout exact PR head for gate script" in workflow
