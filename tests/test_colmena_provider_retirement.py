@@ -20,7 +20,7 @@ def test_legacy_huggingface_runtime_files_are_retired():
 
 def test_colmena_invocation_document_has_real_markdown_line_breaks():
     text = (ROOT / "docs/INVOCACION_COLMENA.md").read_text(encoding="utf-8")
-    assert "\\n\\n" not in text, "La documentación contiene secuencias \\\\n literales en lugar de saltos de línea."
+    assert "\\n\\n" not in text, "La documentación contiene secuencias de escape literales en lugar de saltos de línea."
     assert "## Agentes IA locales Ollama\n\n" in text
 
 
