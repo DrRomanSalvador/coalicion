@@ -126,8 +126,13 @@ jobs:
           api=f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/contents/ci_evidence/seec_production.json"
           headers={"Authorization":"Bearer "+os.environ["GH_TOKEN"],"Accept":"application/vnd.github+json","Content-Type":"application/json","X-GitHub-Api-Version":"2022-11-28"}
           req=urllib.request.Request(api,headers=headers)
-          with urllib.request.urlopen(req) as resp: current=json.load(resp)
-          payload={"message":"ci: materialize genuine SEEC production evidence","content":base64.b64encode(body).decode(),"sha":current["sha"],"branch":"main"}
+          try:
+              with urllib.request.urlopen(req) as resp: current=json.load(resp)
+              sha=current["sha"]
+          except Exception:
+              sha=None
+          payload={"message":"ci: materialize genuine SEEC production evidence","content":base64.b64encode(body).decode(),"branch":"main"}
+          if sha: payload["sha"]=sha
           req=urllib.request.Request(api,data=json.dumps(payload).encode(),method="PUT",headers=headers)
           with urllib.request.urlopen(req) as resp: print(resp.read().decode())
           PY
@@ -142,8 +147,8 @@ jobs:
           import base64, json, os, pathlib, urllib.request
           root=pathlib.Path("/tmp/seec-diagnostics")
           logs=sorted(root.rglob("*.log")) if root.exists() else []
-          detail="\\n\\n".join(f"--- {p.name} ---\\n"+p.read_text(errors="replace") for p in logs)
-          body=f"SEEC_PRODUCTION_FAILURE\\nsha: {os.environ['GITHUB_SHA']}\\nrun: {os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}\\n\\n"+(detail or "No diagnostic logs were produced.")
+          detail="\n\n".join(f"--- {p.name} ---\n"+p.read_text(errors="replace") for p in logs)
+          body=f"SEEC_PRODUCTION_FAILURE\nsha: {os.environ['GITHUB_SHA']}\nrun: {os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}\n\n"+(detail or "No diagnostic logs were produced.")
           api=f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/contents/ci_evidence/seec_production_failure.txt"
           headers={"Authorization":"Bearer "+os.environ["GH_TOKEN"],"Accept":"application/vnd.github+json","Content-Type":"application/json","X-GitHub-Api-Version":"2022-11-28"}
           req=urllib.request.Request(api,headers=headers)
