@@ -29,6 +29,8 @@ def test_assignment_is_bounded_and_requires_concrete_tasks(tmp_path, monkeypatch
     missions = queen.get_missions()
     for mission in missions[:7]:
         mission["task"] = "Auditar un contrato concreto con evidencia."
+        mission["mission_type"] = "PLATFORM"
+        mission["requirement_ids"] = []
     queen.save_json(ledger, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
     assert len(queen.assign_next_batch(5)) == 5
     assert len(queen.assign_next_batch(5)) == 2
@@ -186,6 +188,7 @@ def test_reassign_blocked_archives_evidence_and_clears_stale_fields(tmp_path, mo
     missions = queen.get_missions()
     missions[0].update({
         "task": "Reintento controlado.", "status": "BLOCKED", "assigned": False,
+        "mission_type": "PLATFORM", "requirement_ids": [],
         "evidence_path": "artifacts/old.json", "evidence_sha256": "abc123",
         "result_recorded_at": "old-time", "result_summary": "Ollama no disponible",
     })
@@ -276,7 +279,7 @@ def test_result_reconciliation_rejects_unassigned_and_wrong_agent(tmp_path, monk
     else:
         raise AssertionError("No debe registrar evidencia de una misión no asignada")
 
-    missions[0].update({"task": "Tarea concreta", "status": "ASSIGNED", "assigned": True})
+    missions[0].update({"task": "Tarea concreta", "status": "ASSIGNED", "assigned": True, "mission_type": "PLATFORM", "requirement_ids": []})
     queen.save_json(ledger, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
     evidence.write_text(json.dumps({
         "mission_id": "M0001", "agent_id": "agent-equivocado", "status": "REVIEW_REQUIRED"
@@ -304,7 +307,7 @@ def test_reassign_blocked_rejects_nonblocked_and_taskless_missions(tmp_path, mon
         raise AssertionError("No debe reabrirse una misión que no esté BLOCKED")
 
     missions = queen.get_missions()
-    missions[0].update({"task": "", "status": "BLOCKED", "assigned": False})
+    missions[0].update({"task": "", "status": "BLOCKED", "assigned": False, "mission_type": "PLATFORM", "requirement_ids": []})
     queen.save_json(ledger, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
     try:
         queen.reassign_blocked("M0001")
@@ -416,3 +419,29 @@ def test_agent_blocks_product_mission_without_430_requirements_before_ollama_cal
     assert calls == []
     evidence = json.loads((tmp_path / "evidence" / "agent-001_M0001.json").read_text(encoding="utf-8"))
     assert evidence["status"] == "BLOCKED"
+
+
+def test_queen_never_assigns_undefined_slots_even_if_task_is_filled(tmp_path, monkeypatch):
+    ledger, state = tmp_path / "missions.json", tmp_path / "state.json"
+    monkeypatch.setattr(queen, "MISSION_CONTROL", ledger)
+    monkeypatch.setattr(queen, "STATE_PATH", state)
+    missions = queen.get_missions()
+    missions[0].update({"task": "Task without a classified mission type.", "status": "PENDING", "assigned": False,
+                        "mission_type": "UNDEFINED", "requirement_ids": []})
+    queen.save_json(ledger, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
+    assert queen.assign_next_batch(5) == []
+    assert queen.get_missions()[0]["status"] == "PENDING"
+
+
+def test_queen_blocks_product_assignment_until_exact_430_requirement_list_is_ready(tmp_path, monkeypatch):
+    ledger, state = tmp_path / "missions.json", tmp_path / "state.json"
+    monkeypatch.setattr(queen, "MISSION_CONTROL", ledger)
+    monkeypatch.setattr(queen, "STATE_PATH", state)
+    missions = queen.get_missions()
+    missions[0].update({"task": "Implement requirement R001.", "status": "PENDING", "assigned": False,
+                        "mission_type": "PRODUCT", "requirement_ids": ["R001"]})
+    queen.save_json(ledger, {"schema": "COLMENA_MISSION_CONTROL_V1", "total": 179, "missions": missions})
+    assert queen.assign_next_batch(5) == []
+    saved = queen.get_missions()[0]
+    assert saved["status"] == "PENDING" and saved["assigned"] is False
+    assert queen.product_requirement_ids() == set()
