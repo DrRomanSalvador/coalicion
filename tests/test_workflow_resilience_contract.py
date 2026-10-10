@@ -259,6 +259,7 @@ def test_batch_workflow_uses_gh_cli_token_handling_and_reports_auth_failures_exp
     assert "GitHub API authentication failed (401 Bad credentials)" in source
     assert "GitHub API authorization failed (403)" in source
     assert "if not token:" in source
+    assert 'if not path.startswith("repos/")' in source
 
 def test_batch_validation_dispatches_one_prioritized_workflow_at_a_time():
     source = (WORKFLOWS / "batch_workflow_validation.yml").read_text(encoding="utf-8")
