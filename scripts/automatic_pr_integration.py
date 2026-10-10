@@ -244,6 +244,24 @@ def fetch_current_pr_head_sha(
     )
     if result.returncode:
         detail = (result.stderr or result.stdout or "unknown GitHub API error").strip()
+        lowered = detail.lower()
+        auth_status = re.search(r"\\bhttp(?:\\s+error)?\\s*(401|403)\\b", lowered)
+        auth_phrase = any(
+            marker in lowered
+            for marker in (
+                "bad credentials",
+                "requires authentication",
+                "resource not accessible by integration",
+                "must have admin rights",
+            )
+        )
+        if auth_status or auth_phrase:
+            status = auth_status.group(1) if auth_status else "401/403"
+            raise GitHubAPIAuthError(
+                f"GitHub PR-head API authentication/authorization failed (HTTP {status}). "
+                "Verify GH_TOKEN validity, pull-requests read permission, and repository policy. "
+                f"GitHub CLI detail: {detail}"
+            )
         raise GitHubAPITransientError(f"Could not verify current PR head: {detail}")
     current_sha = result.stdout.strip()
     if not re.fullmatch(r"[0-9a-fA-F]{40}", current_sha):
