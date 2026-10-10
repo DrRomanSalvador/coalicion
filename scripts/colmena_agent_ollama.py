@@ -59,7 +59,7 @@ def save_evidence(path: Path, result: dict[str, Any]) -> None:
     temporary.replace(path)
 
 
-def load_mandatory_contract() -> str:
+def load_mandatory_contract(require_product_backlog: bool = True) -> str:
     """Carga las normas canónicas; la inferencia no arranca si faltan."""
     required = (
         "AGENTS.md",
@@ -106,7 +106,7 @@ def load_mandatory_contract() -> str:
         for item in requirements
         if isinstance(item, dict) and isinstance(item.get("id"), str) and item.get("id").strip()
     ] if isinstance(requirements, list) else []
-    if (
+    if require_product_backlog and (
         product_index.get("schema") != "COALICION_PRODUCT_REQUIREMENTS_V1"
         or product_index.get("status") != "READY"
         or expected_count != 430
@@ -168,8 +168,11 @@ def run_agent(mission_id: str, model: str = DEFAULT_MODEL, ollama_url: str = DEF
                     "Distingue hechos, hipótesis y recomendaciones. Usa evidencia del repositorio, identifica "
                     "rutas/funciones, añade regresión para cada bug cuando sea viable, preserva trazabilidad, "
                     "seguridad, determinismo y rollback. Nunca declares PASS: la salida requiere revisión "
-                    "independiente.\n\nNORMAS CANÓNICAS OBLIGATORIAS:\n"
-                    + load_mandatory_contract()
+                    "independiente. Las misiones PRODUCT requieren la lista original íntegra de 430 requisitos; "
+                    "si falta, deben quedar BLOCKED antes de inferir. Las misiones PLATFORM pueden auditar "
+                    "la infraestructura, pero no certificar cobertura del producto.\n\n"
+                    "NORMAS CANÓNICAS OBLIGATORIAS:\n"
+                    + load_mandatory_contract(require_product_backlog=mission.get("mission_type", "PRODUCT") == "PRODUCT")
                 )},
                 {"role": "user", "content": (
                     f"Agente: {mission.get('agent_id')}\nMisión: {mission_id}\n"
