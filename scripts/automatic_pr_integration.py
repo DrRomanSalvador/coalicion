@@ -587,12 +587,21 @@ def main() -> int:
         f"Requesting protected auto-squash merge for revision={sha}.",
         flush=True,
     )
-    merge = subprocess.run(
-        ["gh", "pr", "merge", pr_number, "--auto", "--squash", "--match-head-commit", sha],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    try:
+        merge = subprocess.run(
+            ["gh", "pr", "merge", pr_number, "--auto", "--squash", "--match-head-commit", sha],
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    except subprocess.TimeoutExpired:
+        print(
+            "::error::GitHub auto-merge request timed out after 30 seconds; no merge success is assumed.",
+            file=sys.stderr,
+            flush=True,
+        )
+        return 1
     if merge.returncode:
         detail = "\n".join(
             part.strip()
