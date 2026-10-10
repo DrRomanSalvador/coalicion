@@ -1,4 +1,4 @@
-name: Automatic pull request integration
+name: Pull request integration gate
 
 on:
   pull_request:
@@ -7,8 +7,8 @@ on:
 
 permissions:
   actions: read
-  contents: write
-  pull-requests: write
+  contents: read
+  pull-requests: read
 
 concurrency:
   group: pr-auto-merge-${{ github.event.pull_request.number }}
@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   enable-auto-merge:
-    name: Validate all checks before merge
+    name: Validate required checks before authorized merge
     if: >-
       github.event.pull_request.draft == false &&
       github.event.pull_request.head.repo.full_name == github.repository &&
@@ -29,7 +29,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
-      - name: Wait for every PR check and merge only a fully green revision
+      - name: Wait for all path-relevant checks on the exact PR revision
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
