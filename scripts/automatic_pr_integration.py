@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 import re
 import subprocess
 import sys
@@ -125,33 +126,26 @@ def latest_runs_per_workflow(runs: list[dict[str, Any]]) -> list[dict[str, Any]]
     ]
 
 
-PRINCIPLE_TITLES = {
-    1: "Legibilidad antes que ingenio",
-    2: "Automatizar lo repetible",
-    3: "Pruebas como requisito de integración",
-    4: "Responsabilidad única y límites claros",
-    5: "Diseñar para el fallo",
-    6: "Seguridad desde el diseño",
-    7: "Medir antes de optimizar",
-    8: "Tecnología al servicio del problema",
-    9: "Siempre integrable y listo para desplegar",
-    10: "Mejora continua sin cuotas artificiales",
-    11: "Autorreparación segura",
-    12: "Chaos engineering con límites",
-    13: "Inmutabilidad donde aporta garantías",
-    14: "Latencia como atributo medible",
-    15: "Gobierno arquitectónico automatizado",
-    16: "Observabilidad estructurada",
-    17: "Contratos de API evolutivos",
-    18: "Simplicidad operativa",
-    19: "Decisiones registradas",
-    20: "Postmortems sin culpabilizar",
-    21: "Hacer fácil lo correcto",
-    22: "Compatibilidad como contrato explícito",
-    23: "Minimalismo radical con evidencia",
-    24: "Mínima sorpresa y determinismo",
-    25: "Utilidad y responsabilidad",
-}
+def canonical_principle_titles() -> dict[int, str]:
+    """Read the one canonical source of principle titles from the engineering charter."""
+    charter = Path(__file__).resolve().parents[1] / "docs" / "ENGINEERING_CHARTER.md"
+    try:
+        content = charter.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise GitHubAPITransientError(
+            f"Cannot read canonical engineering charter at {charter}: {exc}"
+        ) from exc
+    titles: dict[int, str] = {}
+    for match in re.finditer(r"(?m)^(\\d{1,2})\\. \\*\\*(.+?)\\.\\*\\*", content):
+        number = int(match.group(1))
+        if 1 <= number <= 25:
+            titles[number] = match.group(2).strip()
+    if set(titles) != set(range(1, 26)):
+        missing = sorted(set(range(1, 26)) - set(titles))
+        raise GitHubAPITransientError(
+            f"Canonical engineering charter must define all 25 numbered principles; missing={missing}"
+        )
+    return titles
 
 
 REQUIRED_PR_SECTIONS = (
@@ -188,6 +182,7 @@ def validate_pr_body(body: str) -> list[str]:
             if part and part.strip()
         ).strip()
 
+    titles = canonical_principle_titles()
     dispositions: dict[int, tuple[str, str]] = {}
     for line in principle_text.splitlines():
         match = re.match(
@@ -201,7 +196,7 @@ def validate_pr_body(body: str) -> list[str]:
         number = int(match.group(1))
         disposition = match.group(2).upper()
         rationale = re.sub(r"[*_]", "", match.group(3)).strip()
-        canonical_title = PRINCIPLE_TITLES[number]
+        canonical_title = titles[number]
         if not rationale.casefold().startswith(canonical_title.casefold()):
             missing.append(
                 f"principle {number:02d} must name its canonical title: {canonical_title}"
