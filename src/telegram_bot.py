@@ -98,7 +98,9 @@ def _api(method: str, **kwargs: Any) -> dict[str, Any]:
             last = exc
             if attempt + 1 < API_RETRIES:
                 time.sleep(min(2**attempt, 8))
-    raise TelegramBotError(f"Telegram transport failed after {API_RETRIES} attempts: {last}") from last
+    # requests exceptions may contain the Bot API URL, which embeds the token.
+    # Never echo the original exception or chain it into logs.
+    raise TelegramBotError(f"Telegram transport failed after {API_RETRIES} attempts") from None
 
 
 def _safe_json(path: Path) -> dict[str, Any]:
