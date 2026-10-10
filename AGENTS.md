@@ -110,3 +110,6 @@ Seguir `docs/REPOSITORY_STRATEGY.md` antes de crear repositorios, módulos o pip
 
 ## 14. No interrumpir ejecuciones activas
 Todos los workflows deben evitar cancelar ejecuciones en curso: `cancel-in-progress: false`. La auditoría `scripts/audit_workflow_resilience.py` bloquea cualquier workflow que configure cancelación activa. Si una ejecución nueva llega mientras otra está en marcha, la activa termina; las ejecuciones pendientes deben reconciliarse por SHA y el gate debe rechazar resultados obsoletos. GitHub Actions no ofrece una cola FIFO ilimitada por grupo: no prometer que conserva todas las ejecuciones pendientes; diseñar los trabajos para validar el SHA, ser idempotentes y procesar la revisión más reciente sin pisar una ejecución activa.
+
+## 15. Integración protegida
+El workflow `.github/workflows/automatic-pr-integration.yml` valida los checks relevantes y no fusiona automáticamente. No reactivar la fusión automática hasta que las reglas de protección de `main` estén activas y verificadas. La fusión requiere checks exigidos en verde, SHA actual, revisión exigida por la política y ausencia de conversaciones pendientes. Si GitHub no permite verificar la protección, mantener la fusión manual autorizada y no afirmar que el repositorio está blindado.
