@@ -46,7 +46,7 @@ def dhondt(votes:Mapping[str,int], seats:int, valid_votes_total:int, blank_votes
                 tied_tuple=tuple(sorted(tied))
                 if tie_breaker is None:
                     return Allocation(result,"EMPATE_ABSOLUTO_PENDIENTE",tied_tuple)
-                    if len(tied_tuple)==2:
+                if len(tied_tuple)==2:
                     key=frozenset(tied_tuple)
                     previous=tie_state.get(key)
                     if previous is None:
