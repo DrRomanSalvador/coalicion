@@ -136,32 +136,36 @@ REQUIRED_PR_SECTIONS = (
 
 
 def validate_pr_body(body: str) -> list[str]:
-    """Fail closed when a PR omits the mandatory engineering evidence."""
+    """Fail closed when a PR omits mandatory engineering evidence."""
     missing = [
         section
         for section in REQUIRED_PR_SECTIONS
         if section.casefold() not in body.casefold()
     ]
+
     heading = re.search(
-        r"(?im)^[ \\t]*(?:#{1,6}[ \\t]*)?-?[ \\t]*"
-        r"Principios afectados \\(01–25\\):[ \\t]*(.*)$",
+        r"(?im)^[ \t]*(?:#{1,6}[ \t]+)?Principios afectados \(01–25\):[ \t]*(.*)$",
         body,
     )
     principle_text = ""
     if heading:
-        # Accept Markdown headings whose list starts on the following line,
-        # while keeping the section bounded by the next Markdown heading.
         following = body[heading.end():]
-        next_heading = re.search(r"(?m)^[ \\t]*#{1,6}[ \\t]+\\S", following)
+        next_heading = re.search(r"(?m)^[ \t]*#{1,6}[ \t]+\S", following)
         section_body = following[:next_heading.start()] if next_heading else following
-        principle_text = " ".join(
+        principle_text = "\n".join(
             part.strip()
             for part in (heading.group(1), section_body)
             if part and part.strip()
         ).strip()
-    if not principle_text or principle_text.lower() in {
-        "n/a", "na", "ninguno", "por determinar", "-"
-    }:
+
+    has_principle_ids = bool(re.search(r"(?<!\d)(?:0[1-9]|1\d|2[0-5])(?!\d)", principle_text))
+    normalized = principle_text.casefold()
+    justified_na = bool(
+        re.search(r"\bn/?a\b", normalized)
+        and re.search(r"\b(justificaci[oó]n|porque|motivo|no aplica|no son aplicables)\b", normalized)
+        and len(re.sub(r"\bn/?a\b", "", normalized).strip(" \t\r\n-:;.")) >= 12
+    )
+    if not has_principle_ids and not justified_na:
         missing.append(
             "a populated list of applicable principles (01–25), or an explicit justified N/A"
         )
