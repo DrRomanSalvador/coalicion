@@ -180,6 +180,12 @@ def main() -> int:
                     {"path": relative_path, "missing_contract": item}
                     for item in missing_contracts
                 )
+        if re.search(r"(?m)^\s*cancel-in-progress:\s*true\s*$", source):
+            critical_findings.append({
+                "path": relative_path,
+                "missing_contract": "workflow is configured to cancel an in-progress execution",
+            })
+
         if writer_without_concurrency(source):
             critical_findings.append({
                 "path": relative_path,
