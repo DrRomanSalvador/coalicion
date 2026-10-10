@@ -8,6 +8,12 @@ Hugging Face Inference Providers no es una ruta operativa gratuita fiable para e
 
 Por tanto, no se mantiene una ruta HF ni un fallback remoto oculto. La ruta elegida es Ollama con modelo descargado en el runner de GitHub Actions para repositorio público, o en una máquina local del operador. GitHub documenta que los runners estándar alojados para repositorios públicos no consumen minutos facturables de Actions: [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions). Esto elimina créditos de inferencia, pero no elimina límites de CPU, RAM, descarga, caché o tiempo. Si Ollama no arranca, no encuentra el modelo o agota el tiempo, la misión debe quedar `BLOCKED`; nunca cambiar a un proveedor de pago.
 
+## Contrato de inteligencia obligatorio
+
+Antes de cada inferencia, el agente carga las normas canónicas de `AGENTS.md`, `CONTRATO_MAESTRO_IA.md`, el inicio e índice de `README.md`, `docs/ENGINEERING_CHARTER.md`, `docs/ENGINEERING_ENFORCEMENT_MATRIX.md` y `docs/COLMENA_STATE.json`. Comprueba que la matriz contiene los 25 principios numerados. Si falta un documento, está vacío o la matriz está incompleta, la misión queda `BLOCKED`; no se ejecuta el modelo.
+
+El prompt de Ollama aplica expresamente la regla boy scout: dejar el área mejor, resolver la causa raíz con el cambio mínimo, reutilizar la lógica heredada que siga aportando valor y eliminar solo lo obsoleto o sin uso tras comprobar referencias. Exige causa raíz, solución, principios afectados, pruebas, resultado verificable, riesgos y rollback. El modelo no puede afirmar que editó archivos o ejecutó pruebas si no lo hizo ni certificar `PASS`.
+
 ## Flujo canónico
 1. Leer `AGENTS.md`, `CONTRATO_MAESTRO_IA.md` y `docs/COLMENA_STATE.json`.
 2. La Reina asigna únicamente misiones con tarea concreta, en lotes de hasta cinco.
