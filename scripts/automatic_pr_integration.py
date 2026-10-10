@@ -299,10 +299,9 @@ def fetch_pr_body(
     if result.returncode:
         detail = (result.stderr or result.stdout or "unknown GitHub API error").strip()
         raise GitHubAPITransientError(f"Could not inspect PR description: {detail}")
-    body = result.stdout.strip()
-    if not body:
-        raise GitHubAPITransientError("PR description is empty; mandatory engineering evidence is missing")
-    return body
+    # An empty body is valid API data but invalid PR evidence; let the validator
+    # reject it explicitly instead of retrying a permanent user edit as a transient error.
+    return result.stdout.strip()
 
 
 def fetch_changed_files(
@@ -497,6 +496,7 @@ def main() -> int:
     deadline = time.monotonic() + 110 * 60
     stable_signature = None
     stable_since = None
+    last_body_check = time.monotonic()
 
     while time.monotonic() < deadline:
         try:
@@ -508,6 +508,16 @@ def main() -> int:
                     flush=True,
                 )
                 return 0
+            if time.monotonic() - last_body_check >= 60:
+                current_body = fetch_pr_body(repo, pr_number)
+                if current_body != pr_body:
+                    print(
+                        "::notice::PR evidence body changed while this gate was waiting; "
+                        "this stale validation exits without requesting a merge.",
+                        flush=True,
+                    )
+                    return 0
+                last_body_check = time.monotonic()
             runs = fetch_runs(repo, sha, current_run_id)
         except GitHubAPIAuthError as exc:
             # Retrying a rejected credential cannot heal permissions; fail promptly.
