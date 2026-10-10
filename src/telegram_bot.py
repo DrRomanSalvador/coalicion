@@ -1979,7 +1979,7 @@ def _maybe_send_scheduled_digest() -> None:
         (7, 30): ("morning", "daily"),
         (21, 0): ("nightly", "daily"),
     }
-    schedule = schedules.get((now.hour, now.minute))
+    schedule = schedules.get((now.hour, now.minute - now.minute % 5))
     if schedule is None:
         return
     period, frequency = schedule
