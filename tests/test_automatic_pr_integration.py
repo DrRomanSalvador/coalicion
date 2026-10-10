@@ -303,6 +303,9 @@ def test_pr_gate_enables_auto_squash_merge_without_manual_clicks():
     assert "github.event.pull_request.head.repo.full_name == github.repository" in workflow
     assert "pull_request_target:" in workflow
     assert "  pull_request:\n" not in workflow
+    assert "edited" in workflow
+    assert "Suspend queued auto-merge before revalidating PR edits" in workflow
+    assert "gh pr merge \"$PR_NUMBER\" --repo \"$GH_REPO\" --disable-auto" in workflow
     assert "contents: write" in workflow
     assert "pull-requests: write" in workflow
     client = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
