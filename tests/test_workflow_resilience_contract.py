@@ -109,7 +109,7 @@ def test_self_healer_reports_exhausted_failures_even_when_retryable_candidates_e
     assert '[[ "${#candidates[@]}" -eq 0 ]]' in source
     assert source.index("EXHAUSTED_RETRY_BUDGET") < source.index('if [[ "$failures" -gt 0 ]]; then')
     assert 'printf \'%s\\\n\' "$exhausted"' not in source
-    assert source.count('printf \'%s\n\' "$exhausted" | tee -a "$GITHUB_STEP_SUMMARY"') == 2
+    assert source.count("printf '%s\\n' \"$exhausted\" | tee -a \"$GITHUB_STEP_SUMMARY\"") == 2
 
 
 def test_global_orchestrator_automatically_checks_for_stuck_canonical_runs():
