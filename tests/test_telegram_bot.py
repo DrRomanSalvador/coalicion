@@ -93,6 +93,46 @@ def test_audit_exposes_real_blockers(tmp_path, monkeypatch):
     assert "Advertencias registradas: 1" in text
 
 
+
+def test_private_admin_is_authorized_by_user_id(monkeypatch, tmp_path):
+    monkeypatch.delenv("TELEGRAM_ALLOWED_CHATS", raising=False)
+    monkeypatch.delenv("TELEGRAM_CHAT_ID", raising=False)
+    monkeypatch.setenv("TELEGRAM_ADMIN_IDS", "42")
+    monkeypatch.setattr(telegram_bot, "USER_STATE", tmp_path / "state.json")
+    calls = []
+    monkeypatch.setattr(telegram_bot, "_api", lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True})
+    update = {
+        "update_id": 8,
+        "message": {
+            "from": {"id": 42},
+            "chat": {"id": 42, "type": "private"},
+            "text": "/ayuda",
+        },
+    }
+    assert telegram_bot._handle_update(update, None) == 9
+    assert any(method == "sendMessage" for method, _ in calls)
+
+
+def test_unauthorized_chat_reply_explains_allowlist(monkeypatch):
+    monkeypatch.delenv("TELEGRAM_ALLOWED_CHATS", raising=False)
+    monkeypatch.delenv("TELEGRAM_CHAT_ID", raising=False)
+    monkeypatch.delenv("TELEGRAM_ADMIN_IDS", raising=False)
+    calls = []
+    monkeypatch.setattr(telegram_bot, "_api", lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True})
+    update = {
+        "update_id": 9,
+        "message": {
+            "from": {"id": 42},
+            "chat": {"id": 42, "type": "private"},
+            "text": "/start",
+        },
+    }
+    assert telegram_bot._handle_update(update, None) == 10
+    reply = next(kwargs["json"]["text"] for method, kwargs in calls if method == "sendMessage")
+    assert "ID de chat: 42" in reply
+    assert "TELEGRAM_ALLOWED_CHATS" in reply
+
+
 def test_callback_menu_edits_existing_message(monkeypatch, tmp_path):
     monkeypatch.setenv("TELEGRAM_ALLOWED_CHATS", "123")
     calls = []
