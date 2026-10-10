@@ -46,8 +46,7 @@ permissions:
 concurrency:
   # Keep main validation independent from PR validation; only supersede runs for the same ref.
   group: validate-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
+  cancel-in-progress: false
 jobs:
   validate:
     if: github.actor != 'github-actions[bot]'
