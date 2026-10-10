@@ -32,8 +32,10 @@ SNAPSHOT = ROOT / "artifacts/decision_snapshot.json"
 CURRENT_SURVEYS = ROOT / "data/surveys/current_2026/current_national.json"
 DEMO_PREDICTION = ROOT / "artifacts/territorial_prediction_20261008.json"
 SCENARIO_DIR = ROOT / "artifacts"
-API_TIMEOUT = 40
-API_RETRIES = 4
+# Telegram send/edit calls must fail quickly; long polling gets its own bounded timeout.
+API_TIMEOUT = 8
+API_RETRIES = 2
+LONG_POLL_TIMEOUT = 20
 MAX_MESSAGE = 4090
 # Operator account explicitly supplied for Telegram access-approval notifications.
 OPERATOR_TELEGRAM_ID = "8459054385"
@@ -86,9 +88,10 @@ def _api(method: str, **kwargs: Any) -> dict[str, Any]:
     last: Exception | None = None
     for attempt in range(API_RETRIES):
         try:
+            request_timeout = LONG_POLL_TIMEOUT + 10 if method == "getUpdates" else API_TIMEOUT
             response = requests.post(
                 f"https://api.telegram.org/bot{_token()}/{method}",
-                timeout=API_TIMEOUT,
+                timeout=request_timeout,
                 **kwargs,
             )
             response.raise_for_status()
@@ -1917,6 +1920,11 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
     update_id = update.get("update_id")
     next_offset = update_id + 1 if isinstance(update_id, int) else offset
 
+    # Acknowledge button presses before authorization checks, rendering or file I/O.
+    callback_early = update.get("callback_query")
+    if isinstance(callback_early, dict) and callback_early.get("id"):
+        _answer_callback(str(callback_early["id"]))
+
     if "inline_query" in update:
         if not _inline_allowed(update):
             return next_offset
@@ -1970,8 +1978,6 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
     callback = update.get("callback_query")
     if isinstance(callback, dict):
         data = str(callback.get("data", ""))
-        if callback.get("id"):
-            _answer_callback(str(callback["id"]))
         message = callback.get("message") or {}
         message_id = message.get("message_id")
         inline_message_id = callback.get("inline_message_id")
@@ -2195,9 +2201,14 @@ def run_polling(
     deadline = time.monotonic() + max_runtime_seconds if max_runtime_seconds is not None else None
 
     while deadline is None or time.monotonic() < deadline:
-        previous = offset
+        remaining = max(0.0, deadline - time.monotonic()) if deadline is not None else None
+        # Use Telegram long polling throughout the service window instead of one
+        # empty, zero-timeout request followed by process exit.
+        requested_timeout = max(0, poll_timeout)
+        if deadline is not None:
+            requested_timeout = min(LONG_POLL_TIMEOUT, max(0, int(remaining or 0) - 2))
         params: dict[str, Any] = {
-            "timeout": 0 if max_runtime_seconds is not None else max(0, poll_timeout),
+            "timeout": requested_timeout,
             "allowed_updates": ["message", "callback_query", "inline_query"],
         }
         if offset is not None:
@@ -2208,9 +2219,9 @@ def run_polling(
             offset = _handle_update(update, offset)
             _save_poll_offset(offset)
         _maybe_send_scheduled_digest()
-        if max_runtime_seconds is not None and not updates:
+        if deadline is None and not updates:
             break
-        if not updates or offset == previous:
+        if deadline is not None and not updates and requested_timeout == 0:
             break
         if sleep_seconds and (deadline is None or time.monotonic() + sleep_seconds < deadline):
             time.sleep(sleep_seconds)
