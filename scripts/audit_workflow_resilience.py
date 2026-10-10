@@ -146,6 +146,11 @@ def workflow_contract_findings(relative_path: str, source: str) -> list[dict[str
                 "path": relative_path,
                 "missing_contract": f"job {match.group(1)} has no timeout-minutes",
             })
+        if not workflow_permissions and not re.search(r"(?m)^ {4}permissions:\s*(?:\{[^}]*\})?\s*(?:#.*)?$", block):
+            findings.append({
+                "path": relative_path,
+                "missing_contract": f"job {match.group(1)} has no job-level permissions declaration",
+            })
     return findings
 
 
