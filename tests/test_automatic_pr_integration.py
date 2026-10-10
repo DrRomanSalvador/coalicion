@@ -111,7 +111,7 @@ Riesgo y rollback:
 Excepciones:
 """
     missing = validate_pr_body(empty)
-    assert any("populated list of applicable principles" in item for item in missing)
+    assert any("principle-by-principle mapping" in item for item in missing)
 
 
 def test_pr_body_fetch_fails_closed_on_github_api_error():
@@ -171,7 +171,7 @@ Rollback.
 Ninguna.
 """
     missing = validate_pr_body(body)
-    assert any("populated list of applicable principles" in item for item in missing)
+    assert any("principle-by-principle mapping" in item for item in missing)
 
 
 def test_pr_body_gate_accepts_explicit_justified_na():
