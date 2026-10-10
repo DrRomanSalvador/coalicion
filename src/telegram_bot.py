@@ -1987,10 +1987,10 @@ def _save_poll_offset(offset: int | None) -> None:
 
 
 def run_polling(
-    *, poll_timeout: int = 20, sleep_seconds: float = 0.0,
+    *, poll_timeout: int = 0, sleep_seconds: float = 0.0,
     max_runtime_seconds: float | None = None,
 ) -> None:
-    """Poll continuously, or run a bounded cycle suitable for ephemeral CI runners."""
+    """Drain queued Telegram updates quickly; schedulers own the polling cadence."""
     restore_telegram_state()
     _token()
     try:
@@ -2002,21 +2002,23 @@ def run_polling(
     deadline = time.monotonic() + max_runtime_seconds if max_runtime_seconds is not None else None
 
     while deadline is None or time.monotonic() < deadline:
-        remaining = deadline - time.monotonic() if deadline is not None else poll_timeout
-        if remaining <= 1:
-            break
+        previous = offset
         params: dict[str, Any] = {
-            "timeout": max(0, min(poll_timeout, int(remaining) - 1)),
+            "timeout": 0 if max_runtime_seconds is not None else max(0, poll_timeout),
             "allowed_updates": ["message", "callback_query", "inline_query"],
         }
         if offset is not None:
             params["offset"] = offset
         payload = _api("getUpdates", params=params)
-        for update in payload.get("result") or []:
-            if isinstance(update, dict):
-                offset = _handle_update(update, offset)
-                _save_poll_offset(offset)
+        updates = [item for item in payload.get("result") or [] if isinstance(item, dict)]
+        for update in updates:
+            offset = _handle_update(update, offset)
+            _save_poll_offset(offset)
         _maybe_send_scheduled_digest()
+        if max_runtime_seconds is not None and not updates:
+            break
+        if not updates or offset == previous:
+            break
         if sleep_seconds and (deadline is None or time.monotonic() + sleep_seconds < deadline):
             time.sleep(sleep_seconds)
 
