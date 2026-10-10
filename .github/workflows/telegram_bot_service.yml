@@ -64,6 +64,7 @@ jobs:
             artifacts/telegram_alert_state.json
             artifacts/telegram_digest_state.json
             artifacts/telegram_audit.jsonl
+            artifacts/telegram_tasks.json
           )
           git config user.name "coalicion-telegram-bot[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
