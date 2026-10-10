@@ -614,3 +614,36 @@ def test_public_command_list_is_dispatcher_not_catalog():
     assert [name for name, _ in telegram_bot.COMMANDS] == [
         "start", "hoy", "urgente", "resumen", "buscar", "tarea", "config", "ayuda"
     ]
+
+def test_task_delegation_fails_closed_without_team_chat(monkeypatch, tmp_path):
+    monkeypatch.setattr(telegram_bot, "TASKS", tmp_path / "telegram_tasks.json")
+    monkeypatch.setattr(telegram_bot, "USER_STATE", tmp_path / "user_state.json")
+    monkeypatch.setattr(telegram_bot, "AUDIT_LOG", tmp_path / "audit.jsonl")
+    monkeypatch.setattr(telegram_bot, "TELEGRAM_CONFIG", tmp_path / "config.json")
+    monkeypatch.setattr(telegram_bot, "snapshot_telegram_state", lambda: None)
+    monkeypatch.setenv("TELEGRAM_ALLOWED_CHATS", "123")
+    monkeypatch.delenv("TELEGRAM_TEAM_CHAT_ID", raising=False)
+    calls = []
+    monkeypatch.setattr(telegram_bot, "_api", lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True})
+    telegram_bot._create_task("revisar nota de prensa", {
+        "message": {"chat": {"id": 123}, "from": {"id": 123}}
+    })
+    task_id = next(iter(telegram_bot._tasks()))
+    callback = {"update_id": 51, "callback_query": {
+        "id": "delegate-callback", "from": {"id": 123}, "data": f"task:delegate:{task_id}",
+        "message": {"chat": {"id": 123, "type": "private"}, "message_id": 77}
+    }}
+    telegram_bot._handle_update(callback, 50)
+    assert any("TELEGRAM_TEAM_CHAT_ID" in kwargs.get("json", {}).get("text", "")
+               for method, kwargs in calls if method == "editMessageText")
+    assert not any(method == "sendMessage" and kwargs.get("json", {}).get("chat_id") != 123
+                   for method, kwargs in calls)
+
+
+def test_alert_buttons_offer_context_and_silencing():
+    markup = telegram_bot._alert_message_markup([
+        {"category": "nueva_encuesta", "title": "Nueva encuesta"}
+    ])
+    buttons = [b for row in markup["inline_keyboard"] for b in row]
+    assert any(b["callback_data"] == "cmd:/encuestas" for b in buttons)
+    assert any(b["callback_data"] == "alert:toggle:nueva_encuesta" for b in buttons)
