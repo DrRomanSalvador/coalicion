@@ -132,14 +132,16 @@ def test_auto_merge_gate_paginates_and_excludes_only_its_own_run():
     assert 'if run.get("name") != self_name' not in source
 
 
-def test_auto_merge_gate_blocks_failed_missing_and_stale_commit_checks():
+def test_pr_gate_blocks_failed_missing_and_stale_commit_checks_without_auto_merging():
     workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
     source = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
     assert 'run["conclusion"] not in {"success", "skipped"}' in source
     assert 'missing_success = sorted(required - completed_successfully)' in source
     assert "Blocking merge: checks did not reach a stable all-green state within 110 minutes." in source
-    assert '"--match-head-commit"' in source
-    assert 'sha,' in source
+    assert '"Mandatory engineering contract"' in source
+    assert "required_checks_for_files(changed_files)" in source
+    assert "Automatic merge is disabled" in source
+    assert '"gh",\n            "pr",\n            "merge"' not in source
 
 
 def test_poll_monitor_fails_closed_after_persisting_blocked_state():
@@ -171,10 +173,14 @@ def test_2023_matrix_acquisition_installs_pytest_before_invariant_suite():
     assert "python -m pytest -q tests/test_neutral_coalition.py" in source
     assert 'push:\n    branches: [main]\n    paths:\n      - ".github/workflows/acquire_matrix_2023.yml"' in source
 
-def test_auto_merge_gate_uses_testable_fail_closed_api_client():
+def test_pr_gate_uses_testable_fail_closed_api_client():
     workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
     client = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
     assert "actions: read" in workflow
+    assert "contents: read" in workflow
+    assert "pull-requests: read" in workflow
+    assert "contents: write" not in workflow
+    assert "pull-requests: write" not in workflow
     assert "GH_TOKEN: ${{ github.token }}" in workflow
     assert "run: python scripts/automatic_pr_integration.py" in workflow
     assert "Checkout exact PR head for gate script" in workflow
@@ -186,7 +192,7 @@ def test_auto_merge_gate_uses_testable_fail_closed_api_client():
     assert "if not value" in client
 
 
-def test_auto_merge_gate_authentication_errors_fail_fast_without_waiting():
+def test_pr_gate_authentication_errors_fail_fast_without_waiting():
     from types import SimpleNamespace
 
     import pytest
@@ -206,7 +212,7 @@ def test_auto_merge_gate_authentication_errors_fail_fast_without_waiting():
         fetch_runs("DrRomanSalvador/coalicion", "a" * 40, "123", runner=unauthorized_runner)
 
 
-def test_auto_merge_gate_403_permissions_failure_is_not_retried_as_transient():
+def test_pr_gate_403_permissions_failure_is_not_retried_as_transient():
     from types import SimpleNamespace
 
     import pytest
@@ -224,7 +230,7 @@ def test_auto_merge_gate_403_permissions_failure_is_not_retried_as_transient():
         fetch_runs("DrRomanSalvador/coalicion", "b" * 40, "456", runner=forbidden_runner)
 
 
-def test_auto_merge_gate_filters_runs_to_exact_sha_and_excludes_only_current_run():
+def test_pr_gate_filters_runs_to_exact_sha_and_excludes_only_current_run():
     import json
     from types import SimpleNamespace
 
