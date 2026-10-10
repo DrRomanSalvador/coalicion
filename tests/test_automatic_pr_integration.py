@@ -219,7 +219,11 @@ def test_pr_body_gate_rejects_missing_principles_even_when_some_are_listed():
 
 
 def test_pr_body_gate_rejects_duplicate_principle_dispositions():
-    body = _valid_pr_body() + "\n- **01** APLICA — Legibilidad antes que ingenio — Duplicado deliberado para probar el bloqueo."
+    body = _valid_pr_body().replace(
+        "- **02** APLICA — Automatizar lo repetible — Este principio se evalúa porque el cambio altera el contrato de integración número 02.\n",
+        "- **02** APLICA — Automatizar lo repetible — Este principio se evalúa porque el cambio altera el contrato de integración número 02.\n"
+        "- **01** APLICA — Legibilidad antes que ingenio — Duplicado deliberado dentro de la sección.",
+    )
     missing = validate_pr_body(body)
     assert any("principle 01 is declared more than once" in item for item in missing)
 
