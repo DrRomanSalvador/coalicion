@@ -631,6 +631,12 @@ def _config() -> dict[str, Any]:
         value["users"] = {}
     if not isinstance(value.get("chats"), dict):
         value["chats"] = {}
+    if not isinstance(value.get("access_requests"), dict):
+        value["access_requests"] = {}
+    if not isinstance(value.get("authorized_users"), list):
+        value["authorized_users"] = []
+    if not isinstance(value.get("authorized_chats"), list):
+        value["authorized_chats"] = []
     return value
 
 
@@ -665,9 +671,28 @@ def _allowed_ids() -> set[str]:
         raw = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
     return {x.strip() for x in raw.split(",") if x.strip()}
 
+def _owner_ids() -> set[str]:
+    return {
+        x.strip()
+        for name in ("TELEGRAM_ADMIN_IDS", "TELEGRAM_CHAT_ID")
+        for x in os.environ.get(name, "").split(",")
+        if x.strip()
+    }
+
+
+def _owner_allowed(update: dict[str, Any]) -> bool:
+    user_id, chat_id = _user_id(update), _chat_id(update)
+    if not user_id or user_id not in _owner_ids() or chat_id != user_id:
+        return False
+    message = (update.get("callback_query") or {}).get("message") or update.get("message") or {}
+    return str((message.get("chat") or {}).get("type", "private")) == "private"
+
+
 def _chat_allowed(chat_id: str) -> bool:
-    allowed = _allowed_ids()
-    return bool(allowed) and chat_id in allowed
+    if chat_id and chat_id in _allowed_ids():
+        return True
+    cfg = _config()
+    return bool(chat_id and chat_id in {str(x) for x in cfg.get("authorized_chats", [])})
 
 def _inline_allowed(update: dict[str, Any]) -> bool:
     allowed = _allowed_ids()
@@ -676,6 +701,88 @@ def _inline_allowed(update: dict[str, Any]) -> bool:
 def _admin_allowed(update: dict[str, Any]) -> bool:
     admins = {x.strip() for x in os.environ.get("TELEGRAM_ADMIN_IDS", "").split(",") if x.strip()}
     return bool(admins) and _user_id(update) in admins
+
+
+def _request_access(update: dict[str, Any], message_text: str = "") -> None:
+    chat_id, user_id = _chat_id(update), _user_id(update)
+    message = update.get("message") or {}
+    sender, chat = message.get("from") or {}, message.get("chat") or {}
+    if not chat_id or not user_id:
+        return
+    cfg = _config()
+    if str(chat.get("type", "private")) == "private" and user_id in {str(x) for x in cfg["authorized_users"]}:
+        return
+    request_key = f"{chat_id}:{user_id}"
+    pending = cfg["access_requests"]
+    if request_key in pending:
+        return
+    first = str(sender.get("first_name", "")).strip()
+    last = str(sender.get("last_name", "")).strip()
+    username = str(sender.get("username", "")).strip()
+    name = " ".join(x for x in (first, last) if x) or "Sin nombre"
+    request = {
+        "chat_id": chat_id, "user_id": user_id, "name": name, "username": username,
+        "message": str(message_text or "").strip()[:1000],
+        "chat_type": str(chat.get("type", "private")),
+        "created_at": now_madrid().isoformat(),
+    }
+    pending[request_key] = request
+    _save_config(cfg)
+    targets = _owner_ids()
+    if not targets:
+        _send(int(chat_id), "🛡 Solicitud registrada; no se pudo avisar al responsable porque falta TELEGRAM_CHAT_ID.")
+        return
+    display = f"@{username}" if username else "sin nombre de usuario"
+    owner_text = (
+        "🔐 COALICIÓN · SOLICITUD DE ACCESO\n\n"
+        f"Nombre: {name}\nUsuario: {display}\nID de chat: {chat_id}\n"
+        f"ID de usuario: {user_id}\nTipo de chat: {request['chat_type']}\n"
+        f"Mensaje de solicitud: {request['message'] or '(sin mensaje)'}\n\n"
+        "¿Autorizar este usuario?"
+    )
+    markup = {"inline_keyboard": [[
+        {"text": "✅ Autorizar usuario", "callback_data": f"access:approve:{request_key}"},
+        {"text": "⛔ Denegar", "callback_data": f"access:deny:{request_key}"},
+    ]]}
+    for target in sorted(targets):
+        try:
+            _send(int(target), owner_text, markup)
+        except (ValueError, TelegramBotError) as exc:
+            print(f"Telegram access notification failed: {type(exc).__name__}", file=sys.stderr)
+
+
+def _handle_access_callback(update: dict[str, Any], data: str) -> bool:
+    if not data.startswith(("access:approve:", "access:deny:")):
+        return False
+    callback = update.get("callback_query") or {}
+    if callback.get("id"):
+        _answer_callback(str(callback["id"]))
+    if not _owner_allowed(update):
+        return True
+    action, request_key = data.split(":", 2)[1:]
+    cfg = _config()
+    request = cfg["access_requests"].get(request_key)
+    if not isinstance(request, dict):
+        _send(int(_chat_id(update)), "Esta solicitud ya se ha resuelto o no existe.")
+        return True
+    if action == "approve":
+        user_id, chat_id = str(request.get("user_id", "")), str(request.get("chat_id", ""))
+        if request.get("chat_type") == "private":
+            if user_id and user_id not in {str(x) for x in cfg["authorized_users"]}:
+                cfg["authorized_users"].append(user_id)
+        elif chat_id and chat_id not in {str(x) for x in cfg["authorized_chats"]}:
+            cfg["authorized_chats"].append(chat_id)
+        result = "✅ Acceso autorizado."
+    else:
+        result = "⛔ Solicitud denegada."
+    del cfg["access_requests"][request_key]
+    _save_config(cfg)
+    _send(int(_chat_id(update)), result + "\n\nDecisión guardada; no requiere cambios en GitHub.")
+    try:
+        _send(int(str(request.get("chat_id"))), result if action == "approve" else "⛔ Tu solicitud de acceso a COALICIÓN ha sido denegada.")
+    except (ValueError, TelegramBotError):
+        pass
+    return True
 
 
 def _rate_allowed(update: dict[str, Any]) -> bool:
@@ -1818,6 +1925,9 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
 
     chat_id = _chat_id(update)
     user_id = _user_id(update)
+    callback = update.get("callback_query")
+    if isinstance(callback, dict) and _handle_access_callback(update, str(callback.get("data", ""))):
+        return next_offset
     if chat_id:
         # Private Telegram chats use the user's ID as the chat ID.
         # Explicitly configured administrators can therefore use the bot
@@ -1831,14 +1941,14 @@ def _handle_update(update: dict[str, Any], offset: int | None) -> int | None:
         if callback and callback.get("id"):
             _answer_callback(str(callback["id"]))
         elif (update.get("message") or {}).get("chat"):
+            message = update.get("message") or {}
+            _request_access(update, str(message.get("text", "")).strip())
             _send(
                 int(chat_id),
-                "🛡 Este chat no está autorizado para utilizar COALICIÓN.\n\n"
+                "🛡 Este chat aún no está autorizado.\n\n"
                 f"ID de chat: {chat_id}\nID de usuario: {user_id or 'no disponible'}\n\n"
-                "En GitHub → Settings → Secrets and variables → Actions, añade tu ID "
-                "numérico a TELEGRAM_ALLOWED_CHATS. Para autorizar funciones de "
-                "administración, añade también tu ID a TELEGRAM_ADMIN_IDS. "
-                "Separa varios IDs con comas y vuelve a ejecutar «Telegram bot service»."
+                "He enviado tu solicitud al responsable para que la apruebe desde Telegram. "
+                "No tienes que configurar secretos ni modificar código."
             )
         return next_offset
 
