@@ -290,29 +290,11 @@ def main() -> int:
         )
         return 1
 
-    merge = subprocess.run(
-        [
-            "gh",
-            "pr",
-            "merge",
-            pr_number,
-            "--repo",
-            repo,
-            "--match-head-commit",
-            sha,
-            "--squash",
-        ],
-        check=False,
+    print(
+        "All required checks passed for exact SHA "
+        f"{sha}; awaiting an authorized human merge. Automatic merge is disabled "
+        "until GitHub branch protection can be verified as required."
     )
-    if merge.returncode:
-        print(
-            f"::error::GitHub refused PR #{pr_number} merge for verified SHA {sha} "
-            f"(exit {merge.returncode}); branch protection was not bypassed.",
-            file=sys.stderr,
-            flush=True,
-        )
-        return merge.returncode
-    print("Merged only after all observed checks and required validations passed.", flush=True)
     return 0
 
 
