@@ -113,3 +113,6 @@ Todos los workflows deben evitar cancelar ejecuciones en curso: `cancel-in-progr
 
 ## 15. Integración protegida
 El workflow de integración valida los checks y no fusiona automáticamente. No reactivar la fusión automática hasta que las reglas de protección de `main` estén activas y verificadas. La integración requiere checks exigidos en verde, SHA actual, revisión exigida por la política y ausencia de conversaciones pendientes. Si GitHub no permite verificar la protección, no afirmar que el repositorio está blindado.
+
+## 16. Aplicación verificable de los 25 principios
+`docs/ENGINEERING_CHARTER.md` define los 25 principios y `docs/ENGINEERING_ENFORCEMENT_MATRIX.md` asigna controles y evidencia. Son obligatorios para todas las IA, personas, agentes y automatizaciones. Cada PR debe explicar causa raíz, solución mínima, principios aplicables, pruebas, resultado CI, riesgo/rollback y excepciones. No declarar PASS sin evidencia. El gate de contrato comprueba que existan los 25 principios y sus 25 filas de control, y examina todos los workflows por permisos, concurrencia, cancelación y timeout por job. Los criterios que requieren juicio humano necesitan revisión real; la documentación por sí sola no la sustituye.
