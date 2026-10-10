@@ -1,0 +1,152 @@
+name: COALICIÓN — Agentes locales Ollama
+
+on:
+  workflow_dispatch:
+    inputs:
+      mission_id:
+        description: "ID de una misión ya asignada por la Reina (p. ej. M0001)"
+        required: true
+        type: string
+      local_model:
+        description: "Modelo Ollama local"
+        required: true
+        default: "qwen2.5:3b"
+        type: string
+      base_branch:
+        description: "Rama destino del PR de evidencia"
+        required: true
+        default: "main"
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: colmena-ollama-${{ inputs.mission_id }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  run-one-agent:
+    name: Ejecutar misión Ollama y proponer evidencia por PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.base_branch }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Cachear modelos Ollama
+        uses: actions/cache@v4
+        with:
+          path: ~/.ollama/models
+          key: ollama-model-${{ runner.os }}-${{ inputs.local_model }}
+          restore-keys: |
+            ollama-model-${{ runner.os }}-
+      - name: Instalar Ollama y descargar modelo
+        env:
+          LOCAL_MODEL: ${{ inputs.local_model }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://ollama.com/install.sh | sh
+          if sudo systemctl is-active --quiet ollama; then sudo systemctl stop ollama; fi
+          mkdir -p "$HOME/.ollama/models"
+          (OLLAMA_MODELS="$HOME/.ollama/models" ollama serve > /tmp/ollama.log 2>&1 &)
+          for _ in $(seq 1 45); do
+            if curl --silent --fail http://127.0.0.1:11434/api/tags >/dev/null; then break; fi
+            sleep 2
+          done
+          curl --silent --fail http://127.0.0.1:11434/api/tags >/dev/null || { cat /tmp/ollama.log; exit 1; }
+          ollama pull "$LOCAL_MODEL"
+      - name: Validar misión asignada y ejecutar solo Ollama
+        id: execute
+        env:
+          MISSION_ID: ${{ inputs.mission_id }}
+          LOCAL_MODEL: ${{ inputs.local_model }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          mission_id = os.environ["MISSION_ID"].strip()
+          if not re.fullmatch(r"M\d{4}", mission_id):
+              raise SystemExit("mission_id inválido.")
+          data = json.loads(Path("docs/COLMENA_MISSION_CONTROL.json").read_text(encoding="utf-8"))
+          matches = [m for m in data.get("missions", []) if m.get("id") == mission_id]
+          if len(matches) != 1:
+              raise SystemExit("Misión inexistente o ambigua.")
+          mission = matches[0]
+          if mission.get("status") != "ASSIGNED" or mission.get("assigned") is not True:
+              raise SystemExit("Fail-closed: misión no asignada por la Reina.")
+          if not isinstance(mission.get("task"), str) or not mission["task"].strip():
+              raise SystemExit("Fail-closed: misión sin tarea concreta.")
+          PY
+          set +e
+          python scripts/colmena_agent_ollama.py "$MISSION_ID" --model "$LOCAL_MODEL"
+          rc=$?
+          set -e
+          echo "agent_rc=$rc" >> "$GITHUB_OUTPUT"
+          python - "$MISSION_ID" <<'PY'
+          import json, re, sys
+          from pathlib import Path
+          mission_id = sys.argv[1]
+          control = json.loads(Path("docs/COLMENA_MISSION_CONTROL.json").read_text(encoding="utf-8"))
+          mission = next(m for m in control["missions"] if m["id"] == mission_id)
+          safe = lambda value: re.sub(r"[^A-Za-z0-9_.-]", "_", value)
+          path = Path("artifacts/colmena/agents") / f"{safe(mission['agent_id'])}_{safe(mission_id)}.json"
+          if not path.is_file():
+              raise SystemExit(f"No existe evidencia del agente: {path}")
+          PY
+      - name: Reconciliar resultado sin permitir PASS del modelo
+        if: always()
+        env:
+          MISSION_ID: ${{ inputs.mission_id }}
+        run: |
+          set -euo pipefail
+          evidence="$(python - "$MISSION_ID" <<'PY'
+          import json, re, sys
+          from pathlib import Path
+          control=json.loads(Path("docs/COLMENA_MISSION_CONTROL.json").read_text(encoding="utf-8"))
+          mission=next(m for m in control["missions"] if m["id"]==sys.argv[1])
+          safe=lambda v: re.sub(r"[^A-Za-z0-9_.-]", "_", v)
+          print(Path("artifacts/colmena/agents") / f"{safe(mission['agent_id'])}_{safe(sys.argv[1])}.json")
+          PY
+          )"
+          if [ -f "$evidence" ]; then
+            python scripts/colmena_queen.py --record-result "$evidence"
+          else
+            echo "::error::No se generó evidencia; la misión no se marca PASS."
+            exit 1
+          fi
+      - name: Crear PR para persistir estado y evidencia
+        if: always()
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ github.token }}
+          base: ${{ inputs.base_branch }}
+          branch: colmena/evidence-${{ inputs.mission_id }}
+          delete-branch: false
+          commit-message: "chore(colmena): persist Ollama evidence for ${{ inputs.mission_id }}"
+          title: "chore(colmena): evidencia Ollama ${{ inputs.mission_id }}"
+          body: |
+            Evidencia generada por el backend local Ollama.
+            El resultado del modelo nunca certifica PASS; requiere revisión independiente.
+            Verificar estado, evidencia y pruebas antes de integrar.
+          add-paths: |
+            docs/COLMENA_MISSION_CONTROL.json
+            docs/COLMENA_STATE.json
+            artifacts/colmena/agents/**
+      - name: Fallar el run si el agente quedó bloqueado
+        if: always()
+        env:
+          AGENT_RC: ${{ steps.execute.outputs.agent_rc }}
+        run: |
+          if [ "${AGENT_RC:-2}" != "0" ]; then
+            echo "::error::El agente Ollama no produjo un informe válido; revisar la evidencia BLOCKED."
+            exit 1
+          fi
