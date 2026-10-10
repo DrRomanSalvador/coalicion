@@ -115,27 +115,58 @@ def test_latest_pending_attempt_is_not_hidden_by_older_success():
     latest = latest_runs_per_workflow(runs)
     assert latest == [{"id": 20, "name": "Contract", "status": "in_progress", "conclusion": None}]
 
+PRINCIPLE_TITLES = {
+    1: "Legibilidad antes que ingenio",
+    2: "Automatizar lo repetible",
+    3: "Pruebas como requisito de integración",
+    4: "Responsabilidad única y límites claros",
+    5: "Diseñar para el fallo",
+    6: "Seguridad desde el diseño",
+    7: "Medir antes de optimizar",
+    8: "Tecnología al servicio del problema",
+    9: "Siempre integrable y listo para desplegar",
+    10: "Mejora continua sin cuotas artificiales",
+    11: "Autorreparación segura",
+    12: "Chaos engineering con límites",
+    13: "Inmutabilidad donde aporta garantías",
+    14: "Latencia como atributo medible",
+    15: "Gobierno arquitectónico automatizado",
+    16: "Observabilidad estructurada",
+    17: "Contratos de API evolutivos",
+    18: "Simplicidad operativa",
+    19: "Decisiones registradas",
+    20: "Postmortems sin culpabilizar",
+    21: "Hacer fácil lo correcto",
+    22: "Compatibilidad como contrato explícito",
+    23: "Minimalismo radical con evidencia",
+    24: "Mínima sorpresa y determinismo",
+    25: "Utilidad y responsabilidad",
+}
+
+
 def _valid_pr_body(principle_overrides=None, markdown=True):
     overrides = principle_overrides or {}
     lines = []
     for number in range(1, 26):
         if number in overrides:
-            lines.append(f"- **{number:02d}** {overrides[number]}")
+            detail = overrides[number]
         else:
-            lines.append(
-                f"- **{number:02d}** APLICA — Este principio se evalúa porque el cambio altera "
+            detail = (
+                f"{PRINCIPLE_TITLES[number]} — Este principio se evalúa porque el cambio altera "
                 f"el contrato de integración número {number:02d}."
             )
+        lines.append(f"- **{number:02d}** APLICA — {detail}")
     heading = "## " if markdown else ""
     return (
-        f"{heading}Causa raíz:\nCausa reproducible y comprobada.\n"
-        f"{heading}Solución mínima:\nCambio acotado con regresión.\n"
-        f"{heading}Principios afectados (01–25):\n" + "\n".join(lines) + "\n"
-        f"{heading}Pruebas ejecutadas y resultado:\nPruebas de contrato preparadas; CI pendiente.\n"
-        f"{heading}CI del SHA exacto:\nPendiente de CI para el SHA de esta PR.\n"
-        f"{heading}Riesgo y rollback:\nRiesgo delimitado; revertir el commit revierte el cambio.\n"
-        f"{heading}Excepciones\nNinguna excepción sin declarar.\n"
+        f"{heading}Causa raíz:\\nCausa reproducible y comprobada.\\n"
+        f"{heading}Solución mínima:\\nCambio acotado con regresión.\\n"
+        f"{heading}Principios afectados (01–25):\\n" + "\\n".join(lines) + "\\n"
+        f"{heading}Pruebas ejecutadas y resultado:\\nPruebas de contrato preparadas; CI pendiente.\\n"
+        f"{heading}CI del SHA exacto:\\nPendiente de CI para el SHA de esta PR.\\n"
+        f"{heading}Riesgo y rollback:\\nRiesgo delimitado; revertir el commit revierte el cambio.\\n"
+        f"{heading}Excepciones\\nNinguna excepción sin declarar.\\n"
     )
+
 
 
 def test_pr_body_requires_reasoned_disposition_for_all_25_principles():
@@ -162,14 +193,14 @@ def test_pr_body_gate_rejects_duplicate_principle_dispositions():
 
 
 def test_pr_body_gate_requires_reasoned_na_disposition():
-    body = _valid_pr_body({7: "N/A — no procede en el alcance concreto de este cambio" })
+    body = _valid_pr_body({7: "Medir antes de optimizar — N/A — no procede en el alcance concreto de este cambio" })
     missing = validate_pr_body(body)
     assert any("principle 07 is N/A without an explicit justification" in item for item in missing)
 
 
 def test_pr_body_gate_accepts_explicitly_justified_na_for_one_principle():
     body = _valid_pr_body({
-        7: "N/A — justificación: este cambio no incluye optimizaciones ni modifica rendimiento."
+        7: "Medir antes de optimizar — N/A — justificación: este cambio no incluye optimizaciones ni modifica rendimiento."
     })
     assert validate_pr_body(body) == []
 
