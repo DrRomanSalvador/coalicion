@@ -189,6 +189,15 @@ def test_2023_matrix_acquisition_installs_pytest_before_invariant_suite():
     assert "python -m pytest -q tests/test_neutral_coalition.py" in source
     assert 'push:\n    branches: [main]\n    paths:\n      - ".github/workflows/acquire_matrix_2023.yml"' in source
 
+def test_merge_gate_is_distinct_from_contract_check_and_excludes_fork_code():
+    workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
+    assert "name: Automatic PR integration gate" in workflow
+    assert "name: Verify mandatory agent contract" not in workflow
+    assert "github.event.pull_request.head.repo.full_name == github.repository" in workflow
+    assert "Checkout trusted base revision for gate script" in workflow
+    assert "ref: ${{ github.event.pull_request.base.sha }}" in workflow
+
+
 def test_auto_merge_gate_uses_testable_fail_closed_api_client():
     workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
     client = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
