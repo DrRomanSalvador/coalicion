@@ -74,6 +74,35 @@ def test_latest_successful_attempt_supersedes_old_failure_for_same_workflow():
     assert len(latest) == 2
 
 
+def test_current_retry_supersedes_old_failure_before_current_run_is_excluded():
+    from scripts.automatic_pr_integration import fetch_runs
+
+    payload = json.dumps([{
+        "workflow_runs": [
+            {"id": 100, "name": "Automatic pull request integration", "head_sha": "abc",
+             "status": "completed", "conclusion": "failure", "run_number": 4,
+             "run_attempt": 1, "created_at": "2026-10-10T10:00:00Z"},
+            {"id": 101, "name": "Automatic pull request integration", "head_sha": "abc",
+             "status": "in_progress", "conclusion": None, "run_number": 5,
+             "run_attempt": 1, "created_at": "2026-10-10T10:05:00Z"},
+            {"id": 102, "name": "Product pipeline 2026", "head_sha": "abc",
+             "status": "completed", "conclusion": "success", "run_number": 8,
+             "run_attempt": 1, "created_at": "2026-10-10T10:02:00Z"},
+        ]
+    }])
+
+    def fake_runner(*args, **kwargs):
+        return subprocess.CompletedProcess(args[0], 0, stdout=payload, stderr="")
+
+    runs = fetch_runs("owner/repo", "abc", "101", runner=fake_runner)
+    assert runs == [{
+        "id": 102,
+        "name": "Product pipeline 2026",
+        "status": "completed",
+        "conclusion": "success",
+    }]
+
+
 def test_latest_pending_attempt_is_not_hidden_by_older_success():
     from scripts.automatic_pr_integration import latest_runs_per_workflow
     runs = [
