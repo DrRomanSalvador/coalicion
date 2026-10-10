@@ -8,7 +8,7 @@ WORKFLOW = ROOT / ".github" / "workflows" / "repository-self-regulation.yml"
 def test_repository_self_regulation_covers_all_main_pushes_prs_and_scheduled_sweeps():
     source = WORKFLOW.read_text(encoding="utf-8")
     assert "push:\n    branches: [main]" in source
-    assert "pull_request:" in source
+    assert "pull_request_target:" in source
     assert 'cron: "*/15 * * * *"' in source
     assert "workflow_dispatch:" in source
     assert "paths:" not in source
@@ -28,9 +28,19 @@ def test_repository_self_regulation_captures_diagnostics_and_tracks_unresolved_f
     source = WORKFLOW.read_text(encoding="utf-8")
     assert "if: always()" in source
     assert "actions/upload-artifact@v4" in source
-    assert "if: failure() && github.event_name != 'pull_request'" in source
+    assert "if: failure() && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main'" in source
     assert "gh issue create" in source
     assert "Do not mark the repository healthy or bypass a failed gate." in source
+
+
+def test_pull_request_validation_is_read_only_and_issue_writer_is_isolated():
+    source = WORKFLOW.read_text(encoding="utf-8")
+    assert "permissions:\\n  actions: read\\n  contents: read" in source
+    assert "issues: write" not in source.split("jobs:", 1)[0]
+    assert "persist-credentials: false" in source
+    assert "track_failure:" in source
+    assert "if: failure() && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main'" in source
+    assert "    permissions:\\n      issues: write" in source
 
 
 def test_repository_self_regulation_has_no_fail_open_steps():
