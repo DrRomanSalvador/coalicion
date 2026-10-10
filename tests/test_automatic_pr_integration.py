@@ -169,3 +169,10 @@ Riesgo y rollback: revertir.
 Excepciones: ninguna.
 """
     assert validate_pr_body(body) == []
+
+def test_pr_gate_enables_auto_squash_merge_without_manual_clicks():
+    workflow = (ROOT / ".github/workflows/automatic-pr-integration.yml").read_text(encoding="utf-8")
+    assert "name: Verify mandatory agent contract" in workflow
+    assert "contents: write" in workflow
+    assert "pull-requests: write" in workflow
+    assert 'gh pr merge "$PR_NUMBER" --auto --squash' in workflow
