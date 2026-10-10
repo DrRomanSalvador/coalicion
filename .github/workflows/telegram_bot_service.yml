@@ -66,8 +66,11 @@ jobs:
       - name: Drain Telegram updates
         if: steps.webhook.outputs.active != 'true'
         run: python -c "from src.telegram_bot import run_polling; run_polling(max_runtime_seconds=270, poll_timeout=20)"
+      - name: Run scheduled dispatch in webhook mode
+        if: steps.webhook.outputs.active == 'true'
+        run: python -c "from src.telegram_bot import run_scheduled_dispatch; run_scheduled_dispatch()"
       - name: Persist bot state
-        if: always() && steps.webhook.outputs.active != 'true'
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
