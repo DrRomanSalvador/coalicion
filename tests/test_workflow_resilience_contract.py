@@ -147,6 +147,7 @@ def test_seec_pull_request_validation_has_read_only_permissions():
     assert "name: Persist SEEC evidence on trusted main push" in workflow
     assert "if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'" in workflow
     assert "      contents: write" in workflow
+    assert "if-no-artifact-found:" not in workflow
 
 
 def test_seec_write_capable_job_does_not_execute_on_pull_requests():
