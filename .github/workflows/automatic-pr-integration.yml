@@ -2,7 +2,7 @@ name: Automatic pull request integration
 
 on:
   pull_request_target:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, edited]
     branches: [main]
 
 permissions:
@@ -29,6 +29,19 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
+      - name: Suspend queued auto-merge before revalidating PR edits
+        if: github.event.action == 'edited'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          queued="$(gh pr view "$PR_NUMBER" --repo "$GH_REPO" --json autoMergeRequest --jq '.autoMergeRequest != null')"
+          if [[ "$queued" == "true" ]]; then
+            gh pr merge "$PR_NUMBER" --repo "$GH_REPO" --disable-auto
+          fi
       - name: Wait for every required PR check
         env:
           GH_TOKEN: ${{ github.token }}
