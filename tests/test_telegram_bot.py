@@ -448,3 +448,25 @@ def test_demo_blocks_false_pass_without_territorial_calibration_or_seat_invarian
     result = telegram_bot._demo_prediction_text()
     assert "BLOQUEADA" in result
     assert "PARTY_A: 180" not in result
+
+
+def test_bounded_polling_drains_queue_without_waiting(monkeypatch):
+    calls = []
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "test-token")
+    monkeypatch.setattr(telegram_bot, "restore_telegram_state", lambda: None)
+    monkeypatch.setattr(telegram_bot, "snapshot_telegram_state", lambda: None)
+    monkeypatch.setattr(telegram_bot, "_configure_bot_ui", lambda: None)
+    monkeypatch.setattr(telegram_bot, "_maybe_send_scheduled_digest", lambda: None)
+    monkeypatch.setattr(telegram_bot, "_load_poll_offset", lambda: None)
+    monkeypatch.setattr(telegram_bot, "_save_poll_offset", lambda offset: None)
+    monkeypatch.setattr(
+        telegram_bot, "_api",
+        lambda method, **kwargs: calls.append((method, kwargs)) or {"ok": True, "result": []},
+    )
+
+    telegram_bot.run_polling(max_runtime_seconds=45)
+
+    polls = [(method, kwargs) for method, kwargs in calls if method == "getUpdates"]
+    assert len(polls) == 1
+    assert polls[0][1]["params"]["timeout"] == 0
+    assert calls[0][0] == "deleteWebhook"
