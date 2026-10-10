@@ -104,6 +104,8 @@ def product_requirement_ids() -> set[str]:
         or index.get("expected_count") != 430
         or not isinstance(requirements, list)
         or len(requirements) != 430
+        or any(not isinstance(item, dict) or not isinstance(item.get("acceptance_criteria"), list)
+               or not item["acceptance_criteria"] for item in requirements)
     ):
         return set()
     ids = [
@@ -124,7 +126,7 @@ def mission_is_assignable(mission: dict[str, Any]) -> bool:
     if mission_type == "PRODUCT":
         ids = mission.get("requirement_ids", [])
         known = product_requirement_ids()
-        return bool(ids) and bool(known) and set(ids).issubset(known)
+        return bool(ids) and len(set(ids)) == len(ids) and bool(known) and set(ids).issubset(known)
     return False
 
 
