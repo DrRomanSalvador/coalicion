@@ -43,6 +43,17 @@ def test_current_pr_head_sha_is_read_from_live_github_state():
     assert fetch_current_pr_head_sha("owner/repo", "17", runner=fake_runner) == "a" * 40
 
 
+def test_current_pr_head_sha_classifies_authorization_failure_for_fast_exit():
+    def fake_runner(*args, **kwargs):
+        return subprocess.CompletedProcess(args[0], 1, stdout="", stderr="HTTP 403 Resource not accessible by integration")
+    try:
+        fetch_current_pr_head_sha("owner/repo", "17", runner=fake_runner)
+    except Exception as exc:
+        assert "authentication/authorization failed" in str(exc)
+    else:
+        raise AssertionError("Authorization failure must not be retried for 110 minutes")
+
+
 def test_current_pr_head_sha_fails_closed_on_malformed_response():
     def fake_runner(*args, **kwargs):
         return subprocess.CompletedProcess(args[0], 0, stdout="unknown", stderr="")
