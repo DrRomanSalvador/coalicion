@@ -91,9 +91,104 @@ def fetch_runs(
                     "name": run.get("name", ""),
                     "status": run.get("status", ""),
                     "conclusion": run.get("conclusion"),
+                    "run_number": run.get("run_number"),
+                    "run_attempt": run.get("run_attempt"),
+                    "created_at": run.get("created_at"),
                 }
             )
-    return runs
+    return latest_runs_per_workflow(runs)
+
+
+def latest_runs_per_workflow(runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Use the newest attempt per workflow so obsolete failed attempts do not poison retries."""
+    latest: dict[str, tuple[tuple[Any, ...], dict[str, Any]]] = {}
+    for run in runs:
+        name = str(run.get("name") or run.get("id") or "unnamed")
+        try:
+            run_number = int(run.get("run_number") or 0)
+            attempt = int(run.get("run_attempt") or 0)
+            run_id = int(run.get("id") or 0)
+        except (TypeError, ValueError):
+            run_number, attempt, run_id = 0, 0, 0
+        rank = (run_number, attempt, str(run.get("created_at") or ""), run_id)
+        if name not in latest or rank > latest[name][0]:
+            latest[name] = (rank, run)
+    return [
+        {
+            "id": run.get("id"),
+            "name": run.get("name", ""),
+            "status": run.get("status", ""),
+            "conclusion": run.get("conclusion"),
+        }
+        for _, run in latest.values()
+    ]
+
+
+REQUIRED_PR_SECTIONS = (
+    "Causa raíz:",
+    "Solución mínima:",
+    "Principios afectados (01–25):",
+    "Pruebas ejecutadas y resultado:",
+    "CI del SHA exacto:",
+    "Riesgo y rollback:",
+    "Excepciones",
+)
+
+
+def validate_pr_body(body: str) -> list[str]:
+    """Fail closed when a PR omits mandatory engineering evidence."""
+    missing = [
+        section
+        for section in REQUIRED_PR_SECTIONS
+        if section.casefold() not in body.casefold()
+    ]
+
+    heading = re.search(
+        r"(?im)^[ \t]*(?:#{1,6}[ \t]+)?Principios afectados \(01–25\):[ \t]*(.*)$",
+        body,
+    )
+    principle_text = ""
+    if heading:
+        following = body[heading.end():]
+        next_heading = re.search(r"(?m)^[ \t]*#{1,6}[ \t]+\S", following)
+        section_body = following[:next_heading.start()] if next_heading else following
+        principle_text = "\n".join(
+            part.strip()
+            for part in (heading.group(1), section_body)
+            if part and part.strip()
+        ).strip()
+
+    has_principle_ids = bool(re.search(r"(?<!\d)(?:0[1-9]|1\d|2[0-5])(?!\d)", principle_text))
+    normalized = principle_text.casefold()
+    justified_na = bool(
+        re.search(r"\bn/?a\b", normalized)
+        and re.search(r"\b(justificaci[oó]n|porque|motivo|no aplica|no son aplicables)\b", normalized)
+        and len(re.sub(r"\bn/?a\b", "", normalized).strip(" \t\r\n-:;.")) >= 12
+    )
+    if not has_principle_ids and not justified_na:
+        missing.append(
+            "a populated list of applicable principles (01–25), or an explicit justified N/A"
+        )
+    return missing
+
+def fetch_pr_body(
+    repo: str,
+    pr_number: str,
+    runner: Callable[..., Any] = subprocess.run,
+) -> str:
+    result = runner(
+        ["gh", "api", f"repos/{repo}/pulls/{pr_number}", "--jq", ".body // empty"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode:
+        detail = (result.stderr or result.stdout or "unknown GitHub API error").strip()
+        raise GitHubAPITransientError(f"Could not inspect PR description: {detail}")
+    body = result.stdout.strip()
+    if not body:
+        raise GitHubAPITransientError("PR description is empty; mandatory engineering evidence is missing")
+    return body
 
 
 def fetch_changed_files(
@@ -201,6 +296,16 @@ def main() -> int:
         return 2
 
     try:
+        pr_body = fetch_pr_body(repo, pr_number)
+        missing_pr_evidence = validate_pr_body(pr_body)
+        if missing_pr_evidence:
+            print(
+                "::error::PR is missing mandatory engineering evidence: "
+                + json.dumps(missing_pr_evidence, ensure_ascii=False),
+                file=sys.stderr,
+                flush=True,
+            )
+            return 1
         changed_files = fetch_changed_files(repo, pr_number)
     except GitHubAPITransientError as exc:
         print(f"::error::{exc}", file=sys.stderr, flush=True)

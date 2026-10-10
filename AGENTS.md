@@ -110,3 +110,9 @@ Seguir `docs/REPOSITORY_STRATEGY.md` antes de crear repositorios, módulos o pip
 
 ## 14. No interrumpir ejecuciones activas
 Todos los workflows deben evitar cancelar ejecuciones en curso: `cancel-in-progress: false`. La auditoría `scripts/audit_workflow_resilience.py` bloquea cualquier workflow que configure cancelación activa. Si una ejecución nueva llega mientras otra está en marcha, la activa termina; las ejecuciones pendientes deben reconciliarse por SHA y el gate debe rechazar resultados obsoletos. GitHub Actions no ofrece una cola FIFO ilimitada por grupo: no prometer que conserva todas las ejecuciones pendientes; diseñar los trabajos para validar el SHA, ser idempotentes y procesar la revisión más reciente sin pisar una ejecución activa.
+
+## 15. Integración protegida
+El workflow de integración valida los checks y no fusiona automáticamente. No reactivar la fusión automática hasta que las reglas de protección de `main` estén activas y verificadas. La integración requiere checks exigidos en verde, SHA actual, revisión exigida por la política y ausencia de conversaciones pendientes. Si GitHub no permite verificar la protección, no afirmar que el repositorio está blindado.
+
+## 16. Aplicación verificable de los 25 principios
+`docs/ENGINEERING_CHARTER.md` define los 25 principios y `docs/ENGINEERING_ENFORCEMENT_MATRIX.md` asigna controles y evidencia. Son obligatorios para todas las IA, personas, agentes y automatizaciones. Cada PR debe explicar causa raíz, solución mínima, principios aplicables, pruebas, resultado CI, riesgo/rollback y excepciones. No declarar PASS sin evidencia. El gate de contrato comprueba que existan los 25 principios y sus 25 filas de control, y examina todos los workflows por permisos, concurrencia, cancelación y timeout por job. Los criterios que requieren juicio humano necesitan revisión real; la documentación por sí sola no la sustituye.

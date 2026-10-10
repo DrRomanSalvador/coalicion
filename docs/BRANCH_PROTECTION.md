@@ -1,6 +1,6 @@
 # Protección obligatoria de ramas y CI
 
-Este documento completa `AGENTS.md`. Un workflow en el repositorio no puede forzar por sí solo que GitHub lo exija antes de fusionar. La obligatoriedad técnica necesita reglas de rama/rulesets configuradas en los ajustes del repositorio.
+Este documento completa `AGENTS.md`. Un workflow en el repositorio no puede forzar por sí solo que GitHub lo exija antes de fusionar. El gate de PR valida los checks, pero no fusiona automáticamente mientras la protección de rama no pueda verificarse. La obligatoriedad técnica necesita reglas de rama/rulesets configuradas en los ajustes del repositorio.
 
 ## Configuración requerida para `main`
 En GitHub: **Settings → Rules → Rulesets** (o Branches → Branch protection rules), crear una regla activa dirigida a `main`:
