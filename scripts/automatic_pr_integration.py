@@ -21,6 +21,26 @@ class GitHubAPITransientError(RuntimeError):
     """Raised for a non-authentication API/CLI error that may be transient."""
 
 
+def run_gh(
+    args: list[str],
+    runner: Callable[..., Any] = subprocess.run,
+    context: str = "GitHub CLI request",
+) -> Any:
+    """Bound every GitHub CLI call so a stalled API cannot consume the full workflow timeout."""
+    try:
+        return runner(
+            args,
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise GitHubAPITransientError(f"{context} timed out after 30 seconds") from exc
+    except OSError as exc:
+        raise GitHubAPITransientError(f"{context} could not start: {exc}") from exc
+
+
 def fetch_runs(
     repo: str,
     sha: str,
@@ -28,7 +48,7 @@ def fetch_runs(
     runner: Callable[..., Any] = subprocess.run,
 ) -> list[dict[str, Any]]:
     """Fetch every run for the exact PR commit, classifying auth errors explicitly."""
-    result = runner(
+    result = run_gh(
         [
             "gh",
             "api",
@@ -36,9 +56,8 @@ def fetch_runs(
             "--slurp",
             f"repos/{repo}/actions/runs?head_sha={sha}&per_page=100",
         ],
-        text=True,
-        capture_output=True,
-        check=False,
+        runner,
+        "GitHub Actions run inventory",
     )
     if result.returncode:
         detail = "\n".join(
@@ -235,11 +254,10 @@ def fetch_current_pr_head_sha(
     runner: Callable[..., Any] = subprocess.run,
 ) -> str:
     """Read the live PR head so an old validation run never merges a superseded SHA."""
-    result = runner(
+    result = run_gh(
         ["gh", "api", f"repos/{repo}/pulls/{pr_number}", "--jq", ".head.sha"],
-        text=True,
-        capture_output=True,
-        check=False,
+        runner,
+        "Live PR head lookup",
     )
     if result.returncode:
         detail = (result.stderr or result.stdout or "unknown GitHub API error").strip()
@@ -273,11 +291,10 @@ def fetch_pr_body(
     pr_number: str,
     runner: Callable[..., Any] = subprocess.run,
 ) -> str:
-    result = runner(
+    result = run_gh(
         ["gh", "api", f"repos/{repo}/pulls/{pr_number}", "--jq", ".body // empty"],
-        text=True,
-        capture_output=True,
-        check=False,
+        runner,
+        "PR evidence lookup",
     )
     if result.returncode:
         detail = (result.stderr or result.stdout or "unknown GitHub API error").strip()
@@ -294,7 +311,7 @@ def fetch_changed_files(
     runner: Callable[..., Any] = subprocess.run,
 ) -> list[str]:
     """Fetch the complete PR file list; never guess which gates the change requires."""
-    result = runner(
+    result = run_gh(
         [
             "gh",
             "api",
@@ -302,9 +319,8 @@ def fetch_changed_files(
             "--slurp",
             f"repos/{repo}/pulls/{pr_number}/files?per_page=100",
         ],
-        text=True,
-        capture_output=True,
-        check=False,
+        runner,
+        "Changed PR file inventory",
     )
     if result.returncode:
         detail = (result.stderr or result.stdout or "unknown GitHub API error").strip()
