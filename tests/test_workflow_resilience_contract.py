@@ -31,6 +31,13 @@ def test_colmena_checkpoint_stale_sha_is_revalidated_before_persistence():
     assert 'git push origin HEAD:main' in source
 
 
+def test_long_running_pr_validation_cancels_only_superseded_pr_runs():
+    for filename in ("repository-self-regulation.yml", "seec-production-real.yml"):
+        source = (WORKFLOWS / filename).read_text(encoding="utf-8")
+        assert "cancel-in-progress: ${{ github.event_name == 'pull_request' }}" in source
+        assert "github.event.pull_request.number || github.ref" in source
+
+
 def test_code_executing_pr_workflows_do_not_use_privileged_pull_request_target():
     for filename in (
         "repository-self-regulation.yml",
