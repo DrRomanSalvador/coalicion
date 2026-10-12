@@ -64,25 +64,28 @@ jobs:
           PY
       - name: Stage diagnostics for safe artifact persistence
         if: always()
-        env:
-          JOB_STATUS: ${{ job.status }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          TESTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p ci_evidence/diagnostics
           if [[ -f /tmp/seec_pip_install.log ]]; then cp /tmp/seec_pip_install.log ci_evidence/diagnostics/seec_pip_install.log; fi
           if [[ -f /tmp/seec_run.log ]]; then cp /tmp/seec_run.log ci_evidence/diagnostics/seec_run.log; fi
-          if [[ "$JOB_STATUS" != "success" ]]; then
-            {
-              echo "SEEC_PRODUCTION_FAILURE"
-              echo "status: $JOB_STATUS"
-              echo "tested_sha: $TESTED_SHA"
-              echo "run: $RUN_URL"
-              echo "python: $(python --version 2>&1)"
-            } > ci_evidence/diagnostics/seec_production_failure.txt
-          fi
+
+      - name: Materialize failed-run evidence
+        if: failure()
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TESTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci_evidence/diagnostics
+          {
+            echo "SEEC_PRODUCTION_FAILURE"
+            echo "tested_sha: $TESTED_SHA"
+            echo "run: $RUN_URL"
+            echo "python: $(python --version 2>&1)"
+          } > ci_evidence/diagnostics/seec_production_failure.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
