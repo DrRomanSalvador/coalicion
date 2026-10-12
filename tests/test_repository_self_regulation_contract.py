@@ -8,7 +8,8 @@ WORKFLOW = ROOT / ".github" / "workflows" / "repository-self-regulation.yml"
 def test_repository_self_regulation_covers_all_main_pushes_prs_and_scheduled_sweeps():
     source = WORKFLOW.read_text(encoding="utf-8")
     assert "push:\n    branches: [main]" in source
-    assert "pull_request_target:" in source
+    assert "pull_request:" in source
+    assert "pull_request_target:" not in source
     assert 'cron: "*/15 * * * *"' in source
     assert "workflow_dispatch:" in source
     assert "paths:" not in source
@@ -26,14 +27,14 @@ def test_repository_self_regulation_tests_and_rechecks_exact_commit():
 
 def test_pr_target_validation_does_not_compare_pr_head_to_main_sha():
     source = WORKFLOW.read_text(encoding="utf-8")
-    assert 'if [[ "$GITHUB_EVENT_NAME" != "pull_request" && "$GITHUB_EVENT_NAME" != "pull_request_target" && "$GITHUB_REF" == "refs/heads/main" ]]; then' in source
+    assert 'if [[ "$GITHUB_EVENT_NAME" != "pull_request" && "$GITHUB_REF" == "refs/heads/main" ]]; then' in source
 
 
 def test_repository_self_regulation_captures_diagnostics_and_tracks_unresolved_failures():
     source = WORKFLOW.read_text(encoding="utf-8")
     assert "if: always()" in source
     assert "actions/upload-artifact@v4" in source
-    assert "if: failure() && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main'" in source
+    assert "if: failure() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'" in source
     assert "gh issue create" in source
     assert "Do not mark the repository healthy or bypass a failed gate." in source
 
