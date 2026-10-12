@@ -31,6 +31,26 @@ def test_colmena_checkpoint_stale_sha_is_revalidated_before_persistence():
     assert 'git push origin HEAD:main' in source
 
 
+def test_auto_merge_gate_is_privileged_but_executes_only_trusted_base_code():
+    workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
+    assert "pull_request_target:" in workflow
+    assert "contents: write" in workflow
+    assert "pull-requests: write" in workflow
+    assert "Checkout trusted base revision for gate script" in workflow
+    assert "ref: ${{ github.event.pull_request.base.sha }}" in workflow
+    assert "ref: ${{ github.event.pull_request.head.sha }}" not in workflow
+    assert "persist-credentials: false" in workflow
+    assert "name: Automatic PR integration gate" in workflow
+    assert "name: Verify mandatory agent contract" not in workflow
+    assert "gh pr merge \"$PR_NUMBER\" --repo \"$GH_REPO\" --disable-auto" in workflow
+
+
+def test_required_contract_runs_the_principle_evidence_regression_suite():
+    workflow = (WORKFLOWS / "agent-contract.yml").read_text(encoding="utf-8")
+    assert "Run the full 25-principle PR evidence gate regression suite" in workflow
+    assert "python -m pytest -q tests/test_automatic_pr_integration.py" in workflow
+
+
 def test_workflow_files_have_unique_names_and_expected_yaml_extension():
     paths = sorted(WORKFLOWS.glob("*.yml"))
     assert paths, "No GitHub Actions workflow files found"
@@ -127,7 +147,7 @@ def test_pr_validation_gate_paginates_and_excludes_only_its_own_run():
     source = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
     assert '"gh",\n            "api",\n            "--paginate",\n            "--slurp"' in source
     assert 'CURRENT_RUN_ID: ${{ github.run_id }}' in workflow
-    assert 'str(run.get("id", "")) == current_run_id' in source
+    assert '[run for run in latest if str(run.get("id", "")) != current_run_id]' in source
     assert 'run.get("head_sha") != sha' in source
     assert 'if run.get("name") != self_name' not in source
 
@@ -138,10 +158,10 @@ def test_pr_validation_gate_blocks_failed_missing_and_stale_commit_checks():
     assert 'run["conclusion"] not in {"success", "skipped"}' in source
     assert 'missing_success = sorted(required - completed_successfully)' in source
     assert "Blocking merge: checks did not reach a stable all-green state within 110 minutes." in source
-    assert '"gh",\n            "pr",\n            "merge"' not in source
-    assert "integration may proceed only through repository branch protection" in source
-    assert "contents: write" not in workflow
-    assert "pull-requests: write" not in workflow
+    assert '"gh", "pr", "merge", pr_number, "--auto", "--squash", "--match-head-commit", sha' in source
+    assert "GitHub accepted the auto-squash merge request" in source
+    assert "contents: write" in workflow
+    assert "pull-requests: write" in workflow
 
 
 def test_poll_monitor_fails_closed_after_persisting_blocked_state():
@@ -179,8 +199,9 @@ def test_auto_merge_gate_uses_testable_fail_closed_api_client():
     assert "actions: read" in workflow
     assert "GH_TOKEN: ${{ github.token }}" in workflow
     assert "run: python scripts/automatic_pr_integration.py" in workflow
-    assert "Checkout exact PR head for gate script" in workflow
-    assert "ref: ${{ github.event.pull_request.head.sha }}" in workflow
+    assert "Checkout trusted base revision for gate script" in workflow
+    assert "ref: ${{ github.event.pull_request.base.sha }}" in workflow
+    assert "ref: ${{ github.event.pull_request.head.sha }}" not in workflow
     assert "persist-credentials: false" in workflow
     assert "GitHubAPIAuthError" in client
     assert "GitHub Actions API authentication/authorization failed" in client
