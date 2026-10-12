@@ -224,8 +224,8 @@ def test_pr_body_gate_rejects_present_but_empty_required_evidence_sections():
 
 def test_pr_body_gate_rejects_empty_plain_text_sections_without_markdown():
     body = _valid_pr_body(markdown=False).replace(
-        "Causa raíz:\\nCausa reproducible y comprobada.",
-        "Causa raíz:\\n",
+        "Causa raíz:\nCausa reproducible y comprobada.",
+        "Causa raíz:\n",
         1,
     )
     findings = validate_pr_body(body)
