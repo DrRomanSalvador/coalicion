@@ -211,12 +211,10 @@ def validate_pr_body(body: str) -> list[str]:
         evidence_lines = [inline_evidence]
         for line in lines[section_index + 1:]:
             is_markdown_heading = bool(re.match(r"^[ \t]*#{1,6}[ \t]+\S", line))
+            normalized_line = re.sub(r"^[ \t]*#{1,6}[ \t]+", "", line).strip()
             is_required_section = any(
-                re.match(
-                    rf"^[ \t]*(?:#{{1,6}}[ \t]+)?{re.escape(other)}(?:[ \t].*)?$",
-                    line,
-                    flags=re.IGNORECASE,
-                )
+                normalized_line.casefold() == other.casefold()
+                or normalized_line.casefold().startswith(other.casefold() + " ")
                 for other in REQUIRED_PR_SECTIONS
             )
             if is_markdown_heading or is_required_section:
