@@ -41,7 +41,7 @@ def test_auto_merge_gate_is_privileged_but_executes_only_trusted_base_code():
     assert "ref: ${{ github.event.pull_request.head.sha }}" not in workflow
     assert "persist-credentials: false" in workflow
     assert "name: Automatic PR integration gate" in workflow
-    assert "cancel-in-progress: true" in workflow
+    assert "cancel-in-progress: ${{ github.event_name == 'pull_request_target' }}" in workflow
     assert "name: Verify mandatory agent contract" not in workflow
     assert "gh pr merge \"$PR_NUMBER\" --repo \"$GH_REPO\" --disable-auto" in workflow
 
