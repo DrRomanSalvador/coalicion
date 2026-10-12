@@ -362,3 +362,23 @@ def test_pr_gate_enables_auto_squash_merge_without_manual_clicks():
     assert "pull-requests: write" in workflow
     client = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
     assert '"gh", "pr", "merge", pr_number, "--auto", "--squash", "--match-head-commit", sha' in client
+
+
+def test_colmena_provider_migration_requires_ollama_not_retired_hf_gate():
+    migrated = required_checks_for_files([
+        "scripts/colmena_queen_hf.py",
+        "scripts/colmena_agent_hf.py",
+        "tests/test_colmena_hf_agents.py",
+        ".github/workflows/colmena_hf_agents.yml",
+        ".github/workflows/colmena_hf_tests.yml",
+        "scripts/colmena_queen.py",
+        "scripts/colmena_agent_ollama.py",
+        "tests/test_colmena_ollama.py",
+        ".github/workflows/colmena_ollama_agents.yml",
+        ".github/workflows/colmena_ollama_tests.yml",
+    ])
+    assert "Colmena Ollama — pruebas aisladas" in migrated
+    assert "Colmena HF — tests aislados" not in migrated
+
+    hf_only = required_checks_for_files(["scripts/colmena_agent_hf.py"])
+    assert "Colmena HF — tests aislados" in hf_only

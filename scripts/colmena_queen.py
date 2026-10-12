@@ -63,7 +63,7 @@ def get_missions() -> list[dict[str, Any]]:
             "schema": "COLMENA_MISSION_CONTROL_V1",
             "total": TOTAL_AGENTS,
             "mode": "LOGICAL_SLOTS",
-            "note": "Los slots no son procesos autónomos. Una tarea requiere definición, Reina_token y ejecución explícita.",
+            "note": "Los slots son registros lógicos. Cada tarea requiere definición y aprobación explícita antes de ejecutar Ollama.",
             "missions": missions,
         })
     validate_missions(missions)
@@ -86,6 +86,48 @@ def validate_missions(missions: list[dict[str, Any]]) -> None:
                 f"Estado/assigned incoherentes en {mission.get('id')}: "
                 f"status={mission.get('status')!r}, assigned={mission.get('assigned')!r}."
             )
+        mission_type = mission.get("mission_type", "UNDEFINED")
+        if mission_type not in {"PLATFORM", "PRODUCT", "UNDEFINED"}:
+            raise ValueError(f"Tipo de misión no válido en {mission.get('id')}: {mission_type!r}.")
+        requirement_ids = mission.get("requirement_ids", [])
+        if not isinstance(requirement_ids, list) or any(not isinstance(item, str) or not item.strip() for item in requirement_ids):
+            raise ValueError(f"requirement_ids inválido en {mission.get('id')}.")
+
+
+def product_requirement_ids() -> set[str]:
+    """Devuelve IDs solo si el checklist canónico completo está materializado."""
+    index = load_json(ROOT / "docs" / "COALICION_PRODUCT_REQUIREMENTS_430.json", {})
+    requirements = index.get("requirements")
+    if (
+        index.get("schema") != "COALICION_PRODUCT_REQUIREMENTS_V1"
+        or index.get("status") != "READY"
+        or index.get("expected_count") != 430
+        or not isinstance(requirements, list)
+        or len(requirements) != 430
+        or any(not isinstance(item, dict) or not isinstance(item.get("acceptance_criteria"), list)
+               or not item["acceptance_criteria"] for item in requirements)
+    ):
+        return set()
+    ids = [
+        item.get("id") for item in requirements
+        if isinstance(item, dict) and isinstance(item.get("id"), str) and item.get("id").strip()
+        and isinstance(item.get("acceptance_criteria"), list) and item["acceptance_criteria"]
+    ]
+    return set(ids) if len(ids) == 430 and len(set(ids)) == 430 else set()
+
+
+def mission_is_assignable(mission: dict[str, Any]) -> bool:
+    """No asigna slots sin clasificar ni producto sin requisito fuente verificable."""
+    if not isinstance(mission.get("task"), str) or not mission["task"].strip():
+        return False
+    mission_type = mission.get("mission_type", "UNDEFINED")
+    if mission_type == "PLATFORM":
+        return True
+    if mission_type == "PRODUCT":
+        ids = mission.get("requirement_ids", [])
+        known = product_requirement_ids()
+        return bool(ids) and len(set(ids)) == len(ids) and bool(known) and set(ids).issubset(known)
+    return False
 
 
 def status_report() -> dict[str, Any]:
@@ -93,8 +135,8 @@ def status_report() -> dict[str, Any]:
     counts = {status: sum(m["status"] == status for m in missions) for status in sorted(STATUSES)}
     report = {"total": len(missions), **{k.lower(): v for k, v in counts.items()}}
     print("COLMENA REINA — CONTROL DE MISIONES")
-    print("Modo: QUEEN_COORDINATION_MODE + 179_AGENTS_HF")
-    print("Proveedor: Hugging Face | Credencial: Reina_token")
+    print("Modo: QUEEN_COORDINATION_MODE + 179_LOGICAL_MISSIONS_OLLAMA")
+    print("Proveedor único: Ollama local; sin secretos ni créditos externos")
     print(f"Slots lógicos: {report['total']}")
     for key in sorted(counts):
         print(f"{key:17}: {counts[key]}")
@@ -111,16 +153,12 @@ def sync_state_summary(missions: list[dict[str, Any]]) -> None:
     if not isinstance(summary, dict):
         summary = {}
     counts = {status: sum(m.get("status") == status for m in missions) for status in STATUSES}
-    last_execution = state.get("last_hf_agent_execution", {})
+    last_execution = state.get("last_agent_execution", {})
     last_mission_id = last_execution.get("mission_id")
     last_mission = next((m for m in missions if m.get("id") == last_mission_id), {})
     last_error = str(last_mission.get("result_summary", "")).lower()
     if counts["BLOCKED"]:
-        status = (
-            "BLOCKED_EXTERNAL_PROVIDER_CREDITS"
-            if any(token in last_error for token in ("http 402", "payment required", "no remaining credits", "falta de créditos"))
-            else "BLOCKED_MISSION_REQUIRES_REVIEW"
-        )
+        status = "BLOCKED_MISSION_REQUIRES_REVIEW"
     elif counts["ASSIGNED"]:
         status = "MISSIONS_ASSIGNED"
     elif counts["REVIEW_REQUIRED"]:
@@ -131,7 +169,7 @@ def sync_state_summary(missions: list[dict[str, Any]]) -> None:
         status = "NO_PENDING_MISSIONS"
     summary.update({
         "status": status,
-        "mode": "QUEEN_COORDINATION_MODE + 179_AGENTS_HF",
+        "mode": "QUEEN_COORDINATION_MODE + 179_LOGICAL_MISSIONS_OLLAMA",
         "logical_agents": len(missions),
         "completed_pass": counts["PASS"],
         "pending": counts["PENDING"],
@@ -156,7 +194,7 @@ def assign_next_batch(batch_size: int = 5) -> list[dict[str, Any]]:
     eligible = [
         m for m in missions
         if m["status"] == "PENDING" and not m.get("assigned")
-        and isinstance(m.get("task"), str) and m["task"].strip()
+        and mission_is_assignable(m)
     ]
     batch = eligible[:batch_size]
     timestamp = now()
@@ -194,6 +232,8 @@ def reassign_blocked(mission_id: str) -> dict[str, Any]:
         )
     if not isinstance(mission.get("task"), str) or not mission["task"].strip():
         raise ValueError("Fail-closed: no se puede reabrir una misión sin tarea concreta.")
+    if not mission_is_assignable(mission):
+        raise ValueError("Fail-closed: la misión no tiene tipo válido o requisito de producto verificable.")
     timestamp = now()
     history = mission.setdefault("attempt_history", [])
     history.append({
@@ -222,7 +262,7 @@ def reassign_blocked(mission_id: str) -> dict[str, Any]:
 
 
 def record_result(result_path: Path) -> dict[str, Any]:
-    """Registra evidencia HF sin permitir que el modelo certifique PASS."""
+    """Registra evidencia del agente sin permitir que el modelo certifique PASS."""
     result = load_json(result_path)
     if not isinstance(result, dict):
         raise ValueError("La evidencia debe ser un objeto JSON.")
@@ -265,12 +305,12 @@ def record_result(result_path: Path) -> dict[str, Any]:
     sync_state_summary(missions)
 
     state = load_json(STATE_PATH, {})
-    state["last_hf_agent_execution"] = {
-        "schema": "COLMENA_HF_EXECUTION_EVIDENCE_V1",
+    state["last_agent_execution"] = {
+        "schema": "COLMENA_AGENT_EXECUTION_EVIDENCE_V1",
         "mission_id": mission_id,
         "agent_id": agent_id,
         "status": status,
-        "provider": "huggingface",
+        "provider": "local-ollama",
         "evidence_path": evidence_path,
         "evidence_sha256": evidence_sha256,
         "recorded_at": timestamp,
@@ -289,7 +329,7 @@ def record_result(result_path: Path) -> dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Controlador de 179 slots lógicos COALICIÓN")
+    parser = argparse.ArgumentParser(description="Controlador de 179 misiones lógicas COALICIÓN")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--status", action="store_true")
     group.add_argument("--assign", type=int, metavar="N")

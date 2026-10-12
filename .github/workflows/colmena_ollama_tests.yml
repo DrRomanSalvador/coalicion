@@ -1,0 +1,65 @@
+name: Colmena Ollama — pruebas aisladas
+
+on:
+  pull_request:
+    paths:
+      - "scripts/colmena_queen.py"
+      - "scripts/colmena_agent_ollama.py"
+      - "tests/test_colmena_ollama.py"
+      - "tests/test_colmena_provider_retirement.py"
+      - "docs/COLMENA_MISSION_CONTROL.json"
+      - "docs/COLMENA_STATE.json"
+      - "docs/COALICION_PRODUCT_GOVERNANCE.md"
+      - "docs/COALICION_PRODUCT_REQUIREMENTS_430.json"
+      - "AGENTS.md"
+      - "CONTRATO_MAESTRO_IA.md"
+      - "README.md"
+      - "docs/ENGINEERING_CHARTER.md"
+      - "docs/ENGINEERING_ENFORCEMENT_MATRIX.md"
+      - "docs/INVOCACION_COLMENA.md"
+      - "docs/COLMENA_OLLAMA_AGENTS.md"
+      - ".github/workflows/colmena_ollama_agents.yml"
+      - ".github/workflows/colmena_ollama_assign.yml"
+      - ".github/workflows/colmena_ollama_tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/colmena_queen.py"
+      - "scripts/colmena_agent_ollama.py"
+      - "tests/test_colmena_ollama.py"
+      - "tests/test_colmena_provider_retirement.py"
+      - "docs/COLMENA_MISSION_CONTROL.json"
+      - "docs/COLMENA_STATE.json"
+      - "docs/COALICION_PRODUCT_GOVERNANCE.md"
+      - "docs/COALICION_PRODUCT_REQUIREMENTS_430.json"
+      - "AGENTS.md"
+      - "CONTRATO_MAESTRO_IA.md"
+      - "README.md"
+      - "docs/ENGINEERING_CHARTER.md"
+      - "docs/ENGINEERING_ENFORCEMENT_MATRIX.md"
+      - "docs/INVOCACION_COLMENA.md"
+      - "docs/COLMENA_OLLAMA_AGENTS.md"
+      - ".github/workflows/colmena_ollama_agents.yml"
+      - ".github/workflows/colmena_ollama_assign.yml"
+      - ".github/workflows/colmena_ollama_tests.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: colmena-ollama-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  focused-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check "pytest>=8,<10"
+      - name: Test mission safety, provider retirement and Ollama-only execution
+        run: python -m pytest -q tests/test_colmena_ollama.py tests/test_colmena_provider_retirement.py

@@ -23,13 +23,13 @@ def test_self_healer_uses_correct_retry_mode_and_rejects_active_runs():
     assert 'gh run rerun "$run_id" --failed --repo "$REPOSITORY"' in source
 
 
-def test_colmena_checkpoint_stale_sha_is_revalidated_before_persistence():
+def test_colmena_checkpoint_is_artifact_only_and_never_pushes_main():
     source = (WORKFLOWS / "colmena_atomic_swarm.yml").read_text(encoding="utf-8")
-    assert 'if [ "$checkpoint_rc" -eq 3 ]; then' in source
-    assert "revalidating latest main" in source
-    assert 'git fetch origin main' in source
-    assert 'git push origin HEAD:main' in source
-
+    assert "git push origin HEAD:main" not in source
+    assert "contents: read" in source
+    assert "actions/upload-artifact@v4" in source
+    assert '"main_modified": False' in source
+    assert "colmena-light-checkpoint-" in source
 
 def test_auto_merge_gate_is_privileged_but_executes_only_trusted_base_code():
     workflow = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
@@ -101,14 +101,15 @@ def test_oos_evidence_persistence_rechecks_tested_sha_and_retries_races():
     assert "stale evidence will not be published" in source
 
 
-def test_colmena_agent_evidence_persistence_retries_concurrent_branch_updates():
-    source = (WORKFLOWS / "colmena_hf_agents.yml").read_text(encoding="utf-8")
-    assert 'for attempt in 1 2 3 4 5; do' in source
-    assert 'git fetch origin "$branch"' in source
-    assert 'git rebase "origin/$branch"' in source
-    assert 'git push origin "HEAD:$branch"' in source
-    assert "refusing to overwrite newer state" in source
-
+def test_colmena_agent_evidence_uses_pull_request_and_never_pushes_main():
+    source = (WORKFLOWS / "colmena_ollama_agents.yml").read_text(encoding="utf-8")
+    assert "peter-evans/create-pull-request@v7" in source
+    assert "pull-requests: write" in source
+    assert "base: ${{ inputs.base_branch }}" in source
+    assert "scripts/colmena_agent_ollama.py" in source
+    assert "scripts/colmena_queen.py --record-result" in source
+    assert "git push origin HEAD:main" not in source
+    assert "HF_TOKEN" not in source and "Reina_token" not in source
 
 def test_methodology_ci_cancels_superseded_pr_runs_per_ref():
     for name in ("methodology-validation.yml", "methodology_integration.yml", "methodology_validation.yml"):
@@ -124,13 +125,14 @@ def test_scheduled_electoral_radar_serializes_runs_per_ref():
     assert "cancel-in-progress: false" in source
 
 
-def test_stale_colmena_checkpoint_is_reported_as_skip_not_failure():
+def test_stale_colmena_checkpoint_is_skipped_and_validation_evidence_is_immutable():
     source = (ROOT / "scripts" / "colmena_checkpoint.py").read_text(encoding="utf-8")
     assert "CHECKPOINT_SKIPPED_STALE_VALIDATION" in source
     assert 'fail(f"stale validation:' not in source
     workflow = (WORKFLOWS / "colmena_atomic_swarm.yml").read_text(encoding="utf-8")
-    assert 'if [ "$checkpoint_rc" -eq 3 ]; then' in workflow
-
+    assert 'TESTED_SHA: ${{ github.sha }}' in workflow
+    assert '"tested_commit": os.environ["TESTED_SHA"]' in workflow
+    assert '"main_modified": False' in workflow
 
 def test_historical_self_healer_refuses_to_retry_a_stale_main_sha():
     source = (WORKFLOWS / "historical-ci-self-healer.yml").read_text(encoding="utf-8")
