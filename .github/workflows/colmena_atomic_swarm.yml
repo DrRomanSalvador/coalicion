@@ -179,9 +179,8 @@ jobs:
               echo "prepared=true" >> "$GITHUB_OUTPUT"
               exit 0
             fi
-            git commit -m "chore(colmena): prepare validated lightweight checkpoint"
             echo "prepared=true" >> "$GITHUB_OUTPUT"
-            echo "Checkpoint prepared after revalidating main (attempt $attempt); no protected-branch push attempted."
+            echo "Checkpoint prepared after revalidating main (attempt $attempt); artifact upload will persist it without a protected-branch commit."
             exit 0
           done
           echo "::error::Could not validate a checkpoint against a stable current-main revision after three attempts."
