@@ -153,7 +153,7 @@ def test_seec_evidence_is_persisted_as_artifacts_without_protected_branch_writes
     workflow = (WORKFLOWS / "seec-production-real.yml").read_text(encoding="utf-8")
     assert "pull_request:" in workflow
     assert "pull_request_target:" not in workflow
-    assert "permissions:\\n  contents: read" in workflow
+    assert "permissions:\n  contents: read" in workflow
     assert "persist-credentials: false" in workflow
     assert "cache: pip" not in workflow
     assert "repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}" in workflow
