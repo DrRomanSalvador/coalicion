@@ -67,7 +67,8 @@ def test_superseded_pull_request_runs_are_cancelled_not_queued():
     )
     for name in names:
         source = (WORKFLOWS / name).read_text(encoding="utf-8")
-        assert "cancel-in-progress: ${{ github.event_name == 'pull_request' }}" in source, name
+        event = "pull_request_target" if name == "automatic-pr-integration.yml" else "pull_request"
+        assert f"cancel-in-progress: ${{{{ github.event_name == '{event}' }}}}" in source, name
 
 
 def test_workflow_files_have_unique_names_and_expected_yaml_extension():
