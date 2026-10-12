@@ -151,7 +151,8 @@ def test_auto_merge_gate_exits_stale_head_without_cancelling_active_work():
 
 def test_seec_pull_request_validation_has_read_only_permissions():
     workflow = (WORKFLOWS / "seec-production-real.yml").read_text(encoding="utf-8")
-    assert "pull_request_target:" in workflow
+    assert "pull_request:" in workflow
+    assert "pull_request_target:" not in workflow
     assert "permissions:\n  contents: read" in workflow
     assert "persist-credentials: false" in workflow
     assert "cache: pip" not in workflow
