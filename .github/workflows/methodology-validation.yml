@@ -9,7 +9,7 @@ permissions:
   contents: read
 concurrency:
   group: methodology-extensions-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   extensions:
     runs-on: ubuntu-latest
