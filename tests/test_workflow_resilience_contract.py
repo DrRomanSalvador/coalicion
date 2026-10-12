@@ -54,6 +54,19 @@ def test_completion_gate_uploads_certification_evidence_without_protected_main_p
     assert "retention-days: 30" in source
 
 
+def test_seec_evidence_is_retained_as_artifacts_without_protected_main_writes():
+    source = (WORKFLOWS / "seec-production-real.yml").read_text(encoding="utf-8")
+    assert "permissions:\\n  contents: read" in source
+    assert "git push origin HEAD:main" not in source
+    assert "Persist successful SEEC posterior evidence" not in source
+    assert "Materialize installation failure evidence" not in source
+    assert "Materialize SEEC execution failure evidence" not in source
+    assert "name: seec-production-diagnostics" in source
+    assert "name: seec-production-evidence" in source
+    assert "TESTED_SHA:" in source
+    assert "RUN_URL:" in source
+
+
 def test_workflow_files_have_unique_names_and_expected_yaml_extension():
     paths = sorted(WORKFLOWS.glob("*.yml"))
     assert paths, "No GitHub Actions workflow files found"
