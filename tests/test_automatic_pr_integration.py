@@ -319,3 +319,23 @@ def test_pr_gate_enables_auto_squash_merge_without_manual_clicks():
     assert "pull-requests: write" in workflow
     client = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
     assert '"gh", "pr", "merge", pr_number, "--auto", "--squash", "--match-head-commit", sha' in client
+
+
+def test_pr_body_gate_rejects_bare_number_list_without_per_principle_evidence():
+    body = """Causa raíz: causa reproducida.
+Solución mínima: cambio acotado.
+Principios afectados (01–25): 03, 05, 15, 24.
+Pruebas ejecutadas y resultado: pytest PASS.
+CI del SHA exacto: pendiente.
+Riesgo y rollback: revertir el commit.
+Excepciones: ninguna.
+"""
+    missing = validate_pr_body(body)
+    assert any("principle 01 must have exactly one" in item for item in missing)
+
+
+def test_engineering_matrix_makes_individual_principle_rationale_mandatory():
+    matrix = (ROOT / "docs" / "ENGINEERING_ENFORCEMENT_MATRIX.md").read_text(encoding="utf-8")
+    assert "No basta enumerar números" in matrix
+    assert "Una lista desnuda" in matrix
+    assert "La revisión de aplicabilidad es habitual en todas las PR" in matrix
