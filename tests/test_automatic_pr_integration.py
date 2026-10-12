@@ -179,7 +179,7 @@ def test_pr_body_gate_accepts_explicit_justified_na():
 Solución mínima: solución.
 Principios afectados (01–25): N/A — justificación: ningún principio resulta directamente afectado por este cambio.
 Pruebas ejecutadas y resultado: pytest PASS.
-CI del SHA exacto: pendiente.
+CI del SHA exacto: pendiente de ejecución.
 Riesgo y rollback: revertir.
 Excepciones: ninguna.
 """
@@ -219,3 +219,67 @@ def test_engineering_matrix_makes_principle_rationale_a_permanent_pr_requirement
     assert "No basta enumerar números" in matrix
     assert "Una lista desnuda" in matrix
     assert "La revisión de aplicabilidad es habitual en todas las PR" in matrix
+
+
+def test_pr_body_gate_rejects_blank_mandatory_evidence_even_when_all_headings_exist():
+    body = """Causa raíz:
+Solución mínima:
+Principios afectados (01–25): 03, 05
+Pruebas ejecutadas y resultado:
+CI del SHA exacto:
+Riesgo y rollback:
+Excepciones:
+"""
+    missing = validate_pr_body(body)
+    assert any("Causa raíz" in item for item in missing)
+    assert any("Solución mínima" in item for item in missing)
+    assert any("Pruebas ejecutadas" in item for item in missing)
+    assert any("CI del SHA exacto" in item for item in missing)
+    assert any("Riesgo y rollback" in item for item in missing)
+    assert any("Excepciones" in item for item in missing)
+
+
+def test_pr_body_gate_rejects_template_placeholders_as_evidence():
+    body = """Causa raíz: TODO
+Solución mínima: por completar
+Principios afectados (01–25): 03
+Pruebas ejecutadas y resultado: TBD
+CI del SHA exacto: pendiente
+Riesgo y rollback: [-]
+Excepciones: motivo, alcance, responsable y vencimiento
+"""
+    missing = validate_pr_body(body)
+    assert any("Causa raíz" in item for item in missing)
+    assert any("Solución mínima" in item for item in missing)
+    assert any("Pruebas ejecutadas" in item for item in missing)
+    assert any("CI del SHA exacto" in item for item in missing)
+    assert any("Riesgo y rollback" in item for item in missing)
+    assert any("Excepciones" in item for item in missing)
+
+
+def test_pr_body_gate_rejects_invalid_or_noncanonical_principle_identifiers():
+    body = """Causa raíz: reproducida.
+Solución mínima: corregir validación.
+Principios afectados (01–25): 00, 03, 26, 125
+Pruebas ejecutadas y resultado: pytest PASS.
+CI del SHA exacto: pendiente de ejecución.
+Riesgo y rollback: revertir el commit.
+Excepciones: ninguna.
+"""
+    missing = validate_pr_body(body)
+    assert any("invalid principle identifiers" in item for item in missing)
+
+
+def test_pr_body_gate_rejects_duplicate_mandatory_sections():
+    body = """Causa raíz: reproducida.
+Causa raíz: repetida.
+Solución mínima: corregir validación.
+Principios afectados (01–25): 03, 05
+Pruebas ejecutadas y resultado: pytest PASS.
+CI del SHA exacto: pendiente de ejecución.
+Riesgo y rollback: revertir el commit.
+Excepciones: ninguna.
+"""
+    missing = validate_pr_body(body)
+    assert any("section must appear exactly once: Causa raíz:" in item for item in missing)
+

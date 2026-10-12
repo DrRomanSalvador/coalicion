@@ -136,47 +136,128 @@ REQUIRED_PR_SECTIONS = (
 
 
 def validate_pr_body(body: str) -> list[str]:
-    """Fail closed when a PR omits mandatory engineering evidence."""
-    missing = [
-        section
-        for section in REQUIRED_PR_SECTIONS
-        if section.casefold() not in body.casefold()
-    ]
+    """Fail closed unless every mandatory PR evidence section contains real content."""
+    missing: list[str] = []
+    normalized_body = body.casefold()
 
-    heading = re.search(
-        r"(?im)^[ \t]*(?:#{1,6}[ \t]+)?Principios afectados \(01–25\):[ \t]*(.*)$",
-        body,
+    def section_header_pattern(label: str) -> re.Pattern[str]:
+        core = label.rstrip(":")
+        markdown_prefix = r"(?:(?:#{1,6}|[-*])[ \t]+)"
+        suffix = rf"{re.escape(core)}(?:[ \t]*\([^) \n]*\))?"
+        return re.compile(
+            rf"(?im)^[ \t]*(?:{markdown_prefix}{suffix}[ \t]*:?|"
+            rf"{suffix}[ \t]*:)"
+        )
+
+    positions: list[tuple[int, str, int]] = []
+    for label in REQUIRED_PR_SECTIONS:
+        match = section_header_pattern(label).search(body)
+        if match is None:
+            missing.append(label)
+        else:
+            positions.append((match.start(), label, match.end()))
+
+    positions.sort()
+    section_values: dict[str, str] = {}
+    for index, (position, label, header_end) in enumerate(positions):
+        value_end = positions[index + 1][0] if index + 1 < len(positions) else len(body)
+        value = body[position + header_end - position:value_end]
+        # Markdown headings and template bullets are formatting, not evidence.
+        value = re.sub(r"(?m)^\s{0,3}#{1,6}\s*", "", value)
+        value = re.sub(r"(?m)^\s*[-*]\s*", "", value)
+        section_values[label] = value.strip(" \t\r\n:;.-")
+    placeholder = re.compile(
+        r"^(?:todo|tbd|por completar|pendiente|pendiente de completar|"
+        r"[-_.]+|\[[^\]]*\])$",
+        flags=re.IGNORECASE,
     )
-    principle_text = ""
-    if heading:
-        following = body[heading.end():]
-        next_heading = re.search(r"(?m)^[ \t]*#{1,6}[ \t]+\S", following)
-        section_body = following[:next_heading.start()] if next_heading else following
-        principle_text = "\n".join(
-            part.strip()
-            for part in (heading.group(1), section_body)
-            if part and part.strip()
-        ).strip()
 
-    normalized = principle_text.casefold()
+    def is_placeholder(value: str, *, allow_none: bool = False) -> bool:
+        cleaned = value.strip().casefold()
+        if placeholder.fullmatch(value.strip()):
+            return True
+        if not allow_none and cleaned in {"n/a", "na", "ninguno", "ninguna"}:
+            return True
+        return cleaned in {
+            "motivo, alcance, responsable y vencimiento",
+            "(motivo, alcance, responsable y vencimiento)",
+        }
+
+    evidence_sections = (
+        "Causa raíz:",
+        "Solución mínima:",
+        "Pruebas ejecutadas y resultado:",
+        "Riesgo y rollback:",
+    )
+    for label in evidence_sections:
+        value = section_values.get(label, "")
+        if not value or is_placeholder(value):
+            missing.append(f"non-empty, specific evidence required in section: {label}")
+
+    ci_value = section_values.get("CI del SHA exacto:", "")
+    if not ci_value:
+        missing.append("CI del SHA exacto must state the tested SHA/status or explicitly say CI has not started")
+    elif is_placeholder(ci_value) and ci_value.strip().casefold().rstrip(".") not in {
+        "pendiente de ci",
+        "pendiente de ejecución",
+        "pendiente de ejecucion",
+        "pendiente de ejecución de ci",
+        "pendiente de ejecucion de ci",
+        "ci no iniciada",
+        "ci pendiente",
+        "pending",
+        "not started",
+    }:
+        missing.append("CI del SHA exacto cannot be blank or a generic placeholder")
+
+    exception_value = section_values.get("Excepciones", "")
+    if not exception_value or is_placeholder(exception_value, allow_none=True):
+        missing.append("Excepciones must explicitly state 'Ninguna' or enumerate exception details")
+
+    principles_value = section_values.get("Principios afectados (01–25):", "")
+    has_principle_ids = bool(
+        re.search(r"(?<!\d)(?:0[1-9]|1\d|2[0-5])(?!\d)", principles_value)
+    )
+    normalized_principles = principles_value.casefold()
     justified_na = bool(
-        re.search(r"\bn/?a\b", normalized)
-        and re.search(r"\b(justificaci[oó]n|porque|motivo|no aplica|no son aplicables)\b", normalized)
-        and len(re.sub(r"\bn/?a\b", "", normalized).strip(" \t\r\n-:;.")) >= 12
+        re.search(r"\bn/?a\b", normalized_principles)
+        and re.search(
+            r"\b(justificaci[oó]n|porque|motivo|no aplica|no son aplicables)\b",
+            normalized_principles,
+        )
+        and len(re.sub(r"\bn/?a\b", "", normalized_principles).strip(" \t\r\n-:;.")) >= 12
     )
+    if not has_principle_ids and not justified_na:
+        missing.append(
+            "a populated list of applicable principles (01–25), or an explicit justified N/A"
+        )
+
     # A bare list of numbers is not evidence that principles are applied.
     # Require one independently readable rationale per applicable principle.
     mapped_principles = re.findall(
-        r"(?m)^\s*(?:[-*]\s*)?(?:\*\*)?(0[1-9]|1\d|2[0-5])(?:\*\*)?\s*(?:[:—–-])\s*(\S.*)$",
-        principle_text,
+        r"(?m)^\\s*(?:[-*]\\s*)?(?:\\*\\*)?(0[1-9]|1\\d|2[0-5])(?:\\*\\*)?\\s*(?:[:—–-])\\s*(\\S.*)$",
+        principles_value,
     )
-    mentioned_ids = set(re.findall(r"(?<!\d)(0[1-9]|1\d|2[0-5])(?!\d)", principle_text))
+    mentioned_ids = set(re.findall(r"(?<!\\d)(0[1-9]|1\\d|2[0-5])(?!\\d)", principles_value))
     mapped_ids = {number for number, rationale in mapped_principles if len(rationale.strip()) >= 12}
     if not justified_na and (not mentioned_ids or mapped_ids != mentioned_ids):
         missing.append(
             "a principle-by-principle mapping (e.g. '03 — regression test added: ...') with a concrete rationale for every applicable ID, or an explicit justified N/A"
         )
-    return missing
+
+    # IDs must be canonical two-digit numbers and in range; malformed claims are rejected.
+    tokens = re.findall(r"(?<!\w)(\d{1,3})(?!\w)", principles_value)
+    if has_principle_ids:
+        invalid = [token for token in tokens if len(token) != 2 or not 1 <= int(token) <= 25]
+        if invalid:
+            missing.append(f"invalid principle identifiers: {', '.join(invalid)}")
+
+    # Count section headers only; ordinary prose may legitimately mention a label.
+    for label in REQUIRED_PR_SECTIONS:
+        if len(list(section_header_pattern(label).finditer(body))) != 1:
+            missing.append(f"section must appear exactly once: {label}")
+
+    return list(dict.fromkeys(missing))
 
 def fetch_pr_body(
     repo: str,
