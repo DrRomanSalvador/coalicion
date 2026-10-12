@@ -29,8 +29,8 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
-      - name: Suspend queued auto-merge before revalidating PR edits
-        if: github.event.action == 'edited'
+      - name: Suspend queued auto-merge before revalidating PR changes
+        if: github.event.action == 'edited' || github.event.action == 'synchronize'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
