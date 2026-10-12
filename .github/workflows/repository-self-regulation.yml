@@ -103,7 +103,7 @@ jobs:
             echo "::error::Working tree revision changed during validation: expected=$EXPECTED_SHA actual=$actual"
             exit 1
           }
-          if [[ "$GITHUB_EVENT_NAME" != "pull_request" && "$GITHUB_EVENT_NAME" != "pull_request_target" && "$GITHUB_REF" == "refs/heads/main" ]]; then
+          if [[ "$GITHUB_EVENT_NAME" != "pull_request" && "$GITHUB_REF" == "refs/heads/main" ]]; then
             git fetch --no-tags origin main
             current_main="$(git rev-parse origin/main)"
             if [[ "$current_main" != "$EXPECTED_SHA" ]]; then
@@ -126,7 +126,7 @@ jobs:
 
   track_failure:
     name: Track failed main-branch validation
-    if: failure() && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main'
+    if: failure() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 5
