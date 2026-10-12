@@ -41,6 +41,7 @@ def test_auto_merge_gate_is_privileged_but_executes_only_trusted_base_code():
     assert "ref: ${{ github.event.pull_request.head.sha }}" not in workflow
     assert "persist-credentials: false" in workflow
     assert "name: Automatic PR integration gate" in workflow
+    assert "cancel-in-progress: true" in workflow
     assert "name: Verify mandatory agent contract" not in workflow
     assert "gh pr merge \"$PR_NUMBER\" --repo \"$GH_REPO\" --disable-auto" in workflow
 
@@ -49,6 +50,7 @@ def test_required_contract_runs_the_principle_evidence_regression_suite():
     workflow = (WORKFLOWS / "agent-contract.yml").read_text(encoding="utf-8")
     assert "Run the full 25-principle PR evidence gate regression suite" in workflow
     assert "python -m pytest -q tests/test_automatic_pr_integration.py" in workflow
+    assert "cancel-in-progress: ${{ github.event_name == 'pull_request' }}" in workflow
 
 
 def test_workflow_files_have_unique_names_and_expected_yaml_extension():
