@@ -33,13 +33,14 @@ jobs:
         run: |
           pip install requests beautifulsoup4 lxml feedparser pytest
           python -m json.tool config/poll_monitor.json >/dev/null
-          python -m pytest tests/test_poll_monitor.py tests/test_cis_monitor.py tests/test_electomania_monitor.py tests/test_dato_electoral_monitor.py tests/test_twitter_monitor.py tests/test_poll_validator.py tests/test_poll_hasher.py tests/test_poll_normalizer.py -q
+          python -m pytest tests/test_poll_monitor.py tests/test_poll_monitor_alert_workflow.py tests/test_cis_monitor.py tests/test_electomania_monitor.py tests/test_dato_electoral_monitor.py tests/test_twitter_monitor.py tests/test_poll_validator.py tests/test_poll_hasher.py tests/test_poll_normalizer.py -q
 
       - name: Monitorizar fuentes
         id: monitor
         shell: bash
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          # Support the configured Reina token while preserving the canonical name.
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN || secrets.REINA_TOKEN }}
           TELEGRAM_ALLOWED_CHATS: ${{ secrets.TELEGRAM_ALLOWED_CHATS || secrets.TELEGRAM_CHAT_ID }}
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
         run: |
