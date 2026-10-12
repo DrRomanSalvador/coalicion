@@ -1,0 +1,70 @@
+name: COALICIÓN — Asignación persistente de misiones Ollama
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: "Número de misiones que la Reina puede asignar (1–5)"
+        required: true
+        default: "5"
+        type: string
+      base_branch:
+        description: "Rama base para proponer la asignación por PR"
+        required: true
+        default: "main"
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: colmena-ollama-assign-${{ inputs.base_branch }}
+  cancel-in-progress: false
+
+jobs:
+  assign-batch:
+    name: Asignar lote validado y proponerlo mediante PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.base_branch }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validar y asignar mediante la Reina
+        id: assign
+        env:
+          BATCH_SIZE: ${{ inputs.batch_size }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          try:
+              size = int(os.environ["BATCH_SIZE"])
+          except (TypeError, ValueError):
+              raise SystemExit("batch_size debe ser un entero entre 1 y 5.")
+          if not 1 <= size <= 5:
+              raise SystemExit("Fail-closed: batch_size debe estar entre 1 y 5.")
+          PY
+          python scripts/colmena_queen.py --assign "$BATCH_SIZE"
+          git diff --check
+      - name: Crear PR de asignación (si hay cambios)
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ github.token }}
+          base: ${{ inputs.base_branch }}
+          branch: colmena/assign-${{ github.run_id }}
+          delete-branch: true
+          commit-message: "chore(colmena): persist Queen-approved Ollama mission assignment"
+          title: "chore(colmena): asignación de misiones Ollama"
+          body: |
+            Asignación generada por la Reina a partir del Mission Control canónico.
+            Máximo cinco misiones; solo tareas concretas. No se ejecutan agentes en este workflow.
+          add-paths: |
+            docs/COLMENA_MISSION_CONTROL.json
+            docs/COLMENA_STATE.json
