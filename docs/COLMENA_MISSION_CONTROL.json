@@ -2,7 +2,7 @@
   "schema": "COLMENA_MISSION_CONTROL_V1",
   "total": 179,
   "mode": "LOGICAL_SLOTS",
-  "note": "179 slots lógicos; M0001–M0005 están asignadas y M0006–M0010 ya tienen tareas concretas pendientes. M0011–M0179 requieren definición. La asignación no ejecuta agentes.",
+  "note": "179 slots lógicos. M0001–M0010 son misiones PLATFORM de auditoría de infraestructura. M0011–M0179 permanecen UNDEFINED sin tarea ni requisito inventado. Toda misión PRODUCT requiere IDs del checklist canónico original de 430 requisitos; hasta importarlo, no puede asignarse ni ejecutarse.",
   "missions": [
     {
       "id": "M0001",
@@ -13,8 +13,8 @@
       "assigned": false,
       "note": "Reasignada explícitamente por la Reina tras bloqueo; intento anterior conservado en attempt_history.",
       "context_paths": [
-        "scripts/colmena_queen_hf.py",
-        "tests/test_colmena_hf_agents.py"
+        "scripts/colmena_queen.py",
+        "tests/test_colmena_ollama.py"
       ],
       "assigned_at": "2026-10-09T13:13:34.994445+00:00",
       "result_recorded_at": "2026-10-09T13:13:36.049658+00:00",
@@ -32,35 +32,41 @@
           "result_summary": "BadRequestError: (Request ID: Root=1-6ac8e3fa-037b545d14f340f14073ff71;26a80abf-33f5-4288-8a42-eb2fe12ebc2c)\n\nBad request:\n{'message': \"The requested model 'Qwen/Qwen2.5-7B-Instruct' is not supported by any provider you have enabled.\", 'type': 'invalid_request_error', 'param': 'model', 'code': 'model_not_supported'}"
         }
       ],
-      "reassigned_at": "2026-10-09T13:13:34.994445+00:00"
+      "reassigned_at": "2026-10-09T13:13:34.994445+00:00",
+      "mission_type": "PLATFORM",
+      "requirement_ids": []
     },
     {
       "id": "M0002",
       "agent_id": "agent-002",
-      "title": "Auditoría de ejecución HF y secreto",
-      "task": "Audita el ejecutor para comprobar uso exacto de Reina_token, validación de misión asignada, coincidencia de agent_id/task, tratamiento de errores y ausencia de filtración del secreto. Identifica fallos concretos con evidencia del código.",
+      "title": "Auditoría de ejecución Ollama",
+      "task": "Revisa el ejecutor local Ollama: validación de misión asignada, coincidencia de agent_id/tarea, errores de red, timeout, respuesta vacía y ausencia de proveedores externos. Identifica defectos concretos y pruebas de regresión; no afirmes haber ejecutado pruebas.",
       "status": "ASSIGNED",
       "assigned": true,
       "note": "Definir una tarea concreta y verificable antes de ejecutar.",
       "context_paths": [
-        "scripts/colmena_agent_hf.py",
-        ".github/workflows/colmena_hf_agents.yml"
+        "scripts/colmena_agent_ollama.py",
+        "tests/test_colmena_ollama.py"
       ],
-      "assigned_at": "2026-10-09T12:42:28.943444+00:00"
+      "assigned_at": "2026-10-09T12:42:28.943444+00:00",
+      "mission_type": "PLATFORM",
+      "requirement_ids": []
     },
     {
       "id": "M0003",
       "agent_id": "agent-003",
-      "title": "Auditoría de seguridad del workflow",
-      "task": "Revisa el workflow manual: permisos mínimos, una sola misión por ejecución, validación de entrada, uso del secreto Reina_token y conservación de evidencias. Distingue controles existentes y carencias.",
+      "title": "Auditoría de seguridad del workflow Ollama",
+      "task": "Revisa el workflow manual de Ollama: permisos mínimos, entrada de misión, ejecución única, generación de evidencia, PR en vez de push a main, y preservación de fallos. Identifica riesgos y pruebas.",
       "status": "ASSIGNED",
       "assigned": true,
       "note": "Definir una tarea concreta y verificable antes de ejecutar.",
       "context_paths": [
-        ".github/workflows/colmena_hf_agents.yml",
-        "docs/COLMENA_HF_AGENTS.md"
+        ".github/workflows/colmena_ollama_agents.yml",
+        "scripts/colmena_agent_ollama.py"
       ],
-      "assigned_at": "2026-10-09T12:42:28.943444+00:00"
+      "assigned_at": "2026-10-09T12:42:28.943444+00:00",
+      "mission_type": "PLATFORM",
+      "requirement_ids": []
     },
     {
       "id": "M0004",
@@ -71,68 +77,77 @@
       "assigned": true,
       "note": "Definir una tarea concreta y verificable antes de ejecutar.",
       "context_paths": [
-        "scripts/colmena_queen_hf.py",
-        "tests/test_colmena_hf_agents.py"
+        "scripts/colmena_queen.py",
+        "tests/test_colmena_ollama.py"
       ],
-      "assigned_at": "2026-10-09T12:42:28.943444+00:00"
+      "assigned_at": "2026-10-09T12:42:28.943444+00:00",
+      "mission_type": "PLATFORM",
+      "requirement_ids": []
     },
     {
       "id": "M0005",
       "agent_id": "agent-005",
       "title": "Auditoría de estado e invocación",
-      "task": "Compara el estado persistente y la guía de invocación con Mission Control (snapshot verificado: 179 misiones, 5 tareas definidas, 179 PENDING, 0 asignadas, 0 ejecutadas): modo formal, credencial Reina_token y bloqueo por aprobación. Enumera contradicciones verificables.",
+      "task": "Compara el estado persistente, guía de invocación y Mission Control: modo Ollama, aprobación explícita, 179 slots lógicos y estados actuales derivados del ledger. Señala contradicciones sin confiar en snapshots antiguos.",
       "status": "ASSIGNED",
       "assigned": true,
       "note": "Definir una tarea concreta y verificable antes de ejecutar.",
       "context_paths": [
         "docs/COLMENA_STATE.json",
-        "docs/INVOCACION_COLMENA.md"
+        "docs/INVOCACION_COLMENA.md",
+        "docs/COLMENA_MISSION_CONTROL.json"
       ],
-      "assigned_at": "2026-10-09T12:42:28.943444+00:00"
+      "assigned_at": "2026-10-09T12:42:28.943444+00:00",
+      "mission_type": "PLATFORM",
+      "requirement_ids": []
     },
     {
       "id": "M0006",
       "agent_id": "agent-006",
       "title": "Auditoría del contrato de asignación",
-      "task": "Audita el flujo completo de asignación entre workflow y scripts/colmena_queen_hf.py: validación de batch_size, elegibilidad, idempotencia, persistencia y comportamiento cuando no quedan tareas. Propón cambios mínimos y pruebas reproducibles; no afirmes haber ejecutado pruebas.",
+      "task": "Audita el flujo entre workflow y scripts/colmena_queen.py: batch_size 1–5, elegibilidad, tareas no vacías, idempotencia, PR de persistencia y comportamiento cuando no quedan tareas. Propón pruebas reproducibles.",
       "status": "ASSIGNED",
       "assigned": true,
       "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
       "context_paths": [
-        ".github/workflows/colmena_hf_assign.yml",
-        "scripts/colmena_queen_hf.py",
-        "tests/test_colmena_hf_agents.py"
+        ".github/workflows/colmena_ollama_assign.yml",
+        "scripts/colmena_queen.py"
       ],
-      "assigned_at": "2026-10-09T12:54:39.767186+00:00"
+      "assigned_at": "2026-10-09T12:54:39.767186+00:00",
+      "mission_type": "PLATFORM",
+      "requirement_ids": []
     },
     {
       "id": "M0007",
       "agent_id": "agent-007",
       "title": "Auditoría de persistencia de evidencias",
-      "task": "Analiza los caminos de éxito y error del workflow de agentes: outputs entre pasos, variables de entorno, persistencia de JSON/estado, push y artefactos. Identifica defectos concretos y una prueba de regresión por defecto; no afirmes haber ejecutado pruebas.",
+      "task": "Analiza el workflow Ollama: outputs, errores, JSON de evidencia, reconciliación, pull request, carreras y recuperación. Identifica defectos concretos y una prueba de regresión por defecto.",
       "status": "ASSIGNED",
       "assigned": true,
       "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
       "context_paths": [
-        ".github/workflows/colmena_hf_agents.yml",
-        "scripts/colmena_queen_hf.py",
-        "tests/test_colmena_hf_agents.py"
+        ".github/workflows/colmena_ollama_agents.yml",
+        "scripts/colmena_queen.py"
       ],
-      "assigned_at": "2026-10-09T12:54:39.767186+00:00"
+      "assigned_at": "2026-10-09T12:54:39.767186+00:00",
+      "mission_type": "PLATFORM",
+      "requirement_ids": []
     },
     {
       "id": "M0008",
       "agent_id": "agent-008",
-      "title": "Compatibilidad del cliente Hugging Face",
-      "task": "Revisa la integración InferenceClient/chat_completion: modelo por defecto, errores de proveedor, token, timeout y respuesta vacía. Recomienda una estrategia fail-closed que conserve evidencia BLOCKED y nunca filtre credenciales; no afirmes haber ejecutado pruebas.",
+      "title": "Compatibilidad de la API Ollama",
+      "task": "Revisa la llamada HTTP a /api/chat: modelo, timeout, errores HTTP/red, JSON inválido, respuesta vacía y manejo de contenido. Asegura que no hay llamadas a proveedores remotos y que los fallos quedan BLOCKED.",
       "status": "ASSIGNED",
       "assigned": true,
       "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
       "context_paths": [
-        "scripts/colmena_agent_hf.py",
-        ".github/workflows/colmena_hf_agents.yml"
+        "scripts/colmena_agent_ollama.py",
+        "tests/test_colmena_ollama.py"
       ],
-      "assigned_at": "2026-10-09T12:54:39.767186+00:00"
+      "assigned_at": "2026-10-09T12:54:39.767186+00:00",
+      "mission_type": "PLATFORM",
+      "requirement_ids": []
     },
     {
       "id": "M0009",
@@ -143,10 +158,12 @@
       "assigned": true,
       "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
       "context_paths": [
-        "scripts/colmena_agent_hf.py",
-        "tests/test_colmena_hf_agents.py"
+        "scripts/colmena_agent_ollama.py",
+        "tests/test_colmena_ollama.py"
       ],
-      "assigned_at": "2026-10-09T12:54:39.767186+00:00"
+      "assigned_at": "2026-10-09T12:54:39.767186+00:00",
+      "mission_type": "PLATFORM",
+      "requirement_ids": []
     },
     {
       "id": "M0010",
@@ -158,10 +175,12 @@
       "note": "Tarea concreta definida; pendiente de asignación explícita por la Reina.",
       "context_paths": [
         "docs/COLMENA_MISSION_CONTROL.json",
-        "scripts/colmena_queen_hf.py",
-        "tests/test_colmena_hf_agents.py"
+        "scripts/colmena_queen.py",
+        "tests/test_colmena_ollama.py"
       ],
-      "assigned_at": "2026-10-09T12:54:39.767186+00:00"
+      "assigned_at": "2026-10-09T12:54:39.767186+00:00",
+      "mission_type": "PLATFORM",
+      "requirement_ids": []
     },
     {
       "id": "M0011",
@@ -170,7 +189,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0012",
@@ -179,7 +200,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0013",
@@ -188,7 +211,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0014",
@@ -197,7 +222,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0015",
@@ -206,7 +233,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0016",
@@ -215,7 +244,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0017",
@@ -224,7 +255,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0018",
@@ -233,7 +266,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0019",
@@ -242,7 +277,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0020",
@@ -251,7 +288,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0021",
@@ -260,7 +299,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0022",
@@ -269,7 +310,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0023",
@@ -278,7 +321,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0024",
@@ -287,7 +332,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0025",
@@ -296,7 +343,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0026",
@@ -305,7 +354,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0027",
@@ -314,7 +365,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0028",
@@ -323,7 +376,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0029",
@@ -332,7 +387,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0030",
@@ -341,7 +398,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0031",
@@ -350,7 +409,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0032",
@@ -359,7 +420,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0033",
@@ -368,7 +431,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0034",
@@ -377,7 +442,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0035",
@@ -386,7 +453,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0036",
@@ -395,7 +464,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0037",
@@ -404,7 +475,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0038",
@@ -413,7 +486,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0039",
@@ -422,7 +497,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0040",
@@ -431,7 +508,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0041",
@@ -440,7 +519,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0042",
@@ -449,7 +530,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0043",
@@ -458,7 +541,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0044",
@@ -467,7 +552,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0045",
@@ -476,7 +563,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0046",
@@ -485,7 +574,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0047",
@@ -494,7 +585,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0048",
@@ -503,7 +596,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0049",
@@ -512,7 +607,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0050",
@@ -521,7 +618,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0051",
@@ -530,7 +629,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0052",
@@ -539,7 +640,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0053",
@@ -548,7 +651,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0054",
@@ -557,7 +662,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0055",
@@ -566,7 +673,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0056",
@@ -575,7 +684,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0057",
@@ -584,7 +695,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0058",
@@ -593,7 +706,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0059",
@@ -602,7 +717,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0060",
@@ -611,7 +728,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0061",
@@ -620,7 +739,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0062",
@@ -629,7 +750,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0063",
@@ -638,7 +761,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0064",
@@ -647,7 +772,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0065",
@@ -656,7 +783,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0066",
@@ -665,7 +794,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0067",
@@ -674,7 +805,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0068",
@@ -683,7 +816,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0069",
@@ -692,7 +827,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0070",
@@ -701,7 +838,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0071",
@@ -710,7 +849,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0072",
@@ -719,7 +860,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0073",
@@ -728,7 +871,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0074",
@@ -737,7 +882,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0075",
@@ -746,7 +893,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0076",
@@ -755,7 +904,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0077",
@@ -764,7 +915,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0078",
@@ -773,7 +926,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0079",
@@ -782,7 +937,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0080",
@@ -791,7 +948,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0081",
@@ -800,7 +959,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0082",
@@ -809,7 +970,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0083",
@@ -818,7 +981,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0084",
@@ -827,7 +992,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0085",
@@ -836,7 +1003,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0086",
@@ -845,7 +1014,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0087",
@@ -854,7 +1025,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0088",
@@ -863,7 +1036,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0089",
@@ -872,7 +1047,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0090",
@@ -881,7 +1058,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0091",
@@ -890,7 +1069,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0092",
@@ -899,7 +1080,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0093",
@@ -908,7 +1091,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0094",
@@ -917,7 +1102,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0095",
@@ -926,7 +1113,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0096",
@@ -935,7 +1124,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0097",
@@ -944,7 +1135,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0098",
@@ -953,7 +1146,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0099",
@@ -962,7 +1157,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0100",
@@ -971,7 +1168,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0101",
@@ -980,7 +1179,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0102",
@@ -989,7 +1190,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0103",
@@ -998,7 +1201,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0104",
@@ -1007,7 +1212,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0105",
@@ -1016,7 +1223,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0106",
@@ -1025,7 +1234,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0107",
@@ -1034,7 +1245,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0108",
@@ -1043,7 +1256,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0109",
@@ -1052,7 +1267,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0110",
@@ -1061,7 +1278,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0111",
@@ -1070,7 +1289,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0112",
@@ -1079,7 +1300,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0113",
@@ -1088,7 +1311,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0114",
@@ -1097,7 +1322,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0115",
@@ -1106,7 +1333,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0116",
@@ -1115,7 +1344,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0117",
@@ -1124,7 +1355,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0118",
@@ -1133,7 +1366,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0119",
@@ -1142,7 +1377,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0120",
@@ -1151,7 +1388,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0121",
@@ -1160,7 +1399,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0122",
@@ -1169,7 +1410,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0123",
@@ -1178,7 +1421,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0124",
@@ -1187,7 +1432,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0125",
@@ -1196,7 +1443,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0126",
@@ -1205,7 +1454,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0127",
@@ -1214,7 +1465,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0128",
@@ -1223,7 +1476,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0129",
@@ -1232,7 +1487,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0130",
@@ -1241,7 +1498,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0131",
@@ -1250,7 +1509,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0132",
@@ -1259,7 +1520,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0133",
@@ -1268,7 +1531,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0134",
@@ -1277,7 +1542,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0135",
@@ -1286,7 +1553,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0136",
@@ -1295,7 +1564,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0137",
@@ -1304,7 +1575,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0138",
@@ -1313,7 +1586,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0139",
@@ -1322,7 +1597,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0140",
@@ -1331,7 +1608,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0141",
@@ -1340,7 +1619,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0142",
@@ -1349,7 +1630,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0143",
@@ -1358,7 +1641,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0144",
@@ -1367,7 +1652,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0145",
@@ -1376,7 +1663,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0146",
@@ -1385,7 +1674,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0147",
@@ -1394,7 +1685,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0148",
@@ -1403,7 +1696,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0149",
@@ -1412,7 +1707,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0150",
@@ -1421,7 +1718,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0151",
@@ -1430,7 +1729,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0152",
@@ -1439,7 +1740,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0153",
@@ -1448,7 +1751,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0154",
@@ -1457,7 +1762,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0155",
@@ -1466,7 +1773,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0156",
@@ -1475,7 +1784,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0157",
@@ -1484,7 +1795,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0158",
@@ -1493,7 +1806,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0159",
@@ -1502,7 +1817,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0160",
@@ -1511,7 +1828,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0161",
@@ -1520,7 +1839,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0162",
@@ -1529,7 +1850,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0163",
@@ -1538,7 +1861,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0164",
@@ -1547,7 +1872,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0165",
@@ -1556,7 +1883,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0166",
@@ -1565,7 +1894,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0167",
@@ -1574,7 +1905,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0168",
@@ -1583,7 +1916,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0169",
@@ -1592,7 +1927,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0170",
@@ -1601,7 +1938,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0171",
@@ -1610,7 +1949,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0172",
@@ -1619,7 +1960,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0173",
@@ -1628,7 +1971,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0174",
@@ -1637,7 +1982,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0175",
@@ -1646,7 +1993,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0176",
@@ -1655,7 +2004,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0177",
@@ -1664,7 +2015,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0178",
@@ -1673,7 +2026,9 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     },
     {
       "id": "M0179",
@@ -1682,8 +2037,10 @@
       "task": "",
       "status": "PENDING",
       "assigned": false,
-      "note": "Definir una tarea concreta y verificable antes de ejecutar."
+      "note": "Definir una tarea concreta y verificable antes de ejecutar.",
+      "mission_type": "UNDEFINED",
+      "requirement_ids": []
     }
   ],
-  "updated_at": "2026-10-09T13:13:36.049658+00:00"
+  "updated_at": "2026-10-10T21:55:42.122Z"
 }
