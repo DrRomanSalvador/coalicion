@@ -339,3 +339,14 @@ def test_engineering_matrix_makes_individual_principle_rationale_mandatory():
     assert "No basta enumerar números" in matrix
     assert "Una lista desnuda" in matrix
     assert "La revisión de aplicabilidad es habitual en todas las PR" in matrix
+
+
+def test_gate_revalidates_live_head_and_evidence_body_before_pinned_merge():
+    source = (ROOT / "scripts" / "automatic_pr_integration.py").read_text(encoding="utf-8")
+    assert "fetch_current_pr_head_sha(repo, pr_number)" in source
+    assert "current_head_sha != sha" in source
+    assert "current_body != pr_body" in source
+    assert '"--match-head-commit", sha' in source
+    workflow = (ROOT / ".github/workflows/automatic-pr-integration.yml").read_text(encoding="utf-8")
+    assert "synchronize" in workflow
+    assert "edited" in workflow
