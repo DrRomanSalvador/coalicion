@@ -40,6 +40,9 @@ def test_poll_monitor_persists_runtime_state_as_artifact_not_protected_main_push
     assert "SNAPSHOT_UPLOAD_OUTCOME" in source
     assert "client_payload[run_id]" in source
     assert "client_payload[artifact_name]" in source
+    assert "dispatch_colmena:" in source
+    assert "    permissions:\\n      contents: write" in source
+    assert source.index("  dispatch_colmena:") > source.index("  poll_monitor:")
 
 
 def test_completion_gate_uploads_certification_evidence_without_protected_main_push():
