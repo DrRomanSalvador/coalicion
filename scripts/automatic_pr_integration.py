@@ -210,7 +210,16 @@ def validate_pr_body(body: str) -> list[str]:
             continue  # Principle evidence is validated in detail below.
         evidence_lines = [inline_evidence]
         for line in lines[section_index + 1:]:
-            if re.match(r"^[ \t]*#{1,6}[ \t]+\S", line):
+            is_markdown_heading = bool(re.match(r"^[ \t]*#{1,6}[ \t]+\S", line))
+            is_required_section = any(
+                re.match(
+                    rf"^[ \t]*(?:#{{1,6}}[ \t]+)?{re.escape(other)}(?:[ \t].*)?$",
+                    line,
+                    flags=re.IGNORECASE,
+                )
+                for other in REQUIRED_PR_SECTIONS
+            )
+            if is_markdown_heading or is_required_section:
                 break
             evidence_lines.append(line)
         evidence = " ".join(evidence_lines)
