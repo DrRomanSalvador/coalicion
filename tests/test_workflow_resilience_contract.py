@@ -56,7 +56,7 @@ def test_completion_gate_uploads_certification_evidence_without_protected_main_p
 
 def test_seec_evidence_is_retained_as_artifacts_without_protected_main_writes():
     source = (WORKFLOWS / "seec-production-real.yml").read_text(encoding="utf-8")
-    assert "permissions:\\n  contents: read" in source
+    assert "permissions:\n  contents: read" in source
     assert "git push origin HEAD:main" not in source
     assert "Persist successful SEEC posterior evidence" not in source
     assert "Materialize installation failure evidence" not in source
