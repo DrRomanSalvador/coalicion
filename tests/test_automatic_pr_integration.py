@@ -242,6 +242,14 @@ def test_pr_body_gate_rejects_whitespace_only_required_evidence():
     assert any("section 'Causa raíz:' is present but has no substantive evidence" in item for item in findings)
 
 
+def test_pr_body_gate_accepts_legacy_delimiter_before_disposition():
+    body = _valid_pr_body().replace(
+        "- **01** APLICA — Legibilidad antes que ingenio — Este principio se evalúa porque el cambio altera el contrato de integración número 01.",
+        "- **01** — APLICA — Legibilidad antes que ingenio — Este principio se evalúa porque el cambio altera el contrato de integración número 01.",
+    )
+    assert validate_pr_body(body) == []
+
+
 def test_pr_body_requires_reasoned_disposition_for_all_25_principles():
     assert validate_pr_body(_valid_pr_body()) == []
 
