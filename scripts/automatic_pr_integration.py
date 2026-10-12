@@ -193,7 +193,7 @@ def validate_pr_body(body: str) -> list[str]:
     # Presence of a label is not evidence. Require content for each section.
     for section in REQUIRED_PR_SECTIONS:
         heading_match = re.search(
-            rf"(?im)^[ \t]*(?:#{1,6}[ \t]+)?{re.escape(section)}[ \t]*(.*)$",
+            rf"(?im)^[ \t]*(?:#{{1,6}}[ \t]+)?{re.escape(section)}[ \t]*(.*)$",
             body,
         )
         if not heading_match:
