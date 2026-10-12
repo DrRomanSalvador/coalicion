@@ -10,7 +10,7 @@ on:
       - "artifacts/data/cis_recent_2024_2026.csv"
       - "requirements.txt"
       - ".github/workflows/seec-production-real.yml"
-  pull_request_target:
+  pull_request:
     branches: [main]
     paths:
       - "scripts/run_seec_production.py"
