@@ -31,6 +31,17 @@ def test_colmena_checkpoint_stale_sha_is_revalidated_before_persistence():
     assert 'git push origin HEAD:main' in source
 
 
+def test_code_executing_pr_workflows_do_not_use_privileged_pull_request_target():
+    for filename in (
+        "repository-self-regulation.yml",
+        "seec-production-real.yml",
+    ):
+        source = (WORKFLOWS / filename).read_text(encoding="utf-8")
+        assert "pull_request_target:" not in source, filename
+        assert "pull_request:" in source, filename
+        assert "persist-credentials: false" in source, filename
+
+
 def test_workflow_files_have_unique_names_and_expected_yaml_extension():
     paths = sorted(WORKFLOWS.glob("*.yml"))
     assert paths, "No GitHub Actions workflow files found"
