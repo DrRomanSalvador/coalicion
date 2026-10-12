@@ -1,22 +1,22 @@
 name: Automatic pull request integration
 
 on:
-  pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review, edited]
     branches: [main]
 
 permissions:
   actions: read
-  contents: read
-  pull-requests: read
+  contents: write
+  pull-requests: write
 
 concurrency:
   group: pr-validation-${{ github.event.pull_request.number }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event_name == 'pull_request_target' }}
 
 jobs:
   enable-auto-merge:
-    name: Validate all checks before integration
+    name: Automatic PR integration gate
     if: >-
       github.event.pull_request.draft == false &&
       github.event.pull_request.head.repo.full_name == github.repository &&
@@ -24,12 +24,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      - name: Checkout exact PR head for gate script
+      - name: Checkout trusted base revision for gate script
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
-      - name: Wait for every required PR check; never merge from this workflow
+      - name: Suspend queued auto-merge before revalidating PR changes
+        if: github.event.action == 'edited' || github.event.action == 'synchronize'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          queued="$(gh pr view "$PR_NUMBER" --repo "$GH_REPO" --json autoMergeRequest --jq '.autoMergeRequest != null')"
+          if [[ "$queued" == "true" ]]; then
+            gh pr merge "$PR_NUMBER" --repo "$GH_REPO" --disable-auto
+          fi
+      - name: Wait for every required PR check
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}

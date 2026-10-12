@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: agent-contract-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   contract:
@@ -26,5 +26,10 @@ jobs:
           python-version: "3.12"
       - name: Check mandatory policies and links
         run: python scripts/check_agent_contract.py
+      - name: Run the full 25-principle PR evidence gate regression suite
+        run: |
+          python -m pip install --disable-pip-version-check pytest
+          python -m pytest -q tests/test_automatic_pr_integration.py
+
       - name: Test DORA calculations
         run: python -m unittest tests.test_dora_metrics -v
