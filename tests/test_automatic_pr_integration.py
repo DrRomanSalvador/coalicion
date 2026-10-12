@@ -217,15 +217,15 @@ def test_pr_body_gate_rejects_present_but_empty_required_evidence_sections():
         ("Riesgo y rollback:", "Riesgo delimitado; revertir el commit revierte el cambio."),
         ("Excepciones", "Ninguna excepción sin declarar."),
     ):
-        broken = body.replace(f"{heading}\\n{original}", f"{heading}\\n", 1)
+        broken = body.replace(f"{heading}\n{original}", f"{heading}\n", 1)
         findings = validate_pr_body(broken)
         assert any("has no substantive evidence" in item for item in findings), heading
 
 
 def test_pr_body_gate_rejects_whitespace_only_required_evidence():
     body = _valid_pr_body().replace(
-        "Causa raíz:\\nCausa reproducible y comprobada.",
-        "Causa raíz:\\n   ",
+        "Causa raíz:\nCausa reproducible y comprobada.",
+        "Causa raíz:\n   ",
         1,
     )
     findings = validate_pr_body(body)
