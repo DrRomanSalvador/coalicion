@@ -207,6 +207,31 @@ def test_canonical_principle_titles_are_loaded_from_the_single_charter_source():
         assert f"**{title}." in charter
 
 
+def test_pr_body_gate_rejects_present_but_empty_required_evidence_sections():
+    body = _valid_pr_body()
+    for heading, original in (
+        ("Causa raíz:", "Causa reproducible y comprobada."),
+        ("Solución mínima:", "Cambio acotado con regresión."),
+        ("Pruebas ejecutadas y resultado:", "Pruebas de contrato preparadas; CI pendiente."),
+        ("CI del SHA exacto:", "Pendiente de CI para el SHA de esta PR."),
+        ("Riesgo y rollback:", "Riesgo delimitado; revertir el commit revierte el cambio."),
+        ("Excepciones", "Ninguna excepción sin declarar."),
+    ):
+        broken = body.replace(f"{heading}\\n{original}", f"{heading}\\n", 1)
+        findings = validate_pr_body(broken)
+        assert any("has no substantive evidence" in item for item in findings), heading
+
+
+def test_pr_body_gate_rejects_whitespace_only_required_evidence():
+    body = _valid_pr_body().replace(
+        "Causa raíz:\\nCausa reproducible y comprobada.",
+        "Causa raíz:\\n   ",
+        1,
+    )
+    findings = validate_pr_body(body)
+    assert any("section 'Causa raíz:' is present but has no substantive evidence" in item for item in findings)
+
+
 def test_pr_body_requires_reasoned_disposition_for_all_25_principles():
     assert validate_pr_body(_valid_pr_body()) == []
 
