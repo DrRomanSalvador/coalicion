@@ -436,7 +436,7 @@ def required_checks_for_files(changed_files: list[str]) -> set[str]:
     }
     has_hf_changes = any(path in colmena_hf_paths for path in paths)
     has_ollama_changes = any(path in colmena_ollama_paths for path in paths)
-    retires_hf_provider = has_ollama_changes and any(path in retired_hf_paths for path in paths)
+    retires_hf_provider = has_ollama_changes and retired_hf_paths.issubset(set(paths))
     if has_ollama_changes:
         required.add("Colmena Ollama — pruebas aisladas")
     if has_hf_changes and not retires_hf_provider:
