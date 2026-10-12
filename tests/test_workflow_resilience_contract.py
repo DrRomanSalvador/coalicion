@@ -53,6 +53,23 @@ def test_required_contract_runs_the_principle_evidence_regression_suite():
     assert "cancel-in-progress: ${{ github.event_name == 'pull_request' }}" in workflow
 
 
+def test_superseded_pull_request_runs_are_cancelled_not_queued():
+    names = (
+        "automatic-pr-integration.yml",
+        "agent-contract.yml",
+        "methodology_integration.yml",
+        "methodology_validation.yml",
+        "methodology-validation.yml",
+        "product_pipeline.yml",
+        "exhaustive_validation.yml",
+        "repository-self-regulation.yml",
+        "workflow-resilience-tests.yml",
+    )
+    for name in names:
+        source = (WORKFLOWS / name).read_text(encoding="utf-8")
+        assert "cancel-in-progress: ${{ github.event_name == 'pull_request' }}" in source, name
+
+
 def test_workflow_files_have_unique_names_and_expected_yaml_extension():
     paths = sorted(WORKFLOWS.glob("*.yml"))
     assert paths, "No GitHub Actions workflow files found"
