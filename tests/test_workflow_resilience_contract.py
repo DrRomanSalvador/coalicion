@@ -32,10 +32,16 @@ def test_colmena_checkpoint_stale_sha_is_revalidated_before_persistence():
 
 
 def test_long_running_pr_validation_cancels_only_superseded_pr_runs():
-    for filename in ("repository-self-regulation.yml", "seec-production-real.yml"):
+    for filename in ("repository-self-regulation.yml", "seec-production-real.yml", "exhaustive_validation.yml", "product_pipeline.yml", "methodology_integration.yml", "methodology_validation.yml", "methodology-validation.yml", "workflow-resilience-tests.yml"):
         source = (WORKFLOWS / filename).read_text(encoding="utf-8")
         assert "cancel-in-progress: ${{ github.event_name == 'pull_request' }}" in source
         assert "github.event.pull_request.number || github.ref" in source
+
+
+def test_privileged_integration_gate_cancels_only_older_pr_event_runs():
+    source = (WORKFLOWS / "automatic-pr-integration.yml").read_text(encoding="utf-8")
+    assert "cancel-in-progress: ${{ github.event_name == 'pull_request_target' }}" in source
+    assert "cancel-in-progress: true" not in source
 
 
 def test_code_executing_pr_workflows_do_not_use_privileged_pull_request_target():
