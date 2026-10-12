@@ -26,7 +26,7 @@ def test_self_healer_uses_correct_retry_mode_and_rejects_active_runs():
 def test_colmena_checkpoint_stale_sha_is_revalidated_and_artifact_persisted():
     source = (WORKFLOWS / "colmena_atomic_swarm.yml").read_text(encoding="utf-8")
     assert 'if [ "$checkpoint_rc" -eq 3 ]; then' in source
-    assert "revalidating latest main" in source
+    assert "retrying against latest main" in source
     assert "git fetch origin main" in source
     assert "git push origin HEAD:main" not in source
     assert "actions: read" in source
