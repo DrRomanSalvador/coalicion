@@ -64,12 +64,25 @@ jobs:
           PY
       - name: Stage diagnostics for safe artifact persistence
         if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TESTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p ci_evidence/diagnostics
           if [[ -f /tmp/seec_pip_install.log ]]; then cp /tmp/seec_pip_install.log ci_evidence/diagnostics/seec_pip_install.log; fi
           if [[ -f /tmp/seec_run.log ]]; then cp /tmp/seec_run.log ci_evidence/diagnostics/seec_run.log; fi
+          if [[ "$JOB_STATUS" != "success" ]]; then
+            {
+              echo "SEEC_PRODUCTION_FAILURE"
+              echo "status: $JOB_STATUS"
+              echo "tested_sha: $TESTED_SHA"
+              echo "run: $RUN_URL"
+              echo "python: $(python --version 2>&1)"
+            } > ci_evidence/diagnostics/seec_production_failure.txt
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -83,81 +96,3 @@ jobs:
           path: ci_evidence/seec_production.json
 
 # deterministic production gate
-
-  persist_evidence:
-    name: Persist SEEC evidence on trusted main push
-    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: seec
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      actions: read
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          persist-credentials: false
-      - name: Download SEEC diagnostics
-        uses: actions/download-artifact@v4
-        with:
-          name: seec-production-diagnostics
-          path: /tmp/seec-diagnostics
-      - name: Download successful SEEC evidence
-        if: needs.seec.result == 'success'
-        uses: actions/download-artifact@v4
-        with:
-          name: seec-production-evidence
-          path: /tmp/seec-evidence
-      - name: Persist successful SEEC posterior evidence
-        if: needs.seec.result == 'success'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import base64, json, os, pathlib, urllib.request
-          candidates=list(pathlib.Path("/tmp/seec-evidence").rglob("seec_production.json"))
-          if not candidates:
-              raise SystemExit("Successful SEEC run produced no downloadable posterior evidence")
-          body=candidates[0].read_bytes()
-          api=f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/contents/ci_evidence/seec_production.json"
-          headers={"Authorization":"Bearer "+os.environ["GH_TOKEN"],"Accept":"application/vnd.github+json","Content-Type":"application/json","X-GitHub-Api-Version":"2022-11-28"}
-          req=urllib.request.Request(api,headers=headers)
-          try:
-              with urllib.request.urlopen(req) as resp: current=json.load(resp)
-              sha=current["sha"]
-          except Exception:
-              sha=None
-          payload={"message":"ci: materialize genuine SEEC production evidence","content":base64.b64encode(body).decode(),"branch":"main"}
-          if sha: payload["sha"]=sha
-          req=urllib.request.Request(api,data=json.dumps(payload).encode(),method="PUT",headers=headers)
-          with urllib.request.urlopen(req) as resp: print(resp.read().decode())
-          PY
-      - name: Persist failed SEEC diagnostics
-        if: needs.seec.result == 'failure'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import base64, json, os, pathlib, urllib.request
-          root=pathlib.Path("/tmp/seec-diagnostics")
-          logs=sorted(root.rglob("*.log")) if root.exists() else []
-          detail="\n\n".join(f"--- {p.name} ---\n"+p.read_text(errors="replace")[:200000] for p in logs)[:500000]
-          body=f"SEEC_PRODUCTION_FAILURE\nsha: {os.environ['GITHUB_SHA']}\nrun: {os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}\n\n"+(detail or "No diagnostic logs were produced.")
-          api=f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/contents/ci_evidence/seec_production_failure.txt"
-          headers={"Authorization":"Bearer "+os.environ["GH_TOKEN"],"Accept":"application/vnd.github+json","Content-Type":"application/json","X-GitHub-Api-Version":"2022-11-28"}
-          req=urllib.request.Request(api,headers=headers)
-          try:
-              with urllib.request.urlopen(req) as resp: current=json.load(resp)
-              sha=current["sha"]
-          except Exception:
-              sha=None
-          payload={"message":"ci: materialize SEEC production failure diagnostics","content":base64.b64encode(body.encode()).decode(),"branch":"main"}
-          if sha: payload["sha"]=sha
-          req=urllib.request.Request(api,data=json.dumps(payload).encode(),method="PUT",headers=headers)
-          with urllib.request.urlopen(req) as resp: print(resp.read().decode())
-          PY
