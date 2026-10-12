@@ -11,7 +11,7 @@ on:
     - cron: "*/5 * * * *"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: autonomous-poll-monitor-main
@@ -78,58 +78,69 @@ jobs:
             echo "::warning::Poll monitor reported BLOCKED. Derived inputs are not refreshed; state will be persisted before the final failure gate."
           fi
 
-      - name: Persistir estado con autocuración de carreras
-        if: always() && github.ref == 'refs/heads/main' && steps.monitor.outputs.monitor_exit_code != ''
+      - name: Preparar snapshot de estado sin escribir en main
+        if: always() && steps.monitor.outputs.monitor_exit_code != ''
         id: persist
+        shell: bash
         run: |
           set -euo pipefail
-          git config user.name "coalicion-poll-monitor[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          test -f /tmp/poll-monitor-snapshot/poll_monitor_state.json || {
+            echo "::error::Poll state snapshot missing; refusing to report persistence."
+            exit 1
+          }
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=poll-monitor-state-$GITHUB_RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "Poll monitor state will be retained as a run artifact; protected main is never written directly."
 
-          for attempt in 1 2 3 4 5; do
-            git fetch origin main
-            git reset --hard origin/main
+      - name: Upload poll monitor state and source evidence
+        if: always() && steps.persist.outcome == 'success'
+        id: upload_snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: poll-monitor-state-${{ github.run_id }}
+          path: /tmp/poll-monitor-snapshot/**
+          if-no-files-found: error
+          retention-days: 30
 
-            # Reaplicar el snapshot ya validado. Nunca hacemos rebase de JSON/JSONL.
-            test -f /tmp/poll-monitor-snapshot/poll_monitor_state.json || { echo "::error::Poll state snapshot missing."; exit 1; }
-            cp /tmp/poll-monitor-snapshot/poll_monitor_state.json artifacts/poll_monitor_state.json
-            cp /tmp/poll-monitor-snapshot/survey_history.jsonl artifacts/survey_history.jsonl
-            rm -rf artifacts/surveys
-            mkdir -p artifacts/surveys
-            cp -a /tmp/poll-monitor-snapshot/surveys/. artifacts/surveys/
-            git add artifacts/poll_monitor_state.json artifacts/surveys artifacts/survey_history.jsonl
-            if [[ -f /tmp/poll-monitor-snapshot/observations.json ]]; then
-              cp /tmp/poll-monitor-snapshot/observations.json artifacts/estimation/observations.json
-              git add artifacts/estimation/observations.json
-            fi
-            if [[ -f /tmp/poll-monitor-snapshot/poll_source_coverage.json ]]; then
-              cp /tmp/poll-monitor-snapshot/poll_source_coverage.json ci_evidence/poll_source_coverage.json
-              git add ci_evidence/poll_source_coverage.json
-            fi
-            if git diff --cached --quiet; then
-              echo "changed=false" >> "$GITHUB_OUTPUT"
-              echo "Sin cambios persistibles."
-              exit 0
-            fi
-
-            git commit -m "chore: persist poll monitor state"
-
-            if git push origin HEAD:main; then
-              echo "changed=true" >> "$GITHUB_OUTPUT"
-              echo "Persistencia publicada en main (intento $attempt)."
-              exit 0
-            fi
-
-            echo "Carrera detectada; regenerando commit sobre el main más reciente (intento $attempt)."
-          done
-
-          echo "ERROR: no se pudo publicar el estado después de 5 intentos."
-          exit 1
-
-      - name: Despertar COALMENA automáticamente
-        if: steps.persist.outputs.changed == 'true' && steps.monitor.outputs.monitor_exit_code == '0' && steps.monitor.outcome == 'success'
+      - name: Fail closed after persisting monitor state
+        if: always() && steps.monitor.outcome != 'skipped'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MONITOR_EXIT_CODE: ${{ steps.monitor.outputs.monitor_exit_code }}
+          MONITOR_OUTCOME: ${{ steps.monitor.outcome }}
+          SNAPSHOT_UPLOAD_OUTCOME: ${{ steps.upload_snapshot.outcome }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$SNAPSHOT_UPLOAD_OUTCOME" != "success" ]]; then
+            echo "::error::Poll monitor state snapshot was not uploaded; refusing to report successful persistence."
+            exit 1
+          fi
+          if [[ -z "$MONITOR_EXIT_CODE" ]]; then
+            echo "::error::Poll monitor did not produce an exit status; refusing to report success."
+            exit 1
+          fi
+          if [[ "$MONITOR_EXIT_CODE" != "0" ]]; then
+            echo "::error::Poll monitor reported BLOCKED coverage or undelivered required alerts. State snapshot artifact was uploaded before this gate."
+            exit 1
+          fi
+          if [[ "$MONITOR_OUTCOME" != "success" ]]; then
+            echo "::error::Poll monitor/materialization step failed; downstream state is not certified."
+            exit 1
+          fi
+
+  dispatch_colmena:
+    name: Dispatch Colmena after successful poll state snapshot
+    needs: poll_monitor
+    if: needs.poll_monitor.result == 'success' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Despertar COALMENA con referencia al snapshot validado
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
           set -euo pipefail
           gh api --method POST \
@@ -137,24 +148,6 @@ jobs:
             "/repos/${GITHUB_REPOSITORY}/dispatches" \
             -f event_type="poll_monitor_completed" \
             -f "client_payload[commit]=${GITHUB_SHA}" \
-            -f "client_payload[source]=poll_monitor"
-      - name: Fail closed after persisting monitor state
-        if: always() && steps.monitor.outcome != 'skipped'
-        env:
-          MONITOR_EXIT_CODE: ${{ steps.monitor.outputs.monitor_exit_code }}
-          MONITOR_OUTCOME: ${{ steps.monitor.outcome }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ -z "$MONITOR_EXIT_CODE" ]]; then
-            echo "::error::Poll monitor did not produce an exit status; refusing to report success."
-            exit 1
-          fi
-          if [[ "$MONITOR_EXIT_CODE" != "0" ]]; then
-            echo "::error::Poll monitor reported BLOCKED coverage or undelivered required alerts. State persistence was attempted before this gate."
-            exit 1
-          fi
-          if [[ "$MONITOR_OUTCOME" != "success" ]]; then
-            echo "::error::Poll monitor/materialization step failed; downstream state is not certified."
-            exit 1
-          fi
+            -f "client_payload[source]=poll_monitor" \
+            -f "client_payload[run_id]=${GITHUB_RUN_ID}" \
+            -f "client_payload[artifact_name]=poll-monitor-state-${GITHUB_RUN_ID}"
