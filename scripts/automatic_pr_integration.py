@@ -235,10 +235,10 @@ def validate_pr_body(body: str) -> list[str]:
     # A bare list of numbers is not evidence that principles are applied.
     # Require one independently readable rationale per applicable principle.
     mapped_principles = re.findall(
-        r"(?m)^\\s*(?:[-*]\\s*)?(?:\\*\\*)?(0[1-9]|1\\d|2[0-5])(?:\\*\\*)?\\s*(?:[:—–-])\\s*(\\S.*)$",
+        r"(?m)^\s*(?:[-*]\s*)?(?:\*\*)?(0[1-9]|1\d|2[0-5])(?:\*\*)?\s*(?:[:—–-])\s*(\S.*)$",
         principles_value,
     )
-    mentioned_ids = set(re.findall(r"(?<!\\d)(0[1-9]|1\\d|2[0-5])(?!\\d)", principles_value))
+    mentioned_ids = set(re.findall(r"(?<!\d)(0[1-9]|1\d|2[0-5])(?!\d)", principles_value))
     mapped_ids = {number for number, rationale in mapped_principles if len(rationale.strip()) >= 12}
     if not justified_na and (not mentioned_ids or mapped_ids != mentioned_ids):
         missing.append(
