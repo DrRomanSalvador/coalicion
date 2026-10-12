@@ -47,7 +47,7 @@ def test_pull_request_validation_is_read_only_and_issue_writer_is_isolated():
     assert "cache: pip" not in source
     assert "repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}" in source
     assert "track_failure:" in source
-    assert "if: failure() && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main'" in source
+    assert "if: failure() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'" in source
     assert "    permissions:\n      issues: write" in source
 
 
