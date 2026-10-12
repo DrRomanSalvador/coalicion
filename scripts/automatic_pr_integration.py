@@ -190,22 +190,32 @@ def validate_pr_body(body: str) -> list[str]:
         if section.casefold() not in body.casefold()
     ]
 
-    # Presence of a label is not evidence. Require content for each section.
+    # Presence of a label is not evidence. Parse by lines so blank sections
+    # cannot absorb text from later headings.
+    lines = body.splitlines()
     for section in REQUIRED_PR_SECTIONS:
-        heading_match = re.search(
-            rf"(?im)^[ \t]*(?:#{{1,6}}[ \t]+)?{re.escape(section)}[ \t]*(.*)$",
-            body,
+        section_pattern = re.compile(
+            rf"^[ \t]*(?:#{{1,6}}[ \t]+)?{re.escape(section)}[ \t]*(.*?)\s*$",
+            flags=re.IGNORECASE,
         )
-        if not heading_match:
-            continue
-        following = body[heading_match.end():]
-        next_heading = re.search(r"(?m)^[ \t]*#{1,6}[ \t]+\S", following)
-        section_body = following[:next_heading.start()] if next_heading else following
-        if section == "Principios afectados (01–25):":
-            continue  # Validated in detail below, one disposition per canonical principle.
-        evidence = " ".join((heading_match.group(1), section_body))
+        section_index = None
+        inline_evidence = ""
+        for index, line in enumerate(lines):
+            section_match = section_pattern.match(line)
+            if section_match:
+                section_index = index
+                inline_evidence = section_match.group(1)
+                break
+        if section_index is None or section == "Principios afectados (01–25):":
+            continue  # Principle evidence is validated in detail below.
+        evidence_lines = [inline_evidence]
+        for line in lines[section_index + 1:]:
+            if re.match(r"^[ \t]*#{1,6}[ \t]+\S", line):
+                break
+            evidence_lines.append(line)
+        evidence = " ".join(evidence_lines)
         evidence = re.sub(r"(?m)^[ \t]*(?:[-*]|\d+\.)[ \t]*", " ", evidence)
-        evidence = re.sub(r"[#*_\`>]", "", evidence).strip()
+        evidence = re.sub(r"[#*_>]", "", evidence).strip()
         if len(evidence) < 10:
             missing.append(f"section {section!r} is present but has no substantive evidence")
 
