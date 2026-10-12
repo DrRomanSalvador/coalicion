@@ -9,7 +9,8 @@ def test_repository_self_regulation_covers_all_main_pushes_prs_and_scheduled_swe
     source = WORKFLOW.read_text(encoding="utf-8")
     assert "push:\n    branches: [main]" in source
     assert "pull_request:" in source
-    assert 'cron: "*/15 * * * *"' in source
+    assert 'cron: "17 */6 * * *"' in source
+    assert 'cron: "*/15 * * * *"' not in source
     assert "workflow_dispatch:" in source
     assert "paths:" not in source
 
@@ -18,10 +19,14 @@ def test_repository_self_regulation_tests_and_rechecks_exact_commit():
     source = WORKFLOW.read_text(encoding="utf-8")
     assert "EXPECTED_SHA:" in source
     assert 'actual="$(git rev-parse HEAD)"' in source
-    assert "python -m pytest -q" in source
+    assert "python -m pytest -q" not in source
+    gate = (ROOT / "scripts" / "autonomous_fix_and_validate.py").read_text(encoding="utf-8")
+    assert '"-m", "pytest", "-q"' in gate
     assert "python scripts/autonomous_fix_and_validate.py --strict" in source
     assert 'current_main="$(git rev-parse origin/main)"' in source
-    assert '[[ "$current_main" != "$EXPECTED_SHA" ]]' in source
+    assert 'git merge-base --is-ancestor "$EXPECTED_SHA" "$current_main"' in source
+    assert "newer main commit must pass its own push-triggered validation" in source
+    assert "Stale validation:" not in source
 
 
 def test_repository_self_regulation_captures_diagnostics_and_tracks_unresolved_failures():

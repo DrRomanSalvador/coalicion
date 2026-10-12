@@ -32,6 +32,10 @@ Esta matriz convierte la Carta de ingeniería en criterios comprobables. Un prin
 
 ## Protocolo obligatorio de PR
 
-La descripción de cada PR debe registrar: **causa raíz, solución mínima, principios aplicables (01–25), pruebas ejecutadas, resultado CI, riesgo/rollback y excepciones**. Los principios no aplicables se pueden marcar N/A con una justificación breve. No se permite marcar una comprobación como PASS sin evidencia.
+La descripción de cada PR debe registrar: **causa raíz, solución mínima, principios aplicables (01–25), pruebas ejecutadas, resultado CI, riesgo/rollback y excepciones**.
+
+**No basta enumerar números.** Cada principio aplicable se documenta en una línea propia con su ID y una justificación concreta: efecto del cambio, control exigido y/o evidencia de cómo se cumple. Una lista desnuda como `02, 03, 15` no satisface el contrato. El gate automático debe rechazarla. `N/A` solo es admisible si se explica por qué el cambio no afecta directamente ningún principio; no exime de cumplir los principios globales de seguridad, trazabilidad, reproducibilidad, fail-closed y responsabilidad. La revisión de aplicabilidad es habitual en todas las PR; el control concreto es proporcional al riesgo y a la naturaleza del cambio.
+
+No se permite marcar una comprobación como PASS sin evidencia.
 
 La auditoría automática bloquea la integración cuando faltan permisos explícitos, concurrencia, timeout por job, o existe `cancel-in-progress: true`. Los controles que requieren juicio humano deben aprobarse mediante la revisión exigida por la configuración de protección de rama. Un workflow dentro del repositorio no puede sustituir ni activar por sí solo esa protección administrativa.

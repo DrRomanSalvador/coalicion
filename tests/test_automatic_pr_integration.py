@@ -88,7 +88,11 @@ def test_latest_pending_attempt_is_not_hidden_by_older_success():
 def test_pr_body_requires_root_cause_principles_tests_ci_and_rollback():
     valid = """Causa raíz: causa reproducida
 Solución mínima: cambio acotado
-Principios afectados (01–25): 03, 05, 15, 24
+Principios afectados (01–25):
+03 — añade una regresión reproducible para el fallo.
+05 — conserva límites y errores explícitos.
+15 — mantiene el gate obligatorio de integración.
+24 — preserva el resultado determinista.
 Pruebas ejecutadas y resultado: pytest PASS
 CI del SHA exacto: pendiente de ejecución
 Riesgo y rollback: revertir este commit
@@ -107,7 +111,7 @@ Riesgo y rollback:
 Excepciones:
 """
     missing = validate_pr_body(empty)
-    assert any("populated list of applicable principles" in item for item in missing)
+    assert any("principle-by-principle mapping" in item for item in missing)
 
 
 def test_pr_body_fetch_fails_closed_on_github_api_error():
@@ -127,7 +131,18 @@ Reproducible.
 ## Solución mínima:
 Parser corregido.
 ## Principios afectados (01–25):
-01, 02, 03, 05, 06, 09, 11, 15, 19, 20, 21, 22, 24.
+01 — el diff queda legible y revisable.
+02 — elimina la ejecución duplicada de pruebas.
+03 — añade regresiones para el contrato modificado.
+05 — el fallo del gate sigue bloqueando la integración.
+09 — valida el SHA exacto antes de cerrar.
+11 — limita la autorreparación y conserva el bloqueo.
+15 — mantiene los controles obligatorios de CI.
+19 — deja trazabilidad de la decisión operativa.
+20 — convierte el fallo observado en regresión.
+21 — rechaza estados de validación inconsistentes.
+22 — mantiene compatibilidad del contrato de CI.
+24 — fija el SHA y evita resultados ambiguos.
 ## Pruebas ejecutadas y resultado:
 pytest PASS.
 ## CI del SHA exacto:
@@ -156,7 +171,7 @@ Rollback.
 Ninguna.
 """
     missing = validate_pr_body(body)
-    assert any("populated list of applicable principles" in item for item in missing)
+    assert any("principle-by-principle mapping" in item for item in missing)
 
 
 def test_pr_body_gate_accepts_explicit_justified_na():
@@ -169,3 +184,38 @@ Riesgo y rollback: revertir.
 Excepciones: ninguna.
 """
     assert validate_pr_body(body) == []
+
+
+def test_pr_body_gate_rejects_a_bare_list_without_per_principle_rationale():
+    body = """Causa raíz: causa.
+Solución mínima: solución.
+Principios afectados (01–25): 03, 05, 15, 24.
+Pruebas ejecutadas y resultado: pytest PASS.
+CI del SHA exacto: pendiente.
+Riesgo y rollback: revertir.
+Excepciones: ninguna.
+"""
+    missing = validate_pr_body(body)
+    assert any("principle-by-principle mapping" in item for item in missing)
+
+
+def test_pr_body_gate_accepts_concrete_rationale_for_every_listed_principle():
+    body = """Causa raíz: causa.
+Solución mínima: solución.
+Principios afectados (01–25):
+03 — añade una regresión para el fallo.
+05 — conserva el tratamiento explícito de errores.
+24 — hace reproducible el resultado.
+Pruebas ejecutadas y resultado: pytest PASS.
+CI del SHA exacto: pendiente.
+Riesgo y rollback: revertir.
+Excepciones: ninguna.
+"""
+    assert validate_pr_body(body) == []
+
+
+def test_engineering_matrix_makes_principle_rationale_a_permanent_pr_requirement():
+    matrix = (ROOT / "docs" / "ENGINEERING_ENFORCEMENT_MATRIX.md").read_text(encoding="utf-8")
+    assert "No basta enumerar números" in matrix
+    assert "Una lista desnuda" in matrix
+    assert "La revisión de aplicabilidad es habitual en todas las PR" in matrix

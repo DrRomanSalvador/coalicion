@@ -158,16 +158,23 @@ def validate_pr_body(body: str) -> list[str]:
             if part and part.strip()
         ).strip()
 
-    has_principle_ids = bool(re.search(r"(?<!\d)(?:0[1-9]|1\d|2[0-5])(?!\d)", principle_text))
     normalized = principle_text.casefold()
     justified_na = bool(
         re.search(r"\bn/?a\b", normalized)
         and re.search(r"\b(justificaci[oó]n|porque|motivo|no aplica|no son aplicables)\b", normalized)
         and len(re.sub(r"\bn/?a\b", "", normalized).strip(" \t\r\n-:;.")) >= 12
     )
-    if not has_principle_ids and not justified_na:
+    # A bare list of numbers is not evidence that principles are applied.
+    # Require one independently readable rationale per applicable principle.
+    mapped_principles = re.findall(
+        r"(?m)^\s*(?:[-*]\s*)?(?:\*\*)?(0[1-9]|1\d|2[0-5])(?:\*\*)?\s*(?:[:—–-])\s*(\S.*)$",
+        principle_text,
+    )
+    mentioned_ids = set(re.findall(r"(?<!\d)(0[1-9]|1\d|2[0-5])(?!\d)", principle_text))
+    mapped_ids = {number for number, rationale in mapped_principles if len(rationale.strip()) >= 12}
+    if not justified_na and (not mentioned_ids or mapped_ids != mentioned_ids):
         missing.append(
-            "a populated list of applicable principles (01–25), or an explicit justified N/A"
+            "a principle-by-principle mapping (e.g. '03 — regression test added: ...') with a concrete rationale for every applicable ID, or an explicit justified N/A"
         )
     return missing
 
