@@ -192,44 +192,44 @@ def validate_pr_body(body: str) -> list[str]:
 
     # Presence of a label is not evidence. Require content for each section.
     for section in REQUIRED_PR_SECTIONS:
-        heading = re.search(
-            rf"(?im)^[ \t]*(?:#{{1,6}}[ \t]+)?{re.escape(section)}[ \t]*(.*)$",
+        heading_match = re.search(
+            rf"(?im)^[ \t]*(?:#{1,6}[ \t]+)?{re.escape(section)}[ \t]*(.*)$",
             body,
         )
-        if not heading:
+        if not heading_match:
             continue
-        following = body[heading.end():]
-        next_heading = re.search(r"(?m)^[ \t]*#{{1,6}}[ \t]+\S", following)
+        following = body[heading_match.end():]
+        next_heading = re.search(r"(?m)^[ \t]*#{1,6}[ \t]+\S", following)
         section_body = following[:next_heading.start()] if next_heading else following
         if section == "Principios afectados (01–25):":
             continue  # Validated in detail below, one disposition per canonical principle.
-        evidence = " ".join((heading.group(1), section_body))
+        evidence = " ".join((heading_match.group(1), section_body))
         evidence = re.sub(r"(?m)^[ \t]*(?:[-*]|\d+\.)[ \t]*", " ", evidence)
         evidence = re.sub(r"[#*_\`>]", "", evidence).strip()
         if len(evidence) < 10:
             missing.append(f"section {section!r} is present but has no substantive evidence")
 
     heading = re.search(
-        r"(?im)^[ \t]*(?:#{{1,6}}[ \t]+)?Principios afectados \\(01–25\\):[ \t]*(.*)$",
+        r"(?im)^[ \t]*(?:#{1,6}[ \t]+)?Principios afectados \(01–25\):[ \t]*(.*)$",
         body,
     )
     principle_text = ""
     if heading:
         following = body[heading.end():]
-        next_heading = re.search(r"(?m)^[ \t]*#{{1,6}}[ \t]+\S", following)
+        next_heading = re.search(r"(?m)^[ \t]*#{1,6}[ \t]+\S", following)
         section_body = following[:next_heading.start()] if next_heading else following
-        principle_text = "\\n".join(
+        principle_text = "\n".join(
             part.strip()
             for part in (heading.group(1), section_body)
             if part and part.strip()
         ).strip()
 
     titles = canonical_principle_titles()
-    dispositions: dict[int, tuple[str, str]] = {{}}
+    dispositions: dict[int, tuple[str, str]] = {}
     for line in principle_text.splitlines():
         match = re.match(
-            r"^\\s*(?:[-*]\\s*)?(?:\\*\\*)?(0[1-9]|1[0-9]|2[0-5])(?:\\*\\*)?\\s+"
-            r"(APLICA|N/A|NO APLICA)\\b\\s*[:—-]?\\s*(.*?)\\s*$",
+            r"^\s*(?:[-*]\s*)?(?:\*\*)?(0[1-9]|1[0-9]|2[0-5])(?:\*\*)?\s+"
+            r"(APLICA|N/A|NO APLICA)\b\s*[:—-]?\s*(.*?)\s*$",
             line,
             flags=re.IGNORECASE,
         )
@@ -241,29 +241,29 @@ def validate_pr_body(body: str) -> list[str]:
         canonical_title = titles[number]
         if not rationale.casefold().startswith(canonical_title.casefold()):
             missing.append(
-                f"principle {{number:02d}} must name its canonical title: {{canonical_title}}"
+                f"principle {number:02d} must name its canonical title: {canonical_title}"
             )
             continue
         if number in dispositions:
-            missing.append(f"principle {{number:02d}} is declared more than once")
+            missing.append(f"principle {number:02d} is declared more than once")
             continue
-        explanation = rationale[len(canonical_title):].strip(" \\t:—-")
+        explanation = rationale[len(canonical_title):].strip(" \t:—-")
         if len(explanation) < 20:
-            missing.append(f"principle {{number:02d}} needs a concrete rationale after its canonical title (at least 20 characters)")
+            missing.append(f"principle {number:02d} needs a concrete rationale after its canonical title (at least 20 characters)")
             continue
-        if disposition in {{"N/A", "NO APLICA"}} and not re.search(
-            r"\\b(porque|motivo|justificaci[oó]n|no modifica|no afecta|no cambia|no corresponde|fuera de alcance)\\b",
+        if disposition in {"N/A", "NO APLICA"} and not re.search(
+            r"\b(porque|motivo|justificaci[oó]n|no modifica|no afecta|no cambia|no corresponde|fuera de alcance)\b",
             rationale,
             flags=re.IGNORECASE,
         ):
-            missing.append(f"principle {{number:02d}} is N/A without an explicit justification")
+            missing.append(f"principle {number:02d} is N/A without an explicit justification")
             continue
         dispositions[number] = (disposition, rationale)
 
     for number in range(1, 26):
         if number not in dispositions:
             missing.append(
-                f"principle {{number:02d}} must have exactly one APLICA/N/A disposition and a concrete rationale"
+                f"principle {number:02d} must have exactly one APLICA/N/A disposition and a concrete rationale"
             )
     return missing
 
