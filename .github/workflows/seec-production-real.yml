@@ -24,8 +24,8 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: seec-posterior-persistence-${{ github.ref }}
-  cancel-in-progress: false
+  group: seec-production-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   seec:
     runs-on: ubuntu-latest
