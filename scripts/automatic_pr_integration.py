@@ -246,7 +246,7 @@ def validate_pr_body(body: str) -> list[str]:
     for line in principle_text.splitlines():
         match = re.match(
             r"^\s*(?:[-*]\s*)?(?:\*\*)?(0[1-9]|1[0-9]|2[0-5])(?:\*\*)?\s+"
-            r"(APLICA|N/A|NO APLICA)\b\s*[:—-]?\s*(.*?)\s*$",
+            r"(?:[:—–-]\s*)?(APLICA|N/A|NO APLICA)\b\s*[:—-]?\s*(.*?)\s*$",
             line,
             flags=re.IGNORECASE,
         )
