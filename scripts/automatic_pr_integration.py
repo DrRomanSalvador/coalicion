@@ -424,7 +424,22 @@ def required_checks_for_files(changed_files: list[str]) -> set[str]:
         "tests/test_colmena_hf_agents.py", "docs/COLMENA_MISSION_CONTROL.json",
         ".github/workflows/colmena_hf_agents.yml", ".github/workflows/colmena_hf_tests.yml",
     }
-    if any(path in colmena_hf_paths for path in paths):
+    retired_hf_paths = {
+        "scripts/colmena_queen_hf.py", "scripts/colmena_agent_hf.py",
+        "tests/test_colmena_hf_agents.py",
+        ".github/workflows/colmena_hf_agents.yml", ".github/workflows/colmena_hf_tests.yml",
+    }
+    colmena_ollama_paths = {
+        "scripts/colmena_queen.py", "scripts/colmena_agent_ollama.py",
+        "tests/test_colmena_ollama.py",
+        ".github/workflows/colmena_ollama_agents.yml", ".github/workflows/colmena_ollama_tests.yml",
+    }
+    has_hf_changes = any(path in colmena_hf_paths for path in paths)
+    has_ollama_changes = any(path in colmena_ollama_paths for path in paths)
+    retires_hf_provider = has_ollama_changes and any(path in retired_hf_paths for path in paths)
+    if has_ollama_changes:
+        required.add("Colmena Ollama — pruebas aisladas")
+    if has_hf_changes and not retires_hf_provider:
         required.add("Colmena HF — tests aislados")
 
     demo_multiparty_paths = {
