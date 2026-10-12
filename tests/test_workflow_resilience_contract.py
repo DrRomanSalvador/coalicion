@@ -23,14 +23,18 @@ def test_self_healer_uses_correct_retry_mode_and_rejects_active_runs():
     assert 'gh run rerun "$run_id" --failed --repo "$REPOSITORY"' in source
 
 
-def test_colmena_checkpoint_stale_sha_is_revalidated_before_persistence():
+def test_colmena_checkpoint_stale_sha_is_revalidated_and_artifact_persisted():
     source = (WORKFLOWS / "colmena_atomic_swarm.yml").read_text(encoding="utf-8")
     assert 'if [ "$checkpoint_rc" -eq 3 ]; then' in source
     assert "revalidating latest main" in source
-    assert 'git fetch origin main' in source
-    assert 'git push origin HEAD:main' in source
-
-
+    assert "git fetch origin main" in source
+    assert "git push origin HEAD:main" not in source
+    assert "actions: read" in source
+    assert "Locate latest successful Colmena checkpoint artifact" in source
+    assert "Download latest successful Colmena checkpoint" in source
+    assert "Restore checkpoint state for validation" in source
+    assert "name: colmena-checkpoint-state" in source
+    assert "Upload validated Colmena checkpoint artifact" in source
 def test_poll_monitor_persists_runtime_state_as_artifact_not_protected_main_push():
     source = (WORKFLOWS / "poll_monitor.yml").read_text(encoding="utf-8")
     assert "permissions:\n  contents: read" in source
@@ -41,7 +45,7 @@ def test_poll_monitor_persists_runtime_state_as_artifact_not_protected_main_push
     assert "client_payload[run_id]" in source
     assert "client_payload[artifact_name]" in source
     assert "dispatch_colmena:" in source
-    assert "    permissions:\\n      contents: write" in source
+    assert "    permissions:\n      contents: write" in source
     assert source.index("  dispatch_colmena:") > source.index("  poll_monitor:")
 
 
