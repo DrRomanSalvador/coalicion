@@ -31,6 +31,26 @@ def test_colmena_checkpoint_stale_sha_is_revalidated_before_persistence():
     assert 'git push origin HEAD:main' in source
 
 
+def test_poll_monitor_persists_runtime_state_as_artifact_not_protected_main_push():
+    source = (WORKFLOWS / "poll_monitor.yml").read_text(encoding="utf-8")
+    assert "permissions:\n  contents: read" in source
+    assert "git push origin HEAD:main" not in source
+    assert "Upload poll monitor state and source evidence" in source
+    assert "actions/upload-artifact@v4" in source
+    assert "SNAPSHOT_UPLOAD_OUTCOME" in source
+    assert "client_payload[run_id]" in source
+    assert "client_payload[artifact_name]" in source
+
+
+def test_completion_gate_uploads_certification_evidence_without_protected_main_push():
+    source = (WORKFLOWS / "completion_gate.yml").read_text(encoding="utf-8")
+    assert "permissions:\n  contents: read" in source
+    assert "git push origin HEAD:main" not in source
+    assert "Upload master certification evidence" in source
+    assert "actions/upload-artifact@v4" in source
+    assert "retention-days: 30" in source
+
+
 def test_workflow_files_have_unique_names_and_expected_yaml_extension():
     paths = sorted(WORKFLOWS.glob("*.yml"))
     assert paths, "No GitHub Actions workflow files found"
@@ -108,8 +128,8 @@ def test_self_healer_reports_exhausted_failures_even_when_retryable_candidates_e
     assert 'select(.status == "completed" and .run_attempt < 3)' in source
     assert '[[ "${#candidates[@]}" -eq 0 ]]' in source
     assert source.index("EXHAUSTED_RETRY_BUDGET") < source.index('if [[ "$failures" -gt 0 ]]; then')
-    assert 'printf \'%s\\\\n\' "$exhausted"' not in source
-    assert source.count('printf \'%s\\n\' "$exhausted" | tee -a "$GITHUB_STEP_SUMMARY"') == 2
+    assert 'printf \'%s\\\n\' "$exhausted"' not in source
+    assert source.count('printf \'%s\n\' "$exhausted" | tee -a "$GITHUB_STEP_SUMMARY"') == 2
 
 
 def test_global_orchestrator_automatically_checks_for_stuck_canonical_runs():
