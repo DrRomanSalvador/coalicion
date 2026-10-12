@@ -101,20 +101,6 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Despertar COALMENA automáticamente
-        if: steps.persist.outputs.changed == 'true' && steps.upload_snapshot.outcome == 'success' && steps.monitor.outputs.monitor_exit_code == '0' && steps.monitor.outcome == 'success'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          gh api --method POST \
-            -H "Accept: application/vnd.github+json" \
-            "/repos/${GITHUB_REPOSITORY}/dispatches" \
-            -f event_type="poll_monitor_completed" \
-            -f "client_payload[commit]=${GITHUB_SHA}" \
-            -f "client_payload[source]=poll_monitor" \
-            -f "client_payload[run_id]=${GITHUB_RUN_ID}" \
-            -f "client_payload[artifact_name]=poll-monitor-state-${GITHUB_RUN_ID}"
       - name: Fail closed after persisting monitor state
         if: always() && steps.monitor.outcome != 'skipped'
         env:
@@ -140,3 +126,27 @@ jobs:
             echo "::error::Poll monitor/materialization step failed; downstream state is not certified."
             exit 1
           fi
+
+  dispatch_colmena:
+    name: Dispatch Colmena after successful poll state snapshot
+    needs: poll_monitor
+    if: needs.poll_monitor.result == 'success' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Despertar COALMENA con referencia al snapshot validado
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${GITHUB_REPOSITORY}/dispatches" \
+            -f event_type="poll_monitor_completed" \
+            -f "client_payload[commit]=${GITHUB_SHA}" \
+            -f "client_payload[source]=poll_monitor" \
+            -f "client_payload[run_id]=${GITHUB_RUN_ID}" \
+            -f "client_payload[artifact_name]=poll-monitor-state-${GITHUB_RUN_ID}"
