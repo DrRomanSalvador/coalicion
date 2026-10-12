@@ -144,6 +144,15 @@ jobs:
             git reset --hard origin/main
             cp /tmp/colmena-previous-state.json docs/COLMENA_STATE.json
 
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          state = json.loads(Path("docs/COLMENA_STATE.json").read_text(encoding="utf-8"))
+          assert state.get("schema") == "COLMENA_STATE_V1"
+          assert state.get("fail_closed") is True
+          assert state.get("status") in {"SELLABLE_BETA", "OPERATIONAL_BETA"}
+          assert isinstance(state.get("next_single_action"), str) and state["next_single_action"].strip()
+          PY
             python -m src.colmena_resume
             python -m src.reproducibility_contract
             python -m pytest -q tests/test_reproducibility_contract.py tests/test_error_registry.py tests/test_colmena_resume.py tests/test_product_contract.py tests/test_resume_error_registry_consistency.py tests/test_demo_e2e.py tests/test_coalition.py tests/test_neutral_audit.py
